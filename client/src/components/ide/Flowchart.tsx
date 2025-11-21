@@ -46,10 +46,11 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <Controls position="top-left" className="bg-card border-border text-foreground" />
           <MiniMap 
             position="bottom-left"
+            style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
             nodeColor="#3b82f6"
             maskColor="rgba(0, 0, 0, 0.1)"
-            className="!bg-card !border !border-border !shadow-lg !rounded-md !overflow-hidden"
-            style={{ height: 150, width: 200 }}
+            zoomable
+            pannable
           />
         </ReactFlow>
       </div>
