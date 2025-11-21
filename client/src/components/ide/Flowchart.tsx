@@ -38,8 +38,9 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <Background color="var(--color-border)" gap={24} size={1} />
           <Controls className="bg-card border-border text-foreground" />
           <MiniMap 
-            nodeColor={() => 'var(--color-primary)'}
-            maskColor="rgb(0, 0, 0, 0.1)"
+            className="bg-card border border-border shadow-lg rounded-md overflow-hidden"
+            nodeColor="#3b82f6" 
+            maskColor="rgba(0, 0, 0, 0.3)"
           />
         </ReactFlow>
       </div>

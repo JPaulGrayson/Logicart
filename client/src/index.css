@@ -109,11 +109,6 @@ body {
   fill: hsl(var(--muted) / 0.2);
 }
 
-.react-flow__minimap-node {
-  fill: hsl(var(--primary));
-  stroke: none;
-}
-
 /* Code Editor Overrides */
 .prism-editor-textarea {
   outline: none !important;
