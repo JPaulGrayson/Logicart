@@ -1,0 +1,166 @@
+# Cartographer - Code-to-Flowchart Visualization Tool
+
+## Overview
+
+Cartographer is a bidirectional code-to-flowchart visualization tool built with React. It allows developers to visualize JavaScript code execution as interactive flowcharts, step through code execution, and understand control flow patterns. The application parses JavaScript functions using AST analysis and renders them as interactive graphs using React Flow, with plans to support bi-directional editing where changes to the flowchart update the source code.
+
+**Core Purpose**: Transform JavaScript code into visual control flow diagrams that can be interactively executed and debugged step-by-step.
+
+**Target Users**: "Vibe Coders" who prefer visual learning and debugging of code logic.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+**Technology Stack**:
+- React 18+ with TypeScript
+- Vite as build tool and development server
+- React Router (wouter) for client-side routing
+- TanStack Query for server state management
+- Tailwind CSS v4 with custom design system
+
+**Component Structure**:
+The application follows a workbench-style IDE layout with three primary panels:
+1. **Code Editor** (left): Monaco-style editor with syntax highlighting via PrismJS
+2. **Flowchart Visualizer** (center): React Flow canvas displaying control flow graph
+3. **Variable Watch** (right): Real-time variable state during execution
+
+**Key Libraries**:
+- `@xyflow/react` (React Flow) for graph visualization and interaction
+- `acorn` for JavaScript AST parsing
+- `react-simple-code-editor` with PrismJS for code editing
+- Radix UI for accessible component primitives
+- shadcn/ui component system with custom "Cartographer" theme
+
+**Design Pattern**: The application uses a resizable panel layout with React Flow for node-based visualization. Custom node types (DecisionNode) handle conditional logic rendering with diamond shapes.
+
+### Parser & Interpreter Engine
+
+**AST Parsing** (`client/src/lib/parser.ts`):
+- Uses Acorn parser with ECMAScript 2020 support and location tracking
+- Converts JavaScript AST into flowchart nodes and edges
+- Maps AST nodes to unique IDs for bidirectional navigation
+- Captures source location data (line/column) for code-to-graph mapping
+
+**Node Types**:
+- `input`: Function entry points (blue)
+- `output`: Return statements (red)
+- `decision`: Conditional branches (yellow, diamond-shaped)
+- `default`: Regular statements (gray)
+
+**Interpreter** (`client/src/lib/interpreter.ts`):
+- Step-by-step JavaScript execution engine
+- Tracks execution state: variables, call stack, current node
+- Supports control flow: conditionals, returns, function calls
+- Future support planned for loops and complex expressions
+
+**Execution States**: `idle`, `running`, `paused`, `completed`, `error`
+
+### Styling & Theming
+
+**Custom Theme**: "Technical, Clean, Blueprint-like" aesthetic
+- Dark mode by default (Slate 900 base)
+- Primary accent: Blue 500 (#3b82f6)
+- Monospace font: JetBrains Mono for code
+- Sans font: Inter for UI
+
+**CSS Architecture**:
+- Tailwind CSS with custom theme tokens
+- CSS variables for semantic colors
+- Custom utilities: `hover-elevate`, `active-elevate-2`
+
+### Backend Architecture
+
+**Server Framework**: Express.js with TypeScript
+- Development mode: Vite middleware integration with HMR
+- Production mode: Static file serving from `dist/public`
+- Logging utility with formatted timestamps
+
+**Storage Interface**: 
+- Abstract `IStorage` interface for CRUD operations
+- Current implementation: In-memory storage (`MemStorage`)
+- Schema defined with Drizzle ORM for future database migration
+- User entity with username/password fields
+
+**Development vs Production**:
+- `server/index-dev.ts`: Vite SSR middleware for hot reload
+- `server/index-prod.ts`: Serves pre-built static assets
+- Separate build process: Client (Vite) + Server (esbuild)
+
+### Data Flow Architecture
+
+**Code → Graph Pipeline**:
+1. User types code in editor
+2. Debounced (500ms) parsing with Acorn
+3. AST traversal creates FlowNode and FlowEdge arrays
+4. React Flow renders graph with custom node components
+5. Node map maintains AST-to-visual bidirectional references
+
+**Execution → Visualization**:
+1. Interpreter prepares execution steps from AST
+2. Play/pause controls trigger step advancement
+3. Current node highlighted in green
+4. Variable state displayed in side panel
+5. Call stack tracked for recursive functions
+
+**Future: Graph → Code**:
+- Planned: Double-click nodes to edit logic
+- Code patcher will replace AST ranges in source string
+- Auto re-parse to update visualization
+
+### Planned Features (Implementation Plan)
+
+**Phase 1**: Source mapping for navigation (AST location → editor highlighting)
+
+**Phase 2**: Step-by-step interpreter with visual state (✅ mostly complete)
+
+**Phase 3**: Bi-directional editing (edit flowchart → update code)
+
+**Phase 4**: Advanced layout with `dagre`/`elkjs` for complex control flow
+
+## External Dependencies
+
+### Database
+- **Drizzle ORM**: Schema definition and migration toolkit
+- **@neondatabase/serverless**: Postgres client (configured but not yet connected)
+- **PostgreSQL**: Database configured via `DATABASE_URL` environment variable
+- Note: Application currently uses in-memory storage; database integration is prepared but not active
+
+### UI Libraries
+- **Radix UI**: Headless accessible component primitives (Dialog, Dropdown, Tooltip, etc.)
+- **shadcn/ui**: Pre-styled component library built on Radix
+- **@xyflow/react**: Graph/flowchart visualization library
+- **PrismJS**: Syntax highlighting for code editor
+- **react-simple-code-editor**: Lightweight code editing component
+
+### Build & Development Tools
+- **Vite**: Frontend build tool with HMR and TypeScript support
+- **esbuild**: Server-side bundling for production
+- **tsx**: TypeScript execution for development server
+- **@replit/vite-plugin-***: Replit-specific development plugins (cartographer, dev-banner, runtime-error-modal)
+
+### Parsing & AST
+- **acorn**: JavaScript parser for AST generation
+- **@jridgewell/trace-mapping**: Source map utilities
+
+### Form & Validation
+- **react-hook-form**: Form state management
+- **@hookform/resolvers**: Validation resolver integration
+- **zod**: Schema validation (used with Drizzle)
+
+### Utilities
+- **class-variance-authority**: Component variant styling
+- **clsx**: Conditional className utility
+- **tailwind-merge**: Tailwind class merging
+- **date-fns**: Date manipulation utilities
+- **nanoid**: Unique ID generation
+
+### Fonts
+- **Google Fonts**: JetBrains Mono (monospace), Inter (sans-serif)
+
+### Session Management
+- **connect-pg-simple**: PostgreSQL session store (configured for future use)
