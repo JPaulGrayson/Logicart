@@ -101,6 +101,19 @@ body {
   @apply bg-muted;
 }
 
+.react-flow__minimap {
+  @apply bg-card border border-border shadow-lg rounded-md overflow-hidden;
+}
+
+.react-flow__minimap-mask {
+  fill: hsl(var(--muted) / 0.2);
+}
+
+.react-flow__minimap-node {
+  fill: hsl(var(--primary));
+  stroke: none;
+}
+
 /* Code Editor Overrides */
 .prism-editor-textarea {
   outline: none !important;
