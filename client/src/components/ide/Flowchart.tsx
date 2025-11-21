@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, ConnectionLineType, Node, Edge, Position } from '@xyflow/react';
+import React, { useMemo, useEffect } from 'react';
+import { ReactFlow, Background, Controls, MiniMap, ConnectionLineType, Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
@@ -10,20 +10,21 @@ interface FlowchartProps {
   edges: FlowEdge[];
 }
 
+// Define nodeTypes outside the component to prevent re-creation on every render
+const nodeTypes = {
+  decision: DecisionNode,
+};
+
 export function Flowchart({ nodes: initialNodes, edges: initialEdges }: FlowchartProps) {
-  // We use key to force re-render when nodes/edges change significantly from the parser
-  // In a real app, we'd use useEffect to sync, but for MVP this ensures fresh layout
-  const key = useMemo(() => JSON.stringify({ n: initialNodes.length, e: initialEdges.length }), [initialNodes, initialEdges]);
+  // Use React Flow's internal state management
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
 
-  // Register custom node types
-  const nodeTypes = useMemo(() => ({
-    decision: DecisionNode,
-  }), []);
-
-  // Cast our parser nodes to ReactFlow nodes since we know they are compatible at runtime
-  // and we relaxed the type in parser.ts
-  const nodes = initialNodes as unknown as Node[];
-  const edges = initialEdges as unknown as Edge[];
+  // Sync props with internal state when they change (from parser)
+  useEffect(() => {
+    setNodes(initialNodes as unknown as Node[]);
+    setEdges(initialEdges as unknown as Edge[]);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   // Debug: Check if nodes have dimensions
   console.log('Flowchart nodes:', nodes);
@@ -38,9 +39,10 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
       </div>
       <div className="flex-1 relative">
         <ReactFlow
-          key={key}
           nodes={nodes}
           edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           fitView
           proOptions={{ hideAttribution: true }}
@@ -51,6 +53,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <MiniMap 
             position="bottom-left"
             style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+            nodeComponent={MiniMapNode}
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
               if (n.type === 'output') return '#ef4444';
