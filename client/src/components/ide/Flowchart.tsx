@@ -39,7 +39,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <Controls className="bg-card border-border text-foreground" />
           <MiniMap 
             className="bg-card border border-border shadow-lg rounded-md overflow-hidden"
-            nodeColor={() => 'var(--color-primary)'}
+            nodeColor="#3b82f6"
             maskColor="rgba(0, 0, 0, 0.3)"
           />
         </ReactFlow>
