@@ -9,6 +9,7 @@ interface FlowchartProps {
   nodes: FlowNode[];
   edges: FlowEdge[];
   onNodeClick?: (node: Node) => void;
+  activeNodeId?: string | null;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -16,16 +17,25 @@ const nodeTypes = {
   decision: DecisionNode,
 };
 
-export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick }: FlowchartProps) {
+export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick, activeNodeId }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
 
   // Sync props with internal state when they change (from parser)
   useEffect(() => {
-    setNodes(initialNodes as unknown as Node[]);
+    const updatedNodes = initialNodes.map(node => {
+      const isActive = node.id === activeNodeId;
+      return {
+        ...node,
+        className: isActive 
+          ? 'bg-green-500/20 border-green-500 border-2 shadow-lg shadow-green-500/50'
+          : node.className || ''
+      } as unknown as Node;
+    });
+    setNodes(updatedNodes);
     setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+  }, [initialNodes, initialEdges, activeNodeId, setNodes, setEdges]);
 
   return (
     <div className="h-full w-full bg-background flex flex-col">

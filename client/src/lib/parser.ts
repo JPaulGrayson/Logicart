@@ -32,6 +32,7 @@ export interface FlowEdge {
 export interface FlowData {
   nodes: FlowNode[];
   edges: FlowEdge[];
+  nodeMap: Map<any, string>;
 }
 
 // Simple recursive parser to convert AST to Flowchart
@@ -42,14 +43,21 @@ export function parseCodeToFlow(code: string): FlowData {
     const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
+    const nodeMap = new Map<any, string>();
     let nodeIdCounter = 0;
     let xPos = 250;
     let yPos = 50;
     const yGap = 100;
 
-    const createNode = (label: string, type: FlowNode['type'] = 'default', x: number = xPos, y: number = yPos, className?: string, loc?: SourceLocation): FlowNode => {
+    const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', x: number = xPos, y: number = yPos, className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
+      
+      // Map the AST statement to this node ID
+      if (stmt) {
+        nodeMap.set(stmt, id);
+      }
+      
       return {
         id,
         type,
@@ -77,7 +85,7 @@ export function parseCodeToFlow(code: string): FlowData {
     };
 
     // Start Node
-    const startNode = createNode('Start', 'input', 250, 0, 'bg-primary text-primary-foreground border-none');
+    const startNode = createNode(null, 'Start', 'input', 250, 0, 'bg-primary text-primary-foreground border-none');
     nodes.push(startNode);
     
     let lastNodeId = startNode.id;
@@ -95,7 +103,7 @@ export function parseCodeToFlow(code: string): FlowData {
         if (stmt.type === 'VariableDeclaration') {
           const decl = stmt.declarations[0];
           const label = `${stmt.kind} ${decl.id.name} = ...`;
-          const node = createNode(label, 'default', 250 + offsetX, localY, undefined, loc);
+          const node = createNode(stmt, label, 'default', 250 + offsetX, localY, undefined, loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
@@ -107,14 +115,14 @@ export function parseCodeToFlow(code: string): FlowData {
           } else if (stmt.expression.type === 'CallExpression') {
              label = `${stmt.expression.callee.name}(...)`;
           }
-          const node = createNode(label, 'default', 250 + offsetX, localY, undefined, loc);
+          const node = createNode(stmt, label, 'default', 250 + offsetX, localY, undefined, loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
           localY += yGap;
         } else if (stmt.type === 'ReturnStatement') {
           const label = stmt.argument ? `return ...` : 'return';
-          const node = createNode(label, 'output', 250 + offsetX, localY, 'bg-destructive/20 border-destructive/50', loc);
+          const node = createNode(stmt, label, 'output', 250 + offsetX, localY, 'bg-destructive/20 border-destructive/50', loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
@@ -122,7 +130,7 @@ export function parseCodeToFlow(code: string): FlowData {
         } else if (stmt.type === 'IfStatement') {
           // Decision Node
           const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
-          const decisionNode = createNode(testLabel, 'decision', 250 + offsetX, localY, undefined, loc);
+          const decisionNode = createNode(stmt, testLabel, 'decision', 250 + offsetX, localY, undefined, loc);
           
           // We store the full label in data for the tooltip/detail view later, but keep display short
           decisionNode.data.label = `if (${testLabel}) ?`;
@@ -164,7 +172,7 @@ export function parseCodeToFlow(code: string): FlowData {
           }
           
           // Merge point (optional for MVP, but good for flow)
-          const mergeNode = createNode('End If', 'default', 250 + offsetX, localY + (yGap * (Math.max(trueBranchNodes.length, 1) + 1)), 'w-4 h-4 p-0 rounded-full bg-muted', undefined);
+          const mergeNode = createNode(null, 'End If', 'default', 250 + offsetX, localY + (yGap * (Math.max(trueBranchNodes.length, 1) + 1)), 'w-4 h-4 p-0 rounded-full bg-muted', undefined);
           
           // Connect branches to merge
           // This is getting complex for a recursive function.
@@ -192,7 +200,7 @@ export function parseCodeToFlow(code: string): FlowData {
 
     processBlock(statements, startNode.id, 100);
 
-    return { nodes, edges };
+    return { nodes, edges, nodeMap };
 
   } catch (e) {
     console.error("Parse error", e);
@@ -200,7 +208,8 @@ export function parseCodeToFlow(code: string): FlowData {
       nodes: [
         { id: 'error', type: 'input', data: { label: 'Syntax Error' }, position: { x: 250, y: 50 }, className: 'bg-destructive text-destructive-foreground' }
       ],
-      edges: []
+      edges: [],
+      nodeMap: new Map()
     };
   }
 }

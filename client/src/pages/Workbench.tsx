@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
+import { ExecutionControls } from '@/components/ide/ExecutionControls';
+import { VariableWatch } from '@/components/ide/VariableWatch';
 import { parseCodeToFlow, FlowNode } from '@/lib/parser';
+import { Interpreter, ExecutionState } from '@/lib/interpreter';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Node } from '@xyflow/react';
 
@@ -17,13 +20,109 @@ export default function Workbench() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [flowData, setFlowData] = useState(parseCodeToFlow(DEFAULT_CODE));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [executionState, setExecutionState] = useState<ExecutionState | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  
+  const interpreterRef = useRef<Interpreter | null>(null);
+  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setFlowData(parseCodeToFlow(code));
+      // Reset interpreter when code changes
+      interpreterRef.current = null;
+      setActiveNodeId(null);
+      setExecutionState(null);
+      setIsPlaying(false);
+      setProgress({ current: 0, total: 0 });
     }, 500); // Debounce parsing
     return () => clearTimeout(timer);
   }, [code]);
+
+  const initializeInterpreter = () => {
+    interpreterRef.current = new Interpreter(code, flowData.nodeMap);
+    const success = interpreterRef.current.prepare('factorial', [5]);
+    
+    if (success) {
+      const prog = interpreterRef.current.getProgress();
+      setProgress(prog);
+      return true;
+    }
+    return false;
+  };
+
+  const handlePlay = () => {
+    if (!interpreterRef.current) {
+      const success = initializeInterpreter();
+      if (!success) return;
+    }
+    
+    setIsPlaying(true);
+    
+    // Auto-step through execution
+    playIntervalRef.current = setInterval(() => {
+      if (interpreterRef.current) {
+        const step = interpreterRef.current.stepForward();
+        
+        if (step) {
+          setActiveNodeId(step.nodeId);
+          setExecutionState(step.state);
+          setProgress(interpreterRef.current.getProgress());
+          
+          // Find and highlight the source line
+          const node = flowData.nodes.find(n => n.id === step.nodeId);
+          if (node?.data.sourceData) {
+            setHighlightedLine(node.data.sourceData.start.line);
+          }
+        } else {
+          // Execution completed
+          handlePause();
+        }
+      }
+    }, 800); // Step every 800ms
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    if (playIntervalRef.current) {
+      clearInterval(playIntervalRef.current);
+      playIntervalRef.current = null;
+    }
+  };
+
+  const handleStepForward = () => {
+    if (!interpreterRef.current) {
+      const success = initializeInterpreter();
+      if (!success) return;
+    }
+    
+    if (!interpreterRef.current) return;
+    
+    const step = interpreterRef.current.stepForward();
+    
+    if (step) {
+      setActiveNodeId(step.nodeId);
+      setExecutionState(step.state);
+      setProgress(interpreterRef.current.getProgress());
+      
+      // Find and highlight the source line
+      const node = flowData.nodes.find(n => n.id === step.nodeId);
+      if (node?.data.sourceData) {
+        setHighlightedLine(node.data.sourceData.start.line);
+      }
+    }
+  };
+
+  const handleReset = () => {
+    handlePause();
+    interpreterRef.current = null;
+    setActiveNodeId(null);
+    setExecutionState(null);
+    setHighlightedLine(null);
+    setProgress({ current: 0, total: 0 });
+  };
 
   const handleNodeClick = (node: Node) => {
     const flowNode = node as unknown as FlowNode;
@@ -32,6 +131,17 @@ export default function Workbench() {
       setHighlightedLine(flowNode.data.sourceData.start.line);
     }
   };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (playIntervalRef.current) {
+        clearInterval(playIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const canStep = flowData.nodes.length > 1 && flowData.nodes[0].id !== 'error';
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
@@ -51,9 +161,19 @@ export default function Workbench() {
         </div>
       </header>
       
+      <ExecutionControls
+        isPlaying={isPlaying}
+        canStep={canStep}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onStepForward={handleStepForward}
+        onReset={handleReset}
+        progress={progress}
+      />
+      
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={40} minSize={20}>
+          <ResizablePanel defaultSize={30} minSize={20}>
             <CodeEditor 
               code={code} 
               onChange={setCode} 
@@ -63,12 +183,19 @@ export default function Workbench() {
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={60}>
+          <ResizablePanel defaultSize={45}>
             <Flowchart 
               nodes={flowData.nodes} 
               edges={flowData.edges} 
               onNodeClick={handleNodeClick}
+              activeNodeId={activeNodeId}
             />
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={25} minSize={15}>
+            <VariableWatch state={executionState} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
