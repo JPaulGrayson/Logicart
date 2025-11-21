@@ -8,6 +8,7 @@ export interface FlowNode {
   sourcePosition?: string;
   targetPosition?: string;
   className?: string;
+  style?: { width: number; height: number };
 }
 
 export interface FlowEdge {
@@ -40,12 +41,18 @@ export function parseCodeToFlow(code: string): FlowData {
 
     const createNode = (label: string, type: FlowNode['type'] = 'default', x: number = xPos, y: number = yPos, className?: string): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
+      const isDecision = type === 'decision';
       return {
         id,
         type,
         data: { label },
         position: { x, y },
-        className
+        className,
+        // Explicit dimensions help MiniMap render correctly before measurement
+        style: { 
+          width: isDecision ? 100 : 150, 
+          height: isDecision ? 100 : 40 
+        }
       };
     };
 

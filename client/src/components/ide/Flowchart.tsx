@@ -47,8 +47,13 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <MiniMap 
             position="bottom-left"
             style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-            nodeColor="#3b82f6"
-            maskColor="rgba(0, 0, 0, 0.1)"
+            nodeColor={(n) => {
+              if (n.type === 'input') return '#3b82f6';
+              if (n.type === 'output') return '#ef4444';
+              if (n.type === 'decision') return '#eab308';
+              return '#64748b';
+            }}
+            maskColor="rgba(0, 0, 0, 0.3)"
             zoomable
             pannable
           />
