@@ -104,18 +104,17 @@ export function parseCodeToFlow(code: string): FlowData {
           localY += yGap;
         } else if (stmt.type === 'IfStatement') {
           // Decision Node
-          const testLabel = `if (...)`; // Simplified
-          const decisionNode = createNode(testLabel, 'default', 250 + offsetX, localY, 'rotate-45 w-24 h-24 flex items-center justify-center rounded-none border-2 border-accent bg-accent/10');
-          // We need to adjust the label rotation for diamond shape if we were using CSS rotate, 
-          // but for simplicity in this MVP we'll just make it a diamond-like node or standard node with '?'
-          // Let's stick to a standard node but styled as decision for now to avoid CSS complexity in MVP
-          decisionNode.className = 'border-accent border-2 bg-accent/10';
-          decisionNode.data.label = `if (${stmt.test.type === 'BinaryExpression' ? 'condition' : '...'}) ?`;
+          const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
+          const decisionNode = createNode(testLabel, 'decision', 250 + offsetX, localY);
+          
+          // We store the full label in data for the tooltip/detail view later, but keep display short
+          decisionNode.data.label = `if (${testLabel}) ?`;
+          if (stmt.test.type === 'Identifier') decisionNode.data.label = `${stmt.test.name}?`;
           
           nodes.push(decisionNode);
           edges.push(createEdge(currentParent, decisionNode.id));
           
-          localY += yGap + 20;
+          localY += yGap + 40; // More space for the diamond
 
           // True Branch (Consequent)
           // We'll put true branch to the left
