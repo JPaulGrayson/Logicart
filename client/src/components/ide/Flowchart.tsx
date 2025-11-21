@@ -25,6 +25,9 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
   const nodes = initialNodes as unknown as Node[];
   const edges = initialEdges as unknown as Edge[];
 
+  // Debug: Check if nodes have dimensions
+  console.log('Flowchart nodes:', nodes);
+
   return (
     <div className="h-full w-full bg-background flex flex-col">
        <div className="h-10 border-b border-border flex items-center px-4 bg-card/50 backdrop-blur text-xs font-mono text-muted-foreground uppercase tracking-wider justify-between">
@@ -48,7 +51,6 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <MiniMap 
             position="bottom-left"
             style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-            nodeComponent={MiniMapNode}
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
               if (n.type === 'output') return '#ef4444';
