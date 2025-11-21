@@ -3,6 +3,7 @@ import { ReactFlow, Background, Controls, MiniMap, ConnectionLineType, Node, Edg
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
+import { MiniMapNode } from './MiniMapNode';
 
 interface FlowchartProps {
   nodes: FlowNode[];
@@ -47,6 +48,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           <MiniMap 
             position="bottom-left"
             style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+            nodeComponent={MiniMapNode}
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
               if (n.type === 'output') return '#ef4444';
