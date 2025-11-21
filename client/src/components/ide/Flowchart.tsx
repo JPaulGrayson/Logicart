@@ -43,20 +43,13 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           connectionLineType={ConnectionLineType.SmoothStep}
         >
           <Background color="var(--color-border)" gap={24} size={1} />
-          <Controls position="bottom-left" className="bg-card border-border text-foreground" />
+          <Controls position="top-left" className="bg-card border-border text-foreground" />
           <MiniMap 
             position="bottom-left"
-            style={{ height: 120, marginBottom: 40 }} // Add margin to sit above the controls
-            zoomable
-            pannable
-            nodeColor={(n) => {
-              if (n.type === 'input') return '#3b82f6';
-              if (n.type === 'output') return '#ef4444';
-              if (n.type === 'decision') return '#eab308';
-              return '#64748b';
-            }}
-            maskColor="rgba(0, 0, 0, 0.3)"
-            className="!bg-card !border !border-border !rounded-md"
+            nodeColor="#3b82f6"
+            maskColor="rgba(0, 0, 0, 0.1)"
+            className="!bg-card !border !border-border !shadow-lg !rounded-md !overflow-hidden"
+            style={{ height: 150, width: 200 }}
           />
         </ReactFlow>
       </div>
