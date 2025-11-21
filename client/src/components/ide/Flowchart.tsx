@@ -8,6 +8,7 @@ import { MiniMapNode } from './MiniMapNode';
 interface FlowchartProps {
   nodes: FlowNode[];
   edges: FlowEdge[];
+  onNodeClick?: (node: Node) => void;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -15,7 +16,7 @@ const nodeTypes = {
   decision: DecisionNode,
 };
 
-export function Flowchart({ nodes: initialNodes, edges: initialEdges }: FlowchartProps) {
+export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -25,9 +26,6 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
     setNodes(initialNodes as unknown as Node[]);
     setEdges(initialEdges as unknown as Edge[]);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
-
-  // Debug: Check if nodes have dimensions
-  console.log('Flowchart nodes:', nodes);
 
   return (
     <div className="h-full w-full bg-background flex flex-col">
@@ -43,6 +41,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={(_, node) => onNodeClick?.(node)}
           nodeTypes={nodeTypes}
           fitView
           proOptions={{ hideAttribution: true }}

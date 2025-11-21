@@ -1,9 +1,17 @@
 import * as acorn from 'acorn';
 
+export interface SourceLocation {
+  start: { line: number; column: number };
+  end: { line: number; column: number };
+}
+
 export interface FlowNode {
   id: string;
   type: 'input' | 'output' | 'default' | 'decision'; 
-  data: { label: string };
+  data: { 
+    label: string;
+    sourceData?: SourceLocation;
+  };
   position: { x: number; y: number };
   sourcePosition?: string;
   targetPosition?: string;
@@ -31,7 +39,7 @@ export interface FlowData {
 // A robust version would handle nested scopes, complex expressions, etc.
 export function parseCodeToFlow(code: string): FlowData {
   try {
-    const ast = acorn.parse(code, { ecmaVersion: 2020 });
+    const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
     let nodeIdCounter = 0;
@@ -39,13 +47,13 @@ export function parseCodeToFlow(code: string): FlowData {
     let yPos = 50;
     const yGap = 100;
 
-    const createNode = (label: string, type: FlowNode['type'] = 'default', x: number = xPos, y: number = yPos, className?: string): FlowNode => {
+    const createNode = (label: string, type: FlowNode['type'] = 'default', x: number = xPos, y: number = yPos, className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
       return {
         id,
         type,
-        data: { label },
+        data: { label, sourceData: loc },
         position: { x, y },
         className,
         // Explicit dimensions help MiniMap render correctly before measurement
@@ -82,10 +90,12 @@ export function parseCodeToFlow(code: string): FlowData {
       let localY = startY;
 
       for (const stmt of statements) {
+        const loc: SourceLocation = stmt.loc;
+
         if (stmt.type === 'VariableDeclaration') {
           const decl = stmt.declarations[0];
           const label = `${stmt.kind} ${decl.id.name} = ...`;
-          const node = createNode(label, 'default', 250 + offsetX, localY);
+          const node = createNode(label, 'default', 250 + offsetX, localY, undefined, loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
@@ -97,14 +107,14 @@ export function parseCodeToFlow(code: string): FlowData {
           } else if (stmt.expression.type === 'CallExpression') {
              label = `${stmt.expression.callee.name}(...)`;
           }
-          const node = createNode(label, 'default', 250 + offsetX, localY);
+          const node = createNode(label, 'default', 250 + offsetX, localY, undefined, loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
           localY += yGap;
         } else if (stmt.type === 'ReturnStatement') {
           const label = stmt.argument ? `return ...` : 'return';
-          const node = createNode(label, 'output', 250 + offsetX, localY, 'bg-destructive/20 border-destructive/50');
+          const node = createNode(label, 'output', 250 + offsetX, localY, 'bg-destructive/20 border-destructive/50', loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
@@ -112,7 +122,7 @@ export function parseCodeToFlow(code: string): FlowData {
         } else if (stmt.type === 'IfStatement') {
           // Decision Node
           const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
-          const decisionNode = createNode(testLabel, 'decision', 250 + offsetX, localY);
+          const decisionNode = createNode(testLabel, 'decision', 250 + offsetX, localY, undefined, loc);
           
           // We store the full label in data for the tooltip/detail view later, but keep display short
           decisionNode.data.label = `if (${testLabel}) ?`;
@@ -127,13 +137,7 @@ export function parseCodeToFlow(code: string): FlowData {
           // We'll put true branch to the left
           const trueBranchNodes: any[] = stmt.consequent.type === 'BlockStatement' ? stmt.consequent.body : [stmt.consequent];
           const trueEndId = processBlock(trueBranchNodes, decisionNode.id, localY, offsetX - 150);
-          edges.find(e => e.source === decisionNode.id && e.target.startsWith('node-'))!.label = 'True'; // Hacky way to label the edge created in processBlock? 
-          // Wait, processBlock creates edges. 
-          // Actually, processBlock connects the first node to parentId.
-          // We need to label that specific edge.
-          const trueEdge = edges.find(e => e.source === decisionNode.id && e.target === nodes.find(n => n.position.x === 250 + offsetX - 150)?.id); // Tricky to find exact edge
-          // Let's refactor processBlock to accept an edge label? 
-          // For MVP, let's just update the last added edge if it matches
+          
           const lastEdge = edges[edges.length - 1];
           if (lastEdge && lastEdge.source === decisionNode.id) {
              lastEdge.label = 'True';
@@ -160,7 +164,8 @@ export function parseCodeToFlow(code: string): FlowData {
           }
           
           // Merge point (optional for MVP, but good for flow)
-          const mergeNode = createNode('End If', 'default', 250 + offsetX, localY + (yGap * (Math.max(trueBranchNodes.length, 1) + 1)), 'w-4 h-4 p-0 rounded-full bg-muted');
+          const mergeNode = createNode('End If', 'default', 250 + offsetX, localY + (yGap * (Math.max(trueBranchNodes.length, 1) + 1)), 'w-4 h-4 p-0 rounded-full bg-muted', undefined);
+          
           // Connect branches to merge
           // This is getting complex for a recursive function.
           // Let's just return the latest nodes and let the outer loop continue.
@@ -168,14 +173,6 @@ export function parseCodeToFlow(code: string): FlowData {
           // Reset currentParent to the merge node (or just pick one for linear flow)
           // In a real CFG, we'd merge.
           currentParent = mergeNode.id; 
-          // Note: Visual layout is hard! 
-          // For this MVP, we simply return the decision node ID to continue linearly?
-          // No, that would break the graph.
-          // Let's stop here for the "smart" layout logic and just output the nodes we found.
-          
-          // HACK: Just continue from the "True" branch for now if we want linear, 
-          // or just stop.
-          // Let's assume linear code after IF is rare in simple recursive examples (usually return).
         }
       }
       return currentParent;

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
-import { parseCodeToFlow } from '@/lib/parser';
+import { parseCodeToFlow, FlowNode } from '@/lib/parser';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Node } from '@xyflow/react';
 
 const DEFAULT_CODE = `function factorial(n) {
   if (n <= 1) {
@@ -15,6 +16,7 @@ const DEFAULT_CODE = `function factorial(n) {
 export default function Workbench() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [flowData, setFlowData] = useState(parseCodeToFlow(DEFAULT_CODE));
+  const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,6 +24,14 @@ export default function Workbench() {
     }, 500); // Debounce parsing
     return () => clearTimeout(timer);
   }, [code]);
+
+  const handleNodeClick = (node: Node) => {
+    const flowNode = node as unknown as FlowNode;
+    if (flowNode.data?.sourceData) {
+      console.log("Node Clicked:", flowNode.data.label, flowNode.data.sourceData);
+      setHighlightedLine(flowNode.data.sourceData.start.line);
+    }
+  };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
@@ -44,13 +54,21 @@ export default function Workbench() {
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel defaultSize={40} minSize={20}>
-            <CodeEditor code={code} onChange={setCode} />
+            <CodeEditor 
+              code={code} 
+              onChange={setCode} 
+              highlightedLine={highlightedLine}
+            />
           </ResizablePanel>
           
           <ResizableHandle withHandle />
           
           <ResizablePanel defaultSize={60}>
-            <Flowchart nodes={flowData.nodes} edges={flowData.edges} />
+            <Flowchart 
+              nodes={flowData.nodes} 
+              edges={flowData.edges} 
+              onNodeClick={handleNodeClick}
+            />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
