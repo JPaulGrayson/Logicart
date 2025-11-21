@@ -43,9 +43,10 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges }: Flowchar
           connectionLineType={ConnectionLineType.SmoothStep}
         >
           <Background color="var(--color-border)" gap={24} size={1} />
-          <Controls className="bg-card border-border text-foreground" />
+          <Controls position="bottom-left" className="bg-card border-border text-foreground" />
           <MiniMap 
-            style={{ height: 120 }}
+            position="bottom-left"
+            style={{ height: 120, marginBottom: 40 }} // Add margin to sit above the controls
             zoomable
             pannable
             nodeColor={(n) => {
