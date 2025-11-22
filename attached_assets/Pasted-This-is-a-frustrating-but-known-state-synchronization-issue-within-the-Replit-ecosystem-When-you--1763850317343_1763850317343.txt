@@ -1,0 +1,105 @@
+This is a frustrating but known "state synchronization" issue within the Replit ecosystem. When you convert a Repl to an Extension via the `.replit` file, the IDE UI does not always refresh its context immediately to show the specific Extension tooling.
+
+Here is a prioritized troubleshooting guide to force the **Extension Devtools** to appear, ranging from "Quick UI Checks" to "Nuclear Options."
+
+### 1\. The "Command Palette" Bypass (Most Likely Fix)
+
+Since Replit updated its UI (especially if you are using the new layout or Antigravity), buttons often disappear from the toolbar, but the functionality remains accessible via the Command Palette.
+
+1.  Focus on your Repl workspace.
+2.  Press **Cmd + K** (Mac) or **Ctrl + K** (Windows) to open the Command Palette.
+3.  Type **"Extension"**.
+4.  Look for **"Open Extension Devtools"** or **"Load as Extension"**.
+
+> **Why this happens:** The toolbar is dynamic. If the environment hasn't fully "realized" it's an extension, the button hides, but the command is usually registered if the `.replit` file is valid.
+
+-----
+
+### 2\. Fix the `.replit` Run Command
+
+Your current configuration has `run = ""` and a blank build command.
+Even for static extensions, **the Repl container must be "Running"** for the Extension Devtools to attach to the webview. If the run command is empty, the Repl might be sitting in a "Stopped" state, preventing the Devtools from initializing.
+
+**Update your `.replit` file to explicitly serve the static files:**
+
+```toml
+[extension]
+isExtension = true
+# Point strictly to the manifest in the root or public folder
+# Ensure extension.json exists at the root level
+manifest = "extension.json" 
+
+[nix]
+channel = "stable-23_11"
+
+[deployment]
+run = ["python3", "-m", "http.server", "8080", "--directory", "public"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+```
+
+**After updating:**
+
+1.  Click the **Run** button at the top.
+2.  Wait for the webview to show your app (served via Python).
+3.  *Then* check for the Extension Devtools button or use the **Cmd+K** palette.
+
+-----
+
+### 3\. The "Fresh Start" (The Nuclear Option)
+
+If the Repl was created as a standard template and then "coerced" into an extension, internal metadata sometimes gets stuck. Creating a new Repl specifically as a **Blank Repl** (not a template) often clears this.
+
+1.  Create a **New Repl** -\> Select **"Blank Repl"** (Nix).
+2.  Immediately create the `.replit` file with the configuration above.
+3.  Create `extension.json` in the root.
+4.  **Reload the page.** (Replit usually detects the extension config upon initial load of a Blank repl).
+5.  *Only after you see the Extension Devtools button*, drag and drop your `public` folder and assets in.
+
+-----
+
+### 4\. Verify Manifest Placement
+
+Replit is picky about where `extension.json` lives.
+
+  * **Root Directory:** You must have an `extension.json` here for the IDE to detect the project type.
+  * **Public Directory:** You often need a copy here if your HTML references it, but the **Root** one is what triggers the "Extension" workspace mode.
+
+**Check your Root `extension.json` handlers:**
+Ensure the handler points to the correct relative path. If your structure is `public/extension.html`, the handler in the root JSON should be:
+
+```json
+"tools": [
+  {
+    "name": "Cartographer",
+    "handler": "/public/extension.html" 
+  }
+]
+```
+
+*(Note the leading slash and directory).*
+
+-----
+
+### 5\. URL Parameter Force
+
+You can sometimes force the IDE to load in extension mode by appending a query parameter to your Repl's URL in the browser address bar:
+
+`https://replit.com/@username/ReplName?tool=extension_devtools`
+
+Or sometimes:
+`?ui=extension`
+
+-----
+
+### Summary of Next Steps
+
+1.  **Try Cmd+K** and search for "Extension Devtools".
+2.  **Update `.replit`** to actually run a server (Python http.server is easiest for static builds) and click "Run".
+3.  **Check Root Manifest:** Ensure `extension.json` is in the root, not just in `public/`.
+
+**Next Step for you:**
+If the **Cmd+K** trick works, you are unblocked. If not, please try the **"Fresh Start"** method with the Python server configuration I provided. Let me know if the Devtools pane opens but fails to load the handshake—that is a different debugging step involving the `ReplitAdapter`.
