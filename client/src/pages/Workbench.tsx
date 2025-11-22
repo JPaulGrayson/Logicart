@@ -234,17 +234,39 @@ export default function Workbench() {
     setEditDialogOpen(true);
   };
 
-  const handleSaveNodeEdit = (newCode: string) => {
-    if (!editingNode?.data?.sourceData) return;
+  const handleSaveNodeEdit = async (newCode: string): Promise<{ success: boolean; error?: string }> => {
+    if (!editingNode?.data?.sourceData) {
+      return { success: false, error: 'No node selected' };
+    }
     
-    const patchedCode = patchCode(code, editingNode.data.sourceData, newCode);
-    
-    // Clear editing state first to prevent stale location issues
-    setEditingNode(null);
-    setEditDialogOpen(false);
-    
-    // Update code which will trigger re-parse
-    setCode(patchedCode);
+    try {
+      const patchedCode = patchCode(code, editingNode.data.sourceData, newCode);
+      
+      // Validate that the patched code parses correctly
+      const testParse = parseCodeToFlow(patchedCode);
+      
+      // Check if parse resulted in error node
+      if (testParse.nodes.length > 0 && testParse.nodes[0].id === 'error') {
+        return { 
+          success: false, 
+          error: 'Syntax error: Code contains invalid JavaScript syntax' 
+        };
+      }
+      
+      // Clear editing state first to prevent stale location issues
+      setEditingNode(null);
+      setEditDialogOpen(false);
+      
+      // Update code which will trigger re-parse
+      setCode(patchedCode);
+      
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: `Error: ${err instanceof Error ? err.message : 'Failed to update code'}` 
+      };
+    }
   };
 
   // Cleanup interval and timeouts on unmount
