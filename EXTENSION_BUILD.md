@@ -17,9 +17,11 @@ This will create a production build in `dist/extension/` with the following stru
 dist/extension/
 ├── extension.html         # Extension entry HTML (renamed from main.html)
 ├── assets/                # Bundled JS, CSS, and assets
-├── extension.json         # Extension manifest (copied from public/)
+├── extension.json         # Extension manifest (automatically copied from public/)
 └── ...                    # Other static assets
 ```
+
+The `extension.json` manifest is automatically copied to the output directory during the build process.
 
 ### Standalone Build (Full App)
 

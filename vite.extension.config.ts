@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
+import { copyExtensionManifest } from "./vite-plugin-copy-extension-manifest";
 
 // Extension build configuration
 // Builds a static bundle for Replit Extension deployment
@@ -11,6 +12,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     metaImagesPlugin(),
+    copyExtensionManifest(),
   ],
   resolve: {
     alias: {
