@@ -9,18 +9,11 @@ import { Interpreter, ExecutionState } from '@/lib/interpreter';
 import { patchCode, extractCode } from '@/lib/codePatcher';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Node } from '@xyflow/react';
-
-const DEFAULT_CODE = `function factorial(n) {
-  if (n <= 1) {
-    return 1;
-  }
-  let sub = factorial(n - 1);
-  return n * sub;
-}`;
+import { useAdapter } from '@/contexts/AdapterContext';
 
 export default function Workbench() {
-  const [code, setCode] = useState(DEFAULT_CODE);
-  const [flowData, setFlowData] = useState(parseCodeToFlow(DEFAULT_CODE));
+  const { adapter, code, isReady } = useAdapter();
+  const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [executionState, setExecutionState] = useState<ExecutionState | null>(null);
@@ -36,7 +29,10 @@ export default function Workbench() {
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Parse code whenever it changes
   useEffect(() => {
+    if (!isReady) return;
+    
     setIsParsing(true);
     
     const timer = setTimeout(() => {
@@ -54,7 +50,7 @@ export default function Workbench() {
       clearTimeout(timer);
       setIsParsing(false);
     };
-  }, [code]);
+  }, [code, isReady]);
 
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
@@ -100,6 +96,7 @@ export default function Workbench() {
           const node = flowData.nodes.find(n => n.id === step.nodeId);
           if (node?.data.sourceData) {
             setHighlightedLine(node.data.sourceData.start.line);
+            adapter.navigateToLine(node.data.sourceData.start.line);
           }
         } else {
           // Execution completed - immediately pause to clear interval
@@ -164,6 +161,7 @@ export default function Workbench() {
       const node = flowData.nodes.find(n => n.id === step.nodeId);
       if (node?.data.sourceData) {
         setHighlightedLine(node.data.sourceData.start.line);
+        adapter.navigateToLine(node.data.sourceData.start.line);
       }
     }
   };
@@ -214,6 +212,7 @@ export default function Workbench() {
     const flowNode = node as unknown as FlowNode;
     if (flowNode.data?.sourceData) {
       setHighlightedLine(flowNode.data.sourceData.start.line);
+      adapter.navigateToLine(flowNode.data.sourceData.start.line);
     }
   };
 
@@ -227,6 +226,11 @@ export default function Workbench() {
     
     // Only allow editing nodes with source data (not Start/End nodes)
     if (!flowNode.data?.sourceData) {
+      return;
+    }
+    
+    // Check if adapter supports editing
+    if (!adapter.supportsEditing()) {
       return;
     }
     
@@ -257,8 +261,8 @@ export default function Workbench() {
       setEditingNode(null);
       setEditDialogOpen(false);
       
-      // Update code which will trigger re-parse
-      setCode(patchedCode);
+      // Write to file via adapter
+      await adapter.writeFile(patchedCode);
       
       return { success: true };
     } catch (err) {
@@ -267,6 +271,11 @@ export default function Workbench() {
         error: `Error: ${err instanceof Error ? err.message : 'Failed to update code'}` 
       };
     }
+  };
+
+  const handleCodeChange = (newCode: string) => {
+    // Update code via adapter
+    adapter.writeFile(newCode);
   };
 
   // Cleanup interval and timeouts on unmount
@@ -282,6 +291,20 @@ export default function Workbench() {
   }, []);
 
   const canStep = flowData.nodes.length > 1 && flowData.nodes[0].id !== 'error';
+  const showCodeEditor = !adapter.hasIntegratedEditor();
+
+  if (!isReady) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono mb-4 mx-auto">
+            C
+          </div>
+          <p className="text-muted-foreground">Loading Cartographer...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
@@ -318,17 +341,20 @@ export default function Workbench() {
       
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={30} minSize={20}>
-            <CodeEditor 
-              code={code} 
-              onChange={setCode} 
-              highlightedLine={highlightedLine}
-            />
-          </ResizablePanel>
+          {showCodeEditor && (
+            <>
+              <ResizablePanel defaultSize={30} minSize={20}>
+                <CodeEditor 
+                  code={code} 
+                  onChange={handleCodeChange} 
+                  highlightedLine={highlightedLine}
+                />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+            </>
+          )}
           
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel defaultSize={45}>
+          <ResizablePanel defaultSize={showCodeEditor ? 45 : 60}>
             <Flowchart 
               nodes={flowData.nodes} 
               edges={flowData.edges} 
