@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, ConnectionLineType, Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
+import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
-import { MiniMapNode } from './MiniMapNode';
+import { FixedMiniMap } from './FixedMiniMap';
 
 interface FlowchartProps {
   nodes: FlowNode[];
@@ -61,18 +61,13 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
         >
           <Background color="var(--color-border)" gap={24} size={1} />
           <Controls position="top-left" className="bg-card border-border text-foreground" />
-          <MiniMap 
-            position="bottom-left"
-            style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+          <FixedMiniMap 
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
               if (n.type === 'output') return '#ef4444';
               if (n.type === 'decision') return '#eab308';
               return '#64748b';
             }}
-            maskColor="rgba(0, 0, 0, 0.3)"
-            zoomable={false}
-            pannable={false}
           />
         </ReactFlow>
       </div>
