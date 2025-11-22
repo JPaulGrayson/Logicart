@@ -64,7 +64,6 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
           <MiniMap 
             position="bottom-left"
             style={{ height: 150, width: 200, backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-            nodeComponent={MiniMapNode}
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
               if (n.type === 'output') return '#ef4444';
