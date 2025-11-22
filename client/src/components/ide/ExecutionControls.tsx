@@ -1,5 +1,12 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, ChevronRight, Repeat } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronRight, Repeat, Square } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ExecutionControlsProps {
   isPlaying: boolean;
@@ -8,6 +15,7 @@ interface ExecutionControlsProps {
   onPause: () => void;
   onStepForward: () => void;
   onReset: () => void;
+  onStop: () => void;
   progress?: { current: number; total: number };
   speed: number;
   onSpeedChange: (speed: number) => void;
@@ -20,6 +28,7 @@ const SPEED_OPTIONS = [
   { value: 1, label: '1x' },
   { value: 2, label: '2x' },
   { value: 3, label: '3x' },
+  { value: 5, label: '5x' },
 ];
 
 export function ExecutionControls({
@@ -29,6 +38,7 @@ export function ExecutionControls({
   onPause,
   onStepForward,
   onReset,
+  onStop,
   progress,
   speed,
   onSpeedChange,
@@ -73,6 +83,15 @@ export function ExecutionControls({
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+          
+          <button
+            onClick={onStop}
+            className="p-2 rounded hover:bg-accent transition-colors"
+            data-testid="button-stop"
+            title="Stop"
+          >
+            <Square className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="h-6 w-px bg-border" />
@@ -92,22 +111,25 @@ export function ExecutionControls({
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Speed:</span>
-          <div className="flex gap-1">
-            {SPEED_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => onSpeedChange(option.value)}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  speed === option.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-muted/80'
-                }`}
-                data-testid={`button-speed-${option.value}`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <Select
+            value={speed.toString()}
+            onValueChange={(value) => onSpeedChange(parseFloat(value))}
+          >
+            <SelectTrigger className="w-[70px] h-8 text-xs" data-testid="select-speed">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SPEED_OPTIONS.map((option) => (
+                <SelectItem 
+                  key={option.value} 
+                  value={option.value.toString()}
+                  data-testid={`option-speed-${option.value}`}
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       

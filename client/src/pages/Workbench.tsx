@@ -165,6 +165,15 @@ export default function Workbench() {
     setProgress({ current: 0, total: 0 });
   };
 
+  const handleStop = () => {
+    handlePause();
+    interpreterRef.current = null;
+    setActiveNodeId(null);
+    setExecutionState(null);
+    setHighlightedLine(null);
+    setProgress({ current: 0, total: 0 });
+  };
+
   const handleSpeedChange = (newSpeed: number) => {
     setSpeed(newSpeed);
     
@@ -235,6 +244,7 @@ export default function Workbench() {
         onPause={handlePause}
         onStepForward={handleStepForward}
         onReset={handleReset}
+        onStop={handleStop}
         progress={progress}
         speed={speed}
         onSpeedChange={handleSpeedChange}
