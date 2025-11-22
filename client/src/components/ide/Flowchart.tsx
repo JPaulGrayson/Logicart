@@ -9,6 +9,7 @@ interface FlowchartProps {
   nodes: FlowNode[];
   edges: FlowEdge[];
   onNodeClick?: (node: Node) => void;
+  onNodeDoubleClick?: (node: Node) => void;
   activeNodeId?: string | null;
 }
 
@@ -17,7 +18,7 @@ const nodeTypes = {
   decision: DecisionNode,
 };
 
-export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick, activeNodeId }: FlowchartProps) {
+export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -52,6 +53,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={(_, node) => onNodeClick?.(node)}
+          onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
           nodeTypes={nodeTypes}
           fitView
           proOptions={{ hideAttribution: true }}

@@ -3,8 +3,10 @@ import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
 import { ExecutionControls } from '@/components/ide/ExecutionControls';
 import { VariableWatch } from '@/components/ide/VariableWatch';
+import { NodeEditDialog } from '@/components/ide/NodeEditDialog';
 import { parseCodeToFlow, FlowNode } from '@/lib/parser';
 import { Interpreter, ExecutionState } from '@/lib/interpreter';
+import { patchCode, extractCode } from '@/lib/codePatcher';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Node } from '@xyflow/react';
 
@@ -26,12 +28,17 @@ export default function Workbench() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [speed, setSpeed] = useState(1);
   const [loop, setLoop] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingNode, setEditingNode] = useState<FlowNode | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
   
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    setIsParsing(true);
+    
     const timer = setTimeout(() => {
       setFlowData(parseCodeToFlow(code));
       // Reset interpreter when code changes
@@ -40,8 +47,13 @@ export default function Workbench() {
       setExecutionState(null);
       setIsPlaying(false);
       setProgress({ current: 0, total: 0 });
+      setIsParsing(false);
     }, 500); // Debounce parsing
-    return () => clearTimeout(timer);
+    
+    return () => {
+      clearTimeout(timer);
+      setIsParsing(false);
+    };
   }, [code]);
 
   const initializeInterpreter = () => {
@@ -205,6 +217,36 @@ export default function Workbench() {
     }
   };
 
+  const handleNodeDoubleClick = (node: Node) => {
+    const flowNode = node as unknown as FlowNode;
+    
+    // Prevent editing while parsing to avoid stale location issues
+    if (isParsing) {
+      return;
+    }
+    
+    // Only allow editing nodes with source data (not Start/End nodes)
+    if (!flowNode.data?.sourceData) {
+      return;
+    }
+    
+    setEditingNode(flowNode);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveNodeEdit = (newCode: string) => {
+    if (!editingNode?.data?.sourceData) return;
+    
+    const patchedCode = patchCode(code, editingNode.data.sourceData, newCode);
+    
+    // Clear editing state first to prevent stale location issues
+    setEditingNode(null);
+    setEditDialogOpen(false);
+    
+    // Update code which will trigger re-parse
+    setCode(patchedCode);
+  };
+
   // Cleanup interval and timeouts on unmount
   useEffect(() => {
     return () => {
@@ -269,6 +311,7 @@ export default function Workbench() {
               nodes={flowData.nodes} 
               edges={flowData.edges} 
               onNodeClick={handleNodeClick}
+              onNodeDoubleClick={handleNodeDoubleClick}
               activeNodeId={activeNodeId}
             />
           </ResizablePanel>
@@ -280,6 +323,14 @@ export default function Workbench() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+
+      <NodeEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        nodeLabel={editingNode?.data?.label || ''}
+        currentCode={editingNode?.data?.sourceData ? extractCode(code, editingNode.data.sourceData) : ''}
+        onSave={handleSaveNodeEdit}
+      />
     </div>
   );
 }
