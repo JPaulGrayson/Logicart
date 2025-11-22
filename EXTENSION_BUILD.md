@@ -87,12 +87,33 @@ npm run dev
 
 Opens at http://localhost:5000 with in-app code editor
 
-### Test Extension Mode
+### Test Extension Mode (Replit Extension Devtools)
 
-1. Build extension: `npx vite build --config vite.extension.config.ts`
-2. Load in Replit Extension Devtools
-3. Open a JavaScript file in Replit
-4. Launch Cartographer tool from workspace panel
+1. **Build the extension:**
+   ```bash
+   npx vite build --config vite.extension.config.ts
+   ```
+   This creates a production bundle in `dist/extension/`
+
+2. **Open Extension Devtools:**
+   - Click the "Devtools" button in the top-right corner of your Replit workspace
+   - This opens the Extension Devtools panel
+
+3. **Load the extension locally:**
+   - In Extension Devtools, click "Load Locally"
+   - Set the output directory to `dist/extension`
+   - The extension will load from your built files
+
+4. **Preview the tool:**
+   - Open a JavaScript file in your Replit editor (e.g., `example.js`)
+   - In Extension Devtools, click "Preview" next to the Cartographer tool
+   - A new tab will open showing Cartographer visualizing your code
+
+5. **Test features:**
+   - Edit code in Replit's editor → Flowchart updates automatically
+   - Double-click flowchart nodes → Updates source code in Replit
+   - Use step-by-step execution controls
+   - Verify minimap shows fixed overview while main canvas zooms
 
 ## Architecture Notes
 

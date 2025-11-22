@@ -10,7 +10,7 @@
       "id": "cartographer",
       "name": "Cartographer",
       "description": "Visual flowchart and step-by-step execution",
-      "handler": "index.html"
+      "handler": "extension.html"
     }
   ],
   "scopes": [
