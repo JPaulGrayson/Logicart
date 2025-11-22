@@ -72,7 +72,8 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
               return '#64748b';
             }}
             maskColor="rgba(0, 0, 0, 0.3)"
-            pannable
+            zoomable={false}
+            pannable={false}
           />
         </ReactFlow>
       </div>
