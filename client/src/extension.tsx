@@ -38,9 +38,7 @@ function ExtensionApp() {
         <TooltipProvider>
           <AdapterProvider adapter={adapter}>
             <Toaster />
-            <Switch>
-              <Route path="/" component={Workbench} />
-            </Switch>
+            <Workbench />
           </AdapterProvider>
         </TooltipProvider>
       </QueryClientProvider>
