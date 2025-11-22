@@ -5,6 +5,11 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 [nix]
 channel = "stable-24_05"
 
+[extension]
+isExtension = true
+buildCommand = "npx vite build --config vite.extension.config.ts"
+outputDirectory = "dist/extension"
+
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
@@ -17,10 +22,6 @@ externalPort = 80
 [[ports]]
 localPort = 35755
 externalPort = 3000
-
-[[ports]]
-localPort = 42987
-externalPort = 3001
 
 [env]
 PORT = "5000"
