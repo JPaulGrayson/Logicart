@@ -21,11 +21,11 @@ export class Interpreter {
   private ast: any;
   private code: string;
   private state: ExecutionState;
-  private nodeMap: Map<any, string>;
+  private nodeMap: Map<string, string>;
   private steps: InterpreterStep[];
   private currentStepIndex: number;
   
-  constructor(code: string, nodeMap: Map<any, string>) {
+  constructor(code: string, nodeMap: Map<string, string>) {
     this.code = code;
     this.nodeMap = nodeMap;
     this.steps = [];
@@ -82,10 +82,10 @@ export class Interpreter {
   }
   
   private collectSteps(statements: any[], depth: number = 0): any {
-    console.log('collectSteps called with', statements.length, 'statements');
     for (const stmt of statements) {
-      const nodeId = this.nodeMap.get(stmt);
-      console.log('Statement type:', stmt.type, 'nodeId:', nodeId, 'stmt:', stmt);
+      // Use location as the key to match with nodeMap
+      const locKey = stmt.loc ? `${stmt.loc.start.line}:${stmt.loc.start.column}` : null;
+      const nodeId = locKey ? this.nodeMap.get(locKey) : null;
       
       if (stmt.type === 'VariableDeclaration') {
         if (nodeId) {
@@ -93,8 +93,6 @@ export class Interpreter {
             nodeId,
             state: this.cloneState()
           });
-        } else {
-          console.warn('No nodeId found for VariableDeclaration');
         }
         
         for (const decl of stmt.declarations) {

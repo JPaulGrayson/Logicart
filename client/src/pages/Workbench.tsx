@@ -42,33 +42,24 @@ export default function Workbench() {
   }, [code]);
 
   const initializeInterpreter = () => {
-    console.log('Initializing interpreter with nodeMap:', flowData.nodeMap);
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
     const success = interpreterRef.current.prepare('factorial', [5]);
-    console.log('Interpreter prepare result:', success);
     
     if (success) {
       const prog = interpreterRef.current.getProgress();
-      console.log('Progress:', prog);
       setProgress(prog);
       return true;
     }
-    console.error('Failed to initialize interpreter');
     return false;
   };
 
   const handlePlay = () => {
-    console.log('Play button clicked');
     if (!interpreterRef.current) {
       const success = initializeInterpreter();
-      if (!success) {
-        console.error('Failed to initialize interpreter');
-        return;
-      }
+      if (!success) return;
     }
     
     setIsPlaying(true);
-    console.log('Starting playback');
     
     // Auto-step through execution
     playIntervalRef.current = setInterval(() => {
@@ -102,7 +93,6 @@ export default function Workbench() {
   };
 
   const handleStepForward = () => {
-    console.log('Step button clicked');
     if (!interpreterRef.current) {
       const success = initializeInterpreter();
       if (!success) return;
@@ -111,7 +101,6 @@ export default function Workbench() {
     if (!interpreterRef.current) return;
     
     const step = interpreterRef.current.stepForward();
-    console.log('Step result:', step);
     
     if (step) {
       setActiveNodeId(step.nodeId);

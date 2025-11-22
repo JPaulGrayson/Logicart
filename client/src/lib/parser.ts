@@ -32,7 +32,7 @@ export interface FlowEdge {
 export interface FlowData {
   nodes: FlowNode[];
   edges: FlowEdge[];
-  nodeMap: Map<any, string>;
+  nodeMap: Map<string, string>; // Maps "line:column" to nodeId
 }
 
 // Simple recursive parser to convert AST to Flowchart
@@ -43,7 +43,7 @@ export function parseCodeToFlow(code: string): FlowData {
     const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
-    const nodeMap = new Map<any, string>();
+    const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
     let xPos = 250;
     let yPos = 50;
@@ -53,9 +53,10 @@ export function parseCodeToFlow(code: string): FlowData {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
       
-      // Map the AST statement to this node ID
-      if (stmt) {
-        nodeMap.set(stmt, id);
+      // Map the location to this node ID
+      if (stmt?.loc) {
+        const locKey = `${stmt.loc.start.line}:${stmt.loc.start.column}`;
+        nodeMap.set(locKey, id);
       }
       
       return {
