@@ -1,0 +1,47 @@
+CONFIGURATION FOR EXTENSION REPL
+================================
+
+Since you have a PRE-BUILT static extension, you need to configure
+the Extension Repl to serve files directly without a build step.
+
+IN YOUR EXTENSION REPL (Cartography Extension):
+
+1. Check if there's a `.replit` file at the root
+   - If YES: Edit it
+   - If NO: Create it
+
+2. Replace/Create `.replit` with this content:
+
+```toml
+run = ""
+[deployment]
+build = [" "]
+publicDir = "public"
+```
+
+3. If there's a `package.json` file, you can delete it (we don't need it)
+
+4. If there's a `src/` folder, delete it (we're using the pre-built `public/` files)
+
+5. Your final file structure should be:
+
+```
+Cartography Extension/
+├── .replit
+├── extension.json
+└── public/
+    ├── extension.html
+    ├── icon.svg
+    └── assets/
+        ├── main-BU2VD84Z.js
+        └── main-Bgj7Vesx.css
+```
+
+IMPORTANT: The `extension.json` needs to be at the ROOT level (not in public/)
+and also accessible at the public URL `/extension.json`.
+
+Actually, based on the docs, we might need TWO copies:
+- One at root: `extension.json`
+- One in public: `public/extension.json`
+
+Try this first, then open Extension Devtools again.
