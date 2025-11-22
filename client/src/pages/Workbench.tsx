@@ -24,9 +24,12 @@ export default function Workbench() {
   const [executionState, setExecutionState] = useState<ExecutionState | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [speed, setSpeed] = useState(1);
+  const [loop, setLoop] = useState(false);
   
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,12 +57,22 @@ export default function Workbench() {
   };
 
   const handlePlay = () => {
+    // Clear any pending restart to avoid interrupting manual playback
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    
     if (!interpreterRef.current) {
       const success = initializeInterpreter();
       if (!success) return;
     }
     
     setIsPlaying(true);
+    
+    // Calculate interval based on speed (base is 800ms)
+    const baseInterval = 800;
+    const interval = baseInterval / speed;
     
     // Auto-step through execution
     playIntervalRef.current = setInterval(() => {
@@ -77,11 +90,34 @@ export default function Workbench() {
             setHighlightedLine(node.data.sourceData.start.line);
           }
         } else {
-          // Execution completed
+          // Execution completed - immediately pause to clear interval
           handlePause();
+          
+          if (loop) {
+            // Clear any pending restart
+            if (restartTimeoutRef.current) {
+              clearTimeout(restartTimeoutRef.current);
+            }
+            
+            // Reset and restart after a brief delay
+            // If user manually starts or toggles loop off, the timeout will be cleared
+            restartTimeoutRef.current = setTimeout(() => {
+              restartTimeoutRef.current = null;
+              
+              // Reset state
+              interpreterRef.current = null;
+              setActiveNodeId(null);
+              setExecutionState(null);
+              setHighlightedLine(null);
+              setProgress({ current: 0, total: 0 });
+              
+              // Start playing again (this will also clear any other pending restarts)
+              handlePlay();
+            }, 600);
+          }
         }
       }
-    }, 800); // Step every 800ms
+    }, interval);
   };
 
   const handlePause = () => {
@@ -89,6 +125,11 @@ export default function Workbench() {
     if (playIntervalRef.current) {
       clearInterval(playIntervalRef.current);
       playIntervalRef.current = null;
+    }
+    // Also clear any pending restart
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
     }
   };
 
@@ -124,19 +165,45 @@ export default function Workbench() {
     setProgress({ current: 0, total: 0 });
   };
 
+  const handleSpeedChange = (newSpeed: number) => {
+    setSpeed(newSpeed);
+    
+    // If currently playing, restart with new speed
+    if (isPlaying) {
+      handlePause();
+      // Small delay before restarting
+      setTimeout(() => {
+        handlePlay();
+      }, 50);
+    }
+  };
+
+  const handleLoopToggle = () => {
+    const newLoop = !loop;
+    setLoop(newLoop);
+    
+    // If disabling loop, clear any pending restart
+    if (!newLoop && restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+  };
+
   const handleNodeClick = (node: Node) => {
     const flowNode = node as unknown as FlowNode;
     if (flowNode.data?.sourceData) {
-      console.log("Node Clicked:", flowNode.data.label, flowNode.data.sourceData);
       setHighlightedLine(flowNode.data.sourceData.start.line);
     }
   };
 
-  // Cleanup interval on unmount
+  // Cleanup interval and timeouts on unmount
   useEffect(() => {
     return () => {
       if (playIntervalRef.current) {
         clearInterval(playIntervalRef.current);
+      }
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
       }
     };
   }, []);
@@ -169,6 +236,10 @@ export default function Workbench() {
         onStepForward={handleStepForward}
         onReset={handleReset}
         progress={progress}
+        speed={speed}
+        onSpeedChange={handleSpeedChange}
+        loop={loop}
+        onLoopToggle={handleLoopToggle}
       />
       
       <div className="flex-1 overflow-hidden">
