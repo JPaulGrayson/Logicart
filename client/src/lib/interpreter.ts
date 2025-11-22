@@ -39,7 +39,7 @@ export class Interpreter {
     };
     
     try {
-      this.ast = acorn.parse(code, { ecmaVersion: 2020 });
+      this.ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
     } catch (e: any) {
       this.state.status = 'error';
       this.state.error = e.message;
