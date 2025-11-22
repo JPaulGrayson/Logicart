@@ -40,25 +40,35 @@ export function AdapterProvider({
     let unsubscribe: (() => void) | null = null;
 
     async function init() {
-      await adapter.initialize();
-      
-      if (!mounted) return;
-      
-      // Get initial content
-      const content = await adapter.getCurrentFileContent();
-      const path = adapter.getCurrentFilePath();
-      
-      if (!mounted) return;
-      
-      setCode(content);
-      setFilePath(path);
-      setIsReady(true);
-      
-      // Watch for changes
-      unsubscribe = adapter.watchFileChanges((newContent, newPath) => {
-        setCode(newContent);
-        setFilePath(newPath);
-      });
+      try {
+        await adapter.initialize();
+        
+        if (!mounted) return;
+        
+        // Get initial content
+        const content = await adapter.getCurrentFileContent();
+        const path = adapter.getCurrentFilePath();
+        
+        if (!mounted) return;
+        
+        setCode(content);
+        setFilePath(path);
+        setIsReady(true);
+        
+        // Watch for changes
+        unsubscribe = adapter.watchFileChanges((newContent, newPath) => {
+          setCode(newContent);
+          setFilePath(newPath);
+        });
+      } catch (error) {
+        console.error('Failed to initialize adapter:', error);
+        // For better UX, show user-friendly error
+        if (error instanceof Error) {
+          console.error('Error details:', error.message);
+        }
+        // Still mark as ready so the app doesn't hang
+        setIsReady(true);
+      }
     }
 
     init();

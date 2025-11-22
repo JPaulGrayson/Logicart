@@ -11,7 +11,7 @@ declare global {
       fs: {
         readFile(path: string): Promise<string>;
         writeFile(path: string, content: string): Promise<void>;
-        watchTextFile(path: string, callback: (content: string) => void): () => void;
+        watchFile(path: string, callback: (event: { path: string; content: string }) => void): () => void;
       };
     };
   }
@@ -63,10 +63,10 @@ export class ReplitAdapter implements IDEAdapter {
     this.currentContent = await window.replit.fs.readFile(path);
 
     // Watch for changes to this file
-    this.unsubscribeFileWatch = window.replit.fs.watchTextFile(path, (content) => {
-      this.currentContent = content;
+    this.unsubscribeFileWatch = window.replit.fs.watchFile(path, (event) => {
+      this.currentContent = event.content;
       this.changeListeners.forEach(callback => {
-        callback(content, path);
+        callback(event.content, event.path);
       });
     });
 
