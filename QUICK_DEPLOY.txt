@@ -1,0 +1,38 @@
+CARTOGRAPHER EXTENSION - QUICK DEPLOY CHECKLIST
+================================================
+
+STEP 1: CREATE NEW EXTENSION REPL
+□ Go to replit.com
+□ Click "Create Repl"
+□ Search for "React Extension" template
+□ Name it "Cartographer"
+□ Click Create
+
+STEP 2: COPY THESE 4 FILES
+(From this Repl → to new Extension Repl)
+
+□ dist/extension/extension.html          → public/extension.html
+□ dist/extension/extension.json          → public/extension.json  
+□ dist/extension/assets/main-BU2VD84Z.js → public/assets/main-BU2VD84Z.js
+□ dist/extension/assets/main-Bgj7Vesx.css → public/assets/main-Bgj7Vesx.css
+
+STEP 3: OPTIONAL - FIX ICON
+The extension.json references "icon.svg" which doesn't exist.
+Either:
+□ Create a 512x512 icon and save as public/icon.svg
+□ Or edit extension.json to remove the icon line
+
+STEP 4: TEST
+□ Click "Extension Devtools" button in new Repl
+□ Verify Cartographer interface loads
+□ Check console - should NOT say "using StandaloneAdapter"
+□ Create a test.js file to verify it visualizes code
+
+STEP 5: PUBLISH (Optional)
+□ Click "Publish Extension" in Devtools
+□ Fill out publishing form
+□ Submit for Replit staff review
+
+================================================
+TOTAL TIME: ~5 minutes
+================================================
