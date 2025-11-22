@@ -107,20 +107,50 @@ The application follows a workbench-style IDE layout with three primary panels:
 4. Variable state displayed in side panel
 5. Call stack tracked for recursive functions
 
-**Future: Graph → Code**:
-- Planned: Double-click nodes to edit logic
-- Code patcher will replace AST ranges in source string
+**Graph → Code (✅ Complete)**:
+- Double-click nodes to edit logic inline
+- Code patcher replaces AST ranges in source string
 - Auto re-parse to update visualization
+- isParsing guard prevents editing during debounce window
 
-### Planned Features (Implementation Plan)
+### IDE Adapter Architecture (✅ Complete)
 
-**Phase 1**: Source mapping for navigation (AST location → editor highlighting)
+**Pluggable Adapter Pattern** for multi-IDE integration:
+- `IDEAdapter` interface defining file operations, editor integration, and lifecycle methods
+- `StandaloneAdapter`: In-memory code state for standalone web usage
+- `ReplitAdapter`: Integration with Replit Extension APIs
+- `AdapterContext`: React context for managing adapter instances
 
-**Phase 2**: Step-by-step interpreter with visual state (✅ mostly complete)
+**Replit Extension Integration**:
+- Uses Replit Extension APIs: `session.getActiveFile()`, `fs.readFile()`, `fs.writeFile()`, `fs.watchFile()`
+- Automatic file watching with real-time sync between Replit editor and flowchart
+- Bi-directional editing: Changes in flowchart update source file via `fs.writeFile()`
+- Extension manifest (`public/extension.json`) with read/write-exec scopes
+- Separate build configuration (`vite.extension.config.ts`) for static bundle deployment
 
-**Phase 3**: Bi-directional editing (edit flowchart → update code)
+**UI Adaptation**:
+- Conditionally shows/hides code editor panel based on `adapter.hasIntegratedEditor()`
+- Extension mode: No editor panel (uses Replit's native editor)
+- Standalone mode: Full 3-panel layout with built-in code editor
 
-**Phase 4**: Advanced layout with `dagre`/`elkjs` for complex control flow
+### Minimap Behavior (✅ Fixed)
+
+- Minimap shows fixed overview of entire flowchart (non-zoomable)
+- Main canvas can zoom/pan independently
+- Click/drag on minimap to navigate main view
+- Viewport rectangle indicates visible area
+
+### Planned Features (Implementation Status)
+
+**Phase 1**: Source mapping for navigation (✅ Complete)
+
+**Phase 2**: Step-by-step interpreter with visual state (✅ Complete)
+
+**Phase 3**: Bi-directional editing (✅ Complete)
+
+**Phase 4**: Multi-IDE platform support (✅ Architecture complete, Replit integration done)
+
+**Phase 5**: Advanced layout with `dagre`/`elkjs` for complex control flow (Planned)
 
 ## External Dependencies
 
