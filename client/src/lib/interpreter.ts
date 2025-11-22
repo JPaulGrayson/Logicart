@@ -82,8 +82,10 @@ export class Interpreter {
   }
   
   private collectSteps(statements: any[], depth: number = 0): any {
+    console.log('collectSteps called with', statements.length, 'statements');
     for (const stmt of statements) {
       const nodeId = this.nodeMap.get(stmt);
+      console.log('Statement type:', stmt.type, 'nodeId:', nodeId, 'stmt:', stmt);
       
       if (stmt.type === 'VariableDeclaration') {
         if (nodeId) {
@@ -91,6 +93,8 @@ export class Interpreter {
             nodeId,
             state: this.cloneState()
           });
+        } else {
+          console.warn('No nodeId found for VariableDeclaration');
         }
         
         for (const decl of stmt.declarations) {
