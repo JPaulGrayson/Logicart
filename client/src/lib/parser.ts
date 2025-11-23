@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import dagre from 'dagre';
 
 export interface SourceLocation {
   start: { line: number; column: number };
@@ -33,6 +34,54 @@ export interface FlowData {
   nodes: FlowNode[];
   edges: FlowEdge[];
   nodeMap: Map<string, string>; // Maps "line:column" to nodeId
+}
+
+// Apply dagre layout algorithm to automatically position nodes
+function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
+  const g = new dagre.graphlib.Graph();
+  
+  g.setGraph({ 
+    rankdir: 'TB',
+    nodesep: 80,
+    ranksep: 100,
+    marginx: 50,
+    marginy: 50
+  });
+  
+  g.setDefaultEdgeLabel(() => ({}));
+  
+  nodes.forEach((node) => {
+    const isDecision = node.type === 'decision';
+    g.setNode(node.id, {
+      width: isDecision ? 120 : 180,
+      height: isDecision ? 120 : 60
+    });
+  });
+  
+  edges.forEach((edge) => {
+    g.setEdge(edge.source, edge.target);
+  });
+  
+  dagre.layout(g);
+  
+  nodes.forEach((node) => {
+    const nodeWithPosition = g.node(node.id);
+    if (nodeWithPosition) {
+      const isDecision = node.type === 'decision';
+      const width = isDecision ? 120 : 180;
+      const height = isDecision ? 120 : 60;
+      
+      node.position = {
+        x: nodeWithPosition.x - width / 2,
+        y: nodeWithPosition.y - height / 2
+      };
+      
+      node.style = {
+        width,
+        height
+      };
+    }
+  });
 }
 
 // Simple recursive parser to convert AST to Flowchart
@@ -200,6 +249,9 @@ export function parseCodeToFlow(code: string): FlowData {
     }
 
     processBlock(statements, startNode.id, 100);
+
+    // Apply dagre layout algorithm for automatic positioning
+    applyDagreLayout(nodes, edges);
 
     return { nodes, edges, nodeMap };
 
