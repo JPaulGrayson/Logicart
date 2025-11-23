@@ -111,6 +111,22 @@ export class Interpreter {
           ? this.evaluateExpression(stmt.argument)
           : undefined;
         return { type: 'return', value: returnValue };
+      } else if (stmt.type === 'BreakStatement') {
+        if (nodeId) {
+          this.steps.push({
+            nodeId,
+            state: this.cloneState()
+          });
+        }
+        return { type: 'break' };
+      } else if (stmt.type === 'ContinueStatement') {
+        if (nodeId) {
+          this.steps.push({
+            nodeId,
+            state: this.cloneState()
+          });
+        }
+        return { type: 'continue' };
       } else if (stmt.type === 'IfStatement') {
         if (nodeId) {
           this.steps.push({
@@ -126,14 +142,132 @@ export class Interpreter {
             ? stmt.consequent.body
             : [stmt.consequent];
           const result = this.collectSteps(consequentStmts, depth + 1);
-          if (result?.type === 'return') return result;
+          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue') return result;
         } else if (stmt.alternate) {
           const alternateStmts = stmt.alternate.type === 'BlockStatement'
             ? stmt.alternate.body
             : [stmt.alternate];
           const result = this.collectSteps(alternateStmts, depth + 1);
-          if (result?.type === 'return') return result;
+          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue') return result;
         }
+      } else if (stmt.type === 'ForStatement') {
+        // Execute init
+        if (stmt.init) {
+          // Add step for init
+          const initLocKey = stmt.init.loc ? `${stmt.init.loc.start.line}:${stmt.init.loc.start.column}` : null;
+          const initNodeId = initLocKey ? this.nodeMap.get(initLocKey) : null;
+          if (initNodeId) {
+            this.steps.push({
+              nodeId: initNodeId,
+              state: this.cloneState()
+            });
+          }
+          
+          if (stmt.init.type === 'VariableDeclaration') {
+            for (const decl of stmt.init.declarations) {
+              const value = this.evaluateExpression(decl.init);
+              this.state.variables[decl.id.name] = value;
+            }
+          } else {
+            this.evaluateExpression(stmt.init);
+          }
+        }
+        
+        // Loop iteration
+        while (true) {
+          // Check condition
+          const conditionResult = stmt.test ? this.evaluateExpression(stmt.test) : true;
+          
+          // Add step for condition check
+          const condLocKey = stmt.test?.loc ? `${stmt.test.loc.start.line}:${stmt.test.loc.start.column}` : null;
+          const condNodeId = condLocKey ? this.nodeMap.get(condLocKey) : null;
+          if (condNodeId) {
+            this.steps.push({
+              nodeId: condNodeId,
+              state: this.cloneState()
+            });
+          }
+          
+          if (!conditionResult) break;
+          
+          // Execute body
+          const bodyStmts = stmt.body.type === 'BlockStatement'
+            ? stmt.body.body
+            : [stmt.body];
+          const result = this.collectSteps(bodyStmts, depth + 1);
+          
+          if (result?.type === 'return') return result;
+          if (result?.type === 'break') break;
+          // continue just proceeds to update
+          
+          // Execute update
+          if (stmt.update) {
+            this.evaluateExpression(stmt.update);
+            
+            // Add step for update
+            const updateLocKey = stmt.update.loc ? `${stmt.update.loc.start.line}:${stmt.update.loc.start.column}` : null;
+            const updateNodeId = updateLocKey ? this.nodeMap.get(updateLocKey) : null;
+            if (updateNodeId) {
+              this.steps.push({
+                nodeId: updateNodeId,
+                state: this.cloneState()
+              });
+            }
+          }
+        }
+      } else if (stmt.type === 'WhileStatement') {
+        while (true) {
+          // Check condition
+          const conditionResult = this.evaluateExpression(stmt.test);
+          
+          // Add step for condition check
+          const condLocKey = stmt.test?.loc ? `${stmt.test.loc.start.line}:${stmt.test.loc.start.column}` : null;
+          const condNodeId = condLocKey ? this.nodeMap.get(condLocKey) : null;
+          if (condNodeId) {
+            this.steps.push({
+              nodeId: condNodeId,
+              state: this.cloneState()
+            });
+          }
+          
+          if (!conditionResult) break;
+          
+          // Execute body
+          const bodyStmts = stmt.body.type === 'BlockStatement'
+            ? stmt.body.body
+            : [stmt.body];
+          const result = this.collectSteps(bodyStmts, depth + 1);
+          
+          if (result?.type === 'return') return result;
+          if (result?.type === 'break') break;
+          // continue just loops back
+        }
+      } else if (stmt.type === 'DoWhileStatement') {
+        do {
+          // Execute body first
+          const bodyStmts = stmt.body.type === 'BlockStatement'
+            ? stmt.body.body
+            : [stmt.body];
+          const result = this.collectSteps(bodyStmts, depth + 1);
+          
+          if (result?.type === 'return') return result;
+          if (result?.type === 'break') break;
+          
+          // Check condition
+          const conditionResult = this.evaluateExpression(stmt.test);
+          
+          // Add step for condition check
+          const condLocKey = stmt.test?.loc ? `${stmt.test.loc.start.line}:${stmt.test.loc.start.column}` : null;
+          const condNodeId = condLocKey ? this.nodeMap.get(condLocKey) : null;
+          if (condNodeId) {
+            this.steps.push({
+              nodeId: condNodeId,
+              state: this.cloneState()
+            });
+          }
+          
+          if (!conditionResult) break;
+        } while (true);
       } else if (stmt.type === 'ExpressionStatement') {
         if (nodeId) {
           this.steps.push({
@@ -210,6 +344,30 @@ export class Interpreter {
         const assignValue = this.evaluateExpression(expr.right);
         this.state.variables[expr.left.name] = assignValue;
         return assignValue;
+        
+      case 'UpdateExpression':
+        const varName = expr.argument.name;
+        const currentValue = this.state.variables[varName] || 0;
+        
+        if (expr.operator === '++') {
+          const newValue = currentValue + 1;
+          this.state.variables[varName] = newValue;
+          return expr.prefix ? newValue : currentValue;
+        } else if (expr.operator === '--') {
+          const newValue = currentValue - 1;
+          this.state.variables[varName] = newValue;
+          return expr.prefix ? newValue : currentValue;
+        }
+        break;
+        
+      case 'LogicalExpression':
+        const leftLog = this.evaluateExpression(expr.left);
+        if (expr.operator === '&&') {
+          return leftLog && this.evaluateExpression(expr.right);
+        } else if (expr.operator === '||') {
+          return leftLog || this.evaluateExpression(expr.right);
+        }
+        break;
     }
     
     return undefined;

@@ -54,7 +54,7 @@ export default function Workbench() {
 
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
-    const success = interpreterRef.current.prepare('factorial', [5]);
+    const success = interpreterRef.current.prepare('processNumbers', [15]);
     
     if (success) {
       const prog = interpreterRef.current.getProgress();
