@@ -33,10 +33,9 @@ export interface FlowEdge {
 export interface FlowData {
   nodes: FlowNode[];
   edges: FlowEdge[];
-  nodeMap: Map<string, string>; // Maps "line:column" to nodeId
+  nodeMap: Map<string, string>;
 }
 
-// Apply dagre layout algorithm to automatically position nodes
 function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   const g = new dagre.graphlib.Graph();
   
@@ -84,9 +83,6 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   });
 }
 
-// Simple recursive parser to convert AST to Flowchart
-// This is a simplified "MVP" implementation. 
-// A robust version would handle nested scopes, complex expressions, etc.
 export function parseCodeToFlow(code: string): FlowData {
   try {
     const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
@@ -94,15 +90,11 @@ export function parseCodeToFlow(code: string): FlowData {
     const edges: FlowEdge[] = [];
     const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
-    let xPos = 250;
-    let yPos = 50;
-    const yGap = 100;
 
     const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
       
-      // Map the location to this node ID
       if (stmt?.loc) {
         const locKey = `${stmt.loc.start.line}:${stmt.loc.start.column}`;
         nodeMap.set(locKey, id);
@@ -115,13 +107,13 @@ export function parseCodeToFlow(code: string): FlowData {
         position: { x: 0, y: 0 },
         className,
         style: { 
-          width: isDecision ? 120 : 180, 
-          height: isDecision ? 120 : 60 
+          width: isDecision ? 100 : 150, 
+          height: isDecision ? 100 : 40 
         }
       };
     };
 
-    const createEdge = (source: string, target: string, label?: string): FlowEdge => {
+    const createEdge = (source: string, target: string, label?: string, style?: any): FlowEdge => {
       return {
         id: `edge-${source}-${target}`,
         source,
@@ -129,19 +121,15 @@ export function parseCodeToFlow(code: string): FlowData {
         label,
         type: 'smoothstep',
         animated: true,
-        style: { stroke: 'var(--color-muted-foreground)' }
+        style: style || {}
       };
     };
 
-    // Start Node
     const startNode = createNode(null, 'Start', 'input', 'bg-primary text-primary-foreground border-none');
     nodes.push(startNode);
     
     let lastNodeId = startNode.id;
-    let currentY = 100;
 
-    // Helper to process a block of statements
-    // Returns the ID of the last node in the block
     const processBlock = (statements: any[], parentId: string): string => {
       let currentParent = parentId;
 
@@ -173,28 +161,25 @@ export function parseCodeToFlow(code: string): FlowData {
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;
         } else if (stmt.type === 'IfStatement') {
-          // Decision Node
           const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
-          const decisionNode = createNode(stmt, testLabel, 'decision', undefined, loc);
+          const decisionNode = createNode(stmt, `if (${testLabel}) ?`, 'decision', undefined, loc);
           
-          // We store the full label in data for the tooltip/detail view later, but keep display short
-          decisionNode.data.label = `if (${testLabel}) ?`;
-          if (stmt.test.type === 'Identifier') decisionNode.data.label = `${stmt.test.name}?`;
+          if (stmt.test.type === 'Identifier') {
+            decisionNode.data.label = `${stmt.test.name}?`;
+          }
           
           nodes.push(decisionNode);
           edges.push(createEdge(currentParent, decisionNode.id));
 
-          // True Branch (Consequent)
           const trueBranchNodes: any[] = stmt.consequent.type === 'BlockStatement' ? stmt.consequent.body : [stmt.consequent];
           const trueEndId = processBlock(trueBranchNodes, decisionNode.id);
           
           const lastEdge = edges[edges.length - 1];
           if (lastEdge && lastEdge.source === decisionNode.id) {
              lastEdge.label = 'True';
-             lastEdge.style = { stroke: 'hsl(142, 71%, 45%)' };
+             lastEdge.style = { stroke: '#22c55e' };
           }
 
-          // False Branch (Alternate)
           if (stmt.alternate) {
              const falseBranchNodes: any[] = stmt.alternate.type === 'BlockStatement' ? stmt.alternate.body : [stmt.alternate];
              const falseEndId = processBlock(falseBranchNodes, decisionNode.id);
@@ -202,22 +187,20 @@ export function parseCodeToFlow(code: string): FlowData {
              const lastEdgeFalse = edges[edges.length - 1];
              if (lastEdgeFalse && lastEdgeFalse.source === decisionNode.id) {
                 lastEdgeFalse.label = 'False';
-                lastEdgeFalse.style = { stroke: 'hsl(0, 84%, 60%)' };
+                lastEdgeFalse.style = { stroke: '#ef4444' };
              }
           }
           
-          currentParent = decisionNode.id; 
+          currentParent = decisionNode.id;
         }
       }
       return currentParent;
     };
 
-    // @ts-ignore - acorn types might differ slightly
+    // @ts-ignore
     const body = ast.body;
-    
-    // Handle function declaration body if the code is just a function
-    // or handle top level statements
     let statements = body;
+    
     // @ts-ignore
     if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
        // @ts-ignore
@@ -225,11 +208,15 @@ export function parseCodeToFlow(code: string): FlowData {
     }
 
     processBlock(statements, startNode.id);
-
-    // Apply dagre layout algorithm for automatic positioning
+    
+    // Apply dagre layout for automatic positioning
     applyDagreLayout(nodes, edges);
 
-    return { nodes, edges, nodeMap };
+    return { 
+      nodes, 
+      edges, 
+      nodeMap
+    };
 
   } catch (e) {
     console.error("Parse error", e);

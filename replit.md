@@ -148,9 +148,40 @@ The application follows a workbench-style IDE layout with three primary panels:
 
 **Phase 3**: Bi-directional editing (✅ Complete)
 
-**Phase 4**: Multi-IDE platform support (✅ Architecture complete, Replit integration done)
+**Phase 4**: Multi-IDE platform support (✅ Architecture complete, Replit integration done, VS Code extension complete)
 
-**Phase 5**: Advanced layout with `dagre`/`elkjs` for complex control flow (Planned)
+**Phase 5**: Advanced layout with `dagre`/`elkjs` for complex control flow (✅ Complete - dagre integrated)
+
+### VS Code Extension (✅ Complete - November 2025)
+
+**Multi-Platform Extension Support**:
+- Built for VS Code, Google Antigravity, Cursor, and Windsurf
+- Dual publishing to VS Code Marketplace and Open VSX Registry
+- Native webview integration with file system access
+
+**Extension Architecture** (`vscode-extension/`):
+- `src/extension.ts`: Main extension entry point with file watching
+- `src/parser.ts`: Standalone parser with dagre layout (no React Flow dependency)
+- `src/webview/`: React-based webview UI with SVG rendering
+- `build.js`: esbuild configuration for extension and webview bundles
+
+**Key Features**:
+- Command: `Cartographer: Visualize Current File`
+- Editor toolbar icon for quick access
+- Auto-refresh on file changes (configurable)
+- Click nodes to jump to source code lines
+- Real-time bidirectional sync with editor
+
+**Publishing Targets**:
+1. **VS Code Marketplace**: For VS Code and Cursor users
+2. **Open VSX Registry**: For Google Antigravity users (required for Antigravity compatibility)
+3. **Manual .vsix**: Direct distribution option
+
+**Google Antigravity Context**:
+- Antigravity is a VS Code fork built on Windsurf's $2.4B licensed "Cascade" technology (Google acquired July 2025)
+- Uses Open VSX Registry instead of VS Code Marketplace
+- Cartographer extension works natively without modification
+- Perfect fit for "vibe coding" platforms emphasizing AI-assisted visual development
 
 ## External Dependencies
 

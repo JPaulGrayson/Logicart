@@ -1,0 +1,93 @@
+{
+  "name": "cartographer",
+  "displayName": "Cartographer - Code Flow Visualizer",
+  "description": "Visualize JavaScript code as interactive flowcharts with step-by-step execution",
+  "version": "1.0.0",
+  "publisher": "cartographer",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Debuggers",
+    "Education"
+  ],
+  "keywords": [
+    "flowchart",
+    "code visualization",
+    "control flow",
+    "debugging",
+    "learning"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cartographer.visualize",
+        "title": "Cartographer: Visualize Current File",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "cartographer.execute",
+        "title": "Cartographer: Execute Step-by-Step"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "cartographer.visualize",
+          "when": "resourceLangId == javascript || resourceLangId == typescript",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "cartographer.visualize",
+          "when": "resourceLangId == javascript || resourceLangId == typescript",
+          "group": "visualization"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cartographer",
+      "properties": {
+        "cartographer.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh flowchart when file changes"
+        },
+        "cartographer.layout": {
+          "type": "string",
+          "enum": ["dagre", "manual"],
+          "default": "dagre",
+          "description": "Layout algorithm for flowchart"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "package": "vsce package",
+    "publish:marketplace": "vsce publish",
+    "publish:openvsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.19.0",
+    "ovsx": "^0.8.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "acorn": "^8.15.0",
+    "dagre": "^0.8.5"
+  }
+}
