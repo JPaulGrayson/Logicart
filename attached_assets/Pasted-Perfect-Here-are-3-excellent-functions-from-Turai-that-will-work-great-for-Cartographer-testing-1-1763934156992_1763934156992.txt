@@ -1,0 +1,89 @@
+Perfect! Here are 3 excellent functions from Turai that will work great for Cartographer testing:
+
+1. calculateRouteDistance - Route Distance Calculator
+File: server/utils/distance.ts
+
+What it does: Calculates the total distance of a multi-stop tour route by summing distances between consecutive waypoints.
+
+Why it's perfect:
+
+✅ Clear for loop iterating through POIs
+✅ Conditional check for edge case (< 2 points)
+✅ Calls another function (calculateDistance)
+✅ Self-contained logic
+✅ 12 lines - perfect size
+Complete code:
+
+function calculateRouteDistance(pois) {
+  if (pois.length < 2) return 0;
+  
+  let totalDistance = 0;
+  for (let i = 0; i < pois.length - 1; i++) {
+    const poi1 = pois[i];
+    const poi2 = pois[i + 1];
+    totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);
+  }
+  
+  return Math.round(totalDistance);
+}
+
+2. isValidCoordinate - GPS Coordinate Validator
+File: client/src/features/map/MapOverlay.tsx
+
+What it does: Validates that a coordinate object has valid latitude and longitude values before creating a map marker.
+
+Why it's perfect:
+
+✅ Multiple conditional checks (&&, typeof, isNaN, isFinite)
+✅ Shows defensive programming logic
+✅ Real-world validation pattern
+✅ 8 lines - clean and focused
+Complete code:
+
+function isValidCoordinate(coord) {
+  return coord && 
+         typeof coord.lat === 'number' && 
+         typeof coord.lng === 'number' &&
+         !isNaN(coord.lat) && 
+         !isNaN(coord.lng) &&
+         isFinite(coord.lat) && 
+         isFinite(coord.lng);
+}
+
+3. calculateDistance - Haversine Distance Formula
+File: server/utils/distance.ts
+
+What it does: Calculates the distance between two GPS coordinates using the Haversine formula (accounts for Earth's curvature).
+
+Why it's perfect:
+
+✅ Mathematical operations with clear steps
+✅ Multiple intermediate variables showing progression
+✅ Calls helper function (toRadians)
+✅ Classic algorithm implementation
+✅ 14 lines - substantial but not overwhelming
+Complete code:
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 3959; // Earth's radius in miles
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  
+  return distance;
+}
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+Why These Are Great for Cartographer
+calculateRouteDistance - Shows loop iteration and accumulation pattern
+isValidCoordinate - Demonstrates complex boolean logic with multiple conditions
+calculateDistance - Illustrates mathematical computation flow with intermediate steps
+All three are core to Turai's GPS tour functionality, making them both interesting and representative of real-world tour logic!
