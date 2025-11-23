@@ -20,12 +20,18 @@ interface AdapterProviderProps {
 export function AdapterProvider({ 
   children, 
   adapter: providedAdapter,
-  initialCode = `function factorial(n) {
-  if (n <= 1) {
-    return 1;
+  initialCode = `function processNumbers(max) {
+  let sum = 0;
+  for (let i = 0; i < max; i++) {
+    if (i % 2 === 0) {
+      continue;
+    }
+    if (i > 10) {
+      break;
+    }
+    sum = sum + i;
   }
-  let sub = factorial(n - 1);
-  return n * sub;
+  return sum;
 }`
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 
