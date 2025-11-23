@@ -20,18 +20,21 @@ interface AdapterProviderProps {
 export function AdapterProvider({ 
   children, 
   adapter: providedAdapter,
-  initialCode = `function processNumbers(max) {
-  let sum = 0;
-  for (let i = 0; i < max; i++) {
-    if (i % 2 === 0) {
-      continue;
-    }
-    if (i > 10) {
-      break;
-    }
-    sum = sum + i;
+  initialCode = `function calculateDistance(lat1, lon1, lat2, lon2) {
+  return 5;
+}
+
+function calculateRouteDistance(pois) {
+  if (pois.length < 2) return 0;
+  
+  let totalDistance = 0;
+  for (let i = 0; i < pois.length - 1; i++) {
+    const poi1 = pois[i];
+    const poi2 = pois[i + 1];
+    totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);
   }
-  return sum;
+  
+  return Math.round(totalDistance);
 }`
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 

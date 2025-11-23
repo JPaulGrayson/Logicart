@@ -54,7 +54,15 @@ export default function Workbench() {
 
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
-    const success = interpreterRef.current.prepare('processNumbers', [15]);
+    
+    // Sample POI data for testing route distance calculation
+    const samplePois = [
+      { latitude: 37.7749, longitude: -122.4194 },
+      { latitude: 37.8044, longitude: -122.2712 },
+      { latitude: 37.8716, longitude: -122.2727 }
+    ];
+    
+    const success = interpreterRef.current.prepare('calculateRouteDistance', [samplePois]);
     
     if (success) {
       const prog = interpreterRef.current.getProgress();

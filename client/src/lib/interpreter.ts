@@ -291,6 +291,19 @@ export class Interpreter {
       case 'Identifier':
         return this.state.variables[expr.name];
         
+      case 'MemberExpression':
+        const object = this.evaluateExpression(expr.object);
+        if (expr.computed) {
+          // array[index] or obj[key]
+          const property = this.evaluateExpression(expr.property);
+          return object?.[property];
+        } else {
+          // obj.property
+          const propName = expr.property.name;
+          return object?.[propName];
+        }
+        break;
+        
       case 'BinaryExpression':
         const left = this.evaluateExpression(expr.left);
         const right = this.evaluateExpression(expr.right);
@@ -322,32 +335,97 @@ export class Interpreter {
         }
         
       case 'CallExpression':
-        // For recursive calls, we'll evaluate them inline (simplified)
-        if (expr.callee.type === 'Identifier') {
+        // Handle Math methods and other built-in functions
+        if (expr.callee.type === 'MemberExpression') {
+          const obj = this.evaluateExpression(expr.callee.object);
+          const methodName = expr.callee.property.name;
+          const args = expr.arguments.map((arg: any) => this.evaluateExpression(arg));
+          
+          // Support common Math methods
+          if (obj === Math || expr.callee.object.name === 'Math') {
+            if (methodName === 'round') return Math.round(args[0]);
+            if (methodName === 'floor') return Math.floor(args[0]);
+            if (methodName === 'ceil') return Math.ceil(args[0]);
+            if (methodName === 'abs') return Math.abs(args[0]);
+            if (methodName === 'sqrt') return Math.sqrt(args[0]);
+            if (methodName === 'sin') return Math.sin(args[0]);
+            if (methodName === 'cos') return Math.cos(args[0]);
+            if (methodName === 'atan2') return Math.atan2(args[0], args[1]);
+          }
+        } else if (expr.callee.type === 'Identifier') {
           const fnName = expr.callee.name;
           const args = expr.arguments.map((arg: any) => this.evaluateExpression(arg));
           
-          // Simple recursion simulation for factorial
-          if (fnName === 'factorial') {
-            const n = args[0];
-            if (n <= 1) return 1;
-            return n * this.evaluateExpression({
-              type: 'CallExpression',
-              callee: { type: 'Identifier', name: 'factorial' },
-              arguments: [{ type: 'Literal', value: n - 1 }]
+          // Check if it's a function in the AST
+          const funcDecl = this.ast.body.find((node: any) => 
+            node.type === 'FunctionDeclaration' && node.id.name === fnName
+          );
+          
+          if (funcDecl) {
+            // Save current state
+            const savedVars = { ...this.state.variables };
+            
+            // Set up parameters
+            funcDecl.params.forEach((param: any, idx: number) => {
+              this.state.variables[param.name] = args[idx];
             });
+            
+            // Execute function body
+            const statements = funcDecl.body.body;
+            for (const stmt of statements) {
+              if (stmt.type === 'ReturnStatement') {
+                const result = this.evaluateExpression(stmt.argument);
+                // Restore state
+                this.state.variables = savedVars;
+                return result;
+              } else if (stmt.type === 'VariableDeclaration') {
+                for (const decl of stmt.declarations) {
+                  this.state.variables[decl.id.name] = this.evaluateExpression(decl.init);
+                }
+              } else if (stmt.type === 'ExpressionStatement') {
+                this.evaluateExpression(stmt.expression);
+              }
+            }
+            
+            // Restore state
+            this.state.variables = savedVars;
           }
         }
         break;
         
       case 'AssignmentExpression':
-        const assignValue = this.evaluateExpression(expr.right);
-        this.state.variables[expr.left.name] = assignValue;
-        return assignValue;
+        const rightValue = this.evaluateExpression(expr.right);
+        const leftName = expr.left.name;
+        
+        if (expr.operator === '=') {
+          this.state.variables[leftName] = rightValue;
+          return rightValue;
+        } else if (expr.operator === '+=') {
+          const leftValue = this.state.variables[leftName];
+          const newValue = leftValue + rightValue;
+          this.state.variables[leftName] = newValue;
+          return newValue;
+        } else if (expr.operator === '-=') {
+          const leftValue = this.state.variables[leftName];
+          const newValue = leftValue - rightValue;
+          this.state.variables[leftName] = newValue;
+          return newValue;
+        } else if (expr.operator === '*=') {
+          const leftValue = this.state.variables[leftName];
+          const newValue = leftValue * rightValue;
+          this.state.variables[leftName] = newValue;
+          return newValue;
+        } else if (expr.operator === '/=') {
+          const leftValue = this.state.variables[leftName];
+          const newValue = leftValue / rightValue;
+          this.state.variables[leftName] = newValue;
+          return newValue;
+        }
+        return rightValue;
         
       case 'UpdateExpression':
         const varName = expr.argument.name;
-        const currentValue = this.state.variables[varName] || 0;
+        const currentValue = this.state.variables[varName];
         
         if (expr.operator === '++') {
           const newValue = currentValue + 1;
