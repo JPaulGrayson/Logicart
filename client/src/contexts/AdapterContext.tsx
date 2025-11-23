@@ -20,11 +20,7 @@ interface AdapterProviderProps {
 export function AdapterProvider({ 
   children, 
   adapter: providedAdapter,
-  initialCode = `function calculateDistance(lat1, lon1, lat2, lon2) {
-  return 5;
-}
-
-function calculateRouteDistance(pois) {
+  initialCode = `function calculateRouteDistance(pois) {
   if (pois.length < 2) return 0;
   
   let totalDistance = 0;
@@ -35,6 +31,10 @@ function calculateRouteDistance(pois) {
   }
   
   return Math.round(totalDistance);
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  return 5;
 }`
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 
