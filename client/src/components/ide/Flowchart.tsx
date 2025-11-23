@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from 'react';
-import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
+import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
@@ -18,10 +18,11 @@ const nodeTypes = {
   decision: DecisionNode,
 };
 
-export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
+  const { fitView } = useReactFlow();
 
   // Sync props with internal state when they change (from parser)
   useEffect(() => {
@@ -36,7 +37,14 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
     });
     setNodes(updatedNodes);
     setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, activeNodeId, setNodes, setEdges]);
+    
+    // Fit view with padding when nodes change (only if there are nodes)
+    if (updatedNodes.length > 0) {
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 400 });
+      }, 50);
+    }
+  }, [initialNodes, initialEdges, activeNodeId, setNodes, setEdges, fitView]);
 
   return (
     <div className="h-full w-full bg-background flex flex-col">
@@ -56,6 +64,7 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
           onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
           nodeTypes={nodeTypes}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
           proOptions={{ hideAttribution: true }}
           connectionLineType={ConnectionLineType.SmoothStep}
         >
@@ -72,5 +81,13 @@ export function Flowchart({ nodes: initialNodes, edges: initialEdges, onNodeClic
         </ReactFlow>
       </div>
     </div>
+  );
+}
+
+export function Flowchart(props: FlowchartProps) {
+  return (
+    <ReactFlowProvider>
+      <FlowchartInner {...props} />
+    </ReactFlowProvider>
   );
 }
