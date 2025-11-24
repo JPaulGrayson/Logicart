@@ -151,7 +151,27 @@ LogiGo implements a two-tier monetization strategy:
    - Lightning icon (⚡) indicator for premium speed options
    - Note: Full checkpoint-based pause/step system planned for future release
 
-3. **Runtime Overlay** (Planned):
+3. **Export to Documentation** (`client/src/lib/flowchartExport.ts`):
+   - **Free Tier - PNG Export**: High-quality 2x pixel ratio image export
+     - Single-file flowchart capture with dark background (#0f172a)
+     - Uses html-to-image library with CORS-safe font handling
+     - Filters out controls, minimap, and background elements
+     - Download icon button always visible in header
+   - **Premium Tier - PDF Export**: Multi-page professional documentation
+     - Cover page with metadata (title, author, timestamp)
+     - Full-page flowchart visualization (A4 landscape)
+     - Source code page with syntax formatting
+     - Node details reference page
+     - Generated using jsPDF with professional layout
+     - FileText icon button visible only for premium users
+   - **Technical Implementation**:
+     - Uses React Flow's `getNodesBounds` and `getViewportForBounds` APIs
+     - SVG-safe className handling for both HTML and SVG elements
+     - skipFonts option to avoid cross-origin stylesheet issues
+     - Error handling with user-friendly alerts
+     - E2E tested with Playwright for reliability
+
+4. **Runtime Overlay** (Planned):
    - Floating toolbar for execution control
    - Persistent across IDE panels
    - Based on Antigravity's overlay.js component

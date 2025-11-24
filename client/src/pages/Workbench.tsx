@@ -13,7 +13,9 @@ import { useAdapter } from '@/contexts/AdapterContext';
 import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
 import { features } from '@/lib/features';
 import { ExecutionController } from '@/lib/executionController';
+import { exportToPNG, exportToPDF } from '@/lib/flowchartExport';
 import { Button } from '@/components/ui/button';
+import { Download, FileText } from 'lucide-react';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -327,6 +329,49 @@ export default function Workbench() {
     adapter.writeFile(newCode);
   };
 
+  const handleExportPNG = async () => {
+    const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+    if (!viewportElement) {
+      console.error('Viewport element not found');
+      alert('Unable to find flowchart for export. Please try again.');
+      return;
+    }
+
+    try {
+      await exportToPNG(viewportElement, flowData.nodes as Node[], {
+        filename: 'logigo-flowchart.png',
+        backgroundColor: '#0f172a',
+        quality: 2,
+      });
+    } catch (error) {
+      console.error('PNG export failed:', error);
+      alert('Export failed. Please try again or check console for details.');
+    }
+  };
+
+  const handleExportPDF = async () => {
+    const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+    if (!viewportElement) {
+      console.error('Viewport element not found');
+      alert('Unable to find flowchart for export. Please try again.');
+      return;
+    }
+
+    try {
+      await exportToPDF(viewportElement, flowData.nodes as Node[], code, {
+        filename: 'logigo-flowchart.pdf',
+        backgroundColor: '#0f172a',
+        quality: 2,
+        includeCode: true,
+        includeMetadata: true,
+        title: 'LogiGo Code Flowchart',
+      });
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      alert('PDF export failed. Please try again or check console for details.');
+    }
+  };
+
   // Cleanup interval and timeouts on unmount
   useEffect(() => {
     return () => {
@@ -370,17 +415,49 @@ export default function Workbench() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
             {features.hasFeature('ghostDiff') && (
               <Button
                 variant={showDiff ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowDiff(!showDiff)}
                 className="gap-2"
+                data-testid="button-ghost-diff"
               >
                 <span>👻</span> {showDiff ? 'Hide' : 'Show'} Ghost Diff
               </Button>
             )}
+            
+            <div className="h-6 w-px bg-border" />
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPNG}
+              className="gap-2"
+              data-testid="button-export-png"
+              title="Export as PNG (Free)"
+            >
+              <Download className="w-4 h-4" />
+              PNG
+            </Button>
+            
+            {features.hasFeature('ghostDiff') && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                className="gap-2"
+                data-testid="button-export-pdf"
+                title="Export as PDF (Premium)"
+              >
+                <FileText className="w-4 h-4" />
+                PDF
+              </Button>
+            )}
+            
+            <div className="h-6 w-px bg-border" />
+            
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
             <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
               Share
