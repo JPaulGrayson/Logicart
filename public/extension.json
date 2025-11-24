@@ -1,14 +1,14 @@
 {
-  "name": "Cartographer",
+  "name": "LogiGo",
   "description": "Visual code-to-flowchart tool with step-by-step execution for debugging and understanding control flow",
-  "longDescription": "Cartographer transforms your JavaScript code into interactive flowcharts. It provides:\n\n- **Real-time visualization**: Watch your code structure as a control flow graph\n- **Step-by-step execution**: Debug by stepping through your code visually\n- **Variable watch**: Track variable values during execution\n- **Bi-directional editing**: Edit code from the flowchart or vice versa\n- **Speed controls**: Adjust execution speed and enable looping for continuous visualization\n\nPerfect for 'vibe coders' who prefer visual learning and debugging. See your code flow, understand complex logic, and catch bugs faster with visual feedback.",
+  "longDescription": "LogiGo transforms your JavaScript code into interactive flowcharts. It provides:\n\n- **Real-time visualization**: Watch your code structure as a control flow graph\n- **Step-by-step execution**: Debug by stepping through your code visually\n- **Variable watch**: Track variable values during execution\n- **Bi-directional editing**: Edit code from the flowchart or vice versa\n- **Speed controls**: Adjust execution speed and enable looping for continuous visualization\n\nPerfect for 'vibe coders' who prefer visual learning and debugging. See your code flow, understand complex logic, and catch bugs faster with visual feedback.",
   "icon": "icon.svg",
   "tags": ["visualization", "debugging", "education", "code-analysis", "flowchart"],
-  "website": "https://cartographer.dev",
+  "website": "https://logigo.dev",
   "tools": [
     {
-      "id": "cartographer",
-      "name": "Cartographer",
+      "id": "logigo",
+      "name": "LogiGo",
       "description": "Visual flowchart and step-by-step execution",
       "handler": "extension.html"
     }

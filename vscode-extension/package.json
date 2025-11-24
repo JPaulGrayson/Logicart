@@ -1,9 +1,9 @@
 {
-  "name": "cartographer",
-  "displayName": "Cartographer - Code Flow Visualizer",
+  "name": "logigo",
+  "displayName": "LogiGo - Code Flow Visualizer",
   "description": "Visualize JavaScript code as interactive flowcharts with step-by-step execution",
   "version": "1.0.0",
-  "publisher": "cartographer",
+  "publisher": "logigo",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -28,40 +28,40 @@
   "contributes": {
     "commands": [
       {
-        "command": "cartographer.visualize",
-        "title": "Cartographer: Visualize Current File",
+        "command": "logigo.visualize",
+        "title": "LogiGo: Visualize Current File",
         "icon": "$(symbol-structure)"
       },
       {
-        "command": "cartographer.execute",
-        "title": "Cartographer: Execute Step-by-Step"
+        "command": "logigo.execute",
+        "title": "LogiGo: Execute Step-by-Step"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "cartographer.visualize",
+          "command": "logigo.visualize",
           "when": "resourceLangId == javascript || resourceLangId == typescript",
           "group": "navigation"
         }
       ],
       "editor/context": [
         {
-          "command": "cartographer.visualize",
+          "command": "logigo.visualize",
           "when": "resourceLangId == javascript || resourceLangId == typescript",
           "group": "visualization"
         }
       ]
     },
     "configuration": {
-      "title": "Cartographer",
+      "title": "LogiGo",
       "properties": {
-        "cartographer.autoRefresh": {
+        "logigo.autoRefresh": {
           "type": "boolean",
           "default": true,
           "description": "Automatically refresh flowchart when file changes"
         },
-        "cartographer.layout": {
+        "logigo.layout": {
           "type": "string",
           "enum": ["dagre", "manual"],
           "default": "dagre",

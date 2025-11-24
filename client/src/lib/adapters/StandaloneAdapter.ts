@@ -1,7 +1,7 @@
 import { IDEAdapter, FileInfo, FileChangeCallback, Range } from './types';
 
 /**
- * StandaloneAdapter - In-memory adapter for standalone Cartographer usage
+ * StandaloneAdapter - In-memory adapter for standalone LogiGo usage
  * Manages code state internally without relying on external IDE
  */
 export class StandaloneAdapter implements IDEAdapter {

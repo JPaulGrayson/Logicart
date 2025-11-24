@@ -1,8 +1,8 @@
-# Cartographer - Code-to-Flowchart Visualization Tool
+# LogiGo - Code-to-Flowchart Visualization Tool
 
 ## Overview
 
-Cartographer is a bidirectional code-to-flowchart visualization tool built with React. It allows developers to visualize JavaScript code execution as interactive flowcharts, step through code execution, and understand control flow patterns. The application parses JavaScript functions using AST analysis and renders them as interactive graphs using React Flow, with plans to support bi-directional editing where changes to the flowchart update the source code.
+LogiGo is a bidirectional code-to-flowchart visualization tool built with React. It allows developers to visualize JavaScript code execution as interactive flowcharts, step through code execution, and understand control flow patterns. The application parses JavaScript functions using AST analysis and renders them as interactive graphs using React Flow, with plans to support bi-directional editing where changes to the flowchart update the source code.
 
 **Core Purpose**: Transform JavaScript code into visual control flow diagrams that can be interactively executed and debugged step-by-step.
 
@@ -34,7 +34,7 @@ The application follows a workbench-style IDE layout with three primary panels:
 - `acorn` for JavaScript AST parsing
 - `react-simple-code-editor` with PrismJS for code editing
 - Radix UI for accessible component primitives
-- shadcn/ui component system with custom "Cartographer" theme
+- shadcn/ui component system with custom "LogiGo" theme
 
 **Design Pattern**: The application uses a resizable panel layout with React Flow for node-based visualization. Custom node types (DecisionNode) handle conditional logic rendering with diamond shapes.
 

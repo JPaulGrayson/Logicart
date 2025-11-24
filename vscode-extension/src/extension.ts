@@ -7,9 +7,9 @@ let currentDocument: vscode.TextDocument | undefined;
 let documentChangeListener: vscode.Disposable | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Cartographer extension activated');
+  console.log('LogiGo extension activated');
 
-  const visualizeCommand = vscode.commands.registerCommand('cartographer.visualize', async () => {
+  const visualizeCommand = vscode.commands.registerCommand('logigo.visualize', async () => {
     const editor = vscode.window.activeTextEditor;
     
     if (!editor) {
@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     const document = editor.document;
     
     if (document.languageId !== 'javascript' && document.languageId !== 'typescript') {
-      vscode.window.showWarningMessage('Cartographer only supports JavaScript and TypeScript files');
+      vscode.window.showWarningMessage('LogiGo only supports JavaScript and TypeScript files');
       return;
     }
 
@@ -42,8 +42,8 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
     currentPanel.reveal(columnToShowIn);
   } else {
     currentPanel = vscode.window.createWebviewPanel(
-      'cartographerFlowchart',
-      'Cartographer Flowchart',
+      'logigoFlowchart',
+      'LogiGo Flowchart',
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
