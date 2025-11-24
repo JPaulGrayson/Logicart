@@ -599,6 +599,32 @@ export function parseCodeToFlow(code: string): FlowData {
 
     processBlock(statements, startNode.id);
 
+    // Remove invisible loop exit nodes and redirect their edges
+    const exitNodes = nodes.filter(n => n.data.label === 'loop exit');
+    for (const exitNode of exitNodes) {
+      // Find edges pointing TO the exit node
+      const incomingEdges = edges.filter(e => e.target === exitNode.id);
+      // Find edges pointing FROM the exit node
+      const outgoingEdges = edges.filter(e => e.source === exitNode.id);
+      
+      // Redirect incoming edges to the outgoing edge's target (if exists)
+      if (outgoingEdges.length > 0) {
+        const nextTarget = outgoingEdges[0].target;
+        for (const inEdge of incomingEdges) {
+          inEdge.target = nextTarget;
+        }
+      }
+      
+      // Remove the exit node and its outgoing edges
+      const nodeIndex = nodes.indexOf(exitNode);
+      if (nodeIndex > -1) nodes.splice(nodeIndex, 1);
+      
+      for (const outEdge of outgoingEdges) {
+        const edgeIndex = edges.indexOf(outEdge);
+        if (edgeIndex > -1) edges.splice(edgeIndex, 1);
+      }
+    }
+
     // Apply dagre layout algorithm for automatic positioning
     applyDagreLayout(nodes, edges);
 
