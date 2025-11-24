@@ -3,6 +3,12 @@
  * 
  * Visual timeline for navigating through execution history
  * Allows scrubbing through steps and jumping to specific points
+ * 
+ * Step Indexing Convention:
+ * - currentStep: Count of steps executed (0 to totalSteps)
+ * - totalSteps: Total number of execution snapshots (steps.length)
+ * - Slider range: 0 (before execution) to totalSteps (after all steps)
+ * - Example: 15 steps means slider 0-15, where 15 = final state
  */
 
 import { useState } from 'react';
@@ -84,7 +90,7 @@ export function TimelineScrubber({
         <Slider
           value={[currentStep]}
           min={0}
-          max={Math.max(totalSteps, 1)}
+          max={totalSteps}
           step={1}
           onValueChange={handleSliderChange}
           onPointerDown={() => setIsDragging(true)}

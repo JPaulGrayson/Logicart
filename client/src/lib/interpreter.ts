@@ -451,6 +451,15 @@ export class Interpreter {
     return undefined;
   }
   
+  /**
+   * Step Indexing Convention:
+   * - currentStepIndex: Count of steps executed (0 to steps.length)
+   *   - 0 = before any execution
+   *   - n = after executing n steps (showing state from steps[n-1])
+   * - steps[]: 0-based array of execution snapshots
+   * - Display: "Step X/Y" where X = currentStepIndex, Y = steps.length
+   */
+  
   // Navigation methods
   stepForward(): InterpreterStep | null {
     if (this.currentStepIndex < this.steps.length) {
