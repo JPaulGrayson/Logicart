@@ -44,7 +44,7 @@ export const TIERS: Record<UserTier['name'], UserTier> = {
       ghostDiff: true,            // ✓ Ghost diff
       overlay: true,              // ✓ Floating overlay
       naturalLanguageSearch: true, // ✓ NL search
-      timeTravel: false,
+      timeTravel: true,            // ✓ Time travel (rewind/replay)
       multiFile: false,
       collaboration: false,
     },

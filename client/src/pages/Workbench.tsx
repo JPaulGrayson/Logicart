@@ -16,6 +16,7 @@ import { ExecutionController } from '@/lib/executionController';
 import { exportToPNG, exportToPDF } from '@/lib/flowchartExport';
 import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
+import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
@@ -39,6 +40,7 @@ export default function Workbench() {
   const [diffNodes, setDiffNodes] = useState<DiffNode[]>([]);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
+  const [bookmarks, setBookmarks] = useState<Array<{ step: number; label: string }>>([]);
   
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -234,6 +236,45 @@ export default function Workbench() {
         adapter.navigateToLine(node.data.sourceData.start.line);
       }
     }
+  };
+
+  const handleJumpToStep = (targetStep: number) => {
+    if (!interpreterRef.current) return;
+    
+    const result = interpreterRef.current.jumpToStep(targetStep);
+    
+    if (result) {
+      setActiveNodeId(result.nodeId);
+      setExecutionState(result.state);
+      setProgress(interpreterRef.current.getProgress());
+      
+      // Find and highlight the source line
+      const node = flowData.nodes.find(n => n.id === result.nodeId);
+      if (node?.data.sourceData) {
+        setHighlightedLine(node.data.sourceData.start.line);
+        adapter.navigateToLine(node.data.sourceData.start.line);
+      }
+    } else if (targetStep === 0) {
+      // Jumped to beginning
+      setActiveNodeId(null);
+      setExecutionState(null);
+      setProgress(interpreterRef.current.getProgress());
+      setHighlightedLine(null);
+    }
+  };
+
+  const handleAddBookmark = (step: number) => {
+    const node = flowData.nodes.find(n => {
+      const allSteps = interpreterRef.current?.getAllSteps() || [];
+      return allSteps[step - 1]?.nodeId === n.id;
+    });
+    
+    const label = node?.data.label || `Step ${step}`;
+    setBookmarks(prev => [...prev, { step, label }]);
+  };
+
+  const handleRemoveBookmark = (step: number) => {
+    setBookmarks(prev => prev.filter(b => b.step !== step));
   };
 
   const handleReset = () => {
@@ -556,7 +597,29 @@ export default function Workbench() {
           <ResizableHandle withHandle />
           
           <ResizablePanel defaultSize={25} minSize={15}>
-            <VariableWatch state={executionState} />
+            {features.hasFeature('timeTravel') && progress.total > 0 ? (
+              <ResizablePanelGroup direction="vertical">
+                <ResizablePanel defaultSize={60}>
+                  <VariableWatch state={executionState} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={40} minSize={20}>
+                  <div className="h-full overflow-auto p-4">
+                    <TimelineScrubber
+                      currentStep={progress.current}
+                      totalSteps={progress.total}
+                      onJumpToStep={handleJumpToStep}
+                      bookmarks={bookmarks}
+                      onAddBookmark={handleAddBookmark}
+                      onRemoveBookmark={handleRemoveBookmark}
+                      disabled={isPlaying}
+                    />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            ) : (
+              <VariableWatch state={executionState} />
+            )}
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

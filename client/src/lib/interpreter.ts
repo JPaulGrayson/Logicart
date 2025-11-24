@@ -477,6 +477,29 @@ export class Interpreter {
     return null;
   }
   
+  jumpToStep(targetStep: number): InterpreterStep | null {
+    if (targetStep >= 0 && targetStep <= this.steps.length) {
+      this.currentStepIndex = targetStep;
+      
+      if (targetStep > 0 && targetStep <= this.steps.length) {
+        const step = this.steps[targetStep - 1];
+        this.state = { ...step.state };
+        return step;
+      } else if (targetStep === 0) {
+        // Jump to beginning (before any execution)
+        this.state = {
+          variables: {},
+          callStack: [],
+          currentNodeId: null,
+          status: 'idle',
+          output: []
+        };
+        return null;
+      }
+    }
+    return null;
+  }
+  
   getCurrentStep(): InterpreterStep | null {
     if (this.currentStepIndex > 0 && this.currentStepIndex <= this.steps.length) {
       return this.steps[this.currentStepIndex - 1];
