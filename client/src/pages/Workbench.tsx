@@ -10,6 +10,9 @@ import { patchCode, extractCode } from '@/lib/codePatcher';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Node } from '@xyflow/react';
 import { useAdapter } from '@/contexts/AdapterContext';
+import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
+import { features } from '@/lib/features';
+import { Button } from '@/components/ui/button';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -25,9 +28,15 @@ export default function Workbench() {
   const [editingNode, setEditingNode] = useState<FlowNode | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   
+  // Premium features state
+  const [showDiff, setShowDiff] = useState(false);
+  const [diffNodes, setDiffNodes] = useState<DiffNode[]>([]);
+  
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: false }));
+  const previousFlowDataRef = useRef<FlowNode[]>([]);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -36,7 +45,23 @@ export default function Workbench() {
     setIsParsing(true);
     
     const timer = setTimeout(() => {
-      setFlowData(parseCodeToFlow(code));
+      const newFlowData = parseCodeToFlow(code);
+      
+      // Compute diff if ghost-diff feature is enabled and there's previous data
+      if (features.hasFeature('ghostDiff') && previousFlowDataRef.current.length > 0) {
+        const diff = ghostDiffRef.current.diffTrees(previousFlowDataRef.current, newFlowData.nodes);
+        const styledDiffNodes = ghostDiffRef.current.applyDiffStyling(diff.nodes);
+        setDiffNodes(styledDiffNodes);
+        
+        if (diff.stats.added > 0 || diff.stats.removed > 0 || diff.stats.modified > 0) {
+          console.log('[Ghost Diff]', diff.stats);
+        }
+      }
+      
+      // Update flow data and store for next diff
+      previousFlowDataRef.current = newFlowData.nodes;
+      setFlowData(newFlowData);
+      
       // Reset interpreter when code changes
       interpreterRef.current = null;
       setActiveNodeId(null);
@@ -319,12 +344,27 @@ export default function Workbench() {
       <header className="h-14 border-b border-border flex items-center px-6 bg-card z-10 justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono">
-            C
+            L
           </div>
-          <h1 className="font-semibold tracking-tight">Cartographer</h1>
+          <h1 className="font-semibold tracking-tight">LogiGo</h1>
           <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">Beta</span>
+          {features.hasFeature('ghostDiff') && (
+            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium">
+              Premium
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-4">
+            {features.hasFeature('ghostDiff') && (
+              <Button
+                variant={showDiff ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowDiff(!showDiff)}
+                className="gap-2"
+              >
+                <span>👻</span> {showDiff ? 'Hide' : 'Show'} Ghost Diff
+              </Button>
+            )}
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
             <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
               Share
@@ -364,7 +404,7 @@ export default function Workbench() {
           
           <ResizablePanel defaultSize={showCodeEditor ? 45 : 60}>
             <Flowchart 
-              nodes={flowData.nodes} 
+              nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
               edges={flowData.edges} 
               onNodeClick={handleNodeClick}
               onNodeDoubleClick={handleNodeDoubleClick}
