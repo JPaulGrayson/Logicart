@@ -10,6 +10,7 @@ export interface FeatureFlags {
   executionController: boolean;  // Checkpoint-based speed governor
   ghostDiff: boolean;            // Code change visualization
   overlay: boolean;              // Floating control overlay
+  naturalLanguageSearch: boolean; // Natural language query search
   
   // Future Premium Features
   timeTravel: boolean;           // Rewind/replay execution
@@ -30,6 +31,7 @@ export const TIERS: Record<UserTier['name'], UserTier> = {
       executionController: false,
       ghostDiff: false,
       overlay: false,
+      naturalLanguageSearch: false,
       timeTravel: false,
       multiFile: false,
       collaboration: false,
@@ -41,6 +43,7 @@ export const TIERS: Record<UserTier['name'], UserTier> = {
       executionController: true,  // ✓ Speed governor
       ghostDiff: true,            // ✓ Ghost diff
       overlay: true,              // ✓ Floating overlay
+      naturalLanguageSearch: true, // ✓ NL search
       timeTravel: false,
       multiFile: false,
       collaboration: false,
@@ -52,6 +55,7 @@ export const TIERS: Record<UserTier['name'], UserTier> = {
       executionController: true,
       ghostDiff: true,
       overlay: true,
+      naturalLanguageSearch: true,
       timeTravel: true,           // ✓ All features
       multiFile: true,
       collaboration: true,
@@ -117,6 +121,7 @@ export class FeatureManager {
       executionController: 'Fine-grained speed control with checkpoint system',
       ghostDiff: 'Visualize code changes as ghost nodes in flowchart',
       overlay: 'Floating toolbar for execution control',
+      naturalLanguageSearch: 'Search flowchart nodes using natural language queries',
       timeTravel: 'Rewind and replay code execution',
       multiFile: 'Visualize multiple files simultaneously',
       collaboration: 'Real-time collaboration with teammates',

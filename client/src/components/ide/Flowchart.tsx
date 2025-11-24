@@ -11,6 +11,7 @@ interface FlowchartProps {
   onNodeClick?: (node: Node) => void;
   onNodeDoubleClick?: (node: Node) => void;
   activeNodeId?: string | null;
+  highlightedNodes?: Set<string>;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -18,7 +19,7 @@ const nodeTypes = {
   decision: DecisionNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId, highlightedNodes }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -28,11 +29,19 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   useEffect(() => {
     const updatedNodes = initialNodes.map(node => {
       const isActive = node.id === activeNodeId;
+      const isHighlighted = highlightedNodes && highlightedNodes.has(node.id);
+      
+      let className = node.className || '';
+      
+      if (isActive) {
+        className = 'bg-green-500/20 border-green-500 border-2 shadow-lg shadow-green-500/50';
+      } else if (isHighlighted) {
+        className = 'bg-purple-500/20 border-purple-500 border-2 shadow-lg shadow-purple-500/50 ring-2 ring-purple-500/30';
+      }
+      
       return {
         ...node,
-        className: isActive 
-          ? 'bg-green-500/20 border-green-500 border-2 shadow-lg shadow-green-500/50'
-          : node.className || ''
+        className
       } as unknown as Node;
     });
     setNodes(updatedNodes);
@@ -44,7 +53,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         fitView({ padding: 0.2, duration: 400 });
       }, 50);
     }
-  }, [initialNodes, initialEdges, activeNodeId, setNodes, setEdges, fitView]);
+  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, setNodes, setEdges, fitView]);
 
   return (
     <div className="h-full w-full bg-background flex flex-col">

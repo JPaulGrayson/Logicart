@@ -14,6 +14,9 @@ import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
 import { features } from '@/lib/features';
 import { ExecutionController } from '@/lib/executionController';
 import { exportToPNG, exportToPDF } from '@/lib/flowchartExport';
+import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
+import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
+import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
 
@@ -34,6 +37,8 @@ export default function Workbench() {
   // Premium features state
   const [showDiff, setShowDiff] = useState(false);
   const [diffNodes, setDiffNodes] = useState<DiffNode[]>([]);
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
   
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -329,6 +334,16 @@ export default function Workbench() {
     adapter.writeFile(newCode);
   };
 
+  const handleSearchResults = (result: SearchResult) => {
+    setSearchResult(result);
+    setHighlightedNodes(result.matchedNodes);
+  };
+
+  const handleClearSearch = () => {
+    setSearchResult(null);
+    setHighlightedNodes(new Set());
+  };
+
   const handleExportPNG = async () => {
     const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
     if (!viewportElement) {
@@ -402,7 +417,7 @@ export default function Workbench() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
-      <header className="h-14 border-b border-border flex items-center px-6 bg-card z-10 justify-between">
+      <header className="h-14 border-b border-border flex items-center px-6 bg-card z-10 justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono">
             L
@@ -415,6 +430,18 @@ export default function Workbench() {
             </span>
           )}
         </div>
+        
+        {/* Natural Language Search - Premium Feature */}
+        {features.hasFeature('naturalLanguageSearch') && (
+          <div className="flex-1 max-w-md">
+            <NaturalLanguageSearch
+              nodes={flowData.nodes}
+              onSearchResults={handleSearchResults}
+              onClear={handleClearSearch}
+            />
+          </div>
+        )}
+        
         <div className="flex items-center gap-3">
             {features.hasFeature('ghostDiff') && (
               <Button
@@ -502,6 +529,7 @@ export default function Workbench() {
               onNodeClick={handleNodeClick}
               onNodeDoubleClick={handleNodeDoubleClick}
               activeNodeId={activeNodeId}
+              highlightedNodes={highlightedNodes}
             />
           </ResizablePanel>
           
@@ -520,6 +548,23 @@ export default function Workbench() {
         currentCode={editingNode?.data?.sourceData ? extractCode(code, editingNode.data.sourceData) : ''}
         onSave={handleSaveNodeEdit}
       />
+
+      {/* Runtime Overlay - Premium Feature */}
+      {features.hasFeature('overlay') && (
+        <RuntimeOverlay
+          isPlaying={isPlaying}
+          canStep={canStep}
+          currentStep={progress.current}
+          totalSteps={progress.total}
+          speed={speed}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onStep={handleStepForward}
+          onReset={handleReset}
+          onStop={handleStop}
+          onSpeedChange={handleSpeedChange}
+        />
+      )}
     </div>
   );
 }
