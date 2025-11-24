@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo Differ - Unit Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .test-suite {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-case {
+            margin: 16px 0;
+            padding: 12px;
+            border-left: 4px solid #dee2e6;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .test-case.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .test-case.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .test-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .test-result {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary h2 {
+            margin: 0 0 10px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .node-visual {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 4px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .node-added {
+            border: 2px solid #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .node-deleted {
+            border: 2px solid #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+            opacity: 0.6;
+        }
+
+        .node-modified {
+            border: 2px solid #ffc107;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .node-unchanged {
+            border: 1px solid #dee2e6;
+            background: #f8f9fa;
+            color: #495057;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 LogiGo Differ - Unit Tests</h1>
+
+    <div class="summary" id="summary">
+        <h2>Running tests...</h2>
+    </div>
+
+    <div id="test-results"></div>
+
+    <!-- Load LogiGo Differ -->
+    <script src="../src/differ.js"></script>
+
+    <!-- Test Suite -->
+    <script>
+        const results = [];
+        const testContainer = document.getElementById('test-results');
+
+        // Helper to run a test
+        function test(name, fn) {
+            try {
+                fn();
+                results.push({ name, status: 'pass', error: null });
+                renderTest(name, 'pass');
+            } catch (error) {
+                results.push({ name, status: 'fail', error: error.message });
+                renderTest(name, 'fail', error.message);
+            }
+        }
+
+        // Helper to assert
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'Assertion failed');
+            }
+        }
+
+        function assertEqual(actual, expected, message) {
+            if (actual !== expected) {
+                throw new Error(message || `Expected ${expected}, got ${actual}`);
+            }
+        }
+
+        // Render a test result
+        function renderTest(name, status, error = null) {
+            const div = document.createElement('div');
+            div.className = `test-case ${status}`;
+            div.innerHTML = `
+        <div class="test-name">${status === 'pass' ? '✅' : '❌'} ${name}</div>
+        ${error ? `<div class="test-result" style="color: #721c24;">${error}</div>` : ''}
+      `;
+            testContainer.appendChild(div);
+        }
+
+        // Sample data
+        const oldTree = [
+            { id: 'node_1', type: 'function', label: 'Function: hello', code: 'function hello() {}', line: 1 },
+            { id: 'node_2', type: 'branch', label: 'If: x > 0', code: 'if (x > 0) {}', line: 3 },
+            { id: 'node_3', type: 'statement', label: 'console.log("old")', code: 'console.log("old")', line: 5 }
+        ];
+
+        const newTree = [
+            { id: 'node_1', type: 'function', label: 'Function: hello', code: 'function hello() {}', line: 1 }, // Unchanged
+            { id: 'node_2', type: 'branch', label: 'If: x > 5', code: 'if (x > 5) {}', line: 3 }, // Modified
+            { id: 'node_4', type: 'loop', label: 'FOR Loop', code: 'for (let i = 0; i < 10; i++) {}', line: 7 } // Added
+            // node_3 is deleted
+        ];
+
+        // Run tests
+        console.log('🧪 Starting LogiGo Differ Unit Tests...\n');
+
+        test('Differ initializes correctly', () => {
+            const differ = new LogiGoDiffer({ debug: true });
+            assert(differ !== null, 'Differ should be created');
+            assert(differ.options.debug === true, 'Debug option should be set');
+        });
+
+        test('diffTrees identifies added nodes', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const added = result.nodes.filter(n => n.diffStatus === 'added');
+            assertEqual(added.length, 1, 'Should find 1 added node');
+            assertEqual(added[0].id, 'node_4', 'Added node should be node_4');
+            assertEqual(added[0].className, 'node-added', 'Should have node-added class');
+        });
+
+        test('diffTrees identifies deleted nodes', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const deleted = result.nodes.filter(n => n.diffStatus === 'deleted');
+            assertEqual(deleted.length, 1, 'Should find 1 deleted node');
+            assertEqual(deleted[0].id, 'node_3', 'Deleted node should be node_3');
+            assertEqual(deleted[0].className, 'node-deleted', 'Should have node-deleted class');
+        });
+
+        test('diffTrees identifies modified nodes', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const modified = result.nodes.filter(n => n.diffStatus === 'modified');
+            assertEqual(modified.length, 1, 'Should find 1 modified node');
+            assertEqual(modified[0].id, 'node_2', 'Modified node should be node_2');
+            assertEqual(modified[0].className, 'node-modified', 'Should have node-modified class');
+        });
+
+        test('diffTrees identifies unchanged nodes', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const unchanged = result.nodes.filter(n => n.diffStatus === 'unchanged');
+            assertEqual(unchanged.length, 1, 'Should find 1 unchanged node');
+            assertEqual(unchanged[0].id, 'node_1', 'Unchanged node should be node_1');
+        });
+
+        test('Stats are calculated correctly', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            assertEqual(result.stats.added, 1, 'Should count 1 added');
+            assertEqual(result.stats.removed, 1, 'Should count 1 removed');
+            assertEqual(result.stats.modified, 1, 'Should count 1 modified');
+            assertEqual(result.stats.unchanged, 1, 'Should count 1 unchanged');
+        });
+
+        test('getSummary generates correct text', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const summary = differ.getSummary(result);
+            assert(summary.includes('4 nodes'), 'Summary should mention total nodes');
+            assert(summary.includes('1 added'), 'Summary should mention added nodes');
+            assert(summary.includes('1 removed'), 'Summary should mention removed nodes');
+        });
+
+        test('filterByStatus works correctly', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const added = differ.filterByStatus(result.nodes, 'added');
+            assertEqual(added.length, 1, 'Should filter added nodes');
+            assertEqual(added[0].diffStatus, 'added', 'Filtered node should have added status');
+        });
+
+        test('getChanges returns only changed nodes', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, newTree);
+            const changes = differ.getChanges(result.nodes);
+            assertEqual(changes.length, 3, 'Should return 3 changes (added + modified + deleted)');
+            assert(!changes.some(n => n.diffStatus === 'unchanged'), 'Should not include unchanged nodes');
+        });
+
+        test('Empty trees produce empty diff', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees([], []);
+            assertEqual(result.nodes.length, 0, 'Empty trees should produce empty result');
+            assertEqual(result.stats.added, 0, 'No added nodes');
+            assertEqual(result.stats.removed, 0, 'No removed nodes');
+        });
+
+        test('Identical trees show all unchanged', () => {
+            const differ = new LogiGoDiffer();
+            const result = differ.diffTrees(oldTree, oldTree);
+            assertEqual(result.stats.unchanged, oldTree.length, 'All nodes should be unchanged');
+            assertEqual(result.stats.added, 0, 'No added nodes');
+            assertEqual(result.stats.removed, 0, 'No removed nodes');
+            assertEqual(result.stats.modified, 0, 'No modified nodes');
+        });
+
+        // Update summary
+        const passed = results.filter(r => r.status === 'pass').length;
+        const failed = results.filter(r => r.status === 'fail').length;
+        const total = results.length;
+
+        document.getElementById('summary').innerHTML = `
+      <h2>${failed === 0 ? '✅ All Tests Passed!' : '⚠️ Some Tests Failed'}</h2>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">${total}</div>
+          <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color: #d4edda;">${passed}</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color: ${failed > 0 ? '#f8d7da' : '#d4edda'}">${failed}</div>
+          <div class="stat-label">Failed</div>
+        </div>
+      </div>
+    `;
+
+        // Visual demonstration
+        const demoSection = document.createElement('div');
+        demoSection.className = 'test-suite';
+        demoSection.innerHTML = `
+      <h2>Visual Demonstration</h2>
+      <p>Here's how the diff looks visually:</p>
+      <div style="margin: 20px 0;">
+        <h3>Old Tree → New Tree</h3>
+        <div id="visual-demo"></div>
+      </div>
+    `;
+        testContainer.appendChild(demoSection);
+
+        const differ = new LogiGoDiffer();
+        const result = differ.diffTrees(oldTree, newTree);
+        const visualDemo = document.getElementById('visual-demo');
+
+        result.nodes.forEach(node => {
+            const span = document.createElement('span');
+            span.className = `node-visual ${node.className}`;
+            span.textContent = node.label;
+            span.title = `Status: ${node.diffStatus}`;
+            visualDemo.appendChild(span);
+        });
+
+        // Log results
+        console.log('\n📊 Test Results:');
+        console.log(`Total: ${total}, Passed: ${passed}, Failed: ${failed}`);
+        console.log('\n✅ Differ Unit Tests Complete!');
+    </script>
+</body>
+
+</html>

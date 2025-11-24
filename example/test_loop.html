@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo - Speed Governor Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 200px;
+        }
+
+        .iteration {
+            padding: 8px;
+            margin: 4px 0;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 Speed Governor Test</h1>
+
+        <div class="instructions">
+            <strong>Test Instructions:</strong><br>
+            1. Click "Run Test Loop"<br>
+            2. Watch the LogiGo overlay in the bottom-right<br>
+            3. Try adjusting the speed slider (0.1x = slow, 2.0x = fast)<br>
+            4. Click "Pause" to freeze execution<br>
+            5. Click "Step" to advance one iteration at a time<br>
+            6. Click "Play" to resume
+        </div>
+
+        <button onclick="runTestLoop()">Run Test Loop (10 iterations)</button>
+        <button onclick="runPauseTest()">Run Pause Test</button>
+        <button onclick="runStepTest()">Run Step Test</button>
+
+        <div id="output"></div>
+    </div>
+
+    <!-- Load LogiGo -->
+    <script src="../src/runtime.js"></script>
+    <script src="../src/overlay.js"></script>
+
+    <!-- Initialize -->
+    <script>
+        const logigo = new LogiGoOverlay({
+            speed: 1.0,
+            debug: true,
+            position: 'bottom-right'
+        }).init();
+
+        console.log('✅ LogiGo Speed Governor Test Ready');
+    </script>
+
+    <!-- Test Functions -->
+    <script>
+        const output = document.getElementById('output');
+
+        async function runTestLoop() {
+            output.innerHTML = '<div><strong>Starting test loop...</strong></div>';
+
+            for (let i = 1; i <= 10; i++) {
+                await LogiGo.checkpoint(`loop_iteration_${i}`);
+
+                const div = document.createElement('div');
+                div.className = 'iteration';
+                div.textContent = `Iteration ${i}/10 - ${new Date().toLocaleTimeString()}`;
+                output.appendChild(div);
+
+                console.log(`✓ Completed iteration ${i}`);
+            }
+
+            const done = document.createElement('div');
+            done.style.cssText = 'margin-top: 16px; padding: 12px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;';
+            done.innerHTML = '<strong>✅ Test Complete!</strong>';
+            output.appendChild(done);
+        }
+
+        async function runPauseTest() {
+            output.innerHTML = '<div><strong>Testing Pause functionality...</strong></div>';
+            output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE in the overlay after iteration 3</div>';
+
+            for (let i = 1; i <= 10; i++) {
+                await LogiGo.checkpoint(`pause_test_${i}`);
+
+                const div = document.createElement('div');
+                div.className = 'iteration';
+                div.textContent = `Iteration ${i}/10`;
+                output.appendChild(div);
+            }
+
+            const done = document.createElement('div');
+            done.style.cssText = 'margin-top: 16px; padding: 12px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;';
+            done.innerHTML = '<strong>✅ Pause Test Complete!</strong>';
+            output.appendChild(done);
+        }
+
+        async function runStepTest() {
+            output.innerHTML = '<div><strong>Testing Step functionality...</strong></div>';
+            output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE, then use STEP to advance one at a time</div>';
+
+            // Auto-pause for step testing
+            setTimeout(() => LogiGo.pause(), 100);
+
+            for (let i = 1; i <= 5; i++) {
+                await LogiGo.checkpoint(`step_test_${i}`);
+
+                const div = document.createElement('div');
+                div.className = 'iteration';
+                div.textContent = `Step ${i}/5`;
+                output.appendChild(div);
+            }
+
+            const done = document.createElement('div');
+            done.style.cssText = 'margin-top: 16px; padding: 12px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;';
+            done.innerHTML = '<strong>✅ Step Test Complete!</strong>';
+            output.appendChild(done);
+        }
+    </script>
+</body>
+
+</html>
