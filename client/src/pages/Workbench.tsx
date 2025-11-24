@@ -217,6 +217,25 @@ export default function Workbench() {
     }
   };
 
+  const handleStepBackward = () => {
+    if (!interpreterRef.current) return;
+    
+    const step = interpreterRef.current.stepBackward();
+    
+    if (step) {
+      setActiveNodeId(step.nodeId);
+      setExecutionState(step.state);
+      setProgress(interpreterRef.current.getProgress());
+      
+      // Find and highlight the source line
+      const node = flowData.nodes.find(n => n.id === step.nodeId);
+      if (node?.data.sourceData) {
+        setHighlightedLine(node.data.sourceData.start.line);
+        adapter.navigateToLine(node.data.sourceData.start.line);
+      }
+    }
+  };
+
   const handleReset = () => {
     handlePause();
     interpreterRef.current = null;
@@ -498,6 +517,7 @@ export default function Workbench() {
         onPlay={handlePlay}
         onPause={handlePause}
         onStepForward={handleStepForward}
+        onStepBackward={handleStepBackward}
         onReset={handleReset}
         onStop={handleStop}
         progress={progress}
@@ -560,6 +580,7 @@ export default function Workbench() {
           onPlay={handlePlay}
           onPause={handlePause}
           onStep={handleStepForward}
+          onStepBackward={features.hasFeature('timeTravel') ? handleStepBackward : undefined}
           onReset={handleReset}
           onStop={handleStop}
           onSpeedChange={handleSpeedChange}

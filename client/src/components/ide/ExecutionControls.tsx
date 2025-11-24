@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, ChevronRight, Repeat, Square, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Repeat, Square, Zap } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,6 +15,7 @@ interface ExecutionControlsProps {
   onPlay: () => void;
   onPause: () => void;
   onStepForward: () => void;
+  onStepBackward?: () => void;
   onReset: () => void;
   onStop: () => void;
   progress?: { current: number; total: number };
@@ -52,6 +53,7 @@ export function ExecutionControls({
   onPlay,
   onPause,
   onStepForward,
+  onStepBackward,
   onReset,
   onStop,
   progress,
@@ -61,7 +63,9 @@ export function ExecutionControls({
   onLoopToggle
 }: ExecutionControlsProps) {
   const hasSpeedGovernor = features.hasFeature('executionController');
+  const hasTimeTravel = features.hasFeature('timeTravel');
   const speedOptions = hasSpeedGovernor ? PREMIUM_SPEED_OPTIONS : BASIC_SPEED_OPTIONS;
+  const canStepBack = hasTimeTravel && progress && progress.current > 0;
   
   return (
     <div className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-6 justify-between">
@@ -82,6 +86,18 @@ export function ExecutionControls({
               <Play className="w-4 h-4" />
             )}
           </button>
+          
+          {hasTimeTravel && onStepBackward && (
+            <button
+              onClick={onStepBackward}
+              disabled={!canStepBack || isPlaying}
+              className="p-2 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="button-step-backward"
+              title="Step Backward (Time Travel)"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
           
           <button
             onClick={onStepForward}

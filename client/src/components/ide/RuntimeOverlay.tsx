@@ -5,7 +5,7 @@
  * Based on Antigravity's overlay.js pattern
  */
 
-import { Play, Pause, SkipForward, RotateCcw, Square } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, RotateCcw, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface RuntimeOverlayProps {
@@ -17,6 +17,7 @@ interface RuntimeOverlayProps {
   onPlay: () => void;
   onPause: () => void;
   onStep: () => void;
+  onStepBackward?: () => void;
   onReset: () => void;
   onStop: () => void;
   onSpeedChange: (speed: number) => void;
@@ -31,10 +32,12 @@ export function RuntimeOverlay({
   onPlay,
   onPause,
   onStep,
+  onStepBackward,
   onReset,
   onStop,
   onSpeedChange,
 }: RuntimeOverlayProps) {
+  const canStepBack = onStepBackward && currentStep > 0;
   const speedOptions = [
     { value: 0.25, label: '0.25×', premium: true },
     { value: 0.5, label: '0.5×', premium: false },
@@ -75,6 +78,19 @@ export function RuntimeOverlay({
             >
               <Pause className="w-4 h-4" />
               Pause
+            </Button>
+          )}
+
+          {onStepBackward && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onStepBackward}
+              disabled={!canStepBack || isPlaying}
+              data-testid="overlay-button-step-backward"
+              title="Step Backward (Time Travel)"
+            >
+              <SkipBack className="w-4 h-4" />
             </Button>
           )}
 
