@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, ChevronRight, Repeat, Square } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronRight, Repeat, Square, Zap } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { features } from '@/lib/features';
 
 interface ExecutionControlsProps {
   isPlaying: boolean;
@@ -23,12 +24,26 @@ interface ExecutionControlsProps {
   onLoopToggle: () => void;
 }
 
-const SPEED_OPTIONS = [
+interface SpeedOption {
+  value: number;
+  label: string;
+  premium?: boolean;
+}
+
+const BASIC_SPEED_OPTIONS: SpeedOption[] = [
   { value: 0.5, label: '0.5x' },
   { value: 1, label: '1x' },
   { value: 2, label: '2x' },
-  { value: 3, label: '3x' },
-  { value: 5, label: '5x' },
+];
+
+const PREMIUM_SPEED_OPTIONS: SpeedOption[] = [
+  { value: 0.25, label: '0.25x', premium: true },
+  { value: 0.5, label: '0.5x' },
+  { value: 1, label: '1x' },
+  { value: 2, label: '2x' },
+  { value: 3, label: '3x', premium: true },
+  { value: 5, label: '5x', premium: true },
+  { value: 10, label: '10x ⚡', premium: true },
 ];
 
 export function ExecutionControls({
@@ -45,6 +60,9 @@ export function ExecutionControls({
   loop,
   onLoopToggle
 }: ExecutionControlsProps) {
+  const hasSpeedGovernor = features.hasFeature('executionController');
+  const speedOptions = hasSpeedGovernor ? PREMIUM_SPEED_OPTIONS : BASIC_SPEED_OPTIONS;
+  
   return (
     <div className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-6 justify-between">
       <div className="flex items-center gap-4">
@@ -110,20 +128,24 @@ export function ExecutionControls({
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Speed:</span>
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            Speed:
+            {hasSpeedGovernor && <Zap className="w-3 h-3 text-primary" />}
+          </span>
           <Select
             value={speed.toString()}
             onValueChange={(value) => onSpeedChange(parseFloat(value))}
           >
-            <SelectTrigger className="w-[70px] h-8 text-xs" data-testid="select-speed">
+            <SelectTrigger className="w-[90px] h-8 text-xs" data-testid="select-speed">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SPEED_OPTIONS.map((option) => (
+              {speedOptions.map((option) => (
                 <SelectItem 
                   key={option.value} 
                   value={option.value.toString()}
                   data-testid={`option-speed-${option.value}`}
+                  className={option.premium ? 'font-semibold' : ''}
                 >
                   {option.label}
                 </SelectItem>
