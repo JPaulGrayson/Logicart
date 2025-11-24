@@ -123,6 +123,50 @@ The application follows a workbench-style IDE layout with three primary panels:
 
 **Replit Extension Integration**:
 - Uses Replit Extension APIs: `session.getActiveFile()`, `fs.readFile()`, `fs.writeFile()`, `fs.watchFile()`
+
+### Premium Features Architecture (✅ Complete - November 2025)
+
+**Tiered Distribution Model**:
+LogiGo implements a two-tier monetization strategy:
+- **Free Tier**: Core flowchart visualization and basic execution controls
+- **Premium Tier**: Advanced runtime features from Antigravity integration
+
+**Feature Flag System** (`client/src/lib/features.ts`):
+- `FeatureManager` class manages feature access based on user tier
+- `FeatureFlags` interface defines available premium features
+- Currently defaults to 'premium' tier for development/testing
+- Ready for Voyai auth integration via monorepo architecture
+
+**Premium Features Integrated**:
+1. **Ghost Diff** (`client/src/lib/ghostDiff.ts`):
+   - Visualizes code changes as styled diff nodes in flowchart
+   - Tree diffing algorithm based on Antigravity's differ.js
+   - Tracks added, removed, and modified nodes with color coding
+   - Toggle button in header to show/hide diff visualization
+   - Uses `useRef` pattern to prevent infinite render loops
+
+2. **Speed Governor** (`client/src/lib/executionController.ts`):
+   - Extended speed presets: 0.25x, 3x, 5x, 10x (vs free tier: 0.5x, 1x, 2x)
+   - Centralized speed management through ExecutionController class
+   - Lightning icon (⚡) indicator for premium speed options
+   - Note: Full checkpoint-based pause/step system planned for future release
+
+3. **Runtime Overlay** (Planned):
+   - Floating toolbar for execution control
+   - Persistent across IDE panels
+   - Based on Antigravity's overlay.js component
+
+**Implementation Details**:
+- Feature flags conditionally render UI elements (ghost diff toggle, premium speed options)
+- Ghost diff uses tree-based diffing with node-to-node matching via unique IDs
+- Diff computation integrated into code parsing pipeline with debounce (500ms)
+- Premium badge displays in header when premium features enabled
+- All premium modules written in TypeScript with proper typing
+
+**Future Integration**:
+- Monorepo setup to share auth/licensing/payment code with Voyai/Turai
+- Dynamic tier selection based on authenticated user subscription
+- Server-side feature validation to prevent client-side bypass
 - Automatic file watching with real-time sync between Replit editor and flowchart
 - Bi-directional editing: Changes in flowchart update source file via `fs.writeFile()`
 - Extension manifest (`public/extension.json`) with read/write-exec scopes

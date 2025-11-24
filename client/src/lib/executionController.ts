@@ -160,6 +160,15 @@ export class ExecutionController {
   }
 
   /**
+   * Get the step delay in milliseconds based on current speed
+   * Base delay is 800ms (to match existing free tier timing)
+   */
+  getStepDelay(): number {
+    const baseDelay = 800;
+    return baseDelay / this.currentSpeed;
+  }
+
+  /**
    * Get current execution state
    */
   getState(): ExecutionState {

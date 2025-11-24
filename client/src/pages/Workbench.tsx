@@ -12,6 +12,7 @@ import { Node } from '@xyflow/react';
 import { useAdapter } from '@/contexts/AdapterContext';
 import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
 import { features } from '@/lib/features';
+import { ExecutionController } from '@/lib/executionController';
 import { Button } from '@/components/ui/button';
 
 export default function Workbench() {
@@ -37,6 +38,7 @@ export default function Workbench() {
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: false }));
   const previousFlowDataRef = useRef<FlowNode[]>([]);
+  const executionControllerRef = useRef<ExecutionController>(new ExecutionController({ debug: false }));
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -111,9 +113,18 @@ export default function Workbench() {
     
     setIsPlaying(true);
     
+    // Use ExecutionController for premium tier, simple interval for free tier
+    const usePremiumController = features.hasFeature('executionController');
+    
+    if (usePremiumController) {
+      executionControllerRef.current.setSpeed(speed);
+    }
+    
     // Calculate interval based on speed (base is 800ms)
     const baseInterval = 800;
-    const interval = baseInterval / speed;
+    const interval = usePremiumController 
+      ? executionControllerRef.current.getStepDelay()
+      : baseInterval / speed;
     
     // Auto-step through execution
     playIntervalRef.current = setInterval(() => {
@@ -219,6 +230,11 @@ export default function Workbench() {
 
   const handleSpeedChange = (newSpeed: number) => {
     setSpeed(newSpeed);
+    
+    // Update ExecutionController if premium tier
+    if (features.hasFeature('executionController')) {
+      executionControllerRef.current.setSpeed(newSpeed);
+    }
     
     // If currently playing, restart with new speed
     if (isPlaying) {
