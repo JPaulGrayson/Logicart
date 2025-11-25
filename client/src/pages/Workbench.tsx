@@ -37,6 +37,8 @@ export default function Workbench() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<FlowNode | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const [parseReady, setParseReady] = useState(false);
+  const [playQueued, setPlayQueued] = useState(false);
   
   // Premium features state
   const [showDiff, setShowDiff] = useState(false);
@@ -56,7 +58,9 @@ export default function Workbench() {
   useEffect(() => {
     if (!isReady) return;
     
+    // Mark parsing started - disables shortcuts immediately
     setIsParsing(true);
+    setParseReady(false);
     
     const timer = setTimeout(() => {
       const newFlowData = parseCodeToFlow(code);
@@ -83,11 +87,26 @@ export default function Workbench() {
       setIsPlaying(false);
       setProgress({ current: 0, total: 0 });
       setIsParsing(false);
+      
+      // Mark parse ready immediately after parse completes
+      // Parse succeeds if we have any nodes and the first isn't an error sentinel
+      const parseSucceeded = newFlowData.nodes.length > 0 && newFlowData.nodes[0]?.id !== 'error';
+      setParseReady(parseSucceeded);
+      
+      // Auto-start playback if user queued it during parsing
+      if (parseSucceeded && playQueued) {
+        setPlayQueued(false);
+        // Use setTimeout to ensure state updates complete
+        setTimeout(() => {
+          handlePlay();
+        }, 0);
+      }
     }, 500); // Debounce parsing
     
     return () => {
       clearTimeout(timer);
       setIsParsing(false);
+      setParseReady(false);
     };
   }, [code, isReady]);
 
@@ -112,11 +131,20 @@ export default function Workbench() {
   };
 
   const handlePlay = () => {
+    // If parsing, queue the play action to run when parsing completes
+    if (isParsing) {
+      setPlayQueued(true);
+      return;
+    }
+    
     // Clear any pending restart to avoid interrupting manual playback
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
     }
+    
+    // Clear queued flag if set
+    setPlayQueued(false);
     
     if (!interpreterRef.current) {
       const success = initializeInterpreter();
@@ -466,12 +494,14 @@ export default function Workbench() {
     };
   }, []);
 
-  const canStep = flowData.nodes.length > 1 && flowData.nodes[0].id !== 'error';
+  // Derived state for keyboard shortcuts and execution controls
+  const hasCode = code.trim().length > 0;
+  // UI controls use parseReady for consistent state with shortcuts
+  const canExecute = hasCode && parseReady;
   const showCodeEditor = !adapter.hasIntegratedEditor();
 
   // Keyboard shortcuts for execution controls
-  // Enabled globally (not gated by isParsing to avoid debounce lag)
-  // Individual shortcuts have their own disabled conditions
+  // Always enabled when code exists - handlers queue actions during parsing
   useKeyboardShortcuts({
     shortcuts: [
       {
@@ -481,10 +511,10 @@ export default function Workbench() {
           if (isPlaying) {
             handlePause();
           } else {
-            handlePlay();
+            handlePlay(); // Queues if parsing
           }
         },
-        disabled: code.trim().length === 0,
+        disabled: !hasCode,
       },
       {
         key: 'k',
@@ -493,16 +523,16 @@ export default function Workbench() {
           if (isPlaying) {
             handlePause();
           } else {
-            handlePlay();
+            handlePlay(); // Queues if parsing
           }
         },
-        disabled: code.trim().length === 0,
+        disabled: !hasCode,
       },
       {
         key: 's',
         description: 'Step Forward',
         action: handleStepForward,
-        disabled: !canStep && !isPlaying,
+        disabled: !canExecute || isPlaying,
       },
       {
         key: 'b',
@@ -611,7 +641,7 @@ export default function Workbench() {
       
       <ExecutionControls
         isPlaying={isPlaying}
-        canStep={canStep}
+        canStep={canExecute}
         onPlay={handlePlay}
         onPause={handlePause}
         onStepForward={handleStepForward}
@@ -699,7 +729,7 @@ export default function Workbench() {
       {features.hasFeature('overlay') && (
         <RuntimeOverlay
           isPlaying={isPlaying}
-          canStep={canStep}
+          canStep={canExecute}
           currentStep={progress.current}
           totalSteps={progress.total}
           speed={speed}
