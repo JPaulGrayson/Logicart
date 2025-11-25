@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
+import { FlowchartSkeleton } from '@/components/ide/FlowchartSkeleton';
+import { EmptyState, SAMPLE_CODE } from '@/components/ide/EmptyState';
 import { ExecutionControls } from '@/components/ide/ExecutionControls';
 import { VariableWatch } from '@/components/ide/VariableWatch';
 import { NodeEditDialog } from '@/components/ide/NodeEditDialog';
@@ -20,6 +22,7 @@ import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -394,6 +397,10 @@ export default function Workbench() {
     adapter.writeFile(newCode);
   };
 
+  const handleLoadSample = () => {
+    adapter.writeFile(SAMPLE_CODE);
+  };
+
   const handleSearchResults = (result: SearchResult) => {
     setSearchResult(result);
     setHighlightedNodes(result.matchedNodes);
@@ -461,6 +468,56 @@ export default function Workbench() {
 
   const canStep = flowData.nodes.length > 1 && flowData.nodes[0].id !== 'error';
   const showCodeEditor = !adapter.hasIntegratedEditor();
+
+  // Keyboard shortcuts for execution controls
+  // Enabled globally (not gated by isParsing to avoid debounce lag)
+  // Individual shortcuts have their own disabled conditions
+  useKeyboardShortcuts({
+    shortcuts: [
+      {
+        key: ' ',
+        description: 'Play / Pause',
+        action: () => {
+          if (isPlaying) {
+            handlePause();
+          } else {
+            handlePlay();
+          }
+        },
+        disabled: code.trim().length === 0,
+      },
+      {
+        key: 'k',
+        description: 'Play / Pause',
+        action: () => {
+          if (isPlaying) {
+            handlePause();
+          } else {
+            handlePlay();
+          }
+        },
+        disabled: code.trim().length === 0,
+      },
+      {
+        key: 's',
+        description: 'Step Forward',
+        action: handleStepForward,
+        disabled: !canStep && !isPlaying,
+      },
+      {
+        key: 'b',
+        description: 'Step Backward',
+        action: handleStepBackward,
+        disabled: !features.hasFeature('timeTravel') || progress.current === 0,
+      },
+      {
+        key: 'r',
+        description: 'Reset',
+        action: handleReset,
+      },
+    ],
+    enabled: isReady,
+  });
 
   if (!isReady) {
     return (
@@ -584,14 +641,20 @@ export default function Workbench() {
           )}
           
           <ResizablePanel defaultSize={showCodeEditor ? 45 : 60}>
-            <Flowchart 
-              nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
-              edges={flowData.edges} 
-              onNodeClick={handleNodeClick}
-              onNodeDoubleClick={handleNodeDoubleClick}
-              activeNodeId={activeNodeId}
-              highlightedNodes={highlightedNodes}
-            />
+            {isParsing ? (
+              <FlowchartSkeleton />
+            ) : !code.trim() || flowData.nodes.length === 0 ? (
+              <EmptyState onLoadSample={handleLoadSample} />
+            ) : (
+              <Flowchart 
+                nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
+                edges={flowData.edges} 
+                onNodeClick={handleNodeClick}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                activeNodeId={activeNodeId}
+                highlightedNodes={highlightedNodes}
+              />
+            )}
           </ResizablePanel>
           
           <ResizableHandle withHandle />

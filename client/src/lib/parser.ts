@@ -11,6 +11,7 @@ export interface FlowNode {
   type: 'input' | 'output' | 'default' | 'decision'; 
   data: { 
     label: string;
+    description?: string;
     sourceData?: SourceLocation;
   };
   position: { x: number; y: number };
@@ -632,9 +633,44 @@ export function parseCodeToFlow(code: string): FlowData {
 
   } catch (e) {
     console.error("Parse error", e);
+    
+    let errorMessage = 'Syntax Error';
+    let errorDetails = '';
+    
+    if (e instanceof SyntaxError) {
+      const acornError = e as any;
+      
+      if (acornError.loc) {
+        errorMessage = `Syntax Error (Line ${acornError.loc.line})`;
+        errorDetails = acornError.message || '';
+      } else {
+        errorDetails = acornError.message || e.message;
+      }
+      
+      if (errorDetails.includes('Unexpected token')) {
+        errorDetails += '\n\nTip: Check for missing brackets, semicolons, or quotes.';
+      } else if (errorDetails.includes('Unterminated')) {
+        errorDetails += '\n\nTip: Make sure all strings and comments are properly closed.';
+      } else if (errorDetails.includes('Unexpected identifier')) {
+        errorDetails += '\n\nTip: Check for typos or missing operators between identifiers.';
+      }
+    } else {
+      errorMessage = 'Parse Error';
+      errorDetails = e instanceof Error ? e.message : String(e);
+    }
+    
     return {
       nodes: [
-        { id: 'error', type: 'input', data: { label: 'Syntax Error' }, position: { x: 250, y: 50 }, className: 'bg-destructive text-destructive-foreground' }
+        {
+          id: 'error',
+          type: 'input',
+          data: {
+            label: errorMessage,
+            description: errorDetails
+          },
+          position: { x: 250, y: 50 },
+          className: 'bg-destructive/10 border-destructive text-foreground'
+        }
       ],
       edges: [],
       nodeMap: new Map()
