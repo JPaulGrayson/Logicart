@@ -64,6 +64,36 @@ Preferred communication style: Simple, everyday language.
 - **Browser Agent Integration**: Planned integration with Antigravity's AI-powered browser automation to enable "AI Test Partner" debugging sessions.
 - **Documentation**: See `BROWSER_AGENT_INTEGRATION.md` for full proposal and `VISUAL_HANDSHAKE_STATUS.md` for implementation tracking.
 
+### Phase 3: Hierarchical Views Architecture
+- **Status**: COMPLETED (Nov 25, 2024) - Fully implemented and tested.
+- **Feature**: Zoom-based hierarchical views for managing large codebases with section grouping and container nodes.
+- **Zoom Levels**:
+  - Mile-high view (< 70% zoom): Shows only container nodes, hides detail nodes for "bird's eye" overview.
+  - 1000ft view (70-130% zoom): Shows all nodes including containers and flow logic (default view).
+  - 100ft detail view (> 130% zoom): Fully zoomed in with maximum detail visibility.
+- **Section Detection**:
+  - Parser detects comment-based section markers: `// --- SECTION NAME ---`
+  - Creates container nodes for each detected section with proper 1-indexed line number boundaries.
+  - Fallback: Automatically creates "Global Flow" container when no section markers exist.
+- **Container Nodes**:
+  - Custom React Flow node type with purple gradient styling and Package icon.
+  - Displays child count badge (e.g., "12 nodes").
+  - Click-to-toggle collapse/expand with visual indicators (ChevronDown/ChevronRight).
+  - Hover effects and cursor-pointer for clear interactivity.
+- **State Management**:
+  - Collapse state persisted in `node.data.collapsed` and `node.data.isChildOfCollapsed`.
+  - State preserved across zoom changes using React Flow's `getNodes()` API.
+  - Visibility computation combines zoom-based hiding with manual collapse state.
+- **Performance Optimizations**:
+  - Uses React Flow's `onMove`/`onMoveEnd` events instead of polling for zoom detection.
+  - Separated `fitView` logic to only run when graph topology changes (not on zoom).
+  - Prevents viewport reset during user zoom/pan interactions.
+- **UI Elements**:
+  - Header displays current view level and zoom percentage (e.g., "Mile-High (65%)").
+  - Container nodes styled with `bg-gradient-to-br from-purple-500/10 to-blue-500/10` and `border-2 border-purple-500/30`.
+  - Status text shows "Expanded • Click to toggle" or "Collapsed • Click to toggle".
+- **Testing**: End-to-end tested with all zoom transitions, manual collapse/expand, and state persistence verified.
+
 ## External Dependencies
 
 ### Database
