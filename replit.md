@@ -57,6 +57,13 @@ Preferred communication style: Simple, everyday language.
 - **Build Targets**: UMD (browser script tag), ESM (modern bundlers), with source maps.
 - **Integration Status**: Phase 1 complete (ahead of schedule), published as `logigo-core` NPM package.
 
+### Visual Handshake & Browser Agent Integration
+- **Status**: APPROVED by Antigravity team (Nov 25, 2024) - In active development.
+- **Visual Handshake**: Feature that highlights DOM elements on the page when related code checkpoints execute, creating a visual connection between logic and UI.
+- **Implementation**: Antigravity team implementing in `logigo-core` with enhanced `checkpoint()` API accepting `domElement` parameter.
+- **Browser Agent Integration**: Planned integration with Antigravity's AI-powered browser automation to enable "AI Test Partner" debugging sessions.
+- **Documentation**: See `BROWSER_AGENT_INTEGRATION.md` for full proposal and `VISUAL_HANDSHAKE_STATUS.md` for implementation tracking.
+
 ## External Dependencies
 
 ### Database
