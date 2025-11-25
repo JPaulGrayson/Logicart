@@ -136,3 +136,6 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
     window.LogiGoParser = LogiGoParser;
 }
+
+// ES Module export
+export default LogiGoParser;

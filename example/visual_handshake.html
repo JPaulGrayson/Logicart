@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo - Visual Handshake Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        /* Login Form Styles */
+        .login-card {
+            background: white;
+            border: 1px solid #eee;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Status Elements */
+        .status-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background: #fde8e7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: #27ae60;
+            background: #e8f8f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Code Panel */
+        .code-panel {
+            margin-top: 40px;
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .keyword {
+            color: #c678dd;
+        }
+
+        .function {
+            color: #61afef;
+        }
+
+        .string {
+            color: #98c379;
+        }
+
+        .comment {
+            color: #5c6370;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>LogiGo: Visual Handshake</h1>
+        <p class="subtitle">Watch the UI highlight as the code executes step-by-step.</p>
+
+        <div class="login-card" id="login-form">
+            <h2 style="margin-top:0">Sign In</h2>
+
+            <div class="form-group" id="username-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" value="demo_user" placeholder="Enter username">
+            </div>
+
+            <div class="form-group" id="password-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" value="secret123" placeholder="Enter password">
+            </div>
+
+            <button id="btn-login">Log In</button>
+
+            <div id="loading-spinner" class="loading-spinner"></div>
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+        </div>
+
+        <div class="status-area" id="dashboard" style="display:none">
+            <h3>🎉 Dashboard</h3>
+            <p>Welcome back! You have successfully logged in.</p>
+        </div>
+
+        <div class="code-panel">
+            <div class="comment">// The actual code running on this page:</div>
+            <br>
+            <span class="keyword">async function</span> <span class="function">handleLogin</span>() {<br>
+            &nbsp;&nbsp;<span class="comment">// 1. User clicks login</span><br>
+            &nbsp;&nbsp;<span class="keyword">await</span> LogiGo.<span class="function">checkpoint</span>(<span
+                class="string">'btn_login_clicked'</span>, { domElement: <span class="string">'#btn-login'</span>
+            });<br>
+            <br>
+            &nbsp;&nbsp;<span class="comment">// 2. Validate inputs</span><br>
+            &nbsp;&nbsp;<span class="keyword">await</span> LogiGo.<span class="function">checkpoint</span>(<span
+                class="string">'validating_inputs'</span>, { domElement: <span class="string">'#login-form'</span>
+            });<br>
+            <br>
+            &nbsp;&nbsp;<span class="comment">// 3. Simulate API call</span><br>
+            &nbsp;&nbsp;<span class="keyword">await</span> LogiGo.<span class="function">checkpoint</span>(<span
+                class="string">'api_request'</span>, { domElement: <span class="string">'#loading-spinner'</span>
+            });<br>
+            <br>
+            &nbsp;&nbsp;<span class="comment">// 4. Success!</span><br>
+            &nbsp;&nbsp;<span class="keyword">await</span> LogiGo.<span class="function">checkpoint</span>(<span
+                class="string">'login_success'</span>, { domElement: <span class="string">'#dashboard'</span> });<br>
+            }
+        </div>
+    </div>
+
+    <!-- Load LogiGo Library -->
+    <script type="module">
+        import LogiGoOverlay from '../src/overlay.js';
+
+        // Initialize LogiGo
+        const logigo = new LogiGoOverlay({
+            speed: 1.0,
+            position: 'bottom-right',
+            debug: true
+        }).init();
+
+        // Expose globally for convenience
+        window.LogiGo = logigo;
+
+        // Login Handler
+        async function handleLogin() {
+            const btn = document.getElementById('btn-login');
+            const spinner = document.getElementById('loading-spinner');
+            const errorMsg = document.getElementById('error-message');
+            const successMsg = document.getElementById('success-message');
+            const dashboard = document.getElementById('dashboard');
+            const form = document.getElementById('login-form');
+
+            // Reset UI
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            dashboard.style.display = 'none';
+            form.style.display = 'block';
+
+            // Checkpoint 1: Button Clicked
+            await LogiGo.checkpoint('btn_login_clicked', {
+                domElement: '#btn-login',
+                color: '#3498db'
+            });
+
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            // Checkpoint 2: Validating Inputs
+            await LogiGo.checkpoint('validating_inputs', {
+                domElement: '#login-form',
+                color: '#9b59b6'
+            });
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                await LogiGo.checkpoint('validation_failed', {
+                    domElement: '#error-message',
+                    color: '#e74c3c'
+                });
+                errorMsg.textContent = 'Please enter both username and password';
+                errorMsg.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Log In';
+                return;
+            }
+
+            // Checkpoint 3: API Request
+            spinner.style.display = 'block';
+            await LogiGo.checkpoint('api_request', {
+                domElement: '#loading-spinner',
+                color: '#f1c40f',
+                duration: 3000 // Longer highlight for async op
+            });
+
+            // Simulate network delay
+            await new Promise(r => setTimeout(r, 1000));
+            spinner.style.display = 'none';
+
+            // Checkpoint 4: Success
+            form.style.display = 'none';
+            dashboard.style.display = 'block';
+
+            await LogiGo.checkpoint('login_success', {
+                domElement: '#dashboard',
+                color: '#2ecc71',
+                intensity: 'high'
+            });
+
+            btn.disabled = false;
+            btn.textContent = 'Log In';
+        }
+
+        // Attach event listener
+        document.getElementById('btn-login').addEventListener('click', handleLogin);
+    </script>
+
+</body>
+
+</html>

@@ -183,3 +183,6 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
     window.ExecutionController = ExecutionController;
 }
+
+// ES Module export
+export default ExecutionController;
