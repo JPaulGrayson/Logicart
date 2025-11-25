@@ -8,17 +8,22 @@ export interface SourceLocation {
 
 export interface FlowNode {
   id: string;
-  type: 'input' | 'output' | 'default' | 'decision'; 
+  type: 'input' | 'output' | 'default' | 'decision' | 'container'; 
   data: { 
     label: string;
     description?: string;
     sourceData?: SourceLocation;
+    children?: string[]; // For container nodes: IDs of child nodes
+    collapsed?: boolean; // For container nodes: collapse state
+    zoomLevel?: 'mile-high' | '1000ft' | '100ft'; // Visibility at different zoom levels
   };
   position: { x: number; y: number };
   sourcePosition?: string;
   targetPosition?: string;
   className?: string;
   style?: { width: number; height: number };
+  parentNode?: string; // For nodes inside containers
+  extent?: 'parent'; // For React Flow - keep nodes inside parent
 }
 
 export interface FlowEdge {
@@ -37,6 +42,49 @@ export interface FlowData {
   nodeMap: Map<string, string>; // Maps "line:column" to nodeId
 }
 
+// Helper to detect section comments (e.g., // --- AUTH LOGIC ---)
+interface CodeSection {
+  name: string;
+  startLine: number;
+  endLine: number;
+}
+
+function detectSections(code: string): CodeSection[] {
+  const lines = code.split('\n');
+  const sections: CodeSection[] = [];
+  const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
+  
+  let currentSection: CodeSection | undefined = undefined;
+  
+  lines.forEach((line, index) => {
+    const match = line.match(sectionPattern);
+    
+    if (match) {
+      // Close previous section if exists
+      if (currentSection !== undefined) {
+        currentSection.endLine = index; // Line before this comment (1-indexed)
+        sections.push(currentSection);
+      }
+      
+      // Start new section
+      // Convert from 0-indexed array position to 1-indexed line numbers
+      currentSection = {
+        name: match[1].trim(),
+        startLine: index + 2, // Line after the comment marker (index+1 to convert to 1-indexed, +1 more to skip comment line)
+        endLine: lines.length // Will be updated when next section starts
+      };
+    }
+  });
+  
+  // Close last section
+  if (currentSection !== undefined) {
+    currentSection.endLine = lines.length; // Last line of file (1-indexed)
+    sections.push(currentSection);
+  }
+  
+  return sections;
+}
+
 // Apply dagre layout algorithm to automatically position nodes
 function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   const g = new dagre.graphlib.Graph();
@@ -53,9 +101,10 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   
   nodes.forEach((node) => {
     const isDecision = node.type === 'decision';
+    const isContainer = node.type === 'container';
     g.setNode(node.id, {
-      width: isDecision ? 120 : 180,
-      height: isDecision ? 120 : 60
+      width: isContainer ? 400 : (isDecision ? 120 : 180),
+      height: isContainer ? 200 : (isDecision ? 120 : 60)
     });
   });
   
@@ -69,8 +118,9 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
     const nodeWithPosition = g.node(node.id);
     if (nodeWithPosition) {
       const isDecision = node.type === 'decision';
-      const width = isDecision ? 120 : 180;
-      const height = isDecision ? 120 : 60;
+      const isContainer = node.type === 'container';
+      const width = isContainer ? 400 : (isDecision ? 120 : 180);
+      const height = isContainer ? 200 : (isDecision ? 120 : 60);
       
       node.position = {
         x: nodeWithPosition.x - width / 2,
@@ -99,6 +149,47 @@ export function parseCodeToFlow(code: string): FlowData {
     let yPos = 50;
     const yGap = 100;
 
+    // Detect sections from comment markers
+    const sections = detectSections(code);
+    const containerNodes: Map<string, FlowNode> = new Map();
+    
+    // Create container nodes for each section
+    if (sections.length > 0) {
+      sections.forEach(section => {
+        const containerId = `container-${nodeIdCounter++}`;
+        const containerNode: FlowNode = {
+          id: containerId,
+          type: 'container',
+          data: { 
+            label: section.name,
+            children: [],
+            collapsed: false
+          },
+          position: { x: 0, y: 0 },
+          style: { width: 400, height: 200 }
+        };
+        nodes.push(containerNode);
+        containerNodes.set(`${section.startLine}-${section.endLine}`, containerNode);
+      });
+    } else {
+      // Fallback: Create a default "Global Flow" container when no sections are detected
+      const globalContainerId = `container-${nodeIdCounter++}`;
+      const globalContainer: FlowNode = {
+        id: globalContainerId,
+        type: 'container',
+        data: { 
+          label: 'Global Flow',
+          children: [],
+          collapsed: false
+        },
+        position: { x: 0, y: 0 },
+        style: { width: 400, height: 200 }
+      };
+      nodes.push(globalContainer);
+      // Mark this as the global container covering all lines
+      containerNodes.set('global', globalContainer);
+    }
+
     const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
@@ -109,12 +200,44 @@ export function parseCodeToFlow(code: string): FlowData {
         nodeMap.set(locKey, id);
       }
       
+      // Determine if this node belongs to a section/container
+      let parentNode: string | undefined;
+      if (sections.length > 0 && stmt?.loc) {
+        const nodeLine = stmt.loc.start.line;
+        for (const section of sections) {
+          if (nodeLine >= section.startLine && nodeLine <= section.endLine) {
+            const containerKey = `${section.startLine}-${section.endLine}`;
+            const container = containerNodes.get(containerKey);
+            if (container) {
+              parentNode = container.id;
+              // Add this node ID to container's children
+              if (!container.data.children) {
+                container.data.children = [];
+              }
+              container.data.children.push(id);
+            }
+            break;
+          }
+        }
+      } else if (sections.length === 0) {
+        // If no sections, all nodes belong to the global container
+        const globalContainer = containerNodes.get('global');
+        if (globalContainer) {
+          parentNode = globalContainer.id;
+          if (!globalContainer.data.children) {
+            globalContainer.data.children = [];
+          }
+          globalContainer.data.children.push(id);
+        }
+      }
+      
       return {
         id,
         type,
         data: { label, sourceData: loc },
         position: { x: 0, y: 0 },
         className,
+        parentNode,
         style: { 
           width: isDecision ? 120 : 180, 
           height: isDecision ? 120 : 60 
