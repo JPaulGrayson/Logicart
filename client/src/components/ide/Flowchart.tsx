@@ -29,12 +29,12 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   const [currentZoom, setCurrentZoom] = useState(1);
   
   // Determine view level based on zoom
-  // Mile-high view: < 0.5 (50%)
-  // 1000ft view: 0.5 - 0.75 (50-75%)
-  // 100ft view: > 0.75 (75%)
+  // Mile-high view: < 0.7 (70%) - zoomed out view showing only containers
+  // 1000ft view: 0.7 - 1.3 (70-130%) - medium zoom showing all nodes
+  // 100ft view: > 1.3 (130%) - zoomed in detailed view
   const getViewLevel = useCallback((zoom: number): 'mile-high' | '1000ft' | '100ft' => {
-    if (zoom < 0.5) return 'mile-high';
-    if (zoom < 0.75) return '1000ft';
+    if (zoom < 0.7) return 'mile-high';
+    if (zoom < 1.3) return '1000ft';
     return '100ft';
   }, []);
   
@@ -126,7 +126,10 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         <div className="flex items-center gap-4">
           <span className="text-xs">
             View: <span className="text-primary font-semibold">
-              {currentZoom < 0.5 ? 'Mile-High' : currentZoom < 0.75 ? '1000ft' : '100ft Detail'}
+              {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft Detail'}
+            </span>
+            <span className="ml-2 text-muted-foreground">
+              ({Math.round(currentZoom * 100)}%)
             </span>
           </span>
           <span className="flex items-center gap-2">
