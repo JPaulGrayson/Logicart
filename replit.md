@@ -45,6 +45,18 @@ Preferred communication style: Simple, everyday language.
 ### Multi-Platform Extension Support
 - **VS Code Extension**: Built for VS Code and Antigravity, supporting native webview integration, auto-refresh on file changes, and click-to-source navigation.
 
+### NPM Package Architecture (logigo-core)
+- **Dual Distribution Model**: Standalone NPM package (`logigo-core`) for injectable overlay mode alongside Replit workbench mode.
+- **Package Structure**: Single-package approach with UMD and ESM builds via Rollup.
+- **Core Modules**:
+  - `runtime.js`: ExecutionController with Promise-based checkpoint system, pause/step/play controls, speed governor (0.25x-10x).
+  - `overlay.js`: Injectable floating UI with inline styles, SVG icons, position system (top-left/right, bottom-left/right).
+  - `parser.js`: Lightweight AST parser for overlay mode.
+  - `differ.js`: Ghost Diff engine for tree comparison (added/modified/deleted/unchanged nodes).
+- **Global API**: Exposes `window.LogiGo.checkpoint()` for checkpoint-based debugging in any web application.
+- **Build Targets**: UMD (browser script tag), ESM (modern bundlers), with source maps.
+- **Integration Status**: Phase 1 complete (ahead of schedule), published as `logigo-core` NPM package.
+
 ## External Dependencies
 
 ### Database
@@ -64,6 +76,7 @@ Preferred communication style: Simple, everyday language.
 - **esbuild**: Server-side bundling.
 - **tsx**: TypeScript execution.
 - **@replit/vite-plugin-***: Replit-specific plugins.
+- **Rollup**: NPM package bundler for `logigo-core` (UMD + ESM builds).
 
 ### Parsing & AST
 - **acorn**: JavaScript parser.
