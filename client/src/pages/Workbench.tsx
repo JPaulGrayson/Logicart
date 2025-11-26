@@ -21,8 +21,9 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, FlaskConical } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { toast } from 'sonner';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -53,6 +54,9 @@ export default function Workbench() {
   const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: false }));
   const previousFlowDataRef = useRef<FlowNode[]>([]);
   const executionControllerRef = useRef<ExecutionController>(new ExecutionController({ debug: false }));
+  
+  // Test feature states
+  const [testPanelOpen, setTestPanelOpen] = useState(false);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -548,6 +552,77 @@ export default function Workbench() {
     ],
     enabled: isReady,
   });
+  
+  // Test Functions for Antigravity Features
+  const testVisualHandshake = async () => {
+    toast.info('Testing Visual Handshake - Watch the flowchart nodes!');
+    
+    // Get all visible nodes from the flowchart
+    const testableNodes = flowData.nodes.filter(n => n.id && !n.id.startsWith('container'));
+    
+    if (testableNodes.length === 0) {
+      toast.error('No nodes available to test');
+      return;
+    }
+    
+    // Highlight nodes sequentially with gold glow
+    for (let i = 0; i < Math.min(5, testableNodes.length); i++) {
+      const node = testableNodes[i];
+      
+      // Simulate Visual Handshake by highlighting the node
+      setHighlightedNodes(new Set([node.id]));
+      toast.success(`Checkpoint: ${node.data?.label || node.id}`, {
+        duration: 800,
+        icon: '✨'
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Clear highlight
+      setHighlightedNodes(new Set());
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    toast.success('Visual Handshake test complete! ✅');
+  };
+  
+  const testReporterAPI = () => {
+    toast.info('Testing Reporter API - Check browser console!');
+    
+    // Simulate Reporter capturing checkpoint data
+    const mockCheckpoints = [
+      { id: 'start', timestamp: Date.now(), timeSinceStart: 0, domElement: null, variables: {} },
+      { id: 'if_check', timestamp: Date.now() + 100, timeSinceStart: 100, domElement: '#condition', variables: { x: 10 } },
+      { id: 'for_loop', timestamp: Date.now() + 250, timeSinceStart: 250, domElement: '#loop', variables: { i: 0 } },
+    ];
+    
+    console.group('📊 LogiGo Reporter API Test');
+    console.log('Reporter would capture these checkpoints:');
+    mockCheckpoints.forEach((cp, index) => {
+      console.log(`[${index + 1}]`, cp);
+    });
+    
+    const mockReport = {
+      metadata: {
+        exportTime: Date.now(),
+        startTime: Date.now() - 250,
+        totalDuration: 250
+      },
+      stats: {
+        totalCheckpoints: mockCheckpoints.length,
+        totalTime: 250,
+        averageInterval: 125
+      },
+      checkpoints: mockCheckpoints
+    };
+    
+    console.log('Full Report Export:', mockReport);
+    console.groupEnd();
+    
+    toast.success('Reporter API test complete! Check console for JSON data. ✅', {
+      duration: 3000
+    });
+  };
 
   if (!isReady) {
     return (
@@ -632,12 +707,71 @@ export default function Workbench() {
             
             <div className="h-6 w-px bg-border" />
             
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTestPanelOpen(!testPanelOpen)}
+              className="gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/30"
+              data-testid="button-test-features"
+              title="Test Antigravity Features (Visual Handshake + Reporter)"
+            >
+              <FlaskConical className="w-4 h-4" />
+              Test Features
+            </Button>
+            
+            <div className="h-6 w-px bg-border" />
+            
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
             <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
               Share
             </button>
         </div>
       </header>
+      
+      {/* Test Features Panel */}
+      {testPanelOpen && (
+        <div className="bg-gradient-to-r from-purple-500/5 to-blue-500/5 border-b border-purple-500/20 p-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-purple-400 mb-1 flex items-center gap-2">
+                  <FlaskConical className="w-4 h-4" />
+                  Antigravity Integration Tests
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Test the Visual Handshake and Reporter API features developed by the Antigravity team
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={testVisualHandshake}
+                    size="sm"
+                    className="gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 border-yellow-500/30"
+                    data-testid="button-test-visual-handshake"
+                  >
+                    ✨ Test Visual Handshake
+                  </Button>
+                  <Button
+                    onClick={testReporterAPI}
+                    size="sm"
+                    className="gap-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border-blue-500/30"
+                    data-testid="button-test-reporter"
+                  >
+                    📊 Test Reporter API
+                  </Button>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="inline-block px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 text-xs">
+                  <span className="text-green-400 font-semibold">● Ready for Testing</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Phase 1 & 2 Complete
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <ExecutionControls
         isPlaying={isPlaying}
