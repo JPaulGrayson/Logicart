@@ -120,50 +120,53 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   }, [initialNodes.length, fitView]);
 
   return (
-    <div className="h-full w-full bg-background flex flex-col">
-       {/* Compact header - just view info */}
-       <div className="h-7 border-b border-border flex items-center justify-end px-3 bg-card/30 backdrop-blur text-xs">
-        <div className="flex items-center gap-3">
-          <span>
-            <span className="text-muted-foreground">View:</span> <span className="text-primary font-semibold">
-              {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft'}
-            </span>
-            <span className="ml-1 text-muted-foreground">
-              ({Math.round(currentZoom * 100)}%)
-            </span>
+    <div className="h-full w-full bg-background relative">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeClick={(_, node) => onNodeClick?.(node)}
+        onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
+        onMove={handleViewportChange}
+        onMoveEnd={handleViewportChange}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        proOptions={{ hideAttribution: true }}
+        connectionLineType={ConnectionLineType.SmoothStep}
+      >
+        <Background color="var(--color-border)" gap={24} size={1} />
+        {/* Removed Controls component - zoom controls available via mouse/keyboard */}
+        <FixedMiniMap 
+          nodeColor={(n) => {
+            if (n.type === 'input') return '#3b82f6';
+            if (n.type === 'output') return '#ef4444';
+            if (n.type === 'decision') return '#eab308';
+            return '#64748b';
+          }}
+        />
+      </ReactFlow>
+      
+      {/* Floating Status Pill - Top Right */}
+      <div 
+        className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-card/95 backdrop-blur border border-border rounded-full shadow-lg text-[10px] z-20"
+        data-testid="status-pill"
+      >
+        <span>
+          <span className="text-muted-foreground">View:</span>{' '}
+          <span className="text-primary font-semibold">
+            {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft'}
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span> <span className="text-muted-foreground">Live</span>
+          <span className="ml-1 text-muted-foreground">
+            ({Math.round(currentZoom * 100)}%)
           </span>
-        </div>
-      </div>
-      <div className="flex-1 relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={(_, node) => onNodeClick?.(node)}
-          onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
-          onMove={handleViewportChange}
-          onMoveEnd={handleViewportChange}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          proOptions={{ hideAttribution: true }}
-          connectionLineType={ConnectionLineType.SmoothStep}
-        >
-          <Background color="var(--color-border)" gap={24} size={1} />
-          {/* Removed Controls component - zoom controls available via mouse/keyboard */}
-          <FixedMiniMap 
-            nodeColor={(n) => {
-              if (n.type === 'input') return '#3b82f6';
-              if (n.type === 'output') return '#ef4444';
-              if (n.type === 'decision') return '#eab308';
-              return '#64748b';
-            }}
-          />
-        </ReactFlow>
+        </span>
+        <span className="w-px h-3 bg-border" />
+        <span className="flex items-center gap-1">
+          <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+          <span className="text-muted-foreground">Live</span>
+        </span>
       </div>
     </div>
   );

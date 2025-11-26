@@ -21,7 +21,7 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2 } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export default function Workbench() {
@@ -60,6 +60,7 @@ export default function Workbench() {
   // New UI state for sidebar layout
   const [codeEditorCollapsed, setCodeEditorCollapsed] = useState(false);
   const [showFloatingVariables, setShowFloatingVariables] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -613,36 +614,19 @@ export default function Workbench() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
-      <header className="h-14 border-b border-border flex items-center px-6 bg-card z-10 justify-between gap-4">
+      {/* Minimal Header - Just Branding */}
+      <header className="h-10 border-b border-border flex items-center px-6 bg-card z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono">
+          <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
             L
           </div>
-          <h1 className="font-semibold tracking-tight">LogiGo</h1>
-          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">Beta</span>
+          <h1 className="font-semibold tracking-tight text-sm">LogiGo</h1>
+          <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">Beta</span>
           {features.hasFeature('ghostDiff') && (
-            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium">
+            <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
               Premium
             </span>
           )}
-        </div>
-        
-        {/* Natural Language Search - Premium Feature */}
-        {features.hasFeature('naturalLanguageSearch') && (
-          <div className="flex-1 max-w-md">
-            <NaturalLanguageSearch
-              nodes={flowData.nodes}
-              onSearchResults={handleSearchResults}
-              onClear={handleClearSearch}
-            />
-          </div>
-        )}
-        
-        <div className="flex items-center gap-3">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
-            <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
-              Share
-            </button>
         </div>
       </header>
       
@@ -652,6 +636,65 @@ export default function Workbench() {
           {/* Left Sidebar - Controls (Resizable) */}
           <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
+              
+              {/* Flow Tools Section - Always Visible at Top */}
+              <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                  <Search className="w-3 h-3" />
+                  FLOW TOOLS
+                </h3>
+                
+                {/* Natural Language Search - Premium Feature */}
+                {features.hasFeature('naturalLanguageSearch') && (
+                  <div className="mb-2">
+                    <NaturalLanguageSearch
+                      nodes={flowData.nodes}
+                      onSearchResults={handleSearchResults}
+                      onClear={handleClearSearch}
+                      inputRef={searchInputRef}
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-1">
+                  {/* Ghost Diff Toggle */}
+                  {features.hasFeature('ghostDiff') && (
+                    <Button
+                      variant={showDiff ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowDiff(!showDiff)}
+                      className="w-full justify-start gap-2 h-7 text-xs"
+                      data-testid="button-ghost-diff"
+                    >
+                      <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
+                    </Button>
+                  )}
+                  
+                  {/* Documentation */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('#', '_blank')}
+                    className="w-full justify-start gap-2 h-7 text-xs"
+                    data-testid="button-documentation"
+                  >
+                    <BookOpen className="w-3 h-3" />
+                    Documentation
+                  </Button>
+                  
+                  {/* Share */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {/* TODO: Implement share */}}
+                    className="w-full justify-start gap-2 h-7 text-xs"
+                    data-testid="button-share"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    Share
+                  </Button>
+                </div>
+              </div>
               
               {/* Code Editor Section - Fully Collapsible */}
               {showCodeEditor && !codeEditorCollapsed && (
@@ -704,20 +747,9 @@ export default function Workbench() {
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
                 <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                   <Eye className="w-3 h-3" />
-                  VIEW
+                  VIEWS
                 </h3>
                 <div className="space-y-1">
-                  {features.hasFeature('ghostDiff') && (
-                    <Button
-                      variant={showDiff ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setShowDiff(!showDiff)}
-                      className="w-full justify-start gap-2 h-7 text-xs"
-                      data-testid="button-ghost-diff"
-                    >
-                      <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
-                    </Button>
-                  )}
                   <Button
                     variant="outline"
                     size="sm"

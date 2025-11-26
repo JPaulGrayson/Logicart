@@ -4,7 +4,7 @@
  * Provides a search interface for querying flowchart nodes using natural language
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { Search, X, Sparkles } from 'lucide-react';
 import { searchNodes, getSuggestedQueries, type SearchResult } from '@/lib/naturalLanguageSearch';
 import type { FlowNode } from '@/lib/parser';
@@ -14,9 +14,10 @@ interface NaturalLanguageSearchProps {
   nodes: FlowNode[];
   onSearchResults: (result: SearchResult) => void;
   onClear: () => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }
 
-export function NaturalLanguageSearch({ nodes, onSearchResults, onClear }: NaturalLanguageSearchProps) {
+export function NaturalLanguageSearch({ nodes, onSearchResults, onClear, inputRef }: NaturalLanguageSearchProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -66,6 +67,7 @@ export function NaturalLanguageSearch({ nodes, onSearchResults, onClear }: Natur
       <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
         <Sparkles className="w-4 h-4 text-purple-500" />
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
