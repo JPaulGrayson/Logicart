@@ -23,7 +23,7 @@ import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, FlaskConical } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -555,13 +555,20 @@ export default function Workbench() {
   
   // Test Functions for Antigravity Features
   const testVisualHandshake = async () => {
-    toast.info('Testing Visual Handshake - Watch the flowchart nodes!');
+    toast({
+      title: '✨ Testing Visual Handshake',
+      description: 'Watch the flowchart nodes highlight sequentially!',
+    });
     
     // Get all visible nodes from the flowchart
     const testableNodes = flowData.nodes.filter(n => n.id && !n.id.startsWith('container'));
     
     if (testableNodes.length === 0) {
-      toast.error('No nodes available to test');
+      toast({
+        title: 'No nodes available',
+        description: 'Add some code to see the Visual Handshake in action',
+        variant: 'destructive'
+      });
       return;
     }
     
@@ -571,9 +578,9 @@ export default function Workbench() {
       
       // Simulate Visual Handshake by highlighting the node
       setHighlightedNodes(new Set([node.id]));
-      toast.success(`Checkpoint: ${node.data?.label || node.id}`, {
-        duration: 800,
-        icon: '✨'
+      toast({
+        title: `✨ Checkpoint ${i + 1}`,
+        description: node.data?.label || node.id,
       });
       
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -583,11 +590,17 @@ export default function Workbench() {
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     
-    toast.success('Visual Handshake test complete! ✅');
+    toast({
+      title: '✅ Visual Handshake Complete',
+      description: 'All checkpoints executed successfully!',
+    });
   };
   
   const testReporterAPI = () => {
-    toast.info('Testing Reporter API - Check browser console!');
+    toast({
+      title: '📊 Testing Reporter API',
+      description: 'Check browser console for detailed output',
+    });
     
     // Simulate Reporter capturing checkpoint data
     const mockCheckpoints = [
@@ -619,8 +632,9 @@ export default function Workbench() {
     console.log('Full Report Export:', mockReport);
     console.groupEnd();
     
-    toast.success('Reporter API test complete! Check console for JSON data. ✅', {
-      duration: 3000
+    toast({
+      title: '✅ Reporter Test Complete',
+      description: 'Check console for full JSON data export',
     });
   };
 
