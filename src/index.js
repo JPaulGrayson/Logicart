@@ -8,6 +8,7 @@ import LogiGoOverlay from './overlay.js';
 import ExecutionController from './runtime.js';
 import LogiGoParser from './parser.js';
 import LogiGoDiffer from './differ.js';
+import LogiGoReporter from './reporter.js';
 
 /**
  * Initialize LogiGo with options
@@ -36,7 +37,8 @@ export {
     LogiGoOverlay,
     ExecutionController,
     LogiGoParser,
-    LogiGoDiffer
+    LogiGoDiffer,
+    LogiGoReporter
 };
 
 // Default export
@@ -45,5 +47,6 @@ export default {
     LogiGoOverlay,
     ExecutionController,
     LogiGoParser,
-    LogiGoDiffer
+    LogiGoDiffer,
+    LogiGoReporter
 };

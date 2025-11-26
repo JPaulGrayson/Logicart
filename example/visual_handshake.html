@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo - Visual Handshake Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 42px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+
+        .demo-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .demo-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-box {
+            background: #e8eaf6;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+
+        .highlight-demo {
+            display: none;
+        }
+
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 Visual Handshake Demo</h1>
+        <p class="subtitle">Watch DOM elements light up as checkpoints execute!</p>
+
+        <div class="controls">
+            <button class="control-btn" onclick="startDemo()">▶️ Start Demo</button>
+            <button class="control-btn" onclick="resetDemo()">🔄 Reset</button>
+        </div>
+
+        <div class="demo-panel">
+            <h2>
+                <span>🔐</span>
+                Simulated Login Flow
+            </h2>
+
+            <div class="info-box">
+                <p>
+                    <strong>How it works:</strong> Each form field has a corresponding checkpoint. 
+                    When you click "Start Demo", the code will execute step-by-step, 
+                    highlighting each element with a <code>gold glow</code> as it processes.
+                </p>
+            </div>
+
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" value="demo_user">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter email" value="demo@logigo.dev">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" value="••••••••">
+                </div>
+
+                <button class="btn-submit" id="btn-login">Login</button>
+
+                <div id="status-message" class="highlight-demo"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load ExecutionController -->
+    <script src="../src/runtime.js" type="module"></script>
+
+    <!-- Load LogiGo Overlay -->
+    <script type="module">
+        import LogiGoOverlay from '../src/overlay.js';
+        import ExecutionController from '../src/runtime.js';
+
+        // Initialize LogiGo with debug mode
+        const logigo = new LogiGoOverlay({
+            debug: true,
+            speed: 1.0,
+            position: 'bottom-right'
+        });
+
+        logigo.init();
+
+        // Make it globally accessible
+        window.logigoInstance = logigo;
+
+        console.log('✅ LogiGo initialized with Visual Handshake support');
+    </script>
+
+    <script>
+        // Simulated login flow with Visual Handshake
+        async function simulateLogin() {
+            console.log('🚀 Starting login simulation with Visual Handshake...');
+
+            // Step 1: Validate username
+            await window.LogiGo.checkpoint('username');
+            console.log('✓ Validating username field');
+            await sleep(800);
+
+            // Step 2: Validate email
+            await window.LogiGo.checkpoint('email');
+            console.log('✓ Validating email field');
+            await sleep(800);
+
+            // Step 3: Validate password
+            await window.LogiGo.checkpoint('password');
+            console.log('✓ Validating password field');
+            await sleep(800);
+
+            // Step 4: Submit button
+            await window.LogiGo.checkpoint('btn-login');
+            console.log('✓ Processing login...');
+            await sleep(800);
+
+            // Show success message
+            const statusMsg = document.getElementById('status-message');
+            statusMsg.className = 'status-message status-success';
+            statusMsg.textContent = '✅ Login successful! Visual Handshake completed.';
+            statusMsg.style.display = 'block';
+
+            console.log('✅ Login simulation complete!');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function startDemo() {
+            console.log('📍 Demo started');
+            
+            // Reset status message
+            const statusMsg = document.getElementById('status-message');
+            statusMsg.style.display = 'none';
+
+            // Start the simulation
+            try {
+                await simulateLogin();
+            } catch (error) {
+                console.error('❌ Demo error:', error);
+                statusMsg.className = 'status-message status-error';
+                statusMsg.textContent = '❌ Demo failed. Check console.';
+                statusMsg.style.display = 'block';
+            }
+        }
+
+        function resetDemo() {
+            console.log('🔄 Demo reset');
+            const statusMsg = document.getElementById('status-message');
+            statusMsg.style.display = 'none';
+            
+            if (window.LogiGo) {
+                window.LogiGo.reset();
+            }
+        }
+
+        // Info on page load
+        console.log('%c🌟 Visual Handshake Demo Ready!', 'font-size: 16px; font-weight: bold; color: #667eea;');
+        console.log('%cClick "Start Demo" to see DOM elements light up with checkpoints', 'color: #666;');
+    </script>
+</body>
+</html>

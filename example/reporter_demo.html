@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo - Reporter API Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 42px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel h2 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .event-log {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 16px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .event-entry {
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #667eea;
+            border-radius: 3px;
+        }
+
+        .event-entry.new {
+            animation: slideIn 0.3s ease-out;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .json-output {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 16px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .info-box {
+            background: #e8eaf6;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        code {
+            background: #2d2d2d;
+            color: #4caf50;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Reporter API Demo</h1>
+        <p class="subtitle">Real-time checkpoint monitoring for AI Agent Integration</p>
+
+        <div class="panel">
+            <h2><span>🎮</span> Demo Controls</h2>
+            
+            <div class="info-box">
+                <p>
+                    <strong>Simulates an AI Agent</strong> listening to checkpoint events. 
+                    Click "Run Simulation" to execute a series of checkpoints and watch 
+                    the Reporter capture every detail in real-time.
+                </p>
+            </div>
+
+            <div class="controls">
+                <button onclick="runSimulation()">▶️ Run Simulation</button>
+                <button onclick="exportReport()">💾 Export Report</button>
+                <button onclick="clearData()">🗑️ Clear Data</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Checkpoints</div>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Interval (ms)</div>
+                    <div class="stat-value" id="stat-interval">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Time (ms)</div>
+                    <div class="stat-value" id="stat-time">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="panel">
+                <h2><span>📡</span> Real-Time Event Stream</h2>
+                <div class="event-log" id="event-log">
+                    <div style="color: #888; text-align: center; padding: 20px;">
+                        Waiting for checkpoint events...
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2><span>📄</span> Exported JSON Report</h2>
+                <div class="json-output" id="json-output">
+                    <div style="color: #888; text-align: center; padding: 20px;">
+                        Click "Export Report" to see the full JSON data
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import LogiGoReporter from '../src/reporter.js';
+
+        // Initialize Reporter
+        const reporter = new LogiGoReporter({ debug: true });
+
+        // Subscribe to checkpoint events (simulates AI Agent listening)
+        reporter.onCheckpoint((data) => {
+            console.log('[AI Agent] New checkpoint detected:', data);
+            
+            // Add to event log
+            addEventToLog(data);
+            
+            // Update statistics
+            updateStats(reporter.getStats());
+        });
+
+        // Make reporter globally accessible
+        window.reporter = reporter;
+
+        console.log('✅ LogiGo Reporter initialized');
+        console.log('🤖 AI Agent is now listening for checkpoint events');
+
+        // Helper function to add events to log
+        function addEventToLog(data) {
+            const logContainer = document.getElementById('event-log');
+            
+            // Clear "waiting" message if it exists
+            if (logContainer.querySelector('[style*="color: #888"]')) {
+                logContainer.innerHTML = '';
+            }
+
+            const entry = document.createElement('div');
+            entry.className = 'event-entry new';
+            entry.innerHTML = `
+                <strong style="color: #4caf50;">[${new Date(data.timestamp).toLocaleTimeString()}]</strong>
+                <span style="color: #ffd700;">Checkpoint:</span> ${data.id}
+                ${data.domElement ? `<br><span style="color: #888;">DOM:</span> ${data.domElement}` : ''}
+                <br><span style="color: #888;">Time:</span> ${data.timeSinceStart}ms
+            `;
+            
+            logContainer.insertBefore(entry, logContainer.firstChild);
+            
+            // Remove 'new' class after animation
+            setTimeout(() => entry.classList.remove('new'), 300);
+            
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // Helper function to update stats
+        function updateStats(stats) {
+            document.getElementById('stat-total').textContent = stats.totalCheckpoints;
+            document.getElementById('stat-interval').textContent = 
+                Math.round(stats.averageInterval || 0);
+            document.getElementById('stat-time').textContent = Math.round(stats.totalTime);
+        }
+
+        // Make functions globally accessible
+        window.addEventToLog = addEventToLog;
+        window.updateStats = updateStats;
+    </script>
+
+    <script>
+        // Simulate a complex execution flow
+        async function runSimulation() {
+            console.log('🚀 Starting simulation...');
+
+            const steps = [
+                { id: 'init', domElement: '#app-root', variables: { status: 'initializing' } },
+                { id: 'load_user', domElement: '#user-profile', variables: { userId: 123 } },
+                { id: 'fetch_data', variables: { endpoint: '/api/users', status: 'loading' } },
+                { id: 'validate_response', variables: { valid: true, count: 42 } },
+                { id: 'render_ui', domElement: '#main-content', variables: { rendered: true } },
+                { id: 'bind_events', variables: { listeners: 12 } },
+                { id: 'complete', domElement: '#status-indicator', variables: { status: 'ready' } }
+            ];
+
+            for (const step of steps) {
+                // Report checkpoint to reporter
+                window.reporter.reportCheckpoint(step);
+                
+                // Simulate processing time
+                await sleep(400 + Math.random() * 400);
+            }
+
+            console.log('✅ Simulation complete!');
+        }
+
+        function exportReport() {
+            const report = window.reporter.exportReport();
+            
+            // Display in JSON panel
+            const jsonOutput = document.getElementById('json-output');
+            jsonOutput.textContent = JSON.stringify(report, null, 2);
+            
+            console.log('📄 Report exported:', report);
+            
+            // Also download as file
+            const blob = new Blob([JSON.stringify(report, null, 2)], 
+                { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logigo-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            console.log('💾 Report downloaded');
+        }
+
+        function clearData() {
+            window.reporter.clear();
+            
+            // Reset UI
+            document.getElementById('event-log').innerHTML = `
+                <div style="color: #888; text-align: center; padding: 20px;">
+                    Waiting for checkpoint events...
+                </div>
+            `;
+            document.getElementById('json-output').innerHTML = `
+                <div style="color: #888; text-align: center; padding: 20px;">
+                    Click "Export Report" to see the full JSON data
+                </div>
+            `;
+            
+            updateStats({ totalCheckpoints: 0, averageInterval: 0, totalTime: 0 });
+            
+            console.log('🗑️ Data cleared');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Info on page load
+        console.log('%c📊 Reporter API Demo Ready!', 'font-size: 16px; font-weight: bold; color: #667eea;');
+        console.log('%c🤖 Simulating an AI Agent listening to checkpoint events', 'color: #666;');
+        console.log('%cClick "Run Simulation" to start', 'color: #666;');
+    </script>
+</body>
+</html>
