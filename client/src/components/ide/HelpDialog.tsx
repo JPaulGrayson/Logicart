@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -23,6 +24,9 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
             <Lightbulb className="w-5 h-5" />
             LogiGo Studio Help
           </DialogTitle>
+          <DialogDescription>
+            Quick start guide, documentation, keyboard shortcuts, and information about LogiGo Studio
+          </DialogDescription>
         </DialogHeader>
         
         <Tabs defaultValue="quick-start" className="flex-1 flex flex-col min-h-0">
@@ -315,7 +319,7 @@ function processData(items) {
                     <p><strong>Message Protocol:</strong> window.postMessage</p>
                     <p><strong>Event Types:</strong> LOGIGO_SESSION_START, LOGIGO_CHECKPOINT</p>
                     <p><strong>Security:</strong> Same-origin validation, 15s inactivity timeout</p>
-                    <p><strong>Status:</strong> Production ready</p>
+                    <p><strong>Status:</strong> v1.0.0-beta.2 (Final Draft)</p>
                   </div>
                 </section>
 
