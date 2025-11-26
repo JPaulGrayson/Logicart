@@ -1,6 +1,6 @@
 {
     "name": "logigo-core",
-    "version": "1.0.0-beta",
+    "version": "1.0.0-beta.2",
     "description": "Runtime code visualizer for Vibe Coders - see, slow down, and debug logic flow",
     "main": "dist/logigo.js",
     "module": "dist/logigo.esm.js",
