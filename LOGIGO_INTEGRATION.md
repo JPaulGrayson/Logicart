@@ -146,7 +146,22 @@ You can render `diff.nodes` however you like (list, flow‑chart, etc.). The dem
 
 ---
 
-### 4️⃣ TL;DR Checklist (copy‑paste into a Replit comment)
+### 4️⃣ Checkpoint Data Format (Reporter API)
+
+When using the Reporter API, checkpoint events follow this structure:
+
+```json
+{
+  "id": "checkpoint_id",
+  "timestamp": 1732560000000,
+  "timeSinceStart": 150,
+  "domElement": "#element-id",
+  "variables": { "x": 10, "y": 20 },
+  "metadata": {}
+}
+```
+
+### 5️⃣ TL;DR Checklist (copy‑paste into a Replit comment)
 
 ```
 1️⃣ npm install ./LogiGo   # or npm i logigo-core after publishing

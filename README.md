@@ -61,18 +61,19 @@ The LogiGo overlay provides:
 - [x] Floating toolbar injection
 - [x] Play/Pause/Step/Reset controls
 - [x] Speed governor (0.1x - 2.0x)
-- [x] Visual handshake (DOM element highlighting)
+- [x] **Visual Handshake** (DOM element highlighting)
 - [x] Checkpoint API
 
-### 🚧 Phase 2: Speed Governor (IN PROGRESS)
-- [ ] Execution controller class
-- [ ] Promise-based checkpoint system
-- [ ] Integration with UI controls
+### ✅ Phase 2: Speed Governor & Reporter (COMPLETE)
+- [x] Execution controller class
+- [x] Promise-based checkpoint system
+- [x] **Reporter API** for Browser Agent integration
+- [x] Real-time event subscription
 
-### 📋 Phase 3: Ghost Diff (PLANNED)
-- [ ] AST diffing engine
-- [ ] Visual diff rendering (Red/Green/Ghost)
-- [ ] Side-by-side comparison
+### ✅ Phase 3: Ghost Diff (COMPLETE)
+- [x] AST diffing engine
+- [x] Visual diff rendering (Red/Green/Ghost)
+- [x] Side-by-side comparison
 
 ## 🛠️ API Reference
 
@@ -88,56 +89,51 @@ overlay.init();
 - `debug` (boolean): Enable debug logging (default: false)
 - `position` (string): Overlay position - 'bottom-right', 'bottom-left', 'top-right', 'top-left' (default: 'bottom-right')
 
-### Global API
+### Visual Handshake (DOM Highlighting)
 
-After initialization, these methods are available on `window.LogiGo`:
+Highlight UI elements as your code executes:
 
 ```javascript
-// Pause execution at a specific point
-await LogiGo.checkpoint(nodeId);
-
-// Control playback
-LogiGo.play();
-LogiGo.pause();
-LogiGo.reset();
-
-// Adjust speed
-LogiGo.setSpeed(1.5); // 1.5x speed
+await LogiGo.checkpoint('step_1', {
+  domElement: '#my-button',  // Selector or HTMLElement
+  color: 'gold',             // Highlight color (default: gold)
+  duration: 2000,            // Duration in ms (default: 2000)
+  intensity: 'medium'        // low | medium | high
+});
 ```
 
-## 🧪 Running the Demo
+### Reporter API (Browser Agent Integration)
+
+Subscribe to checkpoint events for AI analysis or automated testing:
+
+```javascript
+// Get the reporter instance
+const reporter = LogiGo.reporter;
+
+// Subscribe to events
+reporter.onCheckpoint((entry) => {
+  console.log('Checkpoint hit:', entry.id);
+  console.log('DOM Element:', entry.domElement);
+  console.log('Variables:', entry.variables);
+});
+
+// Export full report
+const report = reporter.exportReport();
+```
+
+## 🧪 Running the Demos
 
 1. Clone this repository
-2. Open `example/index.html` in your browser
-3. Click the demo buttons to see LogiGo in action!
-
-```bash
-# Serve locally (optional)
-python3 -m http.server 8000
-# Then visit: http://localhost:8000/example/
-```
-
-## 🏗️ Architecture
-
-LogiGo follows a "Factory vs. Showroom" model:
-
-### Factory (This Repo - Antigravity Development)
-- **Core Library**: Standalone NPM package
-- **Overlay**: Injectable UI component
-- **Parser**: Lightweight AST parser
-- **Differ**: Ghost diff engine
-
-### Showroom (Replit Prototype)
-- **Workbench**: Full IDE integration
-- **Advanced Parser**: Full AST with location data
-- **Interpreter**: Step-by-step execution engine
-- **Code Patcher**: Bi-directional editing
+2. Open the examples in your browser:
+   - `example/complete_demo.html` - Full integration demo
+   - `example/visual_handshake.html` - **Visual Handshake Demo**
+   - `example/reporter_demo.html` - **Reporter API Demo**
+   - `example/ghost_diff.html` - Ghost Diff Demo
 
 ## 📚 Documentation
 
 - [Technical Specification](./SPEC.md)
-- [Implementation Plan](./IMPLEMENTATION_PLAN.md)
-- [Gemini's Recommendations](./GEMINI_RECOMMENDATIONS.md)
+- [Integration Guide](./LOGIGO_INTEGRATION.md)
 
 ## 🤝 Contributing
 
