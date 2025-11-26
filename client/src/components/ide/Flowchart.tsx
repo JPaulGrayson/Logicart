@@ -5,6 +5,7 @@ import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
 import { FixedMiniMap } from './FixedMiniMap';
+import type { RuntimeState } from '@shared/reporter-api';
 
 interface FlowchartProps {
   nodes: FlowNode[];
@@ -13,6 +14,7 @@ interface FlowchartProps {
   onNodeDoubleClick?: (node: Node) => void;
   activeNodeId?: string | null;
   highlightedNodes?: Set<string>;
+  runtimeState?: RuntimeState;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -21,7 +23,7 @@ const nodeTypes = {
   container: ContainerNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId, highlightedNodes }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId, highlightedNodes, runtimeState }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -164,8 +166,20 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         </span>
         <span className="w-px h-3 bg-border" />
         <span className="flex items-center gap-1">
-          <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
-          <span className="text-muted-foreground">Live</span>
+          {runtimeState?.mode === 'live' ? (
+            <>
+              <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-green-500 font-semibold">Live Mode</span>
+              <span className="text-muted-foreground/60">
+                ({runtimeState.checkpointCount} checkpoints)
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+              <span className="text-blue-500">Static Mode</span>
+            </>
+          )}
         </span>
       </div>
     </div>

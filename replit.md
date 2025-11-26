@@ -76,6 +76,25 @@ Preferred communication style: Simple, everyday language.
 - **Build Targets**: UMD (browser script tag), ESM (modern bundlers), with source maps.
 - **Integration Status**: Phase 1 complete (ahead of schedule), published as `logigo-core` NPM package.
 
+### Hybrid Architecture Integration (logigo-core + LogiGo Studio)
+- **Status**: IMPLEMENTED (Nov 26, 2024) - Three-tier hybrid model combining static analysis with optional runtime debugging.
+- **Philosophy**: LogiGo Studio = Universal entry point (zero-friction static analysis); logigo-core = Power-user runtime debugger (instrumented code)
+- **Architecture**:
+  - **Tier 1: Static Mode** (Default): User pastes code → Acorn parser → Instant flowchart. No setup, no code modification required.
+  - **Tier 2: Live Mode** (Premium): User runs instrumented code with `checkpoint()` calls → postMessage Reporter API → Runtime overlay on flowchart showing live execution data.
+  - **Tier 3: Blueprint Schema** (Future): AI-generated JSON blueprints for perfect structure declaration.
+- **Reporter API Integration**:
+  - **Protocol**: `window.postMessage` handshake between Studio and logigo-core (cross-origin secure messaging).
+  - **Message Types**: `logigo:handshake` (connection), `logigo:checkpoint` (execution events), `logigo:state` (variable updates), `logigo:complete/error` (status).
+  - **File**: `shared/reporter-api.ts` - TypeScript interfaces for all message formats.
+  - **Listener**: Workbench component passively listens for messages; stays in Static Mode if no handshake detected.
+- **UI Indicators**:
+  - **Status Pill**: Floating top-right pill shows "Static Mode" (blue dot) or "Live Mode" (green pulsing dot + checkpoint count).
+  - **Node Highlighting**: Checkpoints auto-map to flowchart nodes via line numbers, highlighting active execution points.
+  - **Seamless Fallback**: If no runtime detected, Studio operates normally in Static Mode.
+- **Speed Alignment**: Updated to support 20x maximum speed (matching logigo-core@1.0.0-beta.2).
+- **Integration Status**: Core infrastructure complete. Ready for logigo-core's "Library of Logic" demos (sorting algorithms, pathfinding).
+
 ### Visual Handshake & Browser Agent Integration
 - **Status**: APPROVED by Antigravity team (Nov 25, 2024) - In active development.
 - **Visual Handshake**: Feature that highlights DOM elements on the page when related code checkpoints execute, creating a visual connection between logic and UI.

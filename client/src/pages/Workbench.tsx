@@ -884,6 +884,7 @@ export default function Workbench() {
                   onNodeDoubleClick={handleNodeDoubleClick}
                   activeNodeId={activeNodeId}
                   highlightedNodes={highlightedNodes}
+                  runtimeState={runtimeState}
                 />
               )}
               
