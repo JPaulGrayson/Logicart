@@ -131,8 +131,10 @@ export default function Workbench() {
   // Listen for logigo-core runtime events via postMessage (Handshake Protocol)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Security: Only accept messages from same origin or trusted sources
-      // In production, validate event.origin
+      // Security: Only accept messages from same origin
+      if (event.origin !== window.location.origin) {
+        return; // Reject cross-origin messages
+      }
       
       const message = event.data;
       
@@ -141,6 +143,12 @@ export default function Workbench() {
       }
       
       if (isHandshake(message)) {
+        // Verify source is logigo-core
+        if (message.source !== 'logigo-core') {
+          console.warn('[LogiGo Studio] Handshake rejected: invalid source', message.source);
+          return;
+        }
+        
         // Handshake received - switch to Live Mode
         console.log('[LogiGo Studio] Handshake received from logigo-core', message.version);
         setRuntimeState(prev => ({
@@ -150,12 +158,12 @@ export default function Workbench() {
           lastHeartbeat: Date.now()
         }));
         
-        // Send ready acknowledgment
+        // Send ready acknowledgment with secure targetOrigin
         window.postMessage({
           type: 'logigo-studio:ready',
           version: '1.0.0',
           capabilities: ['hierarchical-views', 'ghost-diff', 'time-travel']
-        }, '*');
+        }, window.location.origin);
       }
       
       if (isCheckpoint(message)) {
@@ -165,7 +173,8 @@ export default function Workbench() {
         setRuntimeState(prev => ({
           ...prev,
           checkpointCount: prev.checkpointCount + 1,
-          currentCheckpoint: message
+          currentCheckpoint: message,
+          lastHeartbeat: Date.now() // Update heartbeat on any activity
         }));
         
         // Highlight node if we can map it to flowchart
@@ -180,14 +189,37 @@ export default function Workbench() {
       if (isStateUpdate(message)) {
         // State update - update variables panel
         console.log('[LogiGo Studio] State update:', message.variables);
+        setRuntimeState(prev => ({
+          ...prev,
+          lastHeartbeat: Date.now() // Update heartbeat on any activity
+        }));
         // Could update execution state here if needed
       }
     };
+    
+    // Inactivity timer: revert to Static Mode if no heartbeat for 10 seconds
+    const inactivityTimer = setInterval(() => {
+      setRuntimeState(prev => {
+        if (prev.mode === 'live' && prev.lastHeartbeat) {
+          const inactiveDuration = Date.now() - prev.lastHeartbeat;
+          if (inactiveDuration > 10000) { // 10 seconds
+            console.log('[LogiGo Studio] Reverting to Static Mode due to inactivity');
+            return {
+              ...prev,
+              isConnected: false,
+              mode: 'static'
+            };
+          }
+        }
+        return prev;
+      });
+    }, 5000); // Check every 5 seconds
     
     window.addEventListener('message', handleMessage);
     
     return () => {
       window.removeEventListener('message', handleMessage);
+      clearInterval(inactivityTimer);
     };
   }, [flowData.nodeMap]);
 
