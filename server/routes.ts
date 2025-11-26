@@ -12,6 +12,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/demo", express.static(path.join(__dirname, "..", "example")));
   app.use("/demo-src", express.static(path.join(__dirname, "..", "src")));
   
+  // Serve the test page explicitly
+  app.get("/test-antigravity.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "example", "test-antigravity.html"));
+  });
+  
   // Serve the extension files
   app.get("/extension.html", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "dist", "extension", "extension.html"));
