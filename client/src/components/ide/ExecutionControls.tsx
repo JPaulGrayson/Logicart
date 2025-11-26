@@ -44,7 +44,8 @@ const PREMIUM_SPEED_OPTIONS: SpeedOption[] = [
   { value: 2, label: '2x' },
   { value: 3, label: '3x', premium: true },
   { value: 5, label: '5x', premium: true },
-  { value: 10, label: '10x ⚡', premium: true },
+  { value: 10, label: '10x', premium: true },
+  { value: 20, label: '20x ⚡', premium: true },
 ];
 
 export function ExecutionControls({

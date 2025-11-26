@@ -46,6 +46,7 @@ export function RuntimeOverlay({
     { value: 3, label: '3×', premium: true },
     { value: 5, label: '5×', premium: true },
     { value: 10, label: '10×', premium: true },
+    { value: 20, label: '20× ⚡', premium: true },
   ];
 
   return (
