@@ -21,7 +21,7 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 export default function Workbench() {
@@ -56,6 +56,10 @@ export default function Workbench() {
   
   // Test feature states
   const [testPanelOpen, setTestPanelOpen] = useState(false);
+  
+  // New UI state for sidebar layout
+  const [codeEditorCollapsed, setCodeEditorCollapsed] = useState(false);
+  const [showFloatingVariables, setShowFloatingVariables] = useState(true);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -635,48 +639,6 @@ export default function Workbench() {
         )}
         
         <div className="flex items-center gap-3">
-            {features.hasFeature('ghostDiff') && (
-              <Button
-                variant={showDiff ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowDiff(!showDiff)}
-                className="gap-2"
-                data-testid="button-ghost-diff"
-              >
-                <span>👻</span> {showDiff ? 'Hide' : 'Show'} Ghost Diff
-              </Button>
-            )}
-            
-            <div className="h-6 w-px bg-border" />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPNG}
-              className="gap-2"
-              data-testid="button-export-png"
-              title="Export as PNG (Free)"
-            >
-              <Download className="w-4 h-4" />
-              PNG
-            </Button>
-            
-            {features.hasFeature('ghostDiff') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                className="gap-2"
-                data-testid="button-export-pdf"
-                title="Export as PDF (Premium)"
-              >
-                <FileText className="w-4 h-4" />
-                PDF
-              </Button>
-            )}
-            
-            <div className="h-6 w-px bg-border" />
-            
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
             <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
               Share
@@ -684,80 +646,180 @@ export default function Workbench() {
         </div>
       </header>
       
-      <ExecutionControls
-        isPlaying={isPlaying}
-        canStep={canExecute}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onStepForward={handleStepForward}
-        onStepBackward={handleStepBackward}
-        onReset={handleReset}
-        onStop={handleStop}
-        progress={progress}
-        speed={speed}
-        onSpeedChange={handleSpeedChange}
-        loop={loop}
-        onLoopToggle={handleLoopToggle}
-      />
-      
+      {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
-          {showCodeEditor && (
-            <>
-              <ResizablePanel defaultSize={30} minSize={20}>
-                <CodeEditor 
-                  code={code} 
-                  onChange={handleCodeChange} 
-                  highlightedLine={highlightedLine}
+          {/* Left Sidebar - Controls (Resizable) */}
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
+            <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
+              
+              {/* Code Editor Section - Fully Collapsible */}
+              {showCodeEditor && !codeEditorCollapsed && (
+                <div className="border-b border-border flex-1 min-h-0 overflow-hidden">
+                  <div className="h-full border-b border-border">
+                    <CodeEditor 
+                      code={code} 
+                      onChange={handleCodeChange} 
+                      highlightedLine={highlightedLine}
+                    />
+                  </div>
+                </div>
+              )}
+              {showCodeEditor && (
+                <div className="border-b border-border flex-shrink-0">
+                  <button
+                    onClick={() => setCodeEditorCollapsed(!codeEditorCollapsed)}
+                    className="w-full px-3 py-1.5 flex items-center justify-between hover:bg-accent/50 transition-colors text-xs font-medium"
+                    data-testid="button-toggle-code-editor"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Code2 className="w-3 h-3" />
+                      {codeEditorCollapsed ? 'Show Code' : 'Hide Code'}
+                    </div>
+                    {codeEditorCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                  </button>
+                </div>
+              )}
+              
+              {/* Execution Controls Section */}
+              <div className="flex-shrink-0">
+                <ExecutionControls
+                  isPlaying={isPlaying}
+                  canStep={canExecute}
+                  onPlay={handlePlay}
+                  onPause={handlePause}
+                  onStepForward={handleStepForward}
+                  onStepBackward={handleStepBackward}
+                  onReset={handleReset}
+                  onStop={handleStop}
+                  progress={progress}
+                  speed={speed}
+                  onSpeedChange={handleSpeedChange}
+                  loop={loop}
+                  onLoopToggle={handleLoopToggle}
                 />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-            </>
-          )}
-          
-          <ResizablePanel defaultSize={showCodeEditor ? 45 : 60}>
-            {isParsing ? (
-              <FlowchartSkeleton />
-            ) : !code.trim() || flowData.nodes.length === 0 ? (
-              <EmptyState onLoadSample={handleLoadSample} />
-            ) : (
-              <Flowchart 
-                nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
-                edges={flowData.edges} 
-                onNodeClick={handleNodeClick}
-                onNodeDoubleClick={handleNodeDoubleClick}
-                activeNodeId={activeNodeId}
-                highlightedNodes={highlightedNodes}
-              />
-            )}
+              </div>
+              
+              {/* View Controls Section */}
+              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                  <Eye className="w-3 h-3" />
+                  VIEW
+                </h3>
+                <div className="space-y-1">
+                  {features.hasFeature('ghostDiff') && (
+                    <Button
+                      variant={showDiff ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowDiff(!showDiff)}
+                      className="w-full justify-start gap-2 h-7 text-xs"
+                      data-testid="button-ghost-diff"
+                    >
+                      <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFloatingVariables(!showFloatingVariables)}
+                    className="w-full justify-start gap-2 h-7 text-xs"
+                    data-testid="button-toggle-variables"
+                  >
+                    Variables {showFloatingVariables ? '✓' : ''}
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Export Section */}
+              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
+                <h3 className="text-xs font-semibold text-muted-foreground">EXPORT</h3>
+                <div className="space-y-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportPNG}
+                    className="w-full justify-start gap-2 h-7 text-xs"
+                    data-testid="button-export-png"
+                  >
+                    <Download className="w-3 h-3" />
+                    PNG
+                  </Button>
+                  {features.hasFeature('ghostDiff') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportPDF}
+                      className="w-full justify-start gap-2 h-7 text-xs"
+                      data-testid="button-export-pdf"
+                    >
+                      <FileText className="w-3 h-3" />
+                      PDF
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+            </div>
           </ResizablePanel>
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={25} minSize={15}>
-            {features.hasFeature('timeTravel') && progress.total > 0 ? (
-              <ResizablePanelGroup direction="vertical">
-                <ResizablePanel defaultSize={60}>
-                  <VariableWatch state={executionState} />
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={40} minSize={20}>
-                  <div className="h-full overflow-auto p-4">
-                    <TimelineScrubber
-                      currentStep={progress.current}
-                      totalSteps={progress.total}
-                      onJumpToStep={handleJumpToStep}
-                      bookmarks={bookmarks}
-                      onAddBookmark={handleAddBookmark}
-                      onRemoveBookmark={handleRemoveBookmark}
-                      disabled={isPlaying}
-                    />
+          {/* Right Panel - Flowchart Canvas (Maximized) */}
+          <ResizablePanel defaultSize={80}>
+            <div className="h-full w-full overflow-hidden relative">
+              {isParsing ? (
+                <FlowchartSkeleton />
+              ) : !code.trim() || flowData.nodes.length === 0 ? (
+                <EmptyState onLoadSample={handleLoadSample} />
+              ) : (
+                <Flowchart 
+                  nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
+                  edges={flowData.edges} 
+                  onNodeClick={handleNodeClick}
+                  onNodeDoubleClick={handleNodeDoubleClick}
+                  activeNodeId={activeNodeId}
+                  highlightedNodes={highlightedNodes}
+                />
+              )}
+              
+              {/* Docked Variables Panel - Bottom Right */}
+              {showFloatingVariables && (executionState || progress.total > 0) && (
+                <div className="absolute bottom-4 right-4 w-80 max-h-96 bg-card/95 backdrop-blur border-2 border-border rounded-lg shadow-2xl overflow-hidden">
+                  <div className="flex items-center justify-between p-2 border-b border-border bg-accent/50">
+                    <h3 className="text-xs font-semibold">Debug Panel</h3>
+                    <button
+                      onClick={() => setShowFloatingVariables(false)}
+                      className="hover:bg-accent rounded p-1 text-xs"
+                      data-testid="button-close-variables"
+                    >
+                      ✕
+                    </button>
                   </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            ) : (
-              <VariableWatch state={executionState} />
-            )}
+                  <div className="max-h-80 overflow-auto">
+                    {features.hasFeature('timeTravel') && progress.total > 0 ? (
+                      <div className="flex flex-col">
+                        <div className="flex-1 overflow-auto">
+                          <VariableWatch state={executionState} />
+                        </div>
+                        <div className="border-t border-border p-2">
+                          <TimelineScrubber
+                            currentStep={progress.current}
+                            totalSteps={progress.total}
+                            onJumpToStep={handleJumpToStep}
+                            bookmarks={bookmarks}
+                            onAddBookmark={handleAddBookmark}
+                            onRemoveBookmark={handleRemoveBookmark}
+                            disabled={isPlaying}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <VariableWatch state={executionState} />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
