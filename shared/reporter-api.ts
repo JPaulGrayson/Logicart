@@ -4,142 +4,75 @@
  * Protocol for communication between LogiGo Studio (static analyzer)
  * and logigo-core (runtime debugger) via window.postMessage
  * 
- * Based on Antigravity's "Handshake Protocol" specification
+ * Based on Antigravity's Reporter API Specification v1.0.0-beta.2
  */
 
-// Message Types
-export type ReporterMessage =
-  | HandshakeMessage
-  | CheckpointMessage
-  | StateUpdateMessage
-  | ExecutionCompleteMessage
-  | ExecutionErrorMessage;
-
-// Handshake Protocol
-export interface HandshakeMessage {
-  type: 'logigo:handshake';
-  version: string;
-  source: 'logigo-core';
-  timestamp: number;
-}
-
-// Checkpoint Event (when checkpoint() is called in user code)
-export interface CheckpointMessage {
-  type: 'logigo:checkpoint';
-  id: string;
-  label?: string;
-  data: {
-    line?: number;
-    column?: number;
-    file?: string;
-    functionName?: string;
-    scope?: string;
-    variables?: Record<string, any>;
-    domElement?: string; // CSS selector for Visual Handshake
-  };
-  timestamp: number;
-  sequence: number; // Execution order
-}
-
-// State Update (variable changes, loop iterations, etc.)
-export interface StateUpdateMessage {
-  type: 'logigo:state';
-  variables: Record<string, VariableState>;
-  callStack: CallFrame[];
-  timestamp: number;
-}
-
-export interface VariableState {
-  name: string;
-  value: any;
+// Message Envelope (all messages from logigo-core follow this structure)
+export interface LogiGoMessage<T = any> {
+  source: 'LOGIGO_CORE';
   type: string;
-  scope: 'global' | 'local' | 'closure';
-  changed: boolean; // Highlights recent changes
+  payload: T;
 }
 
-export interface CallFrame {
-  functionName: string;
-  file?: string;
-  line?: number;
-  column?: number;
-}
+// Event Types
+export const LOGIGO_CHECKPOINT = 'LOGIGO_CHECKPOINT' as const;
+export const LOGIGO_SESSION_START = 'LOGIGO_SESSION_START' as const;
 
-// Execution Complete
-export interface ExecutionCompleteMessage {
-  type: 'logigo:complete';
-  totalCheckpoints: number;
-  duration: number;
+// Checkpoint Event Payload
+export interface CheckpointPayload {
+  id: string;
   timestamp: number;
+  timeSinceStart: number;
+  variables: Record<string, any>;
+  domElement?: string;
+  metadata?: Record<string, any>;
 }
 
-// Execution Error
-export interface ExecutionErrorMessage {
-  type: 'logigo:error';
-  error: {
-    message: string;
-    stack?: string;
-    line?: number;
-    column?: number;
-  };
-  timestamp: number;
+// Session Start Event Payload
+export interface SessionStartPayload {
+  sessionId: string;
+  startTime: number;
+  url: string;
 }
 
-// Studio Response Messages (Studio → logigo-core)
-export type StudioMessage =
-  | StudioReadyMessage
-  | StudioPauseMessage
-  | StudioResumeMessage;
+// Typed Message Types
+export type CheckpointMessage = LogiGoMessage<CheckpointPayload> & {
+  type: typeof LOGIGO_CHECKPOINT;
+};
 
-export interface StudioReadyMessage {
-  type: 'logigo-studio:ready';
-  version: string;
-  capabilities: string[];
-}
+export type SessionStartMessage = LogiGoMessage<SessionStartPayload> & {
+  type: typeof LOGIGO_SESSION_START;
+};
 
-export interface StudioPauseMessage {
-  type: 'logigo-studio:pause';
-}
+export type ReporterMessage = CheckpointMessage | SessionStartMessage;
 
-export interface StudioResumeMessage {
-  type: 'logigo-studio:resume';
-}
-
-// Runtime Mode State
+// Runtime Mode State (Studio internal state)
 export interface RuntimeState {
   isConnected: boolean;
   mode: 'static' | 'live';
   lastHeartbeat?: number;
   checkpointCount: number;
-  currentCheckpoint?: CheckpointMessage;
+  sessionId?: string;
+  sessionStartTime?: number;
+  currentCheckpoint?: CheckpointPayload;
 }
 
 // Message validator
-export function isReporterMessage(message: any): message is ReporterMessage {
+export function isLogiGoMessage(message: any): message is LogiGoMessage {
   return (
     message &&
     typeof message === 'object' &&
+    message.source === 'LOGIGO_CORE' &&
     typeof message.type === 'string' &&
-    message.type.startsWith('logigo:')
+    'payload' in message
   );
 }
 
 // Message type guards
-export function isHandshake(message: ReporterMessage): message is HandshakeMessage {
-  return message.type === 'logigo:handshake';
+export function isCheckpoint(message: LogiGoMessage): message is CheckpointMessage {
+  return message.type === LOGIGO_CHECKPOINT;
 }
 
-export function isCheckpoint(message: ReporterMessage): message is CheckpointMessage {
-  return message.type === 'logigo:checkpoint';
-}
-
-export function isStateUpdate(message: ReporterMessage): message is StateUpdateMessage {
-  return message.type === 'logigo:state';
-}
-
-export function isExecutionComplete(message: ReporterMessage): message is ExecutionCompleteMessage {
-  return message.type === 'logigo:complete';
-}
-
-export function isExecutionError(message: ReporterMessage): message is ExecutionErrorMessage {
-  return message.type === 'logigo:error';
+export function isSessionStart(message: LogiGoMessage): message is SessionStartMessage {
+  return message.type === LOGIGO_SESSION_START;
 }
