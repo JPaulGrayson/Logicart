@@ -18,19 +18,22 @@ Preferred communication style: Simple, everyday language.
 
 ### UI Layout Architecture (Updated Nov 26, 2024)
 - **2-Panel Flowchart-First Layout**: Maximizes flowchart visibility while maintaining full control accessibility.
+- **Minimal Header**: Reduced to h-10 (~40px) with only branding elements (Logo, "LogiGo" title, Beta/Premium badges) to maximize canvas space.
 - **Left Sidebar (20% default, 15-35% resizable)**:
+  - Flow Tools Section (Sticky): Always visible at top with Natural Language Search (premium), Ghost Diff toggle (premium), Documentation, and Share buttons.
   - Collapsible Code Editor: Uses flex layout (`flex-1 min-h-0`) that fully collapses to release space when hidden.
   - Execution Controls: Full `ExecutionControls` component with play/pause, step forward/backward (Time Travel), reset, stop, loop toggle, and speed selector (0.25x-10x with Speed Governor).
-  - View Controls: Ghost Diff toggle, Variables panel toggle.
+  - Views Section: Variables panel toggle.
   - Export Section: PNG export (free), PDF export (premium).
 - **Right Panel (80% default)**: Maximized flowchart canvas for primary visualization.
+- **Floating Status Pill**: Top-right positioned pill (replaces flowchart header) displays view level, zoom percentage, and live execution status with minimal space usage.
 - **Docked Variables Panel**: Bottom-right positioned with backdrop blur, defaults to visible to preserve always-on variable context, fully dismissible and re-toggleable.
-- **Header Cleanup**: Removed duplicate controls (Ghost Diff, Export) - now only contains Natural Language Search, Documentation, and Share.
 - **Flowchart Pane Consolidation (Nov 26, 2024)**:
-  - Compact Header: Reduced height from h-10 to h-7, displays only view level and zoom percentage (e.g., "Mile-High (65%)").
+  - Removed Flowchart Header: Replaced h-7 header strip with floating status pill to reclaim vertical canvas space.
   - Removed React Flow Zoom Widget: Users can zoom with mouse wheel, keyboard shortcuts, or minimap for space efficiency.
   - Compact RuntimeOverlay: Icon-only buttons (h-7 w-7) for play/pause, step backward (Time Travel, premium), step forward, reset, stop; dropdown speed selector replaces button grid.
-- **Responsive Design**: Sidebar overflow-y scroll, flex-based code editor adapts to viewport size, all controls accessible on small/large screens.
+- **Total Vertical Space Gained**: ~72px (header reduced by 16px, flowchart header removed ~28px, other optimizations ~28px).
+- **Responsive Design**: Sidebar overflow-y scroll, sticky Flow Tools section, flex-based code editor adapts to viewport size, all controls accessible on small/large screens.
 
 ### Parser & Interpreter Engine
 - **AST Parsing**: Uses Acorn (ECMAScript 2020) to convert JavaScript AST into flowchart nodes and edges, capturing source location for bidirectional navigation. Defines node types: `input`, `output`, `decision`, `default`.
