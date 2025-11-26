@@ -31,19 +31,19 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
         
         <Tabs defaultValue="quick-start" className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="quick-start" className="flex items-center gap-1.5">
+            <TabsTrigger value="quick-start" className="flex items-center gap-1.5" data-testid="tab-quick-start">
               <Zap className="w-3.5 h-3.5" />
               <span>Quick Start</span>
             </TabsTrigger>
-            <TabsTrigger value="documentation" className="flex items-center gap-1.5">
+            <TabsTrigger value="documentation" className="flex items-center gap-1.5" data-testid="tab-documentation">
               <Code2 className="w-3.5 h-3.5" />
               <span>Documentation</span>
             </TabsTrigger>
-            <TabsTrigger value="shortcuts" className="flex items-center gap-1.5">
+            <TabsTrigger value="shortcuts" className="flex items-center gap-1.5" data-testid="tab-shortcuts">
               <Keyboard className="w-3.5 h-3.5" />
               <span>Shortcuts</span>
             </TabsTrigger>
-            <TabsTrigger value="about" className="flex items-center gap-1.5">
+            <TabsTrigger value="about" className="flex items-center gap-1.5" data-testid="tab-about">
               <Info className="w-3.5 h-3.5" />
               <span>About</span>
             </TabsTrigger>
@@ -316,10 +316,12 @@ function processData(items) {
                     LogiGo Studio seamlessly integrates with logigo-core for runtime debugging:
                   </p>
                   <div className="p-3 bg-muted/50 rounded-md text-xs space-y-1">
-                    <p><strong>Message Protocol:</strong> window.postMessage</p>
+                    <p><strong>Message Protocol:</strong> window.postMessage (same-origin)</p>
+                    <p><strong>Message Envelope:</strong> {`{ source: 'LOGIGO_CORE', type: string, payload: any }`}</p>
                     <p><strong>Event Types:</strong> LOGIGO_SESSION_START, LOGIGO_CHECKPOINT</p>
-                    <p><strong>Security:</strong> Same-origin validation, 15s inactivity timeout</p>
+                    <p><strong>Security:</strong> Origin validation, source verification, 15s inactivity timeout</p>
                     <p><strong>Status:</strong> v1.0.0-beta.2 (Final Draft)</p>
+                    <p className="text-muted-foreground italic mt-2">Future: Handshake protocol for bidirectional control</p>
                   </div>
                 </section>
 
