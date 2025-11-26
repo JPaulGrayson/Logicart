@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <script>
+      // Early error handler to suppress non-Error exceptions (must run before any other scripts)
+      window.addEventListener('error', function(event) {
+        if (!(event.error instanceof Error) || event.error === null || event.error === undefined) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          console.warn('[LogiGo] Suppressed non-Error exception:', event.error);
+          return false;
+        }
+      }, true);
+      
+      window.addEventListener('unhandledrejection', function(event) {
+        if (!(event.reason instanceof Error) || event.reason === null || event.reason === undefined) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          console.warn('[LogiGo] Suppressed non-Error rejection:', event.reason);
+          return false;
+        }
+      }, true);
+    </script>
 
     <meta property="og:title" content="LogiGo - Visual Code Debugger" />
     <meta property="og:description" content="Transform JavaScript into interactive flowcharts with step-by-step execution, time-travel debugging, and natural language search. Perfect for understanding AI-generated code." />
