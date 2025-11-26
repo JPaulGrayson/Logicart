@@ -50,112 +50,100 @@ export function RuntimeOverlay({
 
   return (
     <div 
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border-2 border-border rounded-xl shadow-2xl z-50 px-4 py-3"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-xl z-40 px-3 py-2"
       data-testid="runtime-overlay"
     >
-      <div className="flex items-center gap-4">
-        {/* Execution controls */}
-        <div className="flex items-center gap-2">
-          {!isPlaying ? (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={onPlay}
-              disabled={!canStep}
-              className="gap-2"
-              data-testid="overlay-button-play"
-            >
-              <Play className="w-4 h-4" />
-              Play
-            </Button>
-          ) : (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={onPause}
-              className="gap-2"
-              data-testid="overlay-button-pause"
-            >
-              <Pause className="w-4 h-4" />
-              Pause
-            </Button>
-          )}
-
+      {/* Compact floating controls for when sidebar is hidden/scrolled away */}
+      <div className="flex items-center gap-2 text-xs">
+        {/* Essential execution controls - compact icon buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={isPlaying ? "default" : "outline"}
+            size="sm"
+            onClick={isPlaying ? onPause : onPlay}
+            disabled={!canStep && !isPlaying}
+            className="h-7 w-7 p-0"
+            data-testid={isPlaying ? "overlay-button-pause" : "overlay-button-play"}
+            title={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+          </Button>
+          
           {onStepBackward && (
             <Button
               variant="outline"
               size="sm"
               onClick={onStepBackward}
               disabled={!canStepBack || isPlaying}
+              className="h-7 w-7 p-0"
               data-testid="overlay-button-step-backward"
               title="Step Backward (Time Travel)"
             >
-              <SkipBack className="w-4 h-4" />
+              <SkipBack className="w-3 h-3" />
             </Button>
           )}
-
+          
           <Button
             variant="outline"
             size="sm"
             onClick={onStep}
             disabled={!canStep || isPlaying}
+            className="h-7 w-7 p-0"
             data-testid="overlay-button-step"
+            title="Step Forward"
           >
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="w-3 h-3" />
           </Button>
-
+          
           <Button
             variant="outline"
             size="sm"
             onClick={onReset}
             disabled={!canStep}
+            className="h-7 w-7 p-0"
             data-testid="overlay-button-reset"
+            title="Reset"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3 h-3" />
           </Button>
-
+          
           <Button
             variant="outline"
             size="sm"
             onClick={onStop}
             disabled={!canStep}
+            className="h-7 w-7 p-0"
             data-testid="overlay-button-stop"
+            title="Stop"
           >
-            <Square className="w-4 h-4" />
+            <Square className="w-3 h-3" />
           </Button>
         </div>
 
-        <div className="h-6 w-px bg-border" />
+        <div className="h-5 w-px bg-border" />
 
         {/* Progress indicator */}
-        <div className="text-sm text-muted-foreground font-mono">
-          Step {currentStep}/{totalSteps}
+        <div className="text-xs text-muted-foreground font-mono">
+          {currentStep}/{totalSteps}
         </div>
 
-        <div className="h-6 w-px bg-border" />
+        <div className="h-5 w-px bg-border" />
 
-        {/* Speed control */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Speed:</span>
-          <div className="flex items-center gap-1">
+        {/* Compact speed selector dropdown */}
+        <div className="flex items-center gap-1">
+          <span className="text-muted-foreground">Speed:</span>
+          <select
+            value={speed}
+            onChange={(e) => onSpeedChange(Number(e.target.value))}
+            className="bg-background border border-border rounded px-1.5 py-0.5 text-xs"
+            data-testid="overlay-speed-select"
+          >
             {speedOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => onSpeedChange(option.value)}
-                className={`
-                  px-2 py-1 text-xs rounded transition-colors
-                  ${speed === option.value 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-accent hover:bg-accent/80'
-                  }
-                `}
-                data-testid={`overlay-speed-${option.value}`}
-              >
-                {option.label}
-                {option.premium && <span className="ml-1">⚡</span>}
-              </button>
+              <option key={option.value} value={option.value}>
+                {option.label}{option.premium ? ' ⚡' : ''}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
       </div>
     </div>

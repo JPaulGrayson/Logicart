@@ -121,19 +121,19 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
 
   return (
     <div className="h-full w-full bg-background flex flex-col">
-       <div className="h-10 border-b border-border flex items-center px-4 bg-card/50 backdrop-blur text-xs font-mono text-muted-foreground uppercase tracking-wider justify-between">
-        <span>Control Flow Graph</span>
-        <div className="flex items-center gap-4">
-          <span className="text-xs">
-            View: <span className="text-primary font-semibold">
-              {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft Detail'}
+       {/* Compact header - just view info */}
+       <div className="h-7 border-b border-border flex items-center justify-end px-3 bg-card/30 backdrop-blur text-xs">
+        <div className="flex items-center gap-3">
+          <span>
+            <span className="text-muted-foreground">View:</span> <span className="text-primary font-semibold">
+              {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft'}
             </span>
-            <span className="ml-2 text-muted-foreground">
+            <span className="ml-1 text-muted-foreground">
               ({Math.round(currentZoom * 100)}%)
             </span>
           </span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary"></span> Live
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span> <span className="text-muted-foreground">Live</span>
           </span>
         </div>
       </div>
@@ -154,7 +154,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
           connectionLineType={ConnectionLineType.SmoothStep}
         >
           <Background color="var(--color-border)" gap={24} size={1} />
-          <Controls position="top-left" className="bg-card border-border text-foreground" />
+          {/* Removed Controls component - zoom controls available via mouse/keyboard */}
           <FixedMiniMap 
             nodeColor={(n) => {
               if (n.type === 'input') return '#3b82f6';
