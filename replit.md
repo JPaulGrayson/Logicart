@@ -84,21 +84,28 @@ Preferred communication style: Simple, everyday language.
 - **Documentation**: See `BROWSER_AGENT_INTEGRATION.md` for full proposal and `VISUAL_HANDSHAKE_STATUS.md` for implementation tracking.
 
 ### Phase 3: Hierarchical Views Architecture
-- **Status**: COMPLETED (Nov 25, 2024) - Fully implemented and tested.
+- **Status**: COMPLETED (Nov 25, 2024) - Fully implemented and tested. Enhanced Nov 26, 2024 with UX improvements.
 - **Feature**: Zoom-based hierarchical views for managing large codebases with section grouping and container nodes.
 - **Zoom Levels**:
   - Mile-high view (< 70% zoom): Shows only container nodes, hides detail nodes for "bird's eye" overview.
   - 1000ft view (70-130% zoom): Shows all nodes including containers and flow logic (default view).
   - 100ft detail view (> 130% zoom): Fully zoomed in with maximum detail visibility.
-- **Section Detection**:
-  - Parser detects comment-based section markers: `// --- SECTION NAME ---`
+- **Section Detection** (Enhanced Nov 26, 2024):
+  - **Priority 1**: Parser detects comment-based section markers: `// --- SECTION NAME ---`
+  - **Priority 2**: Auto-detection of multiple top-level function declarations as separate sections (creates one container per function).
+  - **Priority 3**: Fallback to "Global Flow" container when single function or no explicit sections exist.
   - Creates container nodes for each detected section with proper 1-indexed line number boundaries.
-  - Fallback: Automatically creates "Global Flow" container when no section markers exist.
 - **Container Nodes**:
   - Custom React Flow node type with purple gradient styling and Package icon.
   - Displays child count badge (e.g., "12 nodes").
   - Click-to-toggle collapse/expand with visual indicators (ChevronDown/ChevronRight).
   - Hover effects and cursor-pointer for clear interactivity.
+  - **Global Flow Guidance** (Added Nov 26, 2024): Displays inline help text explaining how to create multiple sections using comment markers.
+- **RuntimeOverlay Visual Enhancement** (Nov 26, 2024):
+  - Purple gradient background (`from-purple-500/10 to-blue-500/10`) with purple border (`border-2 border-purple-500/30`).
+  - Labeled header with "RUNTIME CONTROLS" text, pulsing purple dot indicator, and "(Premium)" badge.
+  - Border separator below label to distinguish from control buttons.
+  - Clearly distinct from flowchart nodes to prevent confusion.
 - **State Management**:
   - Collapse state persisted in `node.data.collapsed` and `node.data.isChildOfCollapsed`.
   - State preserved across zoom changes using React Flow's `getNodes()` API.
@@ -111,7 +118,7 @@ Preferred communication style: Simple, everyday language.
   - Header displays current view level and zoom percentage (e.g., "Mile-High (65%)").
   - Container nodes styled with `bg-gradient-to-br from-purple-500/10 to-blue-500/10` and `border-2 border-purple-500/30`.
   - Status text shows "Expanded • Click to toggle" or "Collapsed • Click to toggle".
-- **Testing**: End-to-end tested with all zoom transitions, manual collapse/expand, and state persistence verified.
+- **Testing**: End-to-end tested with all zoom transitions, manual collapse/expand, state persistence, auto-detection, and RuntimeOverlay styling verified (Nov 26, 2024).
 
 ## External Dependencies
 
