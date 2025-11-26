@@ -8,6 +8,7 @@ import LogiGoOverlay from './overlay.js';
 import ExecutionController from './runtime.js';
 import LogiGoParser from './parser.js';
 import LogiGoDiffer from './differ.js';
+import LogiGoReporter from './reporter.js';
 
 /**
  * Initialize LogiGo with options
@@ -26,7 +27,8 @@ function init(options = {}) {
         step: overlay.step.bind(overlay),
         reset: overlay.reset.bind(overlay),
         setSpeed: overlay.setSpeed.bind(overlay),
-        destroy: overlay.destroy.bind(overlay)
+        destroy: overlay.destroy.bind(overlay),
+        reporter: overlay.executionController.reporter // Expose reporter
     };
 }
 
@@ -36,7 +38,8 @@ export {
     LogiGoOverlay,
     ExecutionController,
     LogiGoParser,
-    LogiGoDiffer
+    LogiGoDiffer,
+    LogiGoReporter
 };
 
 // Default export
@@ -45,5 +48,6 @@ export default {
     LogiGoOverlay,
     ExecutionController,
     LogiGoParser,
-    LogiGoDiffer
+    LogiGoDiffer,
+    LogiGoReporter
 };

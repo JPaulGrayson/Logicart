@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo - Reporter API Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            gap: 20px;
+        }
+
+        .app-container {
+            flex: 1;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .reporter-container {
+            flex: 1;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        h1,
+        h2 {
+            margin-top: 0;
+        }
+
+        /* App Styles */
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .box {
+            width: 100px;
+            height: 100px;
+            background: #ddd;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        /* Reporter Styles */
+        .log-panel {
+            flex: 1;
+            background: #34495e;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #465c71;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #95a5a6;
+            font-size: 11px;
+        }
+
+        .log-id {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .log-meta {
+            color: #2ecc71;
+        }
+
+        .stats-panel {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Simulated App -->
+    <div class="app-container">
+        <h1>My App</h1>
+        <p>Click the button to run a process. LogiGo will report every step.</p>
+
+        <button id="btn-process">Start Process</button>
+
+        <div id="step-1" class="box">Step 1</div>
+        <div id="step-2" class="box">Step 2</div>
+        <div id="step-3" class="box">Step 3</div>
+    </div>
+
+    <!-- Reporter View (Simulating Browser Agent) -->
+    <div class="reporter-container">
+        <h2>🤖 Browser Agent View</h2>
+        <p>Listening to LogiGo Reporter API...</p>
+
+        <div class="log-panel" id="log-output">
+            <!-- Logs will appear here -->
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-row">
+                <span>Total Checkpoints:</span>
+                <span id="stat-total">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Unique Nodes:</span>
+                <span id="stat-unique">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Duration:</span>
+                <span id="stat-duration">0s</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="exportReport()">Export JSON Report</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import LogiGoOverlay from '../src/overlay.js';
+
+        // Initialize LogiGo
+        const logigo = new LogiGoOverlay({
+            speed: 1.5,
+            position: 'bottom-left'
+        }).init();
+
+        window.LogiGo = logigo;
+
+        // --- REPORTER INTEGRATION ---
+        // This is how a Browser Agent would hook in
+        const reporter = logigo.executionController.reporter;
+        const logOutput = document.getElementById('log-output');
+
+        // Subscribe to checkpoints
+        reporter.onCheckpoint((entry) => {
+            // Create log entry UI
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `
+            <div class="log-time">+${entry.timeSinceStart}ms</div>
+            <div>
+                <span class="log-id">${entry.id}</span>
+                ${entry.domElement ? `<span class="log-meta">[DOM: ${entry.domElement}]</span>` : ''}
+            </div>
+            ${Object.keys(entry.variables).length ? `<div class="log-meta">Vars: ${JSON.stringify(entry.variables)}</div>` : ''}
+        `;
+            logOutput.appendChild(div);
+            logOutput.scrollTop = logOutput.scrollHeight;
+
+            updateStats();
+        });
+
+        function updateStats() {
+            const report = reporter.exportReport();
+            document.getElementById('stat-total').textContent = report.metadata.totalCheckpoints;
+            document.getElementById('stat-unique').textContent = Object.keys(report.statistics.nodeCounts).length;
+            document.getElementById('stat-duration').textContent = (report.metadata.duration / 1000).toFixed(2) + 's';
+        }
+
+        window.exportReport = () => {
+            const report = reporter.exportReport();
+            console.log('Full Report:', report);
+            alert('Report exported to console! (See DevTools)');
+        };
+
+        // --- APP LOGIC ---
+        document.getElementById('btn-process').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-process');
+            btn.disabled = true;
+
+            // Step 1
+            await LogiGo.checkpoint('process_start', {
+                domElement: '#btn-process',
+                variables: { status: 'starting' }
+            });
+
+            // Step 2
+            await LogiGo.checkpoint('step_1_active', {
+                domElement: '#step-1',
+                color: '#e74c3c'
+            });
+            document.getElementById('step-1').style.background = '#e74c3c';
+            document.getElementById('step-1').style.color = 'white';
+
+            // Step 3
+            await LogiGo.checkpoint('step_2_active', {
+                domElement: '#step-2',
+                color: '#f1c40f'
+            });
+            document.getElementById('step-2').style.background = '#f1c40f';
+            document.getElementById('step-2').style.color = 'black';
+
+            // Step 4
+            await LogiGo.checkpoint('step_3_active', {
+                domElement: '#step-3',
+                color: '#2ecc71',
+                variables: { result: 'success' }
+            });
+            document.getElementById('step-3').style.background = '#2ecc71';
+            document.getElementById('step-3').style.color = 'white';
+
+            // Done
+            await LogiGo.checkpoint('process_complete', {
+                variables: { itemsProcessed: 3 }
+            });
+
+            btn.disabled = false;
+
+            // Reset styles after delay
+            setTimeout(() => {
+                document.querySelectorAll('.box').forEach(b => {
+                    b.style.background = '#ddd';
+                    b.style.color = 'black';
+                });
+            }, 2000);
+        });
+    </script>
+
+</body>
+
+</html>
