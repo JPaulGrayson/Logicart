@@ -23,7 +23,6 @@ import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, FlaskConical } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { toast } from '@/hooks/use-toast';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -554,53 +553,13 @@ export default function Workbench() {
   });
   
   // Test Functions for Antigravity Features
-  const testVisualHandshake = async () => {
-    toast({
-      title: '✨ Testing Visual Handshake',
-      description: 'Watch the flowchart nodes highlight sequentially!',
-    });
-    
-    // Get all visible nodes from the flowchart
-    const testableNodes = flowData.nodes.filter(n => n.id && !n.id.startsWith('container'));
-    
-    if (testableNodes.length === 0) {
-      toast({
-        title: 'No nodes available',
-        description: 'Add some code to see the Visual Handshake in action',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    // Highlight nodes sequentially with gold glow
-    for (let i = 0; i < Math.min(5, testableNodes.length); i++) {
-      const node = testableNodes[i];
-      
-      // Simulate Visual Handshake by highlighting the node
-      setHighlightedNodes(new Set([node.id]));
-      toast({
-        title: `✨ Checkpoint ${i + 1}`,
-        description: node.data?.label || node.id,
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Clear highlight
-      setHighlightedNodes(new Set());
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    
-    toast({
-      title: '✅ Visual Handshake Complete',
-      description: 'All checkpoints executed successfully!',
-    });
+  const testVisualHandshake = () => {
+    console.log('Visual Handshake test triggered!');
+    alert('✨ Visual Handshake Test\n\nThis feature will highlight DOM elements when checkpoints execute.\n\nAntigravity team has implemented this in src/overlay.js with the highlightElement() method.');
   };
   
   const testReporterAPI = () => {
-    toast({
-      title: '📊 Testing Reporter API',
-      description: 'Check browser console for detailed output',
-    });
+    console.log('Reporter API test triggered!');
     
     // Simulate Reporter capturing checkpoint data
     const mockCheckpoints = [
@@ -632,10 +591,7 @@ export default function Workbench() {
     console.log('Full Report Export:', mockReport);
     console.groupEnd();
     
-    toast({
-      title: '✅ Reporter Test Complete',
-      description: 'Check console for full JSON data export',
-    });
+    alert('✅ Reporter API Test Complete!\n\nCheck the browser console for full JSON data export.');
   };
 
   if (!isReady) {
@@ -721,71 +677,12 @@ export default function Workbench() {
             
             <div className="h-6 w-px bg-border" />
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTestPanelOpen(!testPanelOpen)}
-              className="gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/30"
-              data-testid="button-test-features"
-              title="Test Antigravity Features (Visual Handshake + Reporter)"
-            >
-              <FlaskConical className="w-4 h-4" />
-              Test Features
-            </Button>
-            
-            <div className="h-6 w-px bg-border" />
-            
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</a>
             <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-lg shadow-primary/20">
               Share
             </button>
         </div>
       </header>
-      
-      {/* Test Features Panel */}
-      {testPanelOpen && (
-        <div className="bg-gradient-to-r from-purple-500/5 to-blue-500/5 border-b border-purple-500/20 p-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-start justify-between gap-6">
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-purple-400 mb-1 flex items-center gap-2">
-                  <FlaskConical className="w-4 h-4" />
-                  Antigravity Integration Tests
-                </h3>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Test the Visual Handshake and Reporter API features developed by the Antigravity team
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={testVisualHandshake}
-                    size="sm"
-                    className="gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 border-yellow-500/30"
-                    data-testid="button-test-visual-handshake"
-                  >
-                    ✨ Test Visual Handshake
-                  </Button>
-                  <Button
-                    onClick={testReporterAPI}
-                    size="sm"
-                    className="gap-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border-blue-500/30"
-                    data-testid="button-test-reporter"
-                  >
-                    📊 Test Reporter API
-                  </Button>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="inline-block px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 text-xs">
-                  <span className="text-green-400 font-semibold">● Ready for Testing</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Phase 1 & 2 Complete
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       
       <ExecutionControls
         isPlaying={isPlaying}

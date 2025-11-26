@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Features Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0f1729;
+            color: #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .test-section {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #a78bfa;
+            font-size: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .success {
+            color: #10b981;
+        }
+        .info {
+            background: #1e40af;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        #console-output {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        .console-line {
+            margin: 4px 0;
+            padding: 4px;
+        }
+        .console-group {
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+            margin: 8px 0;
+        }
+        .test-element {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #334155;
+            border-radius: 8px;
+            margin: 8px;
+            transition: box-shadow 0.3s;
+        }
+        .highlight {
+            box-shadow: 0 0 20px 4px gold !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Antigravity Integration Test Suite</h1>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Phase 1 (Visual Handshake) + Phase 2 (Reporter API)</p>
+    </div>
+
+    <div class="test-section">
+        <h2>✨ Test 1: Visual Handshake</h2>
+        <p>This feature highlights DOM elements when checkpoints execute, creating a visual connection between code and UI.</p>
+        <div class="info">
+            <strong>What to expect:</strong> The boxes below will light up with a gold glow one at a time.
+        </div>
+        <button onclick="testVisualHandshake()">▶️ Run Visual Handshake Test</button>
+        <div style="margin-top: 20px;">
+            <div class="test-element" id="element-1">Element 1</div>
+            <div class="test-element" id="element-2">Element 2</div>
+            <div class="test-element" id="element-3">Element 3</div>
+            <div class="test-element" id="element-4">Element 4</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test 2: Reporter API</h2>
+        <p>This feature captures checkpoint data in real-time for AI Agent analysis and debugging.</p>
+        <div class="info">
+            <strong>What to expect:</strong> Checkpoint events will appear in the console below.
+        </div>
+        <button onclick="testReporter()">▶️ Run Reporter Test</button>
+        <button onclick="exportReport()">💾 Export Report (JSON)</button>
+        <div id="console-output"></div>
+    </div>
+
+    <script>
+        // Mock implementation of Visual Handshake
+        async function testVisualHandshake() {
+            logToConsole('✨ Starting Visual Handshake Test...');
+            
+            const elements = [
+                document.getElementById('element-1'),
+                document.getElementById('element-2'),
+                document.getElementById('element-3'),
+                document.getElementById('element-4')
+            ];
+
+            for (let i = 0; i < elements.length; i++) {
+                const elem = elements[i];
+                
+                // Highlight element (simulates highlightElement in overlay.js)
+                elem.classList.add('highlight');
+                logToConsole(`Checkpoint ${i + 1}: Highlighting ${elem.id}`, 'success');
+                
+                await sleep(800);
+                
+                // Remove highlight
+                elem.classList.remove('highlight');
+                await sleep(200);
+            }
+            
+            logToConsole('✅ Visual Handshake test complete!', 'success');
+        }
+
+        // Mock implementation of Reporter API
+        const checkpoints = [];
+        let testStartTime = null;
+
+        function testReporter() {
+            logToConsole('📊 Starting Reporter API Test...', '', true);
+            testStartTime = Date.now();
+            checkpoints.length = 0; // Clear previous
+            
+            // Simulate checkpoints
+            setTimeout(() => reportCheckpoint('start', null, {}), 100);
+            setTimeout(() => reportCheckpoint('if_condition', '#condition', { x: 10, y: 20 }), 250);
+            setTimeout(() => reportCheckpoint('for_loop_i0', '#loop', { i: 0 }), 400);
+            setTimeout(() => reportCheckpoint('for_loop_i1', '#loop', { i: 1 }), 550);
+            setTimeout(() => {
+                reportCheckpoint('return', null, { result: 42 });
+                logToConsole('');
+                logToConsole('✅ Reporter test complete! ' + checkpoints.length + ' checkpoints captured.', 'success');
+            }, 700);
+        }
+
+        function reportCheckpoint(id, domElement, variables) {
+            const checkpoint = {
+                id: id,
+                timestamp: Date.now(),
+                timeSinceStart: Date.now() - testStartTime,
+                domElement: domElement,
+                variables: variables
+            };
+            checkpoints.push(checkpoint);
+            
+            logToConsole(
+                `[${checkpoints.length}] Checkpoint: ${id} (${checkpoint.timeSinceStart}ms) ` +
+                JSON.stringify(variables),
+                'group'
+            );
+        }
+
+        function exportReport() {
+            const report = {
+                metadata: {
+                    exportTime: Date.now(),
+                    startTime: testStartTime,
+                    totalDuration: Date.now() - testStartTime
+                },
+                stats: {
+                    totalCheckpoints: checkpoints.length,
+                    totalTime: Date.now() - testStartTime,
+                    averageInterval: checkpoints.length > 0 ? (Date.now() - testStartTime) / checkpoints.length : 0
+                },
+                checkpoints: checkpoints
+            };
+            
+            logToConsole('');
+            logToConsole('📦 Report Export:', '', true);
+            logToConsole(JSON.stringify(report, null, 2), 'group');
+            
+            // Download as JSON file
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logigo-reporter-test-' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            logToConsole('💾 Report downloaded!', 'success');
+        }
+
+        // Utility functions
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function logToConsole(message, type = '', isGroup = false) {
+            const output = document.getElementById('console-output');
+            const line = document.createElement('div');
+            line.className = isGroup ? 'console-group' : 'console-line';
+            
+            if (type === 'success') {
+                line.style.color = '#10b981';
+            } else if (type === 'group') {
+                line.style.color = '#60a5fa';
+                line.style.fontFamily = 'monospace';
+                line.style.fontSize = '12px';
+            }
+            
+            line.textContent = message;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+    </script>
+</body>
+</html>
