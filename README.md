@@ -12,14 +12,14 @@ A lightweight, injectable JavaScript library that visualizes code execution flow
 </script>
 ```
 
-### Option 2: NPM Install (Coming Soon)
+### Option 2: NPM Install
 ```bash
 npm install logigo-core
 ```
 
 ```javascript
-import LogiGo from 'logigo-core';
-LogiGo.init({ speed: 1.0 });
+import LogiGoOverlay from 'logigo-core';
+new LogiGoOverlay({ speed: 1.0 }).init();
 ```
 
 ## 📖 Usage
@@ -52,7 +52,7 @@ async function myFunction() {
 The LogiGo overlay provides:
 - **Play/Pause**: Control execution flow
 - **Step**: Execute one checkpoint at a time
-- **Speed Slider**: Adjust execution speed (0.1x to 2.0x)
+- **Speed Slider**: Adjust execution speed (0.1x to 20.0x)
 - **Reset**: Start over from the beginning
 
 ## 🎨 Features
@@ -60,7 +60,7 @@ The LogiGo overlay provides:
 ### ✅ Phase 1: Core Overlay (COMPLETE)
 - [x] Floating toolbar injection
 - [x] Play/Pause/Step/Reset controls
-- [x] Speed governor (0.1x - 2.0x)
+- [x] Speed governor (0.1x - 20.0x)
 - [x] **Visual Handshake** (DOM element highlighting)
 - [x] Checkpoint API
 
@@ -125,10 +125,16 @@ const report = reporter.exportReport();
 
 1. Clone this repository
 2. Open the examples in your browser:
-   - `example/complete_demo.html` - Full integration demo
-   - `example/visual_handshake.html` - **Visual Handshake Demo**
-   - `example/reporter_demo.html` - **Reporter API Demo**
-   - `example/ghost_diff.html` - Ghost Diff Demo
+
+### 📚 Library of Logic (New!)
+- **[Pathfinding (A*)](example/library/pathfinding.html)** - Interactive A* search with grid visualization.
+- **[Sorting Algorithms](example/library/sorting.html)** - Bubble, Quick, and Merge sort visualizers.
+
+### Core Demos
+- `example/complete_demo.html` - Full integration demo
+- `example/visual_handshake.html` - **Visual Handshake Demo**
+- `example/reporter_demo.html` - **Reporter API Demo**
+- `example/ghost_diff.html` - Ghost Diff Demo
 
 ## 📚 Documentation
 
