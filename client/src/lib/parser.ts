@@ -49,13 +49,14 @@ interface CodeSection {
   endLine: number;
 }
 
-function detectSections(code: string): CodeSection[] {
+function detectSections(code: string, ast?: any): CodeSection[] {
   const lines = code.split('\n');
   const sections: CodeSection[] = [];
   const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
   
   let currentSection: CodeSection | undefined = undefined;
   
+  // First, detect explicit section markers
   lines.forEach((line, index) => {
     const match = line.match(sectionPattern);
     
@@ -80,6 +81,26 @@ function detectSections(code: string): CodeSection[] {
   if (currentSection !== undefined) {
     currentSection.endLine = lines.length; // Last line of file (1-indexed)
     sections.push(currentSection);
+  }
+  
+  // If no explicit markers found, auto-detect function declarations
+  if (sections.length === 0 && ast && ast.body) {
+    const functionDeclarations: CodeSection[] = [];
+    
+    ast.body.forEach((node: any) => {
+      if (node.type === 'FunctionDeclaration' && node.id && node.loc) {
+        functionDeclarations.push({
+          name: node.id.name,
+          startLine: node.loc.start.line,
+          endLine: node.loc.end.line
+        });
+      }
+    });
+    
+    // Only use function-based sections if we found multiple functions
+    if (functionDeclarations.length > 1) {
+      return functionDeclarations;
+    }
   }
   
   return sections;
@@ -149,8 +170,8 @@ export function parseCodeToFlow(code: string): FlowData {
     let yPos = 50;
     const yGap = 100;
 
-    // Detect sections from comment markers
-    const sections = detectSections(code);
+    // Detect sections from comment markers (or auto-detect functions)
+    const sections = detectSections(code, ast);
     const containerNodes: Map<string, FlowNode> = new Map();
     
     // Create container nodes for each section

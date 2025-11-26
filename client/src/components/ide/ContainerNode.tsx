@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
-import { Package, ChevronDown, ChevronRight } from 'lucide-react';
+import { Package, ChevronDown, ChevronRight, Info } from 'lucide-react';
 
 function ContainerNode({ data, selected, id }: NodeProps) {
   const nodeData = data as {
@@ -11,6 +11,9 @@ function ContainerNode({ data, selected, id }: NodeProps) {
   
   const { setNodes } = useReactFlow();
   const [collapsed, setCollapsed] = useState(nodeData.collapsed ?? false);
+  
+  // Check if this is the Global Flow fallback container
+  const isGlobalFlow = nodeData.label === 'Global Flow';
   
   // Sync local state with persisted data state
   useEffect(() => {
@@ -90,6 +93,24 @@ function ContainerNode({ data, selected, id }: NodeProps) {
       <div className="text-xs text-muted-foreground/70 font-mono">
         {collapsed ? 'Collapsed' : 'Expanded'} • Click to toggle
       </div>
+      
+      {/* Guidance for Global Flow container */}
+      {isGlobalFlow && (
+        <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-200/90">
+          <div className="flex items-start gap-2">
+            <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-blue-400" />
+            <div>
+              <div className="font-medium mb-1">Single-section view</div>
+              <div className="text-blue-200/70">
+                To create multiple sections, add comment markers to your code:
+                <div className="font-mono text-[10px] mt-1 text-blue-300">
+                  // --- SECTION NAME ---
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <Handle 
         type="source" 

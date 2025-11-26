@@ -50,9 +50,18 @@ export function RuntimeOverlay({
 
   return (
     <div 
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-xl z-40 px-3 py-2"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur border-2 border-purple-500/30 rounded-lg shadow-xl z-40 px-3 py-2"
       data-testid="runtime-overlay"
     >
+      {/* Label to clarify this is a separate control panel */}
+      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-purple-500/20">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></div>
+          <span className="text-[10px] font-semibold text-purple-300 uppercase tracking-wide">Runtime Controls</span>
+        </div>
+        <span className="text-[9px] text-muted-foreground/60">(Premium)</span>
+      </div>
+      
       {/* Compact floating controls for when sidebar is hidden/scrolled away */}
       <div className="flex items-center gap-2 text-xs">
         {/* Essential execution controls - compact icon buttons */}
