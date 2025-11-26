@@ -26,6 +26,10 @@ Preferred communication style: Simple, everyday language.
 - **Right Panel (80% default)**: Maximized flowchart canvas for primary visualization.
 - **Docked Variables Panel**: Bottom-right positioned with backdrop blur, defaults to visible to preserve always-on variable context, fully dismissible and re-toggleable.
 - **Header Cleanup**: Removed duplicate controls (Ghost Diff, Export) - now only contains Natural Language Search, Documentation, and Share.
+- **Flowchart Pane Consolidation (Nov 26, 2024)**:
+  - Compact Header: Reduced height from h-10 to h-7, displays only view level and zoom percentage (e.g., "Mile-High (65%)").
+  - Removed React Flow Zoom Widget: Users can zoom with mouse wheel, keyboard shortcuts, or minimap for space efficiency.
+  - Compact RuntimeOverlay: Icon-only buttons (h-7 w-7) for play/pause, step backward (Time Travel, premium), step forward, reset, stop; dropdown speed selector replaces button grid.
 - **Responsive Design**: Sidebar overflow-y scroll, flex-based code editor adapts to viewport size, all controls accessible on small/large screens.
 
 ### Parser & Interpreter Engine
