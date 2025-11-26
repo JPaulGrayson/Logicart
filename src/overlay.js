@@ -5,6 +5,8 @@
  * in any web application to visualize code execution flow.
  */
 
+import ExecutionController from './runtime.js';
+
 class LogiGoOverlay {
   constructor(options = {}) {
     this.options = {
@@ -150,7 +152,7 @@ class LogiGoOverlay {
         type="range" 
         id="logigo-speed" 
         min="0.1" 
-        max="2.0" 
+        max="20.0" 
         step="0.1" 
         value="${this.currentSpeed}"
         style="width: 100%; cursor: pointer;"
@@ -219,16 +221,19 @@ class LogiGoOverlay {
   attachEventListeners() {
     // Play button
     document.getElementById('logigo-play')?.addEventListener('click', () => {
+      console.log('[LogiGo] Play clicked');
       this.play();
     });
 
     // Pause button
     document.getElementById('logigo-pause')?.addEventListener('click', () => {
+      console.log('[LogiGo] Pause clicked');
       this.pause();
     });
 
     // Step button
     document.getElementById('logigo-step')?.addEventListener('click', () => {
+      console.log('[LogiGo] Step clicked');
       this.step();
     });
 
@@ -260,6 +265,13 @@ class LogiGoOverlay {
 
     this.activeNodeId = nodeId;
     this.updateStatus(`At: ${nodeId}`);
+
+    // Sync UI state: If we hit a checkpoint and we're not paused, we are "playing"
+    if (!this.executionController.isPaused && document.getElementById('logigo-pause')?.disabled) {
+      this.isPlaying = true;
+      document.getElementById('logigo-play').disabled = true;
+      document.getElementById('logigo-pause').disabled = false;
+    }
 
     // Visual Handshake: Highlight DOM element if specified
     if (options.domElement) {

@@ -155,7 +155,7 @@ class ExecutionController {
      * @param {number} speed - Speed multiplier (0.1 to 2.0)
      */
     setSpeed(speed) {
-        this.currentSpeed = Math.max(0.1, Math.min(2.0, speed));
+        this.currentSpeed = Math.max(0.1, Math.min(20.0, speed));
 
         if (this.options.debug) {
             console.log(`[ExecutionController] Speed set to ${this.currentSpeed}x`);

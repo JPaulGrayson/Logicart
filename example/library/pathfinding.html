@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiGo Library: Pathfinding (A*)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* Grid Styles */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 2px;
+            background: #bdc3c7;
+            border: 2px solid #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .cell:hover {
+            background: #ecf0f1;
+        }
+
+        .cell.wall {
+            background: #34495e;
+        }
+
+        .cell.start {
+            background: #2ecc71;
+        }
+
+        .cell.end {
+            background: #e74c3c;
+        }
+
+        .cell.path {
+            background: #3498db;
+        }
+
+        .cell.visited {
+            background: #ffeba7;
+        }
+
+        .cell.open {
+            background: #a8e6cf;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>🗺️ Library of Logic: Pathfinding (A*)</h1>
+        <p>Visualizing the A* search algorithm. Click cells to add/remove walls.</p>
+
+        <div class="controls">
+            <button onclick="runAStar()">🚀 Run A* Search</button>
+            <button class="secondary" onclick="resetGrid()">🧹 Clear Walls</button>
+            <button class="secondary" onclick="resetPath()">🔄 Reset Path</button>
+        </div>
+
+        <div id="grid" class="grid"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-visited">0</div>
+                <div class="stat-label">Nodes Visited</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-path">0</div>
+                <div class="stat-label">Path Length</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-checkpoints">0</div>
+                <div class="stat-label">Checkpoints</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-status">Ready</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import LogiGoOverlay from '../../src/overlay.js';
+
+        // Initialize LogiGo
+        const logigo = new LogiGoOverlay({
+            speed: 5.0, // Fast default
+            position: 'bottom-right'
+        }).init();
+        window.LogiGo = logigo;
+
+        // Config
+        const COLS = 20;
+        const ROWS = 15;
+        let grid = [];
+        let startNode = { x: 2, y: 7 };
+        let endNode = { x: 17, y: 7 };
+        let isRunning = false;
+        let stats = { visited: 0, checkpoints: 0 };
+
+        // Initialize Grid
+        function initGrid() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+            grid = [];
+
+            for (let y = 0; y < ROWS; y++) {
+                let row = [];
+                for (let x = 0; x < COLS; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${x}-${y}`;
+                    cell.onclick = () => toggleWall(x, y);
+
+                    if (x === startNode.x && y === startNode.y) cell.classList.add('start');
+                    if (x === endNode.x && y === endNode.y) cell.classList.add('end');
+
+                    gridEl.appendChild(cell);
+                    row.push({ x, y, wall: false, el: cell });
+                }
+                grid.push(row);
+            }
+        }
+
+        window.toggleWall = (x, y) => {
+            if (isRunning) return;
+            if ((x === startNode.x && y === startNode.y) || (x === endNode.x && y === endNode.y)) return;
+
+            const cell = grid[y][x];
+            cell.wall = !cell.wall;
+            cell.el.classList.toggle('wall');
+        };
+
+        window.resetGrid = () => {
+            if (isRunning) return;
+            initGrid();
+            resetStats();
+        };
+
+        window.resetPath = () => {
+            if (isRunning) return;
+            // Keep walls, clear path
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    const cell = grid[y][x];
+                    cell.el.classList.remove('path', 'visited', 'open');
+                }
+            }
+            resetStats();
+        };
+
+        function resetStats() {
+            stats = { visited: 0, checkpoints: 0 };
+            document.getElementById('stat-visited').textContent = '0';
+            document.getElementById('stat-path').textContent = '0';
+            document.getElementById('stat-checkpoints').textContent = '0';
+            document.getElementById('stat-status').textContent = 'Ready';
+        }
+
+        // --- A* Algorithm ---
+
+        window.runAStar = async () => {
+            if (isRunning) {
+                console.warn('[A*] Already running. Resetting state.');
+                isRunning = false; // Allow a new run after warning
+            }
+
+            isRunning = true;
+            resetPath();
+            document.getElementById('stat-status').textContent = 'Running...';
+
+            try {
+                await LogiGo.checkpoint('astar:start', {
+                    variables: { start: startNode, end: endNode }
+                });
+
+                const openSet = [startNode];
+                const cameFrom = new Map();
+
+                // gScore: cost from start to node
+                const gScore = new Map();
+                gScore.set(key(startNode), 0);
+
+                // fScore: gScore + heuristic
+                const fScore = new Map();
+                fScore.set(key(startNode), heuristic(startNode, endNode));
+
+                const visited = new Set();
+
+                while (openSet.length > 0) {
+                    stats.checkpoints++;
+                    document.getElementById('stat-checkpoints').textContent = stats.checkpoints;
+
+                    // Find node with lowest fScore
+                    let current = openSet.reduce((a, b) =>
+                        (fScore.get(key(a)) ?? Infinity) < (fScore.get(key(b)) ?? Infinity) ? a : b
+                    );
+
+                    console.log(`[A*] Processing ${key(current)}, fScore: ${fScore.get(key(current))}`);
+
+                    // Visual: Highlight current node processing
+                    await LogiGo.checkpoint(`process:${current.x}:${current.y}`, {
+                        domElement: `#cell-${current.x}-${current.y}`,
+                        color: '#f1c40f',
+                        variables: {
+                            x: current.x,
+                            y: current.y,
+                            f: fScore.get(key(current)).toFixed(1)
+                        }
+                    });
+
+                    if (current.x === endNode.x && current.y === endNode.y) {
+                        console.log('[A*] Found end node!');
+                        await reconstructPath(cameFrom, current);
+                        document.getElementById('stat-status').textContent = 'Found!';
+                        return; // Exit the function successfully
+                    }
+
+                    // Remove current from openSet
+                    const index = openSet.indexOf(current);
+                    if (index > -1) {
+                        openSet.splice(index, 1);
+                    } else {
+                        console.error('[A*] Critical Error: Current node not found in openSet');
+                    }
+
+                    visited.add(key(current));
+
+                    // Mark as visited (closed set)
+                    if (!(current.x === startNode.x && current.y === startNode.y)) {
+                        grid[current.y][current.x].el.classList.add('visited');
+                    }
+
+                    // Check neighbors
+                    const neighbors = getNeighbors(current);
+                    console.log(`[A*] Neighbors of ${key(current)}:`, neighbors.length);
+
+                    for (const neighbor of neighbors) {
+                        if (visited.has(key(neighbor))) {
+                            console.log(`[A*] Skipping visited ${key(neighbor)}`);
+                            continue;
+                        }
+
+                        const tentativeGScore = (gScore.get(key(current)) ?? Infinity) + 1;
+                        const neighborG = gScore.get(key(neighbor)) ?? Infinity;
+
+                        console.log(`[A*] Checking ${key(neighbor)}: g=${tentativeGScore}, currentG=${neighborG}`);
+
+                        if (tentativeGScore < neighborG) {
+                            // Found a better path
+                            cameFrom.set(key(neighbor), current);
+                            gScore.set(key(neighbor), tentativeGScore);
+                            fScore.set(key(neighbor), tentativeGScore + heuristic(neighbor, endNode));
+
+                            const inOpenSet = openSet.some(n => n.x === neighbor.x && n.y === neighbor.y);
+                            if (!inOpenSet) {
+                                openSet.push(neighbor);
+                                console.log(`[A*] Added neighbor ${key(neighbor)} to openSet`);
+
+                                // Mark as open set
+                                if (!(neighbor.x === endNode.x && neighbor.y === endNode.y)) {
+                                    grid[neighbor.y][neighbor.x].el.classList.add('open');
+                                }
+                                stats.visited++;
+                                document.getElementById('stat-visited').textContent = stats.visited;
+
+                                // Visual: Highlight neighbor discovery
+                                await LogiGo.checkpoint(`discover:${neighbor.x}:${neighbor.y}`, {
+                                    domElement: `#cell-${neighbor.x}-${neighbor.y}`,
+                                    color: '#a8e6cf'
+                                });
+                            }
+                        }
+                    }
+                }
+
+                document.getElementById('stat-status').textContent = 'No Path';
+                await LogiGo.checkpoint('astar:fail', { color: '#e74c3c' });
+
+            } catch (error) {
+                console.error('[A*] Error:', error);
+                document.getElementById('stat-status').textContent = 'Error';
+            } finally {
+                isRunning = false;
+            }
+        };
+
+        function heuristic(a, b) {
+            // Manhattan distance
+            return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+        }
+
+        function getNeighbors(node) {
+            const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+            const neighbors = [];
+
+            for (const [dx, dy] of dirs) {
+                const x = node.x + dx;
+                const y = node.y + dy;
+
+                if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                    if (!grid[y][x].wall) {
+                        neighbors.push({ x, y });
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        function key(node) {
+            return `${node.x},${node.y}`;
+        }
+
+        async function reconstructPath(cameFrom, current) {
+            const path = [current];
+            while (cameFrom.has(key(current))) {
+                current = cameFrom.get(key(current));
+                path.unshift(current);
+            }
+
+            // Visualize path
+            await LogiGo.checkpoint('astar:path_found', { color: '#2ecc71' });
+
+            document.getElementById('stat-path').textContent = path.length;
+
+            for (const node of path) {
+                if ((node.x !== startNode.x || node.y !== startNode.y) &&
+                    (node.x !== endNode.x || node.y !== endNode.y)) {
+
+                    grid[node.y][node.x].el.classList.remove('visited', 'open');
+                    grid[node.y][node.x].el.classList.add('path');
+
+                    // Animate path drawing
+                    await LogiGo.checkpoint(`path:${node.x}:${node.y}`, {
+                        domElement: `#cell-${node.x}-${node.y}`,
+                        color: '#3498db',
+                        duration: 100 // Fast path drawing
+                    });
+                }
+            }
+        }
+
+        // Init
+        initGrid();
+
+    </script>
+
+</body>
+
+</html>
