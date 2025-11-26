@@ -23,6 +23,8 @@ import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2 } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import type { ReporterMessage, CheckpointMessage, RuntimeState } from '@shared/reporter-api';
+import { isReporterMessage, isHandshake, isCheckpoint, isStateUpdate } from '@shared/reporter-api';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -61,6 +63,14 @@ export default function Workbench() {
   const [codeEditorCollapsed, setCodeEditorCollapsed] = useState(false);
   const [showFloatingVariables, setShowFloatingVariables] = useState(true);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Runtime Mode state (logigo-core integration)
+  const [runtimeState, setRuntimeState] = useState<RuntimeState>({
+    isConnected: false,
+    mode: 'static',
+    checkpointCount: 0
+  });
+  const [liveCheckpoints, setLiveCheckpoints] = useState<CheckpointMessage[]>([]);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -117,6 +127,69 @@ export default function Workbench() {
       setParseReady(false);
     };
   }, [code, isReady]);
+
+  // Listen for logigo-core runtime events via postMessage (Handshake Protocol)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Security: Only accept messages from same origin or trusted sources
+      // In production, validate event.origin
+      
+      const message = event.data;
+      
+      if (!isReporterMessage(message)) {
+        return; // Ignore non-Reporter messages
+      }
+      
+      if (isHandshake(message)) {
+        // Handshake received - switch to Live Mode
+        console.log('[LogiGo Studio] Handshake received from logigo-core', message.version);
+        setRuntimeState(prev => ({
+          ...prev,
+          isConnected: true,
+          mode: 'live',
+          lastHeartbeat: Date.now()
+        }));
+        
+        // Send ready acknowledgment
+        window.postMessage({
+          type: 'logigo-studio:ready',
+          version: '1.0.0',
+          capabilities: ['hierarchical-views', 'ghost-diff', 'time-travel']
+        }, '*');
+      }
+      
+      if (isCheckpoint(message)) {
+        // Checkpoint event - add to live checkpoints
+        console.log('[LogiGo Studio] Checkpoint:', message.label || message.id, message.data);
+        setLiveCheckpoints(prev => [...prev, message]);
+        setRuntimeState(prev => ({
+          ...prev,
+          checkpointCount: prev.checkpointCount + 1,
+          currentCheckpoint: message
+        }));
+        
+        // Highlight node if we can map it to flowchart
+        if (message.data.line && flowData.nodeMap) {
+          const nodeId = flowData.nodeMap.get(`${message.data.line}:0`);
+          if (nodeId) {
+            setActiveNodeId(nodeId);
+          }
+        }
+      }
+      
+      if (isStateUpdate(message)) {
+        // State update - update variables panel
+        console.log('[LogiGo Studio] State update:', message.variables);
+        // Could update execution state here if needed
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [flowData.nodeMap]);
 
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
