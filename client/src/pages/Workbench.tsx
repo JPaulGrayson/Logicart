@@ -21,10 +21,11 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2 } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
+import { HelpDialog } from '@/components/ide/HelpDialog';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -63,6 +64,9 @@ export default function Workbench() {
   const [codeEditorCollapsed, setCodeEditorCollapsed] = useState(false);
   const [showFloatingVariables, setShowFloatingVariables] = useState(true);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Help dialog state
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   
   // Runtime Mode state (logigo-core integration)
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
@@ -731,7 +735,7 @@ export default function Workbench() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
       {/* Minimal Header - Just Branding */}
-      <header className="h-10 border-b border-border flex items-center px-6 bg-card z-10">
+      <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
             L
@@ -744,6 +748,16 @@ export default function Workbench() {
             </span>
           )}
         </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setHelpDialogOpen(true)}
+          className="h-7 px-2"
+          data-testid="button-help"
+        >
+          <HelpCircle className="w-4 h-4" />
+        </Button>
       </header>
       
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
@@ -998,6 +1012,9 @@ export default function Workbench() {
           onSpeedChange={handleSpeedChange}
         />
       )}
+      
+      {/* Help Dialog */}
+      <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
     </div>
   );
 }
