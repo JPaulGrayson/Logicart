@@ -16,6 +16,18 @@ Preferred communication style: Simple, everyday language.
 - **Key Libraries**: `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, shadcn/ui.
 - **Design Pattern**: Resizable panel layout with custom React Flow nodes (e.g., `DecisionNode` for conditionals).
 
+### UI Layout Architecture (Updated Nov 26, 2024)
+- **2-Panel Flowchart-First Layout**: Maximizes flowchart visibility while maintaining full control accessibility.
+- **Left Sidebar (20% default, 15-35% resizable)**:
+  - Collapsible Code Editor: Uses flex layout (`flex-1 min-h-0`) that fully collapses to release space when hidden.
+  - Execution Controls: Full `ExecutionControls` component with play/pause, step forward/backward (Time Travel), reset, stop, loop toggle, and speed selector (0.25x-10x with Speed Governor).
+  - View Controls: Ghost Diff toggle, Variables panel toggle.
+  - Export Section: PNG export (free), PDF export (premium).
+- **Right Panel (80% default)**: Maximized flowchart canvas for primary visualization.
+- **Docked Variables Panel**: Bottom-right positioned with backdrop blur, defaults to visible to preserve always-on variable context, fully dismissible and re-toggleable.
+- **Header Cleanup**: Removed duplicate controls (Ghost Diff, Export) - now only contains Natural Language Search, Documentation, and Share.
+- **Responsive Design**: Sidebar overflow-y scroll, flex-based code editor adapts to viewport size, all controls accessible on small/large screens.
+
 ### Parser & Interpreter Engine
 - **AST Parsing**: Uses Acorn (ECMAScript 2020) to convert JavaScript AST into flowchart nodes and edges, capturing source location for bidirectional navigation. Defines node types: `input`, `output`, `decision`, `default`.
 - **Interpreter**: Step-by-step JavaScript execution engine that tracks state, variables, and call stack, supporting control flow for conditionals and returns.
