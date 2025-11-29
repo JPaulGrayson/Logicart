@@ -28,6 +28,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
+import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState } from '@/components/ide/VisualizationPanel';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -77,6 +78,12 @@ export default function Workbench() {
     checkpointCount: 0
   });
   const [liveCheckpoints, setLiveCheckpoints] = useState<CheckpointPayload[]>([]);
+  
+  // Algorithm visualization state
+  const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(null);
+  const [sortingState, setSortingState] = useState<SortingState>(DEFAULT_SORTING_STATE);
+  const [pathfindingState, setPathfindingState] = useState<PathfindingState>(DEFAULT_PATHFINDING_STATE);
+  const [showVisualization, setShowVisualization] = useState(false);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -563,7 +570,43 @@ export default function Workbench() {
     const example = algorithmExamples.find(e => e.id === exampleId);
     if (example) {
       adapter.writeFile(example.code);
+      
+      // Set up the appropriate visualizer
+      if (example.category === 'sorting') {
+        setActiveVisualizer('sorting');
+        setSortingState({
+          array: [64, 34, 25, 12, 22, 11, 90],
+          activeIndices: [],
+          sortedIndices: [],
+          swapIndices: [],
+        });
+        setShowVisualization(true);
+      } else if (example.category === 'pathfinding') {
+        setActiveVisualizer('pathfinding');
+        setPathfindingState(DEFAULT_PATHFINDING_STATE);
+        setShowVisualization(true);
+      } else {
+        setActiveVisualizer(null);
+        setShowVisualization(false);
+      }
     }
+  };
+  
+  const handleResetVisualization = () => {
+    if (activeVisualizer === 'sorting') {
+      setSortingState({
+        array: [64, 34, 25, 12, 22, 11, 90],
+        activeIndices: [],
+        sortedIndices: [],
+        swapIndices: [],
+      });
+    } else if (activeVisualizer === 'pathfinding') {
+      setPathfindingState(DEFAULT_PATHFINDING_STATE);
+    }
+  };
+  
+  const handleCloseVisualization = () => {
+    setShowVisualization(false);
   };
 
   const handleSearchResults = (result: SearchResult) => {
@@ -986,6 +1029,20 @@ export default function Workbench() {
                   highlightedNodes={highlightedNodes}
                   runtimeState={runtimeState}
                 />
+              )}
+              
+              {/* Algorithm Visualization Panel - Bottom Left */}
+              {showVisualization && activeVisualizer && (
+                <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
+                  <VisualizationPanel
+                    type={activeVisualizer}
+                    sortingState={sortingState}
+                    pathfindingState={pathfindingState}
+                    onClose={handleCloseVisualization}
+                    onReset={handleResetVisualization}
+                    className="h-full"
+                  />
+                </div>
               )}
               
               {/* Docked Variables Panel - Bottom Right */}
