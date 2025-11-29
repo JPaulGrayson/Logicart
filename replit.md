@@ -54,6 +54,20 @@ Preferred communication style: Simple, everyday language.
 - **Reporter API**: `window.postMessage` broadcasts from logigo-core with event types like `LOGIGO_SESSION_START` and `LOGIGO_CHECKPOINT`. Workbench listens for these messages, defaulting to Static Mode if no session is detected.
 - **Visual Handshake**: Highlights DOM elements on the page when related code checkpoints execute, linking logic to UI.
 
+### Algorithm Examples Library
+- **Built-in Examples**: Pre-loaded algorithm samples for learning and testing with LogiGo checkpoints
+- **Available Algorithms**:
+  - **Quick Sort**: Divide-and-conquer sorting with partition visualization
+  - **Bubble Sort**: Simple comparison-based sorting for beginners
+  - **A* Pathfinder**: Optimal pathfinding with heuristic-based graph traversal
+- **Checkpoint Instrumentation**: All examples include `LogiGo.checkpoint()` calls with:
+  - Descriptive checkpoint IDs (e.g., `partition:compare:${j}`)
+  - DOM element targeting for Visual Handshake (e.g., `#bar-${index}`, `#cell-${x}-${y}`)
+  - Custom colors for different operations (yellow=compare, red=swap, green=complete)
+  - Variable state tracking in checkpoint payloads
+- **UI Integration**: Examples dropdown in sidebar with category grouping (Sorting, Pathfinding)
+- **Location**: `client/src/lib/algorithmExamples.ts`
+
 ### Hierarchical Views Architecture
 - **Zoom-based Views**: Manages large codebases with section grouping and container nodes.
     - **Mile-high view (< 70% zoom)**: Shows only container nodes.
