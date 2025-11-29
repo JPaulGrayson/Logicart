@@ -29,6 +29,7 @@ import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState } from '@/components/ide/VisualizationPanel';
+import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -84,6 +85,11 @@ export default function Workbench() {
   const [sortingState, setSortingState] = useState<SortingState>(DEFAULT_SORTING_STATE);
   const [pathfindingState, setPathfindingState] = useState<PathfindingState>(DEFAULT_PATHFINDING_STATE);
   const [showVisualization, setShowVisualization] = useState(false);
+  const [animationSteps, setAnimationSteps] = useState<AnimationStep[]>([]);
+  const [animationIndex, setAnimationIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [currentAlgorithm, setCurrentAlgorithm] = useState<string | null>(null);
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -570,6 +576,16 @@ export default function Workbench() {
     const example = algorithmExamples.find(e => e.id === exampleId);
     if (example) {
       adapter.writeFile(example.code);
+      setCurrentAlgorithm(exampleId);
+      
+      // Stop any running animation
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+        animationIntervalRef.current = null;
+      }
+      setIsAnimating(false);
+      setAnimationIndex(0);
+      setAnimationSteps([]);
       
       // Set up the appropriate visualizer
       if (example.category === 'sorting') {
@@ -593,6 +609,15 @@ export default function Workbench() {
   };
   
   const handleResetVisualization = () => {
+    // Stop any running animation
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+      animationIntervalRef.current = null;
+    }
+    setIsAnimating(false);
+    setAnimationIndex(0);
+    setAnimationSteps([]);
+    
     if (activeVisualizer === 'sorting') {
       setSortingState({
         array: [64, 34, 25, 12, 22, 11, 90],
@@ -606,8 +631,104 @@ export default function Workbench() {
   };
   
   const handleCloseVisualization = () => {
+    // Stop any running animation
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+      animationIntervalRef.current = null;
+    }
+    setIsAnimating(false);
     setShowVisualization(false);
   };
+  
+  const handlePlayVisualization = () => {
+    if (isAnimating) {
+      // Pause animation
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+        animationIntervalRef.current = null;
+      }
+      setIsAnimating(false);
+      return;
+    }
+    
+    // Generate animation steps if not already generated
+    let steps = animationSteps;
+    if (steps.length === 0) {
+      if (currentAlgorithm === 'bubblesort') {
+        steps = generateBubbleSortSteps([64, 34, 25, 12, 22, 11, 90]);
+      } else if (currentAlgorithm === 'quicksort') {
+        steps = generateQuickSortSteps([64, 34, 25, 12, 22, 11, 90]);
+      } else if (currentAlgorithm === 'astar') {
+        steps = generateAStarSteps(
+          DEFAULT_PATHFINDING_STATE.startNode,
+          DEFAULT_PATHFINDING_STATE.endNode,
+          DEFAULT_PATHFINDING_STATE.rows,
+          DEFAULT_PATHFINDING_STATE.cols,
+          DEFAULT_PATHFINDING_STATE.wallNodes
+        );
+      }
+      setAnimationSteps(steps);
+    }
+    
+    if (steps.length === 0) return;
+    
+    // Reset to beginning if at end
+    let startIndex = animationIndex;
+    if (startIndex >= steps.length) {
+      startIndex = 0;
+      setAnimationIndex(0);
+    }
+    
+    setIsAnimating(true);
+    
+    // Calculate interval based on speed (faster = shorter interval)
+    const intervalMs = Math.max(50, 500 / speed);
+    
+    animationIntervalRef.current = setInterval(() => {
+      setAnimationIndex(prevIndex => {
+        const nextIndex = prevIndex + 1;
+        
+        if (nextIndex >= steps.length) {
+          // Animation complete
+          if (animationIntervalRef.current) {
+            clearInterval(animationIntervalRef.current);
+            animationIntervalRef.current = null;
+          }
+          setIsAnimating(false);
+          return prevIndex;
+        }
+        
+        // Apply the step
+        const step = steps[nextIndex];
+        if (step.type === 'sorting') {
+          setSortingState(step.state as SortingState);
+        } else if (step.type === 'pathfinding') {
+          setPathfindingState(step.state as PathfindingState);
+        }
+        
+        return nextIndex;
+      });
+    }, intervalMs);
+    
+    // Apply first step immediately
+    if (steps.length > 0 && startIndex < steps.length) {
+      const step = steps[startIndex];
+      if (step.type === 'sorting') {
+        setSortingState(step.state as SortingState);
+      } else if (step.type === 'pathfinding') {
+        setPathfindingState(step.state as PathfindingState);
+      }
+    }
+  };
+  
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleSearchResults = (result: SearchResult) => {
     setSearchResult(result);
@@ -1040,6 +1161,8 @@ export default function Workbench() {
                     pathfindingState={pathfindingState}
                     onClose={handleCloseVisualization}
                     onReset={handleResetVisualization}
+                    onPlay={handlePlayVisualization}
+                    isPlaying={isAnimating}
                     className="h-full"
                   />
                 </div>
