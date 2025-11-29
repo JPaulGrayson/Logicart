@@ -21,7 +21,9 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library } from 'lucide-react';
+import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
@@ -557,6 +559,13 @@ export default function Workbench() {
     adapter.writeFile(SAMPLE_CODE);
   };
 
+  const handleLoadExample = (exampleId: string) => {
+    const example = algorithmExamples.find(e => e.id === exampleId);
+    if (example) {
+      adapter.writeFile(example.code);
+    }
+  };
+
   const handleSearchResults = (result: SearchResult) => {
     setSearchResult(result);
     setHighlightedNodes(result.matchedNodes);
@@ -890,6 +899,40 @@ export default function Workbench() {
                     Variables {showFloatingVariables ? '✓' : ''}
                   </Button>
                 </div>
+              </div>
+              
+              {/* Examples Section */}
+              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                  <Library className="w-3 h-3" />
+                  EXAMPLES
+                </h3>
+                <Select onValueChange={handleLoadExample}>
+                  <SelectTrigger className="w-full h-8 text-xs" data-testid="select-example">
+                    <SelectValue placeholder="Load an algorithm..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Sorting</div>
+                    {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
+                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                        <div className="flex flex-col items-start">
+                          <span>{example.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Pathfinding</div>
+                    {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
+                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                        <div className="flex flex-col items-start">
+                          <span>{example.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Load sample algorithms with LogiGo checkpoints
+                </p>
               </div>
               
               {/* Export Section */}
