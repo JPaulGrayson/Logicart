@@ -1,10 +1,12 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import React, { useMemo, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
 import { FixedMiniMap } from './FixedMiniMap';
+import { Button } from '@/components/ui/button';
+import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
 import type { RuntimeState } from '@shared/reporter-api';
 
 interface FlowchartProps {
@@ -27,8 +29,31 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
-  const { fitView, getZoom, getNodes } = useReactFlow();
+  const { fitView, getZoom, getNodes, zoomIn, zoomOut, setViewport, getViewport } = useReactFlow();
   const [currentZoom, setCurrentZoom] = useState(1);
+  
+  // Minimum zoom threshold for readability (70% ensures nodes remain readable)
+  const MIN_READABLE_ZOOM = 0.7;
+  
+  // Auto-fit with minimum zoom threshold for readability
+  const handleAutoFit = useCallback(() => {
+    fitView({ 
+      padding: 0.2, 
+      duration: 400,
+      minZoom: MIN_READABLE_ZOOM,
+      maxZoom: 1.5 // Cap at 150% for auto-fit
+    });
+  }, [fitView]);
+  
+  // Zoom in by 20%
+  const handleZoomIn = useCallback(() => {
+    zoomIn({ duration: 200 });
+  }, [zoomIn]);
+  
+  // Zoom out by 20%
+  const handleZoomOut = useCallback(() => {
+    zoomOut({ duration: 200 });
+  }, [zoomOut]);
   
   // Determine view level based on zoom
   // Mile-high view: < 0.7 (70%) - zoomed out view showing only containers
@@ -181,6 +206,40 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
             </>
           )}
         </span>
+      </div>
+      
+      {/* Zoom Controls - Bottom Right */}
+      <div className="absolute bottom-3 right-3 flex items-center gap-1 z-20">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => handleAutoFit()}
+          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+          title="Auto-fit to view (ensures minimum readable zoom)"
+          data-testid="button-auto-fit"
+        >
+          <Maximize className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleZoomIn}
+          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+          title="Zoom in"
+          data-testid="button-zoom-in"
+        >
+          <ZoomIn className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleZoomOut}
+          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+          title="Zoom out"
+          data-testid="button-zoom-out"
+        >
+          <ZoomOut className="w-3.5 h-3.5" />
+        </Button>
       </div>
     </div>
   );

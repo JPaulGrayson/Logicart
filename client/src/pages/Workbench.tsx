@@ -21,7 +21,7 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn } from 'lucide-react';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -71,6 +71,10 @@ export default function Workbench() {
   
   // Help dialog state
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  
+  // Fullscreen mode state: null = normal, 'workspace' = with controls, 'presentation' = clean
+  const [fullscreenMode, setFullscreenMode] = useState<'workspace' | 'presentation' | null>(null);
+  const flowchartContainerRef = useRef<HTMLDivElement>(null);
   
   // Runtime Mode state (logigo-core integration)
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
@@ -958,6 +962,26 @@ export default function Workbench() {
         description: 'Reset',
         action: handleReset,
       },
+      {
+        key: 'f',
+        description: 'Toggle Fullscreen',
+        action: () => {
+          if (fullscreenMode) {
+            setFullscreenMode(null);
+          } else {
+            setFullscreenMode('workspace');
+          }
+        },
+      },
+      {
+        key: 'Escape',
+        description: 'Exit Fullscreen',
+        action: () => {
+          if (fullscreenMode) {
+            setFullscreenMode(null);
+          }
+        },
+      },
     ],
     enabled: isReady,
   });
@@ -1264,6 +1288,33 @@ export default function Workbench() {
                 />
               )}
               
+              {/* Fullscreen Controls - Top Left of Flowchart */}
+              {!isParsing && code.trim() && flowData.nodes.length > 0 && (
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setFullscreenMode('workspace')}
+                    className="h-7 gap-1.5 text-xs bg-card/95 backdrop-blur shadow-md"
+                    title="Fullscreen with controls (F)"
+                    data-testid="button-fullscreen-workspace"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    Fullscreen
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFullscreenMode('presentation')}
+                    className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+                    title="Presentation mode (clean view)"
+                    data-testid="button-fullscreen-presentation"
+                  >
+                    <Presentation className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
+              
               {/* Algorithm Visualization Panel - Bottom Left */}
               {showVisualization && activeVisualizer && (
                 <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
@@ -1352,6 +1403,134 @@ export default function Workbench() {
       
       {/* Help Dialog */}
       <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
+      
+      {/* Fullscreen Overlay */}
+      {fullscreenMode && (
+        <div className="fixed inset-0 z-50 bg-background">
+          {/* Fullscreen Flowchart */}
+          <div className="h-full w-full" ref={flowchartContainerRef}>
+            {isParsing ? (
+              <FlowchartSkeleton />
+            ) : !code.trim() || flowData.nodes.length === 0 ? (
+              <EmptyState onLoadSample={handleLoadSample} />
+            ) : (
+              <Flowchart 
+                nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
+                edges={flowData.edges} 
+                onNodeClick={handleNodeClick}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                activeNodeId={activeNodeId}
+                highlightedNodes={highlightedNodes}
+                runtimeState={runtimeState}
+              />
+            )}
+          </div>
+          
+          {/* Floating Controls - Only in Workspace Mode */}
+          {fullscreenMode === 'workspace' && (
+            <>
+              {/* Top Controls */}
+              <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setFullscreenMode(null)}
+                  className="h-8 gap-2 bg-card/95 backdrop-blur shadow-lg"
+                  data-testid="button-exit-fullscreen"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                  Exit
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setFullscreenMode('presentation')}
+                  className="h-8 gap-2 bg-card/95 backdrop-blur shadow-lg"
+                  data-testid="button-presentation-mode"
+                >
+                  <Presentation className="w-4 h-4" />
+                  Presentation
+                </Button>
+              </div>
+              
+              {/* Bottom Controls - Execution */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg px-4 py-2 z-10">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isPlaying ? handlePause : handlePlay}
+                  disabled={!canExecute}
+                  className="h-8 w-8 p-0"
+                >
+                  {isPlaying ? '⏸' : '▶'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleStepForward}
+                  disabled={!canExecute || isPlaying}
+                  className="h-8 w-8 p-0"
+                >
+                  ⏭
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  className="h-8 w-8 p-0"
+                >
+                  ⏹
+                </Button>
+                <div className="w-px h-6 bg-border mx-1" />
+                <span className="text-xs text-muted-foreground">
+                  {progress.current}/{progress.total}
+                </span>
+              </div>
+              
+              {/* Algorithm Visualization Panel - Fullscreen */}
+              {showVisualization && activeVisualizer && (
+                <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
+                  <VisualizationPanel
+                    type={activeVisualizer}
+                    sortingState={sortingState}
+                    pathfindingState={pathfindingState}
+                    onClose={handleCloseVisualization}
+                    onReset={handleResetVisualization}
+                    onPlay={handlePlayVisualization}
+                    isPlaying={isAnimating}
+                    className="h-full"
+                  />
+                </div>
+              )}
+            </>
+          )}
+          
+          {/* Presentation Mode - Minimal UI */}
+          {fullscreenMode === 'presentation' && (
+            <div className="absolute top-4 right-4 opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setFullscreenMode('workspace')}
+                className="h-8 gap-2 bg-card/80 backdrop-blur shadow-lg"
+                data-testid="button-workspace-mode"
+              >
+                <Monitor className="w-4 h-4" />
+                Show Controls
+              </Button>
+            </div>
+          )}
+          
+          {/* Exit hint for presentation mode */}
+          {fullscreenMode === 'presentation' && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">
+              <span className="text-xs text-muted-foreground bg-card/80 backdrop-blur px-3 py-1.5 rounded-full">
+                Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Esc</kbd> to exit
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
