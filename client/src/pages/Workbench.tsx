@@ -1327,6 +1327,8 @@ export default function Workbench() {
         onOpenChange={setEditDialogOpen}
         nodeLabel={editingNode?.data?.label || ''}
         currentCode={editingNode?.data?.sourceData ? extractCode(code, editingNode.data.sourceData) : ''}
+        lineStart={editingNode?.data?.sourceData?.start?.line}
+        lineEnd={editingNode?.data?.sourceData?.end?.line}
         onSave={handleSaveNodeEdit}
       />
 
