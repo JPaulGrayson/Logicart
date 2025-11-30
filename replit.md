@@ -54,6 +54,14 @@ Preferred communication style: Simple, everyday language.
 - **Reporter API**: `window.postMessage` broadcasts from logigo-core with event types like `LOGIGO_SESSION_START` and `LOGIGO_CHECKPOINT`. Workbench listens for these messages, defaulting to Static Mode if no session is detected.
 - **Visual Handshake**: Highlights DOM elements on the page when related code checkpoints execute, linking logic to UI.
 
+### Flowchart-Visualization Sync
+- **Real-time Highlighting**: Flowchart nodes highlight with green pulsing glow during algorithm visualization playback
+- **Step-Type Mapping**: Different algorithm operations (init, compare, swap, complete) map to corresponding flowchart regions
+- **Line-Number Correlation**: Uses nodeMap to find flowchart node IDs from source code line numbers
+- **CSS Classes**: 
+  - `.active-node` - Green outline with pulsing animation for currently executing code
+  - `.highlighted-node` - Purple outline for user-selected or referenced nodes
+
 ### Algorithm Examples Library
 - **Built-in Examples**: Pre-loaded algorithm samples for learning and testing with LogiGo checkpoints
 - **Available Algorithms**:

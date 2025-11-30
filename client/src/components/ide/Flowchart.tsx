@@ -69,9 +69,9 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       let className = node.className || '';
       
       if (isActive) {
-        className = 'bg-green-500/20 border-green-500 border-2 shadow-lg shadow-green-500/50';
+        className = 'active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
       } else if (isHighlighted) {
-        className = 'bg-purple-500/20 border-purple-500 border-2 shadow-lg shadow-purple-500/50 ring-2 ring-purple-500/30';
+        className = 'highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
       }
       
       // Determine node visibility based on zoom level AND manual collapse state

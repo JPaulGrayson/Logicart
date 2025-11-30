@@ -642,15 +642,52 @@ export default function Workbench() {
   
   // Helper function to find flowchart node from line number
   const findNodeByLine = (lineNumber: number): string | null => {
-    if (!flowData.nodeMap) return null;
+    if (!flowData.nodeMap) {
+      return null;
+    }
     
     // Look for a node that starts on this line (check column 0 first, then other columns)
     for (let col = 0; col < 50; col++) {
       const locKey = `${lineNumber}:${col}`;
       const nodeId = flowData.nodeMap.get(locKey);
-      if (nodeId) return nodeId;
+      if (nodeId) {
+        return nodeId;
+      }
     }
     return null;
+  };
+  
+  // Get list of all available line numbers from the nodeMap for debugging
+  const getAvailableLines = (): number[] => {
+    if (!flowData.nodeMap) return [];
+    const lines = new Set<number>();
+    flowData.nodeMap.forEach((nodeId, locKey) => {
+      const line = parseInt(locKey.split(':')[0]);
+      if (!isNaN(line)) lines.add(line);
+    });
+    return Array.from(lines).sort((a, b) => a - b);
+  };
+  
+  // Find the closest node to a target line
+  const findClosestNode = (targetLine: number): string | null => {
+    if (!flowData.nodeMap) return null;
+    
+    const availableLines = getAvailableLines();
+    if (availableLines.length === 0) return null;
+    
+    // Find closest line
+    let closestLine = availableLines[0];
+    let minDist = Math.abs(targetLine - closestLine);
+    
+    for (const line of availableLines) {
+      const dist = Math.abs(targetLine - line);
+      if (dist < minDist) {
+        minDist = dist;
+        closestLine = line;
+      }
+    }
+    
+    return findNodeByLine(closestLine);
   };
   
   // Apply animation step (updates visualizer state and highlights flowchart node)
@@ -663,8 +700,61 @@ export default function Workbench() {
     }
     
     // Highlight corresponding flowchart node
-    if (step.lineNumber) {
+    // Priority: lineNumber (if provided) -> closest match via findClosestNode -> stepType heuristic fallback
+    const availableLines = getAvailableLines();
+    if (availableLines.length === 0) return;
+    
+    // First priority: Use actual lineNumber from step if available
+    if (step.lineNumber !== undefined) {
       const nodeId = findNodeByLine(step.lineNumber);
+      if (nodeId) {
+        setActiveNodeId(nodeId);
+        return;
+      }
+      // Try finding closest node if exact line doesn't match
+      const closestNodeId = findClosestNode(step.lineNumber);
+      if (closestNodeId) {
+        setActiveNodeId(closestNodeId);
+        return;
+      }
+    }
+    
+    // Fallback: Use stepType heuristics only when lineNumber is not available
+    if (step.stepType) {
+      let targetLineIndex = 0;
+      switch (step.stepType) {
+        case 'init':
+          targetLineIndex = 0;
+          break;
+        case 'compare':
+          targetLineIndex = Math.floor(availableLines.length * 0.3);
+          break;
+        case 'swap':
+          targetLineIndex = Math.floor(availableLines.length * 0.5);
+          break;
+        case 'pivot':
+          targetLineIndex = Math.floor(availableLines.length * 0.4);
+          break;
+        case 'process':
+          targetLineIndex = Math.floor(availableLines.length * 0.4);
+          break;
+        case 'discover':
+          targetLineIndex = Math.floor(availableLines.length * 0.6);
+          break;
+        case 'path':
+          targetLineIndex = Math.floor(availableLines.length * 0.7);
+          break;
+        case 'complete':
+          targetLineIndex = availableLines.length - 1;
+          break;
+        default:
+          targetLineIndex = Math.floor(availableLines.length / 2);
+      }
+      
+      targetLineIndex = Math.max(0, Math.min(targetLineIndex, availableLines.length - 1));
+      const targetLine = availableLines[targetLineIndex];
+      const nodeId = findNodeByLine(targetLine);
+      
       if (nodeId) {
         setActiveNodeId(nodeId);
       }

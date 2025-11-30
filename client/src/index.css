@@ -109,6 +109,32 @@ body {
   fill: hsl(var(--muted) / 0.2);
 }
 
+/* Active Node Highlighting for Animation Sync */
+.react-flow__node.active-node {
+  outline: 3px solid #22c55e !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5) !important;
+  z-index: 1000 !important;
+  animation: active-node-pulse 0.8s ease-in-out infinite;
+}
+
+.react-flow__node.highlighted-node {
+  outline: 2px solid #a855f7 !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4) !important;
+}
+
+@keyframes active-node-pulse {
+  0%, 100% {
+    outline-color: #22c55e;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    outline-color: #4ade80;
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
+  }
+}
+
 /* Code Editor Overrides */
 .prism-editor-textarea {
   outline: none !important;
