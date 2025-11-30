@@ -128,3 +128,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Session Management
 - **connect-pg-simple**: PostgreSQL session store.
+
+## Documentation
+
+### Replit Extension Specification
+- **Location**: `docs/REPLIT_EXTENSION_SPEC.md`
+- **Purpose**: Technical specification for Antigravity team to build the Replit Extension
+- **Contents**: Reporter API contract, IDE Adapter interface, message protocols, user workflows, testing checklist
