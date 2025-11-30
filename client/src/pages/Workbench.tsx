@@ -640,6 +640,37 @@ export default function Workbench() {
     setShowVisualization(false);
   };
   
+  // Helper function to find flowchart node from line number
+  const findNodeByLine = (lineNumber: number): string | null => {
+    if (!flowData.nodeMap) return null;
+    
+    // Look for a node that starts on this line (check column 0 first, then other columns)
+    for (let col = 0; col < 50; col++) {
+      const locKey = `${lineNumber}:${col}`;
+      const nodeId = flowData.nodeMap.get(locKey);
+      if (nodeId) return nodeId;
+    }
+    return null;
+  };
+  
+  // Apply animation step (updates visualizer state and highlights flowchart node)
+  const applyAnimationStep = (step: AnimationStep) => {
+    // Update visualizer state
+    if (step.type === 'sorting') {
+      setSortingState(step.state as SortingState);
+    } else if (step.type === 'pathfinding') {
+      setPathfindingState(step.state as PathfindingState);
+    }
+    
+    // Highlight corresponding flowchart node
+    if (step.lineNumber) {
+      const nodeId = findNodeByLine(step.lineNumber);
+      if (nodeId) {
+        setActiveNodeId(nodeId);
+      }
+    }
+  };
+
   const handlePlayVisualization = () => {
     if (isAnimating) {
       // Pause animation
@@ -695,16 +726,12 @@ export default function Workbench() {
             animationIntervalRef.current = null;
           }
           setIsAnimating(false);
+          setActiveNodeId(null); // Clear highlight when done
           return prevIndex;
         }
         
-        // Apply the step
-        const step = steps[nextIndex];
-        if (step.type === 'sorting') {
-          setSortingState(step.state as SortingState);
-        } else if (step.type === 'pathfinding') {
-          setPathfindingState(step.state as PathfindingState);
-        }
+        // Apply the step (updates visualizer and highlights flowchart node)
+        applyAnimationStep(steps[nextIndex]);
         
         return nextIndex;
       });
@@ -712,12 +739,7 @@ export default function Workbench() {
     
     // Apply first step immediately
     if (steps.length > 0 && startIndex < steps.length) {
-      const step = steps[startIndex];
-      if (step.type === 'sorting') {
-        setSortingState(step.state as SortingState);
-      } else if (step.type === 'pathfinding') {
-        setPathfindingState(step.state as PathfindingState);
-      }
+      applyAnimationStep(steps[startIndex]);
     }
   };
   
