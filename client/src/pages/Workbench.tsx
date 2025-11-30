@@ -1054,9 +1054,9 @@ export default function Workbench() {
               
               {/* Flow Tools Section - Always Visible at Top */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                   <Search className="w-3 h-3" />
-                  FLOW TOOLS
+                  Flow Tools
                 </h3>
                 
                 {/* Natural Language Search - Premium Feature */}
@@ -1160,9 +1160,9 @@ export default function Workbench() {
               
               {/* View Controls Section */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                   <Eye className="w-3 h-3" />
-                  VIEWS
+                  Views
                 </h3>
                 <div className="space-y-1">
                   <Button
@@ -1179,16 +1179,16 @@ export default function Workbench() {
               
               {/* Examples Section */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                   <Library className="w-3 h-3" />
-                  EXAMPLES
+                  Examples
                 </h3>
                 <Select onValueChange={handleLoadExample}>
                   <SelectTrigger className="w-full h-8 text-xs" data-testid="select-example">
                     <SelectValue placeholder="Load an algorithm..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Sorting</div>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
                     {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
                       <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
                         <div className="flex flex-col items-start">
@@ -1196,7 +1196,7 @@ export default function Workbench() {
                         </div>
                       </SelectItem>
                     ))}
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Pathfinding</div>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Pathfinding</div>
                     {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
                       <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
                         <div className="flex flex-col items-start">
@@ -1206,14 +1206,14 @@ export default function Workbench() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[10px] text-foreground/60">
                   Load sample algorithms with LogiGo checkpoints
                 </p>
               </div>
               
               {/* Export Section */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold text-muted-foreground">EXPORT</h3>
+                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Export</h3>
                 <div className="space-y-1">
                   <Button
                     variant="outline"
