@@ -35,15 +35,31 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   // Minimum zoom threshold for readability (70% ensures nodes remain readable)
   const MIN_READABLE_ZOOM = 0.7;
   
+  // Clamp zoom to minimum readable level while preserving center position
+  const clampToMinZoom = useCallback(() => {
+    const currentZoomLevel = getZoom();
+    if (currentZoomLevel < MIN_READABLE_ZOOM) {
+      const viewport = getViewport();
+      setViewport({ 
+        x: viewport.x, 
+        y: viewport.y, 
+        zoom: MIN_READABLE_ZOOM 
+      }, { duration: 200 });
+    }
+  }, [getZoom, getViewport, setViewport]);
+  
   // Auto-fit with minimum zoom threshold for readability
+  // React Flow's fitView doesn't respect minZoom, so we clamp after
   const handleAutoFit = useCallback(() => {
     fitView({ 
       padding: 0.2, 
-      duration: 400,
-      minZoom: MIN_READABLE_ZOOM,
-      maxZoom: 1.5 // Cap at 150% for auto-fit
+      duration: 400
     });
-  }, [fitView]);
+    // After fitView animation completes, clamp to minimum zoom if needed
+    setTimeout(() => {
+      clampToMinZoom();
+    }, 420); // Slightly after fitView duration
+  }, [fitView, clampToMinZoom]);
   
   // Zoom in by 20%
   const handleZoomIn = useCallback(() => {
@@ -138,13 +154,18 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, currentZoom, getViewLevel, setNodes, setEdges, getNodes]);
   
   // Fit view only when graph topology changes (not on zoom)
+  // Ensures minimum readable zoom after fitView completes
   useEffect(() => {
     if (initialNodes.length > 0) {
       setTimeout(() => {
         fitView({ padding: 0.2, duration: 400 });
+        // Clamp to minimum zoom after fitView animation
+        setTimeout(() => {
+          clampToMinZoom();
+        }, 420);
       }, 50);
     }
-  }, [initialNodes.length, fitView]);
+  }, [initialNodes.length, fitView, clampToMinZoom]);
 
   return (
     <div className="h-full w-full bg-background relative">

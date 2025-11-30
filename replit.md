@@ -86,6 +86,22 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: Collapse state persisted and preserved across zoom changes.
 - **Performance Optimizations**: Uses React Flow events for zoom detection and avoids unnecessary viewport resets.
 
+### Fullscreen Modes
+- **Dual Fullscreen Modes**: Optimized for desktop/laptop presentation and focused work.
+    - **Workspace Mode**: Fullscreen flowchart with floating controls (exit, play/pause, step, reset, progress indicator).
+    - **Presentation Mode**: Clean view with hidden controls (appear on hover), ideal for screen sharing.
+- **Keyboard Shortcuts**: 
+    - `F` key toggles fullscreen (enters Workspace mode)
+    - `Escape` key exits fullscreen from any mode
+- **Entry Points**: Fullscreen and Presentation icon buttons in top-left of flowchart canvas.
+- **UI Behavior**: Controls fade in on hover in Presentation mode, showing "Show Controls" button and escape hint.
+
+### Zoom Controls
+- **Auto-fit with Minimum Zoom**: Ensures flowchart remains readable by clamping zoom to 70% minimum.
+- **Manual Zoom Buttons**: Zoom In (+20%), Zoom Out (-20%), Auto-fit buttons in bottom-right corner.
+- **Implementation**: Uses React Flow's fitView() followed by zoom clamping via setViewport() to enforce minimum threshold.
+- **Status Pill**: Displays current view level and zoom percentage in top-right corner.
+
 ## External Dependencies
 
 ### Database
