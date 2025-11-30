@@ -4,18 +4,75 @@ export interface AnimationStep {
   type: 'sorting' | 'pathfinding';
   state: SortingState | PathfindingState;
   description?: string;
+  lineNumber?: number;
+  stepType?: 'init' | 'compare' | 'swap' | 'complete' | 'process' | 'discover' | 'path' | 'pivot';
 }
+
+export interface LineMapping {
+  bubblesort: {
+    init: number;
+    outerLoop: number;
+    innerLoop: number;
+    compare: number;
+    swap: number;
+    complete: number;
+  };
+  quicksort: {
+    init: number;
+    partition: number;
+    pivot: number;
+    compare: number;
+    swap: number;
+    complete: number;
+  };
+  astar: {
+    init: number;
+    process: number;
+    discover: number;
+    path: number;
+    complete: number;
+  };
+}
+
+export const LINE_MAPPINGS: LineMapping = {
+  bubblesort: {
+    init: 2,
+    outerLoop: 4,
+    innerLoop: 5,
+    compare: 8,
+    swap: 16,
+    complete: 22
+  },
+  quicksort: {
+    init: 2,
+    partition: 10,
+    pivot: 12,
+    compare: 20,
+    swap: 29,
+    complete: 6
+  },
+  astar: {
+    init: 2,
+    process: 18,
+    discover: 42,
+    path: 21,
+    complete: 50
+  }
+};
 
 export function generateBubbleSortSteps(initialArray: number[]): AnimationStep[] {
   const steps: AnimationStep[] = [];
   const array = [...initialArray];
   const n = array.length;
   const sortedIndices: number[] = [];
+  const lines = LINE_MAPPINGS.bubblesort;
 
   steps.push({
     type: 'sorting',
     state: { array: [...array], activeIndices: [], sortedIndices: [], swapIndices: [] },
-    description: 'Starting Bubble Sort'
+    description: 'Starting Bubble Sort',
+    lineNumber: lines.init,
+    stepType: 'init'
   });
 
   for (let i = 0; i < n; i++) {
@@ -23,14 +80,18 @@ export function generateBubbleSortSteps(initialArray: number[]): AnimationStep[]
       steps.push({
         type: 'sorting',
         state: { array: [...array], activeIndices: [j, j + 1], sortedIndices: [...sortedIndices], swapIndices: [] },
-        description: `Comparing ${array[j]} and ${array[j + 1]}`
+        description: `Comparing ${array[j]} and ${array[j + 1]}`,
+        lineNumber: lines.compare,
+        stepType: 'compare'
       });
 
       if (array[j] > array[j + 1]) {
         steps.push({
           type: 'sorting',
           state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [j, j + 1] },
-          description: `Swapping ${array[j]} and ${array[j + 1]}`
+          description: `Swapping ${array[j]} and ${array[j + 1]}`,
+          lineNumber: lines.swap,
+          stepType: 'swap'
         });
 
         [array[j], array[j + 1]] = [array[j + 1], array[j]];
@@ -38,7 +99,9 @@ export function generateBubbleSortSteps(initialArray: number[]): AnimationStep[]
         steps.push({
           type: 'sorting',
           state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [] },
-          description: 'Swap complete'
+          description: 'Swap complete',
+          lineNumber: lines.swap,
+          stepType: 'swap'
         });
       }
     }
@@ -48,7 +111,9 @@ export function generateBubbleSortSteps(initialArray: number[]): AnimationStep[]
   steps.push({
     type: 'sorting',
     state: { array: [...array], activeIndices: [], sortedIndices: Array.from({ length: n }, (_, i) => i), swapIndices: [] },
-    description: 'Sorting complete!'
+    description: 'Sorting complete!',
+    lineNumber: lines.complete,
+    stepType: 'complete'
   });
 
   return steps;
@@ -58,11 +123,14 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
   const steps: AnimationStep[] = [];
   const array = [...initialArray];
   const sortedIndices: number[] = [];
+  const lines = LINE_MAPPINGS.quicksort;
 
   steps.push({
     type: 'sorting',
     state: { array: [...array], activeIndices: [], sortedIndices: [], swapIndices: [], pivotIndex: undefined },
-    description: 'Starting Quick Sort'
+    description: 'Starting Quick Sort',
+    lineNumber: lines.init,
+    stepType: 'init'
   });
 
   function quickSort(low: number, high: number) {
@@ -81,7 +149,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
     steps.push({
       type: 'sorting',
       state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [], pivotIndex: high },
-      description: `Pivot selected: ${pivot}`
+      description: `Pivot selected: ${pivot}`,
+      lineNumber: lines.pivot,
+      stepType: 'pivot'
     });
 
     let i = low - 1;
@@ -90,7 +160,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
       steps.push({
         type: 'sorting',
         state: { array: [...array], activeIndices: [j], sortedIndices: [...sortedIndices], swapIndices: [], pivotIndex: high },
-        description: `Comparing ${array[j]} with pivot ${pivot}`
+        description: `Comparing ${array[j]} with pivot ${pivot}`,
+        lineNumber: lines.compare,
+        stepType: 'compare'
       });
 
       if (array[j] < pivot) {
@@ -99,7 +171,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
           steps.push({
             type: 'sorting',
             state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [i, j], pivotIndex: high },
-            description: `Swapping ${array[i]} and ${array[j]}`
+            description: `Swapping ${array[i]} and ${array[j]}`,
+            lineNumber: lines.swap,
+            stepType: 'swap'
           });
 
           [array[i], array[j]] = [array[j], array[i]];
@@ -107,7 +181,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
           steps.push({
             type: 'sorting',
             state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [], pivotIndex: high },
-            description: 'Swap complete'
+            description: 'Swap complete',
+            lineNumber: lines.swap,
+            stepType: 'swap'
           });
         }
       }
@@ -117,7 +193,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
       steps.push({
         type: 'sorting',
         state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [i + 1, high], pivotIndex: high },
-        description: `Moving pivot to position ${i + 1}`
+        description: `Moving pivot to position ${i + 1}`,
+        lineNumber: lines.swap,
+        stepType: 'swap'
       });
 
       [array[i + 1], array[high]] = [array[high], array[i + 1]];
@@ -128,7 +206,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
     steps.push({
       type: 'sorting',
       state: { array: [...array], activeIndices: [], sortedIndices: [...sortedIndices], swapIndices: [], pivotIndex: undefined },
-      description: `Pivot ${pivot} is now in correct position`
+      description: `Pivot ${pivot} is now in correct position`,
+      lineNumber: lines.pivot,
+      stepType: 'pivot'
     });
 
     return i + 1;
@@ -139,7 +219,9 @@ export function generateQuickSortSteps(initialArray: number[]): AnimationStep[] 
   steps.push({
     type: 'sorting',
     state: { array: [...array], activeIndices: [], sortedIndices: Array.from({ length: array.length }, (_, i) => i), swapIndices: [] },
-    description: 'Sorting complete!'
+    description: 'Sorting complete!',
+    lineNumber: lines.complete,
+    stepType: 'complete'
   });
 
   return steps;
@@ -159,6 +241,7 @@ export function generateAStarSteps(
 ): AnimationStep[] {
   const steps: AnimationStep[] = [];
   const wallSet = new Set(walls.map(w => `${w.x},${w.y}`));
+  const lines = LINE_MAPPINGS.astar;
 
   const baseState = (): PathfindingState => ({
     rows,
@@ -174,7 +257,9 @@ export function generateAStarSteps(
   steps.push({
     type: 'pathfinding',
     state: baseState(),
-    description: 'Starting A* Pathfinding'
+    description: 'Starting A* Pathfinding',
+    lineNumber: lines.init,
+    stepType: 'init'
   });
 
   const openSet: Node[] = [startNode];
@@ -201,7 +286,9 @@ export function generateAStarSteps(
         visitedNodes: [...visited],
         currentNode: current
       },
-      description: `Processing cell (${current.x}, ${current.y})`
+      description: `Processing cell (${current.x}, ${current.y})`,
+      lineNumber: lines.process,
+      stepType: 'process'
     });
 
     if (current.x === endNode.x && current.y === endNode.y) {
@@ -221,7 +308,9 @@ export function generateAStarSteps(
             pathNodes: path.slice(0, i),
             currentNode: undefined
           },
-          description: i === path.length ? 'Path found!' : `Tracing path...`
+          description: i === path.length ? 'Path found!' : `Tracing path...`,
+          lineNumber: lines.path,
+          stepType: 'path'
         });
       }
 
@@ -260,7 +349,9 @@ export function generateAStarSteps(
               visitedNodes: [...visited],
               currentNode: neighbor
             },
-            description: `Discovered cell (${neighbor.x}, ${neighbor.y})`
+            description: `Discovered cell (${neighbor.x}, ${neighbor.y})`,
+            lineNumber: lines.discover,
+            stepType: 'discover'
           });
         }
       }
@@ -276,7 +367,9 @@ export function generateAStarSteps(
       visitedNodes: [...visited],
       currentNode: undefined
     },
-    description: 'No path found'
+    description: 'No path found',
+    lineNumber: lines.complete,
+    stepType: 'complete'
   });
 
   return steps;
