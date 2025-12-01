@@ -16,6 +16,7 @@ export interface FlowNode {
         children?: string[];        // For container nodes: IDs of child nodes
         collapsed?: boolean;        // For container nodes: collapse state
         zoomLevel?: 'mile-high' | '1000ft' | '100ft'; // Visibility at different zoom levels
+        isChildOfCollapsed?: boolean; // For nodes inside collapsed containers
     };
     position: { x: number; y: number };
     sourcePosition?: string;
@@ -24,6 +25,7 @@ export interface FlowNode {
     style?: { width: number; height: number };
     parentNode?: string;           // For nodes inside containers
     extent?: 'parent';             // For React Flow - keep nodes inside parent
+    hidden?: boolean;              // For React Flow - hide nodes (e.g., when parent collapsed)
 }
 
 export interface FlowEdge {
