@@ -15,13 +15,14 @@ function detectSections(code: string, ast?: any): CodeSection[] {
   const sections: CodeSection[] = [];
   const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
   
-  let currentSection: CodeSection | undefined = undefined;
+  let currentSection: CodeSection | null = null;
   
-  lines.forEach((line, index) => {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     const match = line.match(sectionPattern);
     
     if (match) {
-      if (currentSection !== undefined) {
+      if (currentSection) {
         currentSection.endLine = index;
         sections.push(currentSection);
       }
@@ -32,9 +33,9 @@ function detectSections(code: string, ast?: any): CodeSection[] {
         endLine: lines.length
       };
     }
-  });
+  }
   
-  if (currentSection !== undefined) {
+  if (currentSection) {
     currentSection.endLine = lines.length;
     sections.push(currentSection);
   }

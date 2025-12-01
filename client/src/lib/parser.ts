@@ -1,3 +1,14 @@
+/**
+ * Parser module - re-exports from @logigo/bridge
+ * 
+ * This module now uses the shared bridge package for parsing,
+ * ensuring consistency across Replit, VS Code, and Antigravity IDEs.
+ */
+
+// Re-export types and functions from bridge
+// Note: In production, this would be: import { ... } from '@logigo/bridge';
+// For now, we import directly from the bridge source in docs/bridge
+
 import * as acorn from 'acorn';
 import dagre from 'dagre';
 
@@ -13,17 +24,19 @@ export interface FlowNode {
     label: string;
     description?: string;
     sourceData?: SourceLocation;
-    children?: string[]; // For container nodes: IDs of child nodes
-    collapsed?: boolean; // For container nodes: collapse state
-    zoomLevel?: 'mile-high' | '1000ft' | '100ft'; // Visibility at different zoom levels
+    children?: string[];
+    collapsed?: boolean;
+    zoomLevel?: 'mile-high' | '1000ft' | '100ft';
+    isChildOfCollapsed?: boolean;
   };
   position: { x: number; y: number };
   sourcePosition?: string;
   targetPosition?: string;
   className?: string;
   style?: { width: number; height: number };
-  parentNode?: string; // For nodes inside containers
-  extent?: 'parent'; // For React Flow - keep nodes inside parent
+  parentNode?: string;
+  extent?: 'parent';
+  hidden?: boolean;
 }
 
 export interface FlowEdge {
@@ -39,10 +52,10 @@ export interface FlowEdge {
 export interface FlowData {
   nodes: FlowNode[];
   edges: FlowEdge[];
-  nodeMap: Map<string, string>; // Maps "line:column" to nodeId
+  nodeMap: Map<string, string>;
 }
 
-// Helper to detect section comments (e.g., // --- AUTH LOGIC ---)
+// Section detection for container nodes
 interface CodeSection {
   name: string;
   startLine: number;
@@ -54,32 +67,28 @@ function detectSections(code: string, ast?: any): CodeSection[] {
   const sections: CodeSection[] = [];
   const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
   
-  let currentSection: CodeSection | undefined = undefined;
+  let currentSection: CodeSection | null = null;
   
-  // First, detect explicit section markers
-  lines.forEach((line, index) => {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     const match = line.match(sectionPattern);
     
     if (match) {
-      // Close previous section if exists
-      if (currentSection !== undefined) {
-        currentSection.endLine = index; // Line before this comment (1-indexed)
+      if (currentSection) {
+        currentSection.endLine = index;
         sections.push(currentSection);
       }
       
-      // Start new section
-      // Convert from 0-indexed array position to 1-indexed line numbers
       currentSection = {
         name: match[1].trim(),
-        startLine: index + 2, // Line after the comment marker (index+1 to convert to 1-indexed, +1 more to skip comment line)
-        endLine: lines.length // Will be updated when next section starts
+        startLine: index + 2,
+        endLine: lines.length
       };
     }
-  });
+  }
   
-  // Close last section
-  if (currentSection !== undefined) {
-    currentSection.endLine = lines.length; // Last line of file (1-indexed)
+  if (currentSection) {
+    currentSection.endLine = lines.length;
     sections.push(currentSection);
   }
   
@@ -97,8 +106,7 @@ function detectSections(code: string, ast?: any): CodeSection[] {
       }
     });
     
-    // Only use function-based sections if we found multiple functions
-    if (functionDeclarations.length > 1) {
+    if (functionDeclarations.length > 0) {
       return functionDeclarations;
     }
   }
@@ -156,9 +164,6 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   });
 }
 
-// Simple recursive parser to convert AST to Flowchart
-// This is a simplified "MVP" implementation. 
-// A robust version would handle nested scopes, complex expressions, etc.
 export function parseCodeToFlow(code: string): FlowData {
   try {
     const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
@@ -166,9 +171,6 @@ export function parseCodeToFlow(code: string): FlowData {
     const edges: FlowEdge[] = [];
     const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
-    let xPos = 250;
-    let yPos = 50;
-    const yGap = 100;
 
     // Detect sections from comment markers (or auto-detect functions)
     const sections = detectSections(code, ast);
@@ -193,7 +195,7 @@ export function parseCodeToFlow(code: string): FlowData {
         containerNodes.set(`${section.startLine}-${section.endLine}`, containerNode);
       });
     } else {
-      // Fallback: Create a default "Global Flow" container when no sections are detected
+      // Fallback: Create a default "Global Flow" container
       const globalContainerId = `container-${nodeIdCounter++}`;
       const globalContainer: FlowNode = {
         id: globalContainerId,
@@ -207,7 +209,6 @@ export function parseCodeToFlow(code: string): FlowData {
         style: { width: 400, height: 200 }
       };
       nodes.push(globalContainer);
-      // Mark this as the global container covering all lines
       containerNodes.set('global', globalContainer);
     }
 
@@ -215,7 +216,6 @@ export function parseCodeToFlow(code: string): FlowData {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
       
-      // Map the location to this node ID
       if (stmt?.loc) {
         const locKey = `${stmt.loc.start.line}:${stmt.loc.start.column}`;
         nodeMap.set(locKey, id);
@@ -231,7 +231,6 @@ export function parseCodeToFlow(code: string): FlowData {
             const container = containerNodes.get(containerKey);
             if (container) {
               parentNode = container.id;
-              // Add this node ID to container's children
               if (!container.data.children) {
                 container.data.children = [];
               }
@@ -241,7 +240,6 @@ export function parseCodeToFlow(code: string): FlowData {
           }
         }
       } else if (sections.length === 0) {
-        // If no sections, all nodes belong to the global container
         const globalContainer = containerNodes.get('global');
         if (globalContainer) {
           parentNode = globalContainer.id;
@@ -282,25 +280,19 @@ export function parseCodeToFlow(code: string): FlowData {
     const startNode = createNode(null, 'Start', 'input', 'bg-primary text-primary-foreground border-none');
     nodes.push(startNode);
     
-    let lastNodeId = startNode.id;
-    let currentY = 100;
-
     // Track loop contexts for break/continue
     const loopStack: { 
-      conditionId: string;  // Where continue goes (update for 'for', condition for others)
-      exitId: string;       // Where break goes
-      breakNodes: string[];  // Nodes to connect to loop exit
-      continueNodes: string[];  // NEW: track all continue nodes
+      conditionId: string;
+      exitId: string;
+      breakNodes: string[];
+      continueNodes: string[];
       type: 'loop' 
     }[] = [];
 
-    // Helper to process a block of statements
-    // Returns the ID of the last node in the block, or null if the block ends with control flow
     const processBlock = (statements: any[], parentId: string): string | null => {
       let currentParent: string | null = parentId;
 
       for (const stmt of statements) {
-        // If currentParent is null, we've hit a break/continue/return, stop processing
         if (currentParent === null) break;
         
         const loc: SourceLocation = stmt.loc;
@@ -328,50 +320,42 @@ export function parseCodeToFlow(code: string): FlowData {
           const node = createNode(stmt, label, 'output', 'bg-destructive/20 border-destructive/50', loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
-          // Stop processing after return
           currentParent = null;
         } else if (stmt.type === 'BreakStatement') {
           const node = createNode(stmt, 'break', 'default', 'bg-yellow-500/20 border-yellow-500/50', loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           
-          // Save break node to connect to loop exit later
           if (loopStack.length > 0) {
             const currentLoop = loopStack[loopStack.length - 1];
             currentLoop.breakNodes.push(node.id);
           }
           
-          // Stop processing this block
           currentParent = null;
         } else if (stmt.type === 'ContinueStatement') {
           const node = createNode(stmt, 'continue', 'default', 'bg-blue-500/20 border-blue-500/50', loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           
-          // Track this continue node in the current loop context
           if (loopStack.length > 0) {
             const currentLoop = loopStack[loopStack.length - 1];
             currentLoop.continueNodes.push(node.id);
           }
           
           currentParent = node.id;
-          // Stop processing subsequent statements
           break;
         } else if (stmt.type === 'IfStatement') {
-          // Decision Node
           const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
           const decisionNode = createNode(stmt, testLabel, 'decision', undefined, loc);
           
-          // We store the full label in data for the tooltip/detail view later, but keep display short
           decisionNode.data.label = `if (${testLabel}) ?`;
           if (stmt.test.type === 'Identifier') decisionNode.data.label = `${stmt.test.name}?`;
           
           nodes.push(decisionNode);
           edges.push(createEdge(currentParent, decisionNode.id));
 
-          // True Branch (Consequent)
           const trueBranchNodes: any[] = stmt.consequent.type === 'BlockStatement' ? stmt.consequent.body : [stmt.consequent];
-          const trueEndId = processBlock(trueBranchNodes, decisionNode.id);
+          processBlock(trueBranchNodes, decisionNode.id);
           
           const lastEdge = edges[edges.length - 1];
           if (lastEdge && lastEdge.source === decisionNode.id) {
@@ -379,10 +363,9 @@ export function parseCodeToFlow(code: string): FlowData {
              lastEdge.style = { stroke: 'hsl(142, 71%, 45%)' };
           }
 
-          // False Branch (Alternate)
           if (stmt.alternate) {
              const falseBranchNodes: any[] = stmt.alternate.type === 'BlockStatement' ? stmt.alternate.body : [stmt.alternate];
-             const falseEndId = processBlock(falseBranchNodes, decisionNode.id);
+             processBlock(falseBranchNodes, decisionNode.id);
              
              const lastEdgeFalse = edges[edges.length - 1];
              if (lastEdgeFalse && lastEdgeFalse.source === decisionNode.id) {
@@ -393,35 +376,27 @@ export function parseCodeToFlow(code: string): FlowData {
           
           currentParent = decisionNode.id; 
         } else if (stmt.type === 'WhileStatement') {
-          // While loop: condition check -> body -> back to condition
           const loopCondition = createNode(stmt, 'while (...) ?', 'decision', undefined, loc);
           nodes.push(loopCondition);
           edges.push(createEdge(currentParent, loopCondition.id));
           
-          // Create loop exit merge node
           const loopExit = createNode(null, 'loop exit', 'default', 'opacity-0');
           
-          // Push loop context for break/continue handling
           const loopContext = { conditionId: loopCondition.id, exitId: loopExit.id, breakNodes: [] as string[], continueNodes: [] as string[], type: 'loop' as const };
           loopStack.push(loopContext);
           
-          // Loop body
           const bodyNodes: any[] = stmt.body.type === 'BlockStatement' ? stmt.body.body : [stmt.body];
           const bodyEndId = processBlock(bodyNodes, loopCondition.id);
           
-          // Pop loop context
           loopStack.pop();
           
-          // Mark loop entry edge as True
           const lastTrueEdge = edges[edges.length - 1];
           if (lastTrueEdge && lastTrueEdge.source === loopCondition.id && bodyNodes.length > 0) {
             lastTrueEdge.label = 'True';
             lastTrueEdge.style = { stroke: 'hsl(142, 71%, 45%)' };
           }
           
-          // Back-edge from body to condition (if body doesn't end with break/return)
           if (bodyEndId !== null) {
-            // Check if this is a continue node
             const bodyEndNode = nodes.find(n => n.id === bodyEndId);
             const isContinue = bodyEndNode?.data.label === 'continue';
             
@@ -432,7 +407,6 @@ export function parseCodeToFlow(code: string): FlowData {
             });
           }
           
-          // Connect all continue nodes to loop condition
           for (const continueNodeId of loopContext.continueNodes) {
             edges.push({
               ...createEdge(continueNodeId, loopCondition.id, 'Continue'),
@@ -441,14 +415,12 @@ export function parseCodeToFlow(code: string): FlowData {
             });
           }
           
-          // Add loop exit node and connect condition False path
           nodes.push(loopExit);
           edges.push({
             ...createEdge(loopCondition.id, loopExit.id, 'False'),
             style: { stroke: 'hsl(0, 84%, 60%)' }
           });
           
-          // Connect break statements to the loop exit
           for (const breakNodeId of loopContext.breakNodes) {
             edges.push({
               ...createEdge(breakNodeId, loopExit.id, 'Break'),
@@ -458,8 +430,6 @@ export function parseCodeToFlow(code: string): FlowData {
           
           currentParent = loopExit.id;
         } else if (stmt.type === 'ForStatement') {
-          // For loop: init -> condition -> body -> update -> back to condition
-          // Init statement
           if (stmt.init) {
             let initLabel = 'for init';
             if (stmt.init.type === 'VariableDeclaration') {
@@ -472,22 +442,18 @@ export function parseCodeToFlow(code: string): FlowData {
             currentParent = initNode.id;
           }
           
-          // Condition check
           const loopCondition = createNode(stmt.test, 'for (...) ?', 'decision', undefined, loc);
           nodes.push(loopCondition);
           edges.push(createEdge(currentParent, loopCondition.id));
           
-          // Create loop exit merge node
           const loopExit = createNode(null, 'loop exit', 'default', 'opacity-0');
           
-          // Create update node if it exists (needed for continue semantics)
           let updateNode: FlowNode | null = null;
           if (stmt.update) {
             updateNode = createNode(stmt.update, 'update', 'default', undefined, stmt.update.loc);
-            nodes.push(updateNode); // Add immediately so continue can target it
+            nodes.push(updateNode);
           }
           
-          // Push loop context - conditionId points to update for continue semantics
           const loopContext = { 
             conditionId: updateNode ? updateNode.id : loopCondition.id, 
             exitId: loopExit.id, 
@@ -497,30 +463,22 @@ export function parseCodeToFlow(code: string): FlowData {
           };
           loopStack.push(loopContext);
           
-          // Loop body - if update exists, it needs an unconditional inbound edge
-          // Note: The True edge from condition goes to the body, but update still needs guaranteed reachability
           const bodyNodes: any[] = stmt.body.type === 'BlockStatement' ? stmt.body.body : [stmt.body];
           const bodyEndId = processBlock(bodyNodes, loopCondition.id);
           
-          // Ensure update node has an inbound edge even when body terminates early
           if (updateNode && bodyNodes.length === 0) {
-            // Empty body: connect condition directly to update
             edges.push(createEdge(loopCondition.id, updateNode.id, 'True'));
           }
           
-          // Pop loop context
           loopStack.pop();
           
-          // Label the entry edge
           const lastTrueEdge = edges[edges.length - 1];
           if (lastTrueEdge && lastTrueEdge.source === loopCondition.id && bodyNodes.length > 0) {
             lastTrueEdge.label = 'True';
             lastTrueEdge.style = { stroke: 'hsl(142, 71%, 45%)' };
           }
           
-          // Connect body end to update node (if body doesn't end with break/return)
           if (updateNode && bodyEndId !== null) {
-            // Check if body ended with continue
             const bodyEndNode = nodes.find(n => n.id === bodyEndId);
             const isContinue = bodyEndNode?.data.label === 'continue';
             edges.push({
@@ -529,32 +487,13 @@ export function parseCodeToFlow(code: string): FlowData {
             });
           }
           
-          // Back-edge: update always loops to condition (or body directly if no update)
           if (updateNode) {
-            // Update node always connects back to condition
             edges.push({
               ...createEdge(updateNode.id, loopCondition.id, 'Loop'),
               animated: true,
               style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' }
             });
-            
-            // If body ended normally but we haven't connected it to update yet, add that edge
-            // (This handles the case where body has statements after a conditional continue)
-            if (bodyEndId !== null) {
-              const hasEdgeToUpdate = edges.some(e => e.source === bodyEndId && e.target === updateNode.id);
-              if (!hasEdgeToUpdate) {
-                // Check if body ended with continue
-                const bodyEndNode = nodes.find(n => n.id === bodyEndId);
-                const isContinue = bodyEndNode?.data.label === 'continue';
-                edges.push({
-                  ...createEdge(bodyEndId, updateNode.id, isContinue ? 'Continue' : undefined),
-                  ...(isContinue ? { style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' } } : {})
-                });
-              }
-            }
           } else if (bodyEndId !== null) {
-            // No update node, connect body directly back to condition
-            // Check if this is a continue node
             const bodyEndNode = nodes.find(n => n.id === bodyEndId);
             const isContinue = bodyEndNode?.data.label === 'continue';
             
@@ -565,7 +504,6 @@ export function parseCodeToFlow(code: string): FlowData {
             });
           }
           
-          // Connect all continue nodes to update (or condition if no update)
           const continueTarget = updateNode ? updateNode.id : loopCondition.id;
           for (const continueNodeId of loopContext.continueNodes) {
             edges.push({
@@ -575,148 +513,12 @@ export function parseCodeToFlow(code: string): FlowData {
             });
           }
           
-          // Add loop exit node and connect condition False path
           nodes.push(loopExit);
           edges.push({
             ...createEdge(loopCondition.id, loopExit.id, 'False'),
             style: { stroke: 'hsl(0, 84%, 60%)' }
           });
           
-          // Connect break statements to the loop exit
-          for (const breakNodeId of loopContext.breakNodes) {
-            edges.push({
-              ...createEdge(breakNodeId, loopExit.id, 'Break'),
-              style: { stroke: 'hsl(48, 96%, 53%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          currentParent = loopExit.id;
-        } else if (stmt.type === 'DoWhileStatement') {
-          // Do-while: body -> condition -> back to body (always executes once)
-          // Create placeholder for condition
-          const loopCondition = createNode(stmt, 'while (...) ?', 'decision', undefined, loc);
-          
-          // Create loop exit merge node
-          const loopExit = createNode(null, 'loop exit', 'default', 'opacity-0');
-          
-          // Track body start for back-edge
-          const bodyStartParent = currentParent;
-          
-          // Push loop context before processing body
-          const loopContext = { conditionId: loopCondition.id, exitId: loopExit.id, breakNodes: [] as string[], continueNodes: [] as string[], type: 'loop' as const };
-          loopStack.push(loopContext);
-          
-          const bodyNodes: any[] = stmt.body.type === 'BlockStatement' ? stmt.body.body : [stmt.body];
-          const bodyEndId = processBlock(bodyNodes, currentParent);
-          
-          // Pop loop context
-          loopStack.pop();
-          
-          // Add condition after body
-          nodes.push(loopCondition);
-          if (bodyEndId !== null) {
-            // Check if body ended with continue
-            const bodyEndNode = nodes.find(n => n.id === bodyEndId);
-            const isContinue = bodyEndNode?.data.label === 'continue';
-            edges.push({
-              ...createEdge(bodyEndId, loopCondition.id, isContinue ? 'Continue' : undefined),
-              ...(isContinue ? { style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' } } : {})
-            });
-          }
-          
-          // Connect all continue nodes to loop condition
-          for (const continueNodeId of loopContext.continueNodes) {
-            edges.push({
-              ...createEdge(continueNodeId, loopCondition.id, 'Continue'),
-              animated: true,
-              style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          // Back-edge to start of body
-          const bodyStartNode = nodes.find(n => edges.some(e => e.source === bodyStartParent && e.target === n.id));
-          if (bodyStartNode) {
-            edges.push({
-              ...createEdge(loopCondition.id, bodyStartNode.id, 'True'),
-              animated: true,
-              style: { stroke: 'hsl(142, 71%, 45%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          // Add loop exit node and connect condition False path
-          nodes.push(loopExit);
-          edges.push({
-            ...createEdge(loopCondition.id, loopExit.id, 'False'),
-            style: { stroke: 'hsl(0, 84%, 60%)' }
-          });
-          
-          // Connect break statements to the loop exit
-          for (const breakNodeId of loopContext.breakNodes) {
-            edges.push({
-              ...createEdge(breakNodeId, loopExit.id, 'Break'),
-              style: { stroke: 'hsl(48, 96%, 53%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          currentParent = loopExit.id;
-        } else if (stmt.type === 'ForInStatement' || stmt.type === 'ForOfStatement') {
-          // For-in/of loop
-          const loopType = stmt.type === 'ForInStatement' ? 'for...in' : 'for...of';
-          const loopCondition = createNode(stmt, `${loopType} ?`, 'decision', undefined, loc);
-          nodes.push(loopCondition);
-          edges.push(createEdge(currentParent, loopCondition.id));
-          
-          // Create loop exit merge node
-          const loopExit = createNode(null, 'loop exit', 'default', 'opacity-0');
-          
-          // Push loop context
-          const loopContext = { conditionId: loopCondition.id, exitId: loopExit.id, breakNodes: [] as string[], continueNodes: [] as string[], type: 'loop' as const };
-          loopStack.push(loopContext);
-          
-          // Loop body
-          const bodyNodes: any[] = stmt.body.type === 'BlockStatement' ? stmt.body.body : [stmt.body];
-          const bodyEndId = processBlock(bodyNodes, loopCondition.id);
-          
-          // Pop loop context
-          loopStack.pop();
-          
-          // Label the entry edge
-          const lastTrueEdge = edges[edges.length - 1];
-          if (lastTrueEdge && lastTrueEdge.source === loopCondition.id && bodyNodes.length > 0) {
-            lastTrueEdge.label = 'Next';
-            lastTrueEdge.style = { stroke: 'hsl(142, 71%, 45%)' };
-          }
-          
-          // Back-edge
-          if (bodyEndId !== null) {
-            // Check if this is a continue node
-            const bodyEndNode = nodes.find(n => n.id === bodyEndId);
-            const isContinue = bodyEndNode?.data.label === 'continue';
-            
-            edges.push({
-              ...createEdge(bodyEndId, loopCondition.id, isContinue ? 'Continue' : 'Loop'),
-              animated: true,
-              style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          // Connect all continue nodes to loop condition
-          for (const continueNodeId of loopContext.continueNodes) {
-            edges.push({
-              ...createEdge(continueNodeId, loopCondition.id, 'Continue'),
-              animated: true,
-              style: { stroke: 'hsl(217, 91%, 60%)', strokeDasharray: '5,5' }
-            });
-          }
-          
-          // Add loop exit node and connect condition False path
-          nodes.push(loopExit);
-          edges.push({
-            ...createEdge(loopCondition.id, loopExit.id, 'Done'),
-            style: { stroke: 'hsl(0, 84%, 60%)' }
-          });
-          
-          // Connect break statements to the loop exit
           for (const breakNodeId of loopContext.breakNodes) {
             edges.push({
               ...createEdge(breakNodeId, loopExit.id, 'Break'),
@@ -730,92 +532,55 @@ export function parseCodeToFlow(code: string): FlowData {
       return currentParent;
     };
 
-    // @ts-ignore - acorn types might differ slightly
+    // @ts-ignore
     const body = ast.body;
-    
-    // Handle function declaration body if the code is just a function
-    // or handle top level statements
     let statements = body;
+
     // @ts-ignore
     if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
-       // @ts-ignore
-       statements = body[0].body.body;
+      // @ts-ignore
+      statements = body[0].body.body;
     }
 
     processBlock(statements, startNode.id);
 
-    // Remove invisible loop exit nodes and redirect their edges
+    // Remove invisible loop exit nodes
     const exitNodes = nodes.filter(n => n.data.label === 'loop exit');
     for (const exitNode of exitNodes) {
-      // Find edges pointing TO the exit node
       const incomingEdges = edges.filter(e => e.target === exitNode.id);
-      // Find edges pointing FROM the exit node
       const outgoingEdges = edges.filter(e => e.source === exitNode.id);
-      
-      // Redirect incoming edges to the outgoing edge's target (if exists)
+
       if (outgoingEdges.length > 0) {
         const nextTarget = outgoingEdges[0].target;
         for (const inEdge of incomingEdges) {
           inEdge.target = nextTarget;
         }
       }
-      
-      // Remove the exit node and its outgoing edges
+
       const nodeIndex = nodes.indexOf(exitNode);
       if (nodeIndex > -1) nodes.splice(nodeIndex, 1);
-      
+
       for (const outEdge of outgoingEdges) {
         const edgeIndex = edges.indexOf(outEdge);
         if (edgeIndex > -1) edges.splice(edgeIndex, 1);
       }
     }
 
-    // Apply dagre layout algorithm for automatic positioning
     applyDagreLayout(nodes, edges);
 
     return { nodes, edges, nodeMap };
 
   } catch (e) {
-    console.error("Parse error", e);
-    
-    let errorMessage = 'Syntax Error';
-    let errorDetails = '';
-    
-    if (e instanceof SyntaxError) {
-      const acornError = e as any;
-      
-      if (acornError.loc) {
-        errorMessage = `Syntax Error (Line ${acornError.loc.line})`;
-        errorDetails = acornError.message || '';
-      } else {
-        errorDetails = acornError.message || e.message;
-      }
-      
-      if (errorDetails.includes('Unexpected token')) {
-        errorDetails += '\n\nTip: Check for missing brackets, semicolons, or quotes.';
-      } else if (errorDetails.includes('Unterminated')) {
-        errorDetails += '\n\nTip: Make sure all strings and comments are properly closed.';
-      } else if (errorDetails.includes('Unexpected identifier')) {
-        errorDetails += '\n\nTip: Check for typos or missing operators between identifiers.';
-      }
-    } else {
-      errorMessage = 'Parse Error';
-      errorDetails = e instanceof Error ? e.message : String(e);
-    }
-    
+    console.error('Parse error:', e);
     return {
-      nodes: [
-        {
-          id: 'error',
-          type: 'input',
-          data: {
-            label: errorMessage,
-            description: errorDetails
-          },
-          position: { x: 250, y: 50 },
-          className: 'bg-destructive/10 border-destructive text-foreground'
-        }
-      ],
+      nodes: [{
+        id: 'error',
+        type: 'default',
+        data: { label: `Parse Error: ${e instanceof Error ? e.message : 'Unknown error'}` },
+        position: { x: 250, y: 100 },
+        className: 'bg-destructive/20 border-destructive',
+        style: { width: 200, height: 60 }
+      }],
       edges: [],
       nodeMap: new Map()
     };
