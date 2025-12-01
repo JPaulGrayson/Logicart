@@ -1,0 +1,28 @@
+{
+    "name": "@logigo/bridge",
+    "version": "1.0.0",
+    "description": "Shared logic for LogiGo IDE integrations",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w"
+    },
+    "keywords": [
+        "logigo",
+        "parser",
+        "ast",
+        "flowchart"
+    ],
+    "author": "Antigravity Team",
+    "license": "MIT",
+    "dependencies": {
+        "acorn": "^8.11.3",
+        "dagre": "^0.8.5"
+    },
+    "devDependencies": {
+        "@types/dagre": "^0.7.52",
+        "@types/node": "^20.11.0",
+        "typescript": "^5.3.3"
+    }
+}
