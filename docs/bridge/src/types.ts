@@ -4,6 +4,44 @@ export interface SourceLocation {
     end: { line: number; column: number };
 }
 
+// --- FlowNode Types ---
+
+export interface FlowNode {
+    id: string;
+    type: 'input' | 'output' | 'default' | 'decision' | 'container';
+    data: {
+        label: string;
+        description?: string;
+        sourceData?: SourceLocation;
+        children?: string[];        // For container nodes: IDs of child nodes
+        collapsed?: boolean;        // For container nodes: collapse state
+        zoomLevel?: 'mile-high' | '1000ft' | '100ft'; // Visibility at different zoom levels
+    };
+    position: { x: number; y: number };
+    sourcePosition?: string;
+    targetPosition?: string;
+    className?: string;
+    style?: { width: number; height: number };
+    parentNode?: string;           // For nodes inside containers
+    extent?: 'parent';             // For React Flow - keep nodes inside parent
+}
+
+export interface FlowEdge {
+    id: string;
+    source: string;
+    target: string;
+    label?: string;
+    animated?: boolean;
+    type?: 'smoothstep' | 'default';
+    style?: any;
+}
+
+export interface FlowData {
+    nodes: FlowNode[];
+    edges: FlowEdge[];
+    nodeMap: Map<string, string>;  // Maps "line:column" to nodeId
+}
+
 // --- Reporter API (Runtime -> Studio) ---
 
 export type LogiGoMessageType =
@@ -59,4 +97,36 @@ export interface WriteFilePayload {
 
 export interface RequestFilePayload {
     path?: string;
+}
+
+// --- Runtime State (Studio internal state) ---
+
+export interface RuntimeState {
+    isConnected: boolean;
+    mode: 'static' | 'live';
+    lastHeartbeat?: number;
+    checkpointCount: number;
+    sessionId?: string;
+    sessionStartTime?: number;
+    currentCheckpoint?: CheckpointPayload;
+}
+
+// --- Message Validators ---
+
+export function isLogiGoMessage(message: any): message is LogiGoMessage {
+    return (
+        message &&
+        typeof message === 'object' &&
+        message.source === 'LOGIGO_CORE' &&
+        typeof message.type === 'string' &&
+        'payload' in message
+    );
+}
+
+export function isCheckpoint(message: LogiGoMessage): message is LogiGoMessage<CheckpointPayload> & { type: 'LOGIGO_CHECKPOINT' } {
+    return message.type === 'LOGIGO_CHECKPOINT';
+}
+
+export function isSessionStart(message: LogiGoMessage): message is LogiGoMessage<SessionStartPayload> & { type: 'LOGIGO_SESSION_START' } {
+    return message.type === 'LOGIGO_SESSION_START';
 }

@@ -1,10 +1,26 @@
 
-export * from './parser';
-export * from './types';
-export * from './injector';
-// SourceLocation is exported from both parser and types, so we rely on types for the canonical definition
-// or we can just export specific things from parser if needed.
-// For now, let's just export parser content except SourceLocation to avoid conflict if possible,
-// but 'export *' doesn't allow exclusion easily.
-// Better fix: Remove SourceLocation definition from parser.ts and import it from types.ts
+export { parseCodeToFlow } from './parser';
+export { injectCheckpoints, getRuntimeInitCode } from './injector';
 
+export type {
+    SourceLocation,
+    FlowNode,
+    FlowEdge,
+    FlowData,
+    LogiGoMessage,
+    LogiGoMessageType,
+    SessionStartPayload,
+    CheckpointPayload,
+    ControlMessage,
+    ControlMessageType,
+    JumpToLinePayload,
+    WriteFilePayload,
+    RequestFilePayload,
+    RuntimeState
+} from './types';
+
+export {
+    isLogiGoMessage,
+    isCheckpoint,
+    isSessionStart
+} from './types';
