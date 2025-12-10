@@ -1228,6 +1228,14 @@ export default function Workbench() {
                         </div>
                       </SelectItem>
                     ))}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Games & Logic</div>
+                    {algorithmExamples.filter(e => e.category === 'other').map(example => (
+                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                        <div className="flex flex-col items-start">
+                          <span>{example.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-foreground/60">

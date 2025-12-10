@@ -631,12 +631,25 @@ export function parseCodeToFlow(code: string): FlowData {
     };
 
   } catch (e) {
-    console.error('Parse error:', e);
+    // Silently handle expected parse errors during typing (incomplete code)
+    // Only log unexpected errors for debugging
+    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+    const isExpectedTypingError = 
+      errorMessage.includes('Unterminated') ||
+      errorMessage.includes('Unexpected token') ||
+      errorMessage.includes('Unexpected end of input') ||
+      errorMessage.includes('missing )') ||
+      errorMessage.includes('missing }');
+    
+    if (!isExpectedTypingError) {
+      console.error('Parse error:', e);
+    }
+    
     return {
       nodes: [{
         id: 'error',
         type: 'default',
-        data: { label: `Parse Error: ${e instanceof Error ? e.message : 'Unknown error'}` },
+        data: { label: `Parse Error: ${errorMessage}` },
         position: { x: 250, y: 100 },
         className: 'bg-destructive/20 border-destructive',
         style: { width: 200, height: 60 }
