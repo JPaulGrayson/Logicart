@@ -5,6 +5,8 @@
  * in any web application to visualize code execution flow.
  */
 
+import ExecutionController from './runtime.js';
+
 class LogiGoOverlay {
   constructor(options = {}) {
     this.options = {
@@ -150,7 +152,7 @@ class LogiGoOverlay {
         type="range" 
         id="logigo-speed" 
         min="0.1" 
-        max="2.0" 
+        max="20.0" 
         step="0.1" 
         value="${this.currentSpeed}"
         style="width: 100%; cursor: pointer;"
@@ -219,16 +221,19 @@ class LogiGoOverlay {
   attachEventListeners() {
     // Play button
     document.getElementById('logigo-play')?.addEventListener('click', () => {
+      console.log('[LogiGo] Play clicked');
       this.play();
     });
 
     // Pause button
     document.getElementById('logigo-pause')?.addEventListener('click', () => {
+      console.log('[LogiGo] Pause clicked');
       this.pause();
     });
 
     // Step button
     document.getElementById('logigo-step')?.addEventListener('click', () => {
+      console.log('[LogiGo] Step clicked');
       this.step();
     });
 
@@ -253,42 +258,127 @@ class LogiGoOverlay {
   /**
    * Checkpoint - Called by user code to pause execution
    */
-  async checkpoint(nodeId) {
+  async checkpoint(nodeId, options = {}) {
     if (this.options.debug) {
-      console.log(`[LogiGo] Checkpoint: ${nodeId}`);
+      console.log(`[LogiGo] Checkpoint: ${nodeId}`, options);
     }
 
     this.activeNodeId = nodeId;
     this.updateStatus(`At: ${nodeId}`);
 
-    // Highlight corresponding DOM element if it exists
-    this.highlightElement(nodeId);
+    // Sync UI state: If we hit a checkpoint and we're not paused, we are "playing"
+    if (!this.executionController.isPaused && document.getElementById('logigo-pause')?.disabled) {
+      this.isPlaying = true;
+      document.getElementById('logigo-play').disabled = true;
+      document.getElementById('logigo-pause').disabled = false;
+    }
+
+    // Visual Handshake: Highlight DOM element if specified
+    if (options.domElement) {
+      this.highlightElement(options.domElement, {
+        duration: options.duration || 2000,
+        color: options.color || 'gold',
+        intensity: options.intensity || 'medium'
+      });
+    } else {
+      // Fallback: Try to highlight element with matching ID
+      this.highlightElement(nodeId);
+    }
 
     // Delegate to ExecutionController for timing
-    await this.executionController.checkpoint(nodeId);
+    await this.executionController.checkpoint(nodeId, options);
 
-    // Remove highlight
-    this.removeHighlight(nodeId);
+    // Remove highlight (optional, usually handled by timeout)
+    // this.removeHighlight(nodeId);
   }
 
   /**
-   * Highlight a DOM element
+   * Highlight a DOM element (Visual Handshake)
    */
-  highlightElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.style.boxShadow = '0 0 10px 2px gold';
-      element.style.transition = 'box-shadow 0.3s';
+  highlightElement(selector, options = {}) {
+    // Ensure styles are injected
+    this.injectStyles();
+
+    let element;
+    if (typeof selector === 'string') {
+      // If selector doesn't start with # or ., assume it's an ID
+      if (!selector.startsWith('#') && !selector.startsWith('.')) {
+        element = document.getElementById(selector);
+      } else {
+        element = document.querySelector(selector);
+      }
+    } else {
+      element = selector; // Assume it's an HTMLElement
     }
+
+    if (!element) return;
+
+    // Default options
+    const duration = options.duration || 2000;
+    const color = options.color || 'gold';
+    const intensity = options.intensity || 'medium';
+
+    // Map intensity to shadow size
+    const shadowMap = {
+      low: '0 0 10px 2px',
+      medium: '0 0 20px 4px',
+      high: '0 0 30px 6px'
+    };
+    const shadowSize = shadowMap[intensity] || shadowMap.medium;
+
+    // Store original styles to restore later
+    const originalTransition = element.style.transition;
+    const originalBoxShadow = element.style.boxShadow;
+    const originalOutline = element.style.outline;
+
+    // Apply highlight styles
+    element.style.transition = 'all 0.3s ease';
+    element.style.boxShadow = `${shadowSize} ${color}`;
+    element.style.outline = `3px solid ${color}`;
+    element.classList.add('logigo-highlight-pulse');
+
+    // Remove highlight after duration
+    setTimeout(() => {
+      element.style.boxShadow = originalBoxShadow;
+      element.style.outline = originalOutline;
+      element.style.transition = originalTransition;
+      element.classList.remove('logigo-highlight-pulse');
+    }, duration);
   }
 
   /**
-   * Remove highlight from element
+   * Inject CSS styles for animations
    */
-  removeHighlight(elementId) {
-    const element = document.getElementById(elementId);
+  injectStyles() {
+    if (document.getElementById('logigo-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'logigo-styles';
+    style.textContent = `
+      @keyframes logigo-highlight-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+      }
+      
+      .logigo-highlight-pulse {
+        animation: logigo-highlight-pulse 1s ease-in-out;
+        z-index: 10000;
+        position: relative;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Remove highlight from an element
+   */
+  removeHighlight(nodeId) {
+    const element = document.getElementById(nodeId);
     if (element) {
+      element.classList.remove('logigo-highlight-pulse');
       element.style.boxShadow = '';
+      element.style.outline = '';
     }
   }
 
@@ -384,3 +474,6 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = LogiGoOverlay;
 }
+
+// ES Module export
+export default LogiGoOverlay;

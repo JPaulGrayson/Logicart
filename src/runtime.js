@@ -9,6 +9,7 @@ class ExecutionController {
         this.options = {
             speed: options.speed || 1.0,
             debug: options.debug || false,
+            reporter: options.reporter || null, // Allow passing external reporter
             ...options
         };
 
@@ -17,6 +18,14 @@ class ExecutionController {
         this.currentSpeed = this.options.speed;
         this.stepResolvers = [];
         this.executionHistory = [];
+
+        // Initialize reporter if not provided but requested or default
+        // We check for global LogiGoReporter if not passed in options
+        if (!this.options.reporter && typeof LogiGoReporter !== 'undefined') {
+            this.reporter = new LogiGoReporter({ debug: this.options.debug });
+        } else {
+            this.reporter = this.options.reporter;
+        }
     }
 
     /**
@@ -24,19 +33,30 @@ class ExecutionController {
      * Returns a Promise that resolves based on speed/pause state
      * 
      * @param {string} nodeId - Unique identifier for this checkpoint
+     * @param {Object} metadata - Optional metadata (variables, domElement, etc.)
      * @returns {Promise<void>}
      */
-    async checkpoint(nodeId) {
+    async checkpoint(nodeId, metadata = {}) {
         if (this.options.debug) {
-            console.log(`[ExecutionController] Checkpoint: ${nodeId}`);
+            console.log(`[ExecutionController] Checkpoint: ${nodeId}`, metadata);
         }
 
         // Record this checkpoint in history
         this.executionHistory.push({
             nodeId,
             timestamp: Date.now(),
-            speed: this.currentSpeed
+            speed: this.currentSpeed,
+            metadata
         });
+
+        // Report to external tools via Reporter API
+        if (this.reporter) {
+            this.reporter.recordCheckpoint({
+                nodeId,
+                metadata,
+                domElement: metadata.domElement
+            });
+        }
 
         // If paused, wait for step or play
         if (this.isPaused) {
@@ -135,7 +155,7 @@ class ExecutionController {
      * @param {number} speed - Speed multiplier (0.1 to 2.0)
      */
     setSpeed(speed) {
-        this.currentSpeed = Math.max(0.1, Math.min(2.0, speed));
+        this.currentSpeed = Math.max(0.1, Math.min(20.0, speed));
 
         if (this.options.debug) {
             console.log(`[ExecutionController] Speed set to ${this.currentSpeed}x`);
@@ -183,3 +203,6 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
     window.ExecutionController = ExecutionController;
 }
+
+// ES Module export
+export default ExecutionController;

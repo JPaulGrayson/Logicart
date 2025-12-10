@@ -240,3 +240,6 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
     window.LogiGoDiffer = LogiGoDiffer;
 }
+
+// ES Module export
+export default LogiGoDiffer;

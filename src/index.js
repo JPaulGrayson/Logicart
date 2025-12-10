@@ -27,7 +27,8 @@ function init(options = {}) {
         step: overlay.step.bind(overlay),
         reset: overlay.reset.bind(overlay),
         setSpeed: overlay.setSpeed.bind(overlay),
-        destroy: overlay.destroy.bind(overlay)
+        destroy: overlay.destroy.bind(overlay),
+        reporter: overlay.executionController.reporter // Expose reporter
     };
 }
 
