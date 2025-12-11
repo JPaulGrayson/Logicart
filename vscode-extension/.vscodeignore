@@ -4,3 +4,7 @@ tsconfig.json
 build.js
 .gitignore
 *.map
+../bridge/**
+**/bridge/**
+**/../**
+package-lock.json

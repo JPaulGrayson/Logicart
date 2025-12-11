@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseCodeToFlow } from './parser';
+import { parseCodeToFlow } from '@logigo/bridge';
 
 let currentPanel: vscode.WebviewPanel | undefined;
 let currentDocument: vscode.TextDocument | undefined;
