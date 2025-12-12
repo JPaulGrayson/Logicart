@@ -29,37 +29,16 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
-  const { fitView, getZoom, getNodes, zoomIn, zoomOut, setViewport, getViewport } = useReactFlow();
+  const { fitView, getZoom, getNodes, zoomIn, zoomOut } = useReactFlow();
   const [currentZoom, setCurrentZoom] = useState(1);
   
-  // Minimum zoom threshold for readability (70% ensures nodes remain readable)
-  const MIN_READABLE_ZOOM = 0.7;
-  
-  // Clamp zoom to minimum readable level while preserving center position
-  const clampToMinZoom = useCallback(() => {
-    const currentZoomLevel = getZoom();
-    if (currentZoomLevel < MIN_READABLE_ZOOM) {
-      const viewport = getViewport();
-      setViewport({ 
-        x: viewport.x, 
-        y: viewport.y, 
-        zoom: MIN_READABLE_ZOOM 
-      }, { duration: 200 });
-    }
-  }, [getZoom, getViewport, setViewport]);
-  
-  // Auto-fit with minimum zoom threshold for readability
-  // React Flow's fitView doesn't respect minZoom, so we clamp after
+  // Auto-fit view with padding - no zoom restrictions so users can zoom freely
   const handleAutoFit = useCallback(() => {
     fitView({ 
-      padding: 0.2, 
+      padding: 0.3, 
       duration: 400
     });
-    // After fitView animation completes, clamp to minimum zoom if needed
-    setTimeout(() => {
-      clampToMinZoom();
-    }, 420); // Slightly after fitView duration
-  }, [fitView, clampToMinZoom]);
+  }, [fitView]);
   
   // Zoom in by 20%
   const handleZoomIn = useCallback(() => {
@@ -89,8 +68,6 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
 
   // Sync props with internal state when they change (from parser)
   useEffect(() => {
-    const viewLevel = getViewLevel(currentZoom);
-    
     // Get current nodes to preserve collapse state
     const currentNodes = getNodes();
     const collapseStateMap = new Map<string, { collapsed: boolean; isChildOfCollapsed: boolean }>();
@@ -115,27 +92,14 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         className = 'highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
       }
       
-      // Determine node visibility based on zoom level AND manual collapse state
-      const isContainer = node.type === 'container';
-      
       // Preserve collapse state from current node state (if it exists)
       const preservedState = collapseStateMap.get(node.id);
       const isCollapsed = preservedState?.collapsed ?? (node.data?.collapsed === true);
       const isChildOfCollapsedContainer = preservedState?.isChildOfCollapsed ?? false;
       
-      let zoomHidden = false;
-      
-      if (viewLevel === 'mile-high') {
-        // Only show container nodes at mile-high view
-        zoomHidden = !isContainer;
-      } else if (viewLevel === '1000ft') {
-        // At 1000ft, show all nodes
-        zoomHidden = false;
-      }
-      // At 100ft (detailed view), show everything (zoomHidden = false)
-      
-      // Combine zoom-based hiding with manual collapse state
-      const hidden = zoomHidden || isChildOfCollapsedContainer;
+      // Only hide nodes that are children of collapsed containers
+      // Nodes remain visible at all zoom levels (outline mode handled via CSS)
+      const hidden = isChildOfCollapsedContainer;
       
       return {
         ...node,
@@ -151,21 +115,16 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
     });
     setNodes(updatedNodes);
     setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, currentZoom, getViewLevel, setNodes, setEdges, getNodes]);
+  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, setNodes, setEdges, getNodes]);
   
-  // Fit view only when graph topology changes (not on zoom)
-  // Ensures minimum readable zoom after fitView completes
+  // Fit view and center when graph topology changes
   useEffect(() => {
     if (initialNodes.length > 0) {
       setTimeout(() => {
-        fitView({ padding: 0.2, duration: 400 });
-        // Clamp to minimum zoom after fitView animation
-        setTimeout(() => {
-          clampToMinZoom();
-        }, 420);
+        fitView({ padding: 0.3, duration: 400 });
       }, 50);
     }
-  }, [initialNodes.length, fitView, clampToMinZoom]);
+  }, [initialNodes.length, fitView]);
 
   return (
     <div className="h-full w-full bg-background relative">
@@ -180,7 +139,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         onMoveEnd={handleViewportChange}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.3 }}
         proOptions={{ hideAttribution: true }}
         connectionLineType={ConnectionLineType.SmoothStep}
       >

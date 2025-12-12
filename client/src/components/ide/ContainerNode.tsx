@@ -56,10 +56,10 @@ function ContainerNode({ data, selected, id }: NodeProps) {
         bg-gradient-to-br from-purple-500/10 to-blue-500/10
         border-2 border-purple-500/30
         rounded-lg
-        p-6
-        min-w-[400px]
-        min-h-[200px]
-        shadow-lg
+        p-3
+        min-w-[200px]
+        min-h-[80px]
+        shadow-md
         ${selected ? 'ring-2 ring-purple-500 shadow-purple-500/50' : ''}
         transition-all duration-200
         cursor-pointer
@@ -73,41 +73,35 @@ function ContainerNode({ data, selected, id }: NodeProps) {
         className="w-3 h-3 !bg-purple-500 border-2 border-white"
       />
       
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-1.5 mb-1">
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-purple-500" />
+          <ChevronRight className="w-3 h-3 text-purple-500" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-purple-500" />
+          <ChevronDown className="w-3 h-3 text-purple-500" />
         )}
-        <Package className="w-5 h-5 text-purple-500" />
-        <div className="font-semibold text-sm text-foreground uppercase tracking-wide">
+        <Package className="w-3.5 h-3.5 text-purple-500" />
+        <div className="font-semibold text-xs text-foreground uppercase tracking-wide">
           {nodeData.label || 'Container'}
         </div>
         {nodeData.children && (
-          <div className="ml-auto text-xs text-muted-foreground bg-purple-500/20 px-2 py-1 rounded">
-            {nodeData.children.length} nodes
+          <div className="ml-auto text-[10px] text-muted-foreground bg-purple-500/20 px-1.5 py-0.5 rounded">
+            {nodeData.children.length}
           </div>
         )}
       </div>
       
-      <div className="text-xs text-muted-foreground/70 font-mono">
-        {collapsed ? 'Collapsed' : 'Expanded'} • Click to toggle
+      <div className="text-[10px] text-muted-foreground/70 font-mono">
+        {collapsed ? 'Collapsed' : 'Expanded'}
       </div>
       
       {/* Guidance for Global Flow container */}
       {isGlobalFlow && (
-        <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-200/90">
-          <div className="flex items-start gap-2">
-            <Info className="w-3 h-3 mt-0.5 flex-shrink-0 text-blue-400" />
-            <div>
-              <div className="font-medium mb-1">Single-section view</div>
-              <div className="text-blue-200/70">
-                To create multiple sections, add comment markers to your code:
-                <div className="font-mono text-[10px] mt-1 text-blue-300">
-                  // --- SECTION NAME ---
-                </div>
-              </div>
-            </div>
+        <div className="mt-2 p-1.5 bg-blue-500/10 border border-blue-500/30 rounded text-[10px] text-blue-200/90">
+          <div className="flex items-center gap-1.5">
+            <Info className="w-2.5 h-2.5 flex-shrink-0 text-blue-400" />
+            <span className="text-blue-200/70">
+              Add <span className="font-mono text-blue-300">// --- NAME ---</span> for sections
+            </span>
           </div>
         </div>
       )}
