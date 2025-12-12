@@ -27,6 +27,7 @@ interface PathfindingState {
 
 interface VisualizationPanelProps {
   type: VisualizerType;
+  title?: string;
   sortingState?: SortingState;
   pathfindingState?: PathfindingState;
   onClose?: () => void;
@@ -38,6 +39,7 @@ interface VisualizationPanelProps {
 
 export function VisualizationPanel({
   type,
+  title: customTitle,
   sortingState,
   pathfindingState,
   onClose,
@@ -48,7 +50,8 @@ export function VisualizationPanel({
 }: VisualizationPanelProps) {
   if (!type) return null;
 
-  const title = type === 'sorting' ? 'Sorting Visualization' : 'Pathfinding Visualization';
+  const defaultTitle = type === 'sorting' ? 'Sorting Visualization' : 'Pathfinding Visualization';
+  const title = customTitle || defaultTitle;
 
   return (
     <div className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden", className)}>

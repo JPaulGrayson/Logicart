@@ -1328,6 +1328,7 @@ export default function Workbench() {
                 <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
                   <VisualizationPanel
                     type={activeVisualizer}
+                    title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
                     sortingState={sortingState}
                     pathfindingState={pathfindingState}
                     onClose={handleCloseVisualization}
@@ -1500,6 +1501,7 @@ export default function Workbench() {
                 <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
                   <VisualizationPanel
                     type={activeVisualizer}
+                    title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
                     sortingState={sortingState}
                     pathfindingState={pathfindingState}
                     onClose={handleCloseVisualization}
