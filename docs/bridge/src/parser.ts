@@ -63,14 +63,31 @@ function detectSections(code: string, ast?: any): CodeSection[] {
 }
 
 function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
+  // Separate containers from flow nodes
+  const containers = nodes.filter(n => n.type === 'container');
+  const flowNodes = nodes.filter(n => n.type !== 'container');
+  
+  // If we have multiple containers, use a two-phase layout:
+  // Phase 1: Position containers horizontally at the top
+  // Phase 2: Layout each container's children below it
+  if (containers.length > 1) {
+    applyHorizontalContainerLayout(containers, flowNodes, edges);
+  } else {
+    // Single container or no containers - use standard dagre layout
+    applyStandardDagreLayout(nodes, edges);
+  }
+}
+
+// Standard dagre layout for simple cases
+function applyStandardDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   const g = new dagre.graphlib.Graph();
 
   g.setGraph({
     rankdir: 'TB',
-    nodesep: 80,
-    ranksep: 100,
-    marginx: 50,
-    marginy: 50
+    nodesep: 60,
+    ranksep: 80,
+    marginx: 40,
+    marginy: 40
   });
 
   g.setDefaultEdgeLabel(() => ({}));
@@ -79,8 +96,8 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
     const isDecision = node.type === 'decision';
     const isContainer = node.type === 'container';
     g.setNode(node.id, {
-      width: isContainer ? 400 : (isDecision ? 120 : 180),
-      height: isContainer ? 200 : (isDecision ? 120 : 60)
+      width: isContainer ? 200 : (isDecision ? 100 : 150),
+      height: isContainer ? 80 : (isDecision ? 100 : 50)
     });
   });
 
@@ -95,8 +112,8 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
     if (nodeWithPosition) {
       const isDecision = node.type === 'decision';
       const isContainer = node.type === 'container';
-      const width = isContainer ? 400 : (isDecision ? 120 : 180);
-      const height = isContainer ? 200 : (isDecision ? 120 : 60);
+      const width = isContainer ? 200 : (isDecision ? 100 : 150);
+      const height = isContainer ? 80 : (isDecision ? 100 : 50);
 
       node.position = {
         x: nodeWithPosition.x - width / 2,
@@ -109,6 +126,151 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
       };
     }
   });
+}
+
+// Two-phase layout: containers horizontal at top, flows below
+function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowNode[], edges: FlowEdge[]): void {
+  const CONTAINER_WIDTH = 200;
+  const CONTAINER_HEIGHT = 80;
+  const CONTAINER_GAP = 60;
+  const START_NODE_Y = 20;
+  const CONTAINER_Y = 100;
+  const FLOW_START_Y = CONTAINER_Y + CONTAINER_HEIGHT + 30;
+  
+  // Remove parentNode from all flow nodes to use absolute positioning
+  // (React Flow interprets parentNode positions as relative, causing layout issues)
+  flowNodes.forEach(node => {
+    delete node.parentNode;
+  });
+  
+  // Phase 0: Find and position Start node(s) centered at top
+  const startNodes = flowNodes.filter(n => n.type === 'input' || n.data?.label === 'Start');
+  const regularFlowNodes = flowNodes.filter(n => n.type !== 'input' && n.data?.label !== 'Start');
+  
+  // Position Start node centered
+  startNodes.forEach((node, index) => {
+    const width = 150;
+    const height = 50;
+    node.position = { x: -width / 2 + index * 200, y: START_NODE_Y };
+    node.style = { width, height };
+  });
+  
+  // Phase 1: Position containers horizontally, centered
+  const totalContainersWidth = containers.length * CONTAINER_WIDTH + (containers.length - 1) * CONTAINER_GAP;
+  let containerX = -totalContainersWidth / 2;
+  
+  containers.forEach((container) => {
+    container.position = { x: containerX, y: CONTAINER_Y };
+    container.style = { width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT };
+    containerX += CONTAINER_WIDTH + CONTAINER_GAP;
+  });
+  
+  // Phase 2: Group flow nodes by container using the children array in container data
+  const nodesByContainer = new Map<string, FlowNode[]>();
+  const nodeIdToNode = new Map<string, FlowNode>();
+  regularFlowNodes.forEach(node => nodeIdToNode.set(node.id, node));
+  
+  // Build groups based on container children arrays
+  containers.forEach(container => {
+    const childIds = container.data?.children || [];
+    const childNodes: FlowNode[] = [];
+    childIds.forEach((id: string) => {
+      const node = nodeIdToNode.get(id);
+      if (node) {
+        childNodes.push(node);
+        nodeIdToNode.delete(id); // Remove from orphan pool
+      }
+    });
+    nodesByContainer.set(container.id, childNodes);
+  });
+  
+  // Remaining nodes are orphans
+  const orphanNodes = Array.from(nodeIdToNode.values());
+  
+  // Layout each container's children
+  containers.forEach((container) => {
+    const childNodes = nodesByContainer.get(container.id) || [];
+    if (childNodes.length === 0) return;
+    
+    // Get edges that connect these child nodes
+    const childNodeIds = new Set(childNodes.map(n => n.id));
+    const childEdges = edges.filter(e => childNodeIds.has(e.source) || childNodeIds.has(e.target));
+    
+    // Create a sub-graph for this container's nodes
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({
+      rankdir: 'TB',
+      nodesep: 40,
+      ranksep: 50,
+      marginx: 15,
+      marginy: 15
+    });
+    g.setDefaultEdgeLabel(() => ({}));
+    
+    childNodes.forEach(node => {
+      const isDecision = node.type === 'decision';
+      g.setNode(node.id, {
+        width: isDecision ? 100 : 150,
+        height: isDecision ? 100 : 50
+      });
+    });
+    
+    childEdges.forEach(edge => {
+      if (childNodeIds.has(edge.source) && childNodeIds.has(edge.target)) {
+        g.setEdge(edge.source, edge.target);
+      }
+    });
+    
+    dagre.layout(g);
+    
+    // Calculate the offset to center this group below its container
+    let minX = Infinity, maxX = -Infinity;
+    childNodes.forEach(node => {
+      const pos = g.node(node.id);
+      if (pos) {
+        minX = Math.min(minX, pos.x);
+        maxX = Math.max(maxX, pos.x);
+      }
+    });
+    
+    const groupCenterX = (minX + maxX) / 2;
+    const containerCenterX = container.position.x + CONTAINER_WIDTH / 2;
+    const offsetX = containerCenterX - groupCenterX;
+    
+    // Apply positions with offset (absolute coordinates)
+    childNodes.forEach(node => {
+      const pos = g.node(node.id);
+      if (pos) {
+        const isDecision = node.type === 'decision';
+        const width = isDecision ? 100 : 150;
+        const height = isDecision ? 100 : 50;
+        
+        node.position = {
+          x: pos.x - width / 2 + offsetX,
+          y: pos.y - height / 2 + FLOW_START_Y
+        };
+        node.style = { width, height };
+      }
+    });
+  });
+  
+  // Handle orphan nodes - position below last container
+  if (orphanNodes.length > 0) {
+    const lastContainer = containers[containers.length - 1];
+    const orphanX = lastContainer.position.x + CONTAINER_WIDTH / 2 - 75;
+    
+    orphanNodes.forEach((node, index) => {
+      const isDecision = node.type === 'decision';
+      const width = isDecision ? 100 : 150;
+      const height = isDecision ? 100 : 50;
+      
+      node.position = {
+        x: orphanX,
+        y: FLOW_START_Y + index * 80
+      };
+      node.style = { width, height };
+    });
+  }
 }
 
 export function parseCodeToFlow(code: string): FlowData {

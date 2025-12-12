@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider } from '@xyflow/react';
+import { ReactFlow, Background, Controls, ConnectionLineType, Node, Edge, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider, useOnViewportChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
@@ -51,20 +51,19 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   }, [zoomOut]);
   
   // Determine view level based on zoom
-  // Mile-high view: < 0.7 (70%) - zoomed out view showing only containers
-  // 1000ft view: 0.7 - 1.3 (70-130%) - medium zoom showing all nodes
-  // 100ft view: > 1.3 (130%) - zoomed in detailed view
+  // Mile-high view: < 0.4 (40%) - zoomed way out, overview mode
+  // 1000ft view: 0.4 - 1.0 (40-100%) - normal viewing
+  // 100ft view: > 1.0 (100%) - zoomed in detailed view
   const getViewLevel = useCallback((zoom: number): 'mile-high' | '1000ft' | '100ft' => {
-    if (zoom < 0.7) return 'mile-high';
-    if (zoom < 1.3) return '1000ft';
+    if (zoom < 0.4) return 'mile-high';
+    if (zoom < 1.0) return '1000ft';
     return '100ft';
   }, []);
   
-  // Update zoom level using React Flow's viewport change events
-  const handleViewportChange = useCallback(() => {
-    const zoom = getZoom();
-    setCurrentZoom(zoom);
-  }, [getZoom]);
+  // Track zoom level using React Flow's viewport change hook for reliable updates
+  useOnViewportChange({
+    onChange: ({ zoom }) => setCurrentZoom(zoom),
+  });
 
   // Sync props with internal state when they change (from parser)
   useEffect(() => {
@@ -135,11 +134,11 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => onNodeClick?.(node)}
         onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
-        onMove={handleViewportChange}
-        onMoveEnd={handleViewportChange}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
+        fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.1}
+        maxZoom={2}
         proOptions={{ hideAttribution: true }}
         connectionLineType={ConnectionLineType.SmoothStep}
       >
@@ -163,7 +162,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         <span>
           <span className="text-muted-foreground">View:</span>{' '}
           <span className="text-primary font-semibold">
-            {currentZoom < 0.7 ? 'Mile-High' : currentZoom < 1.3 ? '1000ft' : '100ft'}
+            {currentZoom < 0.4 ? 'Mile-High' : currentZoom < 1.0 ? '1000ft' : '100ft'}
           </span>
           <span className="ml-1 text-muted-foreground">
             ({Math.round(currentZoom * 100)}%)
