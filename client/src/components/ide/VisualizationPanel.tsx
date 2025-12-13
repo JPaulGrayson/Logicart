@@ -1,10 +1,11 @@
 import React from 'react';
 import { SortingVisualizer, PathfindingVisualizer } from '@/components/visualizers';
-import { X, Play, RotateCcw } from 'lucide-react';
+import { X, Play, RotateCcw, MapPin, Target, Blocks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export type VisualizerType = 'sorting' | 'pathfinding' | null;
+export type GridEditMode = 'start' | 'end' | 'wall' | null;
 
 interface SortingState {
   array: number[];
@@ -34,6 +35,9 @@ interface VisualizationPanelProps {
   onReset?: () => void;
   onPlay?: () => void;
   isPlaying?: boolean;
+  editMode?: GridEditMode;
+  onEditModeChange?: (mode: GridEditMode) => void;
+  onCellClick?: (node: { x: number; y: number }) => void;
   className?: string;
 }
 
@@ -46,6 +50,9 @@ export function VisualizationPanel({
   onReset,
   onPlay,
   isPlaying = false,
+  editMode,
+  onEditModeChange,
+  onCellClick,
   className
 }: VisualizationPanelProps) {
   if (!type) return null;
@@ -53,8 +60,14 @@ export function VisualizationPanel({
   const defaultTitle = type === 'sorting' ? 'Sorting Visualization' : 'Pathfinding Visualization';
   const title = customTitle || defaultTitle;
 
+  const toggleEditMode = (mode: GridEditMode) => {
+    if (onEditModeChange) {
+      onEditModeChange(editMode === mode ? null : mode);
+    }
+  };
+
   return (
-    <div className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden", className)}>
+    <div className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-xl", className)}>
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-accent/30">
         <h3 className="text-xs font-semibold text-foreground">{title}</h3>
         <div className="flex items-center gap-1">
@@ -94,7 +107,52 @@ export function VisualizationPanel({
         </div>
       </div>
       
-      <div className="flex-1 min-h-[200px] p-2">
+      {/* Edit mode toolbar for pathfinding */}
+      {type === 'pathfinding' && onEditModeChange && (
+        <div className="flex items-center gap-1 px-3 py-1.5 border-b border-border bg-muted/30">
+          <span className="text-[10px] text-muted-foreground mr-1">Edit:</span>
+          <Button
+            variant={editMode === 'start' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => toggleEditMode('start')}
+            className={cn("h-5 px-2 text-[10px] gap-1", editMode === 'start' && "bg-emerald-600 hover:bg-emerald-700")}
+            data-testid="button-edit-start"
+            title="Click a cell to set start point"
+          >
+            <MapPin className="w-2.5 h-2.5" />
+            Start
+          </Button>
+          <Button
+            variant={editMode === 'end' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => toggleEditMode('end')}
+            className={cn("h-5 px-2 text-[10px] gap-1", editMode === 'end' && "bg-red-600 hover:bg-red-700")}
+            data-testid="button-edit-end"
+            title="Click a cell to set end point"
+          >
+            <Target className="w-2.5 h-2.5" />
+            End
+          </Button>
+          <Button
+            variant={editMode === 'wall' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => toggleEditMode('wall')}
+            className={cn("h-5 px-2 text-[10px] gap-1", editMode === 'wall' && "bg-slate-600 hover:bg-slate-700")}
+            data-testid="button-edit-wall"
+            title="Click cells to add/remove walls"
+          >
+            <Blocks className="w-2.5 h-2.5" />
+            Wall
+          </Button>
+          {editMode && (
+            <span className="text-[9px] text-muted-foreground ml-2 italic">
+              Click grid to place
+            </span>
+          )}
+        </div>
+      )}
+      
+      <div className="flex-1 p-2">
         {type === 'sorting' && sortingState && (
           <SortingVisualizer
             array={sortingState.array}
@@ -116,6 +174,7 @@ export function VisualizationPanel({
             pathNodes={pathfindingState.pathNodes}
             visitedNodes={pathfindingState.visitedNodes}
             currentNode={pathfindingState.currentNode}
+            onCellClick={onCellClick}
           />
         )}
       </div>

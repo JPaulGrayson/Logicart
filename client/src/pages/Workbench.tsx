@@ -28,7 +28,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
-import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState } from '@/components/ide/VisualizationPanel';
+import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
 export default function Workbench() {
@@ -94,6 +94,9 @@ export default function Workbench() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<string | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Grid edit mode for pathfinding visualizer
+  const [gridEditMode, setGridEditMode] = useState<GridEditMode>(null);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -582,7 +585,7 @@ export default function Workbench() {
       adapter.writeFile(example.code);
       setCurrentAlgorithm(exampleId);
       
-      // Stop any running animation
+      // Stop any running animation and reset edit mode
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
@@ -590,6 +593,7 @@ export default function Workbench() {
       setIsAnimating(false);
       setAnimationIndex(0);
       setAnimationSteps([]);
+      setGridEditMode(null);
       
       // Set up the appropriate visualizer
       if (example.category === 'sorting') {
@@ -642,6 +646,78 @@ export default function Workbench() {
     }
     setIsAnimating(false);
     setShowVisualization(false);
+  };
+  
+  // Handle cell click in pathfinding grid for setting start/end/walls
+  const handleGridCellClick = (node: { x: number; y: number }) => {
+    if (!gridEditMode || activeVisualizer !== 'pathfinding') return;
+    
+    // Stop any running animation when editing
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+      animationIntervalRef.current = null;
+    }
+    setIsAnimating(false);
+    setAnimationIndex(0);
+    setAnimationSteps([]);
+    
+    setPathfindingState(prev => {
+      const isWall = prev.wallNodes.some(w => w.x === node.x && w.y === node.y);
+      const isStart = prev.startNode.x === node.x && prev.startNode.y === node.y;
+      const isEnd = prev.endNode.x === node.x && prev.endNode.y === node.y;
+      
+      if (gridEditMode === 'start') {
+        // Don't place start on end or wall
+        if (isEnd) return prev;
+        return {
+          ...prev,
+          startNode: node,
+          wallNodes: prev.wallNodes.filter(w => !(w.x === node.x && w.y === node.y)),
+          pathNodes: [],
+          visitedNodes: [],
+          currentNode: undefined
+        };
+      }
+      
+      if (gridEditMode === 'end') {
+        // Don't place end on start or wall
+        if (isStart) return prev;
+        return {
+          ...prev,
+          endNode: node,
+          wallNodes: prev.wallNodes.filter(w => !(w.x === node.x && w.y === node.y)),
+          pathNodes: [],
+          visitedNodes: [],
+          currentNode: undefined
+        };
+      }
+      
+      if (gridEditMode === 'wall') {
+        // Don't place wall on start or end
+        if (isStart || isEnd) return prev;
+        
+        // Toggle wall
+        if (isWall) {
+          return {
+            ...prev,
+            wallNodes: prev.wallNodes.filter(w => !(w.x === node.x && w.y === node.y)),
+            pathNodes: [],
+            visitedNodes: [],
+            currentNode: undefined
+          };
+        } else {
+          return {
+            ...prev,
+            wallNodes: [...prev.wallNodes, node],
+            pathNodes: [],
+            visitedNodes: [],
+            currentNode: undefined
+          };
+        }
+      }
+      
+      return prev;
+    });
   };
   
   // Helper function to find flowchart node from line number
@@ -1340,7 +1416,7 @@ export default function Workbench() {
               
               {/* Algorithm Visualization Panel - Bottom Left */}
               {showVisualization && activeVisualizer && (
-                <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
+                <div className="absolute bottom-4 left-4 w-[420px] z-50">
                   <VisualizationPanel
                     type={activeVisualizer}
                     title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
@@ -1350,7 +1426,10 @@ export default function Workbench() {
                     onReset={handleResetVisualization}
                     onPlay={handlePlayVisualization}
                     isPlaying={isAnimating}
-                    className="h-full"
+                    editMode={gridEditMode}
+                    onEditModeChange={setGridEditMode}
+                    onCellClick={handleGridCellClick}
+                    className="h-auto"
                   />
                 </div>
               )}
@@ -1513,7 +1592,7 @@ export default function Workbench() {
               
               {/* Algorithm Visualization Panel - Fullscreen */}
               {showVisualization && activeVisualizer && (
-                <div className="absolute bottom-4 left-4 w-96 h-64 z-10">
+                <div className="absolute bottom-4 left-4 w-[420px] z-50">
                   <VisualizationPanel
                     type={activeVisualizer}
                     title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
@@ -1523,7 +1602,10 @@ export default function Workbench() {
                     onReset={handleResetVisualization}
                     onPlay={handlePlayVisualization}
                     isPlaying={isAnimating}
-                    className="h-full"
+                    editMode={gridEditMode}
+                    onEditModeChange={setGridEditMode}
+                    onCellClick={handleGridCellClick}
+                    className="h-auto"
                   />
                 </div>
               )}
