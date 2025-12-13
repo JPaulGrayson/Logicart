@@ -1,11 +1,13 @@
-import type { SortingState, PathfindingState } from '@/components/ide/VisualizationPanel';
+import type { SortingState, PathfindingState, CalculatorState, QuizState, TicTacToeState, FibonacciState, SnakeState } from '@/components/ide/VisualizationPanel';
+
+export type AnimationStepType = 'sorting' | 'pathfinding' | 'calculator' | 'quiz' | 'tictactoe' | 'fibonacci' | 'snake';
 
 export interface AnimationStep {
-  type: 'sorting' | 'pathfinding';
-  state: SortingState | PathfindingState;
+  type: AnimationStepType;
+  state: SortingState | PathfindingState | CalculatorState | QuizState | TicTacToeState | FibonacciState | SnakeState;
   description?: string;
   lineNumber?: number;
-  stepType?: 'init' | 'compare' | 'swap' | 'complete' | 'process' | 'discover' | 'path' | 'pivot';
+  stepType?: 'init' | 'compare' | 'swap' | 'complete' | 'process' | 'discover' | 'path' | 'pivot' | 'parse' | 'calculate' | 'result' | 'answer' | 'move' | 'evaluate' | 'compute' | 'memoize';
 }
 
 export interface LineMapping {
@@ -516,5 +518,384 @@ export function generateMazeSolverSteps(
     });
   }
 
+  return steps;
+}
+
+// Calculator visualization - shows expression parsing and evaluation
+export function generateCalculatorSteps(expression: string): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  
+  // Parse expression like "12 + 5" or "24 * 3"
+  const match = expression.match(/(\d+)\s*([+\-*/])\s*(\d+)/);
+  if (!match) {
+    steps.push({
+      type: 'calculator',
+      state: { expression, num1: '', num2: '', operator: '', result: 'Invalid expression', currentStep: null },
+      description: 'Invalid expression format',
+      stepType: 'result'
+    });
+    return steps;
+  }
+  
+  const [, num1, operator, num2] = match;
+  
+  // Step 1: Initial state
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1: '', num2: '', operator: '', result: '', currentStep: null },
+    description: 'Starting calculation',
+    stepType: 'init'
+  });
+  
+  // Step 2: Parse first number
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1, num2: '', operator: '', result: '', currentStep: 'parse' },
+    description: `Parsing first number: ${num1}`,
+    stepType: 'parse'
+  });
+  
+  // Step 3: Parse operator
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1, num2: '', operator, result: '', currentStep: 'parse' },
+    description: `Found operator: ${operator}`,
+    stepType: 'parse'
+  });
+  
+  // Step 4: Parse second number
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1, num2, operator, result: '', currentStep: 'parse' },
+    description: `Parsing second number: ${num2}`,
+    stepType: 'parse'
+  });
+  
+  // Step 5: Calculate
+  let result: number;
+  switch (operator) {
+    case '+': result = parseInt(num1) + parseInt(num2); break;
+    case '-': result = parseInt(num1) - parseInt(num2); break;
+    case '*': result = parseInt(num1) * parseInt(num2); break;
+    case '/': result = parseInt(num1) / parseInt(num2); break;
+    default: result = 0;
+  }
+  
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1, num2, operator, result: '', currentStep: 'calculate' },
+    description: `Calculating ${num1} ${operator} ${num2}`,
+    stepType: 'calculate'
+  });
+  
+  // Step 6: Show result
+  steps.push({
+    type: 'calculator',
+    state: { expression, num1, num2, operator, result, currentStep: 'result' },
+    description: `Result: ${result}`,
+    stepType: 'result'
+  });
+  
+  return steps;
+}
+
+// Quiz visualization - shows question/answer flow
+export function generateQuizSteps(): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  
+  const questions = [
+    { question: 'What is 2 + 2?', options: ['3', '4', '5', '6'], correctAnswer: 1 },
+    { question: 'Capital of France?', options: ['London', 'Berlin', 'Paris', 'Madrid'], correctAnswer: 2 },
+    { question: 'Largest planet?', options: ['Mars', 'Jupiter', 'Saturn', 'Venus'], correctAnswer: 1 }
+  ];
+  
+  let score = 0;
+  
+  // Initial state
+  steps.push({
+    type: 'quiz',
+    state: { question: '', options: [], correctAnswer: 0, selectedAnswer: null, score: 0, totalQuestions: questions.length, currentQuestion: 0, isAnswered: false },
+    description: 'Starting quiz',
+    stepType: 'init'
+  });
+  
+  questions.forEach((q, idx) => {
+    // Show question
+    steps.push({
+      type: 'quiz',
+      state: { question: q.question, options: q.options, correctAnswer: q.correctAnswer, selectedAnswer: null, score, totalQuestions: questions.length, currentQuestion: idx + 1, isAnswered: false },
+      description: `Question ${idx + 1}: ${q.question}`,
+      stepType: 'process'
+    });
+    
+    // Simulate answer (correct answer for demo)
+    steps.push({
+      type: 'quiz',
+      state: { question: q.question, options: q.options, correctAnswer: q.correctAnswer, selectedAnswer: q.correctAnswer, score, totalQuestions: questions.length, currentQuestion: idx + 1, isAnswered: false },
+      description: `Selected: ${q.options[q.correctAnswer]}`,
+      stepType: 'answer'
+    });
+    
+    // Check answer
+    score++;
+    steps.push({
+      type: 'quiz',
+      state: { question: q.question, options: q.options, correctAnswer: q.correctAnswer, selectedAnswer: q.correctAnswer, score, totalQuestions: questions.length, currentQuestion: idx + 1, isAnswered: true },
+      description: 'Correct!',
+      stepType: 'result'
+    });
+  });
+  
+  // Final score
+  steps.push({
+    type: 'quiz',
+    state: { question: 'Quiz Complete!', options: [], correctAnswer: 0, selectedAnswer: null, score, totalQuestions: questions.length, currentQuestion: questions.length, isAnswered: true },
+    description: `Final Score: ${score}/${questions.length}`,
+    stepType: 'complete'
+  });
+  
+  return steps;
+}
+
+// TicTacToe visualization - shows game moves with minimax evaluation
+export function generateTicTacToeSteps(): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  
+  // Predefined game sequence: X wins diagonally
+  const moves = [
+    { cell: 4, player: 'X' }, // Center
+    { cell: 0, player: 'O' }, // Top-left
+    { cell: 2, player: 'X' }, // Top-right
+    { cell: 6, player: 'O' }, // Bottom-left
+    { cell: 8, player: 'X' }, // Bottom-right (diagonal)
+    { cell: 1, player: 'O' }, // Top-center
+    { cell: 5, player: 'X' }, // Middle-right
+    { cell: 3, player: 'O' }, // Middle-left
+    { cell: 7, player: 'X' }  // Bottom-center (X wins)
+  ];
+  
+  const board: (string | null)[] = Array(9).fill(null);
+  
+  // Initial state
+  steps.push({
+    type: 'tictactoe',
+    state: { board: [...board], currentPlayer: 'X', winner: null, highlightedCell: null, evaluatingCell: null, evaluationScore: null },
+    description: 'Starting Tic-Tac-Toe',
+    stepType: 'init'
+  });
+  
+  for (let i = 0; i < moves.length; i++) {
+    const move = moves[i];
+    
+    // Show evaluation
+    steps.push({
+      type: 'tictactoe',
+      state: { board: [...board], currentPlayer: move.player as 'X' | 'O', winner: null, highlightedCell: null, evaluatingCell: move.cell, evaluationScore: move.player === 'X' ? 1 : -1 },
+      description: `${move.player} evaluating cell ${move.cell}`,
+      stepType: 'evaluate'
+    });
+    
+    // Make move
+    board[move.cell] = move.player;
+    
+    // Check for winner after this move
+    const winPatterns = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let winner: string | null = null;
+    for (const pattern of winPatterns) {
+      if (board[pattern[0]] && board[pattern[0]] === board[pattern[1]] && board[pattern[1]] === board[pattern[2]]) {
+        winner = board[pattern[0]];
+        break;
+      }
+    }
+    
+    steps.push({
+      type: 'tictactoe',
+      state: { board: [...board], currentPlayer: move.player === 'X' ? 'O' : 'X', winner, highlightedCell: move.cell, evaluatingCell: null, evaluationScore: null },
+      description: winner ? `${winner} wins!` : `${move.player} plays at cell ${move.cell}`,
+      stepType: winner ? 'complete' : 'move'
+    });
+    
+    if (winner) break;
+  }
+  
+  return steps;
+}
+
+// Fibonacci visualization - shows recursive memoization
+export function generateFibonacciSteps(n: number = 8): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  const sequence: number[] = [];
+  const memoized: number[] = [];
+  
+  // Initial state
+  steps.push({
+    type: 'fibonacci',
+    state: { sequence: [], currentIndex: null, memoizedIndices: [], computingN: n, callStack: [] },
+    description: `Computing Fibonacci(${n})`,
+    stepType: 'init'
+  });
+  
+  // Iterative fibonacci with visualization
+  for (let i = 0; i <= n; i++) {
+    // Show computing step
+    steps.push({
+      type: 'fibonacci',
+      state: { sequence: [...sequence], currentIndex: i, memoizedIndices: [...memoized], computingN: i, callStack: i > 1 ? [i-1, i-2] : [] },
+      description: i <= 1 ? `Base case: F(${i}) = ${i}` : `Computing F(${i}) = F(${i-1}) + F(${i-2})`,
+      stepType: 'compute'
+    });
+    
+    // Calculate value
+    const value = i <= 1 ? i : sequence[i-1] + sequence[i-2];
+    sequence.push(value);
+    memoized.push(i);
+    
+    // Show memoization
+    steps.push({
+      type: 'fibonacci',
+      state: { sequence: [...sequence], currentIndex: i, memoizedIndices: [...memoized], computingN: null, callStack: [] },
+      description: `F(${i}) = ${value} (memoized)`,
+      stepType: 'memoize'
+    });
+  }
+  
+  // Complete
+  steps.push({
+    type: 'fibonacci',
+    state: { sequence: [...sequence], currentIndex: null, memoizedIndices: [...memoized], computingN: null, callStack: [] },
+    description: `Sequence complete: ${sequence.join(', ')}`,
+    stepType: 'complete'
+  });
+  
+  return steps;
+}
+
+// Snake game visualization - shows movement algorithm
+export function generateSnakeSteps(): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  const gridSize = 10;
+  
+  // Helper to check if position is on snake
+  const isOnSnake = (pos: { x: number; y: number }, snakeBody: { x: number; y: number }[]) => {
+    return snakeBody.some(s => s.x === pos.x && s.y === pos.y);
+  };
+  
+  // Helper to find valid food position
+  const findFoodPosition = (snakeBody: { x: number; y: number }[]): { x: number; y: number } => {
+    let attempts = 0;
+    while (attempts < 100) {
+      const pos = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
+      if (!isOnSnake(pos, snakeBody)) return pos;
+      attempts++;
+    }
+    return { x: 0, y: 0 };
+  };
+  
+  // Initial snake position
+  let snake = [
+    { x: 5, y: 5 },
+    { x: 4, y: 5 },
+    { x: 3, y: 5 }
+  ];
+  let food = { x: 7, y: 5 };
+  let score = 0;
+  let direction: 'up' | 'down' | 'left' | 'right' = 'right';
+  
+  // Initial state
+  steps.push({
+    type: 'snake',
+    state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: false, direction, highlightedSegment: null },
+    description: 'Starting Snake game',
+    stepType: 'init'
+  });
+  
+  // Simulate movement - a simple path that eats food
+  const moves: Array<'up' | 'down' | 'left' | 'right'> = [
+    'right', 'right', 'up', 'up', 'left', 'left', 'down', 'right', 'right', 'down', 'down', 'left'
+  ];
+  
+  for (let i = 0; i < moves.length; i++) {
+    const newDirection = moves[i];
+    
+    // Show direction change step if direction changed
+    if (newDirection !== direction) {
+      steps.push({
+        type: 'snake',
+        state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: false, direction: newDirection, highlightedSegment: 0 },
+        description: `Turning ${newDirection}`,
+        stepType: 'process'
+      });
+    }
+    
+    direction = newDirection;
+    const head = { ...snake[0] };
+    
+    // Calculate new head position
+    switch (direction) {
+      case 'up': head.y--; break;
+      case 'down': head.y++; break;
+      case 'left': head.x--; break;
+      case 'right': head.x++; break;
+    }
+    
+    // Check boundaries
+    if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+      steps.push({
+        type: 'snake',
+        state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: true, direction, highlightedSegment: 0 },
+        description: 'Game Over: Hit wall!',
+        stepType: 'complete'
+      });
+      break;
+    }
+    
+    // Check self collision
+    if (isOnSnake(head, snake)) {
+      steps.push({
+        type: 'snake',
+        state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: true, direction, highlightedSegment: 0 },
+        description: 'Game Over: Hit self!',
+        stepType: 'complete'
+      });
+      break;
+    }
+    
+    // Move snake
+    snake = [head, ...snake];
+    
+    // Check if ate food
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      // Find new food position that's not on snake
+      food = findFoodPosition(snake);
+      
+      steps.push({
+        type: 'snake',
+        state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: false, direction, highlightedSegment: 0 },
+        description: `Ate food! Score: ${score}`,
+        stepType: 'result'
+      });
+    } else {
+      snake = snake.slice(0, -1);
+      
+      steps.push({
+        type: 'snake',
+        state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: false, direction, highlightedSegment: null },
+        description: `Moving ${direction}`,
+        stepType: 'move'
+      });
+    }
+  }
+  
+  // Final state if we didn't hit a wall
+  if (steps[steps.length - 1].stepType !== 'complete') {
+    steps.push({
+      type: 'snake',
+      state: { gridSize, snake: snake.map(s => ({...s})), food: {...food}, score, gameOver: false, direction, highlightedSegment: null },
+      description: `Simulation complete! Final score: ${score}`,
+      stepType: 'complete'
+    });
+  }
+  
   return steps;
 }

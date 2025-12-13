@@ -29,7 +29,7 @@ import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
-import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, type AnimationStep } from '@/lib/visualizationAnimation';
+import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -802,6 +802,16 @@ export default function Workbench() {
       setSortingState(step.state as SortingState);
     } else if (step.type === 'pathfinding') {
       setPathfindingState(step.state as PathfindingState);
+    } else if (step.type === 'calculator') {
+      setCalculatorState(step.state as CalculatorState);
+    } else if (step.type === 'quiz') {
+      setQuizState(step.state as QuizState);
+    } else if (step.type === 'tictactoe') {
+      setTictactoeState(step.state as TicTacToeState);
+    } else if (step.type === 'fibonacci') {
+      setFibonacciState(step.state as FibonacciState);
+    } else if (step.type === 'snake') {
+      setSnakeState(step.state as SnakeState);
     }
     
     // Highlight corresponding flowchart node
@@ -900,6 +910,16 @@ export default function Workbench() {
           DEFAULT_PATHFINDING_STATE.cols,
           DEFAULT_PATHFINDING_STATE.wallNodes
         );
+      } else if (currentAlgorithm === 'calculator') {
+        steps = generateCalculatorSteps(calculatorState.expression || '12 + 5');
+      } else if (currentAlgorithm === 'quiz') {
+        steps = generateQuizSteps();
+      } else if (currentAlgorithm === 'tictactoe' || currentAlgorithm === 'minimax') {
+        steps = generateTicTacToeSteps();
+      } else if (currentAlgorithm === 'fibonacci') {
+        steps = generateFibonacciSteps(8);
+      } else if (currentAlgorithm === 'snake') {
+        steps = generateSnakeSteps();
       }
       setAnimationSteps(steps);
     }
