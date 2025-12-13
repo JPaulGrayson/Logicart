@@ -200,7 +200,7 @@ export function VisualizationPanel({
         </div>
       )}
       
-      <div className="flex-1 p-2">
+      <div className="flex-1 p-2 min-h-[180px]">
         {type === 'sorting' && sortingState && (
           <SortingVisualizer
             array={sortingState.array}
@@ -208,7 +208,7 @@ export function VisualizationPanel({
             sortedIndices={sortingState.sortedIndices}
             swapIndices={sortingState.swapIndices}
             pivotIndex={sortingState.pivotIndex}
-            className="h-full"
+            className="h-full min-h-[160px]"
           />
         )}
         
