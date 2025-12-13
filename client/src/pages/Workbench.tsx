@@ -29,7 +29,7 @@ import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState } from '@/components/ide/VisualizationPanel';
-import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, type AnimationStep } from '@/lib/visualizationAnimation';
+import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
@@ -785,6 +785,14 @@ export default function Workbench() {
         steps = generateQuickSortSteps([64, 34, 25, 12, 22, 11, 90]);
       } else if (currentAlgorithm === 'astar') {
         steps = generateAStarSteps(
+          DEFAULT_PATHFINDING_STATE.startNode,
+          DEFAULT_PATHFINDING_STATE.endNode,
+          DEFAULT_PATHFINDING_STATE.rows,
+          DEFAULT_PATHFINDING_STATE.cols,
+          DEFAULT_PATHFINDING_STATE.wallNodes
+        );
+      } else if (currentAlgorithm === 'maze') {
+        steps = generateMazeSolverSteps(
           DEFAULT_PATHFINDING_STATE.startNode,
           DEFAULT_PATHFINDING_STATE.endNode,
           DEFAULT_PATHFINDING_STATE.rows,

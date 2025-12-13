@@ -32,6 +32,13 @@ export interface LineMapping {
     path: number;
     complete: number;
   };
+  maze: {
+    init: number;
+    explore: number;
+    backtrack: number;
+    path: number;
+    complete: number;
+  };
 }
 
 export const LINE_MAPPINGS: LineMapping = {
@@ -57,6 +64,13 @@ export const LINE_MAPPINGS: LineMapping = {
     discover: 42,
     path: 21,
     complete: 50
+  },
+  maze: {
+    init: 2,
+    explore: 8,
+    backtrack: 12,
+    path: 15,
+    complete: 20
   }
 };
 
@@ -371,6 +385,136 @@ export function generateAStarSteps(
     lineNumber: lines.complete,
     stepType: 'complete'
   });
+
+  return steps;
+}
+
+// Maze solver using recursive backtracking (DFS)
+export function generateMazeSolverSteps(
+  startNode: Node,
+  endNode: Node,
+  rows: number,
+  cols: number,
+  walls: Node[]
+): AnimationStep[] {
+  const steps: AnimationStep[] = [];
+  const wallSet = new Set(walls.map(w => `${w.x},${w.y}`));
+  const lines = LINE_MAPPINGS.maze;
+  
+  const baseState = (): PathfindingState => ({
+    rows,
+    cols,
+    startNode,
+    endNode,
+    wallNodes: walls,
+    pathNodes: [],
+    visitedNodes: [],
+    currentNode: undefined
+  });
+
+  steps.push({
+    type: 'pathfinding',
+    state: baseState(),
+    description: 'Starting Maze Solver (DFS backtracking)',
+    lineNumber: lines.init,
+    stepType: 'init'
+  });
+
+  const visited: Node[] = [];
+  const path: Node[] = [];
+  const key = (n: Node) => `${n.x},${n.y}`;
+  const visitedSet = new Set<string>();
+
+  function solve(current: Node): boolean {
+    if (steps.length > 200) return false; // Limit steps
+    
+    if (current.x < 0 || current.x >= cols || current.y < 0 || current.y >= rows) {
+      return false;
+    }
+    
+    if (wallSet.has(key(current)) || visitedSet.has(key(current))) {
+      return false;
+    }
+
+    visitedSet.add(key(current));
+    visited.push(current);
+    path.push(current);
+
+    steps.push({
+      type: 'pathfinding',
+      state: {
+        ...baseState(),
+        visitedNodes: [...visited],
+        pathNodes: [...path],
+        currentNode: current
+      },
+      description: `Exploring cell (${current.x}, ${current.y})`,
+      lineNumber: lines.explore,
+      stepType: 'process'
+    });
+
+    if (current.x === endNode.x && current.y === endNode.y) {
+      steps.push({
+        type: 'pathfinding',
+        state: {
+          ...baseState(),
+          visitedNodes: [...visited],
+          pathNodes: [...path],
+          currentNode: undefined
+        },
+        description: 'Exit found!',
+        lineNumber: lines.complete,
+        stepType: 'complete'
+      });
+      return true;
+    }
+
+    const directions = [
+      { x: current.x, y: current.y - 1 },
+      { x: current.x + 1, y: current.y },
+      { x: current.x, y: current.y + 1 },
+      { x: current.x - 1, y: current.y }
+    ];
+
+    for (const next of directions) {
+      if (solve(next)) {
+        return true;
+      }
+    }
+
+    path.pop();
+    steps.push({
+      type: 'pathfinding',
+      state: {
+        ...baseState(),
+        visitedNodes: [...visited],
+        pathNodes: [...path],
+        currentNode: current
+      },
+      description: `Backtracking from (${current.x}, ${current.y})`,
+      lineNumber: lines.backtrack,
+      stepType: 'discover'
+    });
+
+    return false;
+  }
+
+  const found = solve(startNode);
+
+  if (!found && steps.length <= 200) {
+    steps.push({
+      type: 'pathfinding',
+      state: {
+        ...baseState(),
+        visitedNodes: [...visited],
+        pathNodes: [],
+        currentNode: undefined
+      },
+      description: 'No path found!',
+      lineNumber: lines.complete,
+      stepType: 'complete'
+    });
+  }
 
   return steps;
 }
