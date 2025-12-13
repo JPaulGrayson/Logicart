@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { SortingVisualizer, PathfindingVisualizer } from '@/components/visualizers';
-import { X, Play, RotateCcw, MapPin, Target, Blocks } from 'lucide-react';
+import { X, Play, RotateCcw, MapPin, Target, Blocks, GripHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -55,6 +55,38 @@ export function VisualizationPanel({
   onCellClick,
   className
 }: VisualizationPanelProps) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: position.x,
+      initialY: position.y
+    };
+  }, [position]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !dragRef.current) return;
+    
+    const deltaX = e.clientX - dragRef.current.startX;
+    const deltaY = e.clientY - dragRef.current.startY;
+    
+    setPosition({
+      x: dragRef.current.initialX + deltaX,
+      y: dragRef.current.initialY + deltaY
+    });
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    dragRef.current = null;
+  }, []);
+
   if (!type) return null;
 
   const defaultTitle = type === 'sorting' ? 'Sorting Visualization' : 'Pathfinding Visualization';
@@ -67,9 +99,25 @@ export function VisualizationPanel({
   };
 
   return (
-    <div className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-xl", className)}>
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-accent/30">
-        <h3 className="text-xs font-semibold text-foreground">{title}</h3>
+    <div 
+      className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-xl", className)}
+      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      <div 
+        className={cn(
+          "flex items-center justify-between px-3 py-2 border-b border-border bg-accent/30",
+          "cursor-grab select-none",
+          isDragging && "cursor-grabbing"
+        )}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="flex items-center gap-2">
+          <GripHorizontal className="w-3 h-3 text-muted-foreground" />
+          <h3 className="text-xs font-semibold text-foreground">{title}</h3>
+        </div>
         <div className="flex items-center gap-1">
           {onPlay && (
             <Button
