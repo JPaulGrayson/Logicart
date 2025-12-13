@@ -1,10 +1,18 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { SortingVisualizer, PathfindingVisualizer } from '@/components/visualizers';
+import { 
+  SortingVisualizer, 
+  PathfindingVisualizer,
+  CalculatorVisualizer,
+  QuizVisualizer,
+  TicTacToeVisualizer,
+  FibonacciVisualizer,
+  SnakeVisualizer
+} from '@/components/visualizers';
 import { X, Play, RotateCcw, MapPin, Target, Blocks, GripHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type VisualizerType = 'sorting' | 'pathfinding' | null;
+export type VisualizerType = 'sorting' | 'pathfinding' | 'calculator' | 'quiz' | 'tictactoe' | 'fibonacci' | 'snake' | null;
 export type GridEditMode = 'start' | 'end' | 'wall' | null;
 
 interface SortingState {
@@ -26,11 +34,63 @@ interface PathfindingState {
   currentNode?: { x: number; y: number };
 }
 
+interface CalculatorState {
+  expression: string;
+  num1: string;
+  num2: string;
+  operator: string;
+  result: string | number;
+  currentStep: 'parse' | 'calculate' | 'result' | null;
+}
+
+interface QuizState {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  selectedAnswer: number | null;
+  score: number;
+  totalQuestions: number;
+  currentQuestion: number;
+  isAnswered: boolean;
+}
+
+interface TicTacToeState {
+  board: (string | null)[];
+  currentPlayer: 'X' | 'O';
+  winner: string | null;
+  highlightedCell: number | null;
+  evaluatingCell: number | null;
+  evaluationScore: number | null;
+}
+
+interface FibonacciState {
+  sequence: number[];
+  currentIndex: number | null;
+  memoizedIndices: number[];
+  computingN: number | null;
+  callStack: number[];
+}
+
+interface SnakeState {
+  gridSize: number;
+  snake: { x: number; y: number }[];
+  food: { x: number; y: number };
+  score: number;
+  gameOver: boolean;
+  direction: 'up' | 'down' | 'left' | 'right';
+  highlightedSegment: number | null;
+}
+
 interface VisualizationPanelProps {
   type: VisualizerType;
   title?: string;
   sortingState?: SortingState;
   pathfindingState?: PathfindingState;
+  calculatorState?: CalculatorState;
+  quizState?: QuizState;
+  tictactoeState?: TicTacToeState;
+  fibonacciState?: FibonacciState;
+  snakeState?: SnakeState;
   onClose?: () => void;
   onReset?: () => void;
   onPlay?: () => void;
@@ -46,6 +106,11 @@ export function VisualizationPanel({
   title: customTitle,
   sortingState,
   pathfindingState,
+  calculatorState,
+  quizState,
+  tictactoeState,
+  fibonacciState,
+  snakeState,
   onClose,
   onReset,
   onPlay,
@@ -89,8 +154,19 @@ export function VisualizationPanel({
 
   if (!type) return null;
 
-  const defaultTitle = type === 'sorting' ? 'Sorting Visualization' : 'Pathfinding Visualization';
-  const title = customTitle || defaultTitle;
+  const getDefaultTitle = () => {
+    switch (type) {
+      case 'sorting': return 'Sorting Visualization';
+      case 'pathfinding': return 'Pathfinding Visualization';
+      case 'calculator': return 'Calculator';
+      case 'quiz': return 'Quiz Game';
+      case 'tictactoe': return 'Tic-Tac-Toe AI';
+      case 'fibonacci': return 'Fibonacci Sequence';
+      case 'snake': return 'Snake Game';
+      default: return 'Visualization';
+    }
+  };
+  const title = customTitle || getDefaultTitle();
 
   const toggleEditMode = (mode: GridEditMode) => {
     if (onEditModeChange) {
@@ -224,6 +300,63 @@ export function VisualizationPanel({
             onCellClick={onCellClick}
           />
         )}
+        
+        {type === 'calculator' && calculatorState && (
+          <CalculatorVisualizer
+            expression={calculatorState.expression}
+            num1={calculatorState.num1}
+            num2={calculatorState.num2}
+            operator={calculatorState.operator}
+            result={calculatorState.result}
+            currentStep={calculatorState.currentStep}
+          />
+        )}
+        
+        {type === 'quiz' && quizState && (
+          <QuizVisualizer
+            question={quizState.question}
+            options={quizState.options}
+            correctAnswer={quizState.correctAnswer}
+            selectedAnswer={quizState.selectedAnswer}
+            score={quizState.score}
+            totalQuestions={quizState.totalQuestions}
+            currentQuestion={quizState.currentQuestion}
+            isAnswered={quizState.isAnswered}
+          />
+        )}
+        
+        {type === 'tictactoe' && tictactoeState && (
+          <TicTacToeVisualizer
+            board={tictactoeState.board}
+            currentPlayer={tictactoeState.currentPlayer}
+            winner={tictactoeState.winner}
+            highlightedCell={tictactoeState.highlightedCell}
+            evaluatingCell={tictactoeState.evaluatingCell}
+            evaluationScore={tictactoeState.evaluationScore}
+          />
+        )}
+        
+        {type === 'fibonacci' && fibonacciState && (
+          <FibonacciVisualizer
+            sequence={fibonacciState.sequence}
+            currentIndex={fibonacciState.currentIndex}
+            memoizedIndices={fibonacciState.memoizedIndices}
+            computingN={fibonacciState.computingN}
+            callStack={fibonacciState.callStack}
+          />
+        )}
+        
+        {type === 'snake' && snakeState && (
+          <SnakeVisualizer
+            gridSize={snakeState.gridSize}
+            snake={snakeState.snake}
+            food={snakeState.food}
+            score={snakeState.score}
+            gameOver={snakeState.gameOver}
+            direction={snakeState.direction}
+            highlightedSegment={snakeState.highlightedSegment}
+          />
+        )}
       </div>
     </div>
   );
@@ -249,4 +382,63 @@ export const DEFAULT_PATHFINDING_STATE: PathfindingState = {
   visitedNodes: [],
 };
 
-export type { SortingState, PathfindingState };
+export const DEFAULT_CALCULATOR_STATE: CalculatorState = {
+  expression: '12+5',
+  num1: '',
+  num2: '',
+  operator: '',
+  result: '',
+  currentStep: null,
+};
+
+export const DEFAULT_QUIZ_STATE: QuizState = {
+  question: 'What is the capital of France?',
+  options: ['London', 'Berlin', 'Paris', 'Madrid'],
+  correctAnswer: 2,
+  selectedAnswer: null,
+  score: 0,
+  totalQuestions: 3,
+  currentQuestion: 0,
+  isAnswered: false,
+};
+
+export const DEFAULT_TICTACTOE_STATE: TicTacToeState = {
+  board: [null, null, null, null, null, null, null, null, null],
+  currentPlayer: 'X',
+  winner: null,
+  highlightedCell: null,
+  evaluatingCell: null,
+  evaluationScore: null,
+};
+
+export const DEFAULT_FIBONACCI_STATE: FibonacciState = {
+  sequence: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55],
+  currentIndex: null,
+  memoizedIndices: [],
+  computingN: null,
+  callStack: [],
+};
+
+export const DEFAULT_SNAKE_STATE: SnakeState = {
+  gridSize: 8,
+  snake: [
+    { x: 3, y: 3 },
+    { x: 2, y: 3 },
+    { x: 1, y: 3 },
+  ],
+  food: { x: 5, y: 5 },
+  score: 0,
+  gameOver: false,
+  direction: 'right',
+  highlightedSegment: null,
+};
+
+export type { 
+  SortingState, 
+  PathfindingState, 
+  CalculatorState, 
+  QuizState, 
+  TicTacToeState, 
+  FibonacciState, 
+  SnakeState 
+};

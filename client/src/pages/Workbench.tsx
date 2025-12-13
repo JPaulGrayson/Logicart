@@ -28,7 +28,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
-import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, type VisualizerType, type SortingState, type PathfindingState, type GridEditMode } from '@/components/ide/VisualizationPanel';
+import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
 export default function Workbench() {
@@ -88,6 +88,11 @@ export default function Workbench() {
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(null);
   const [sortingState, setSortingState] = useState<SortingState>(DEFAULT_SORTING_STATE);
   const [pathfindingState, setPathfindingState] = useState<PathfindingState>(DEFAULT_PATHFINDING_STATE);
+  const [calculatorState, setCalculatorState] = useState<CalculatorState>(DEFAULT_CALCULATOR_STATE);
+  const [quizState, setQuizState] = useState<QuizState>(DEFAULT_QUIZ_STATE);
+  const [tictactoeState, setTictactoeState] = useState<TicTacToeState>(DEFAULT_TICTACTOE_STATE);
+  const [fibonacciState, setFibonacciState] = useState<FibonacciState>(DEFAULT_FIBONACCI_STATE);
+  const [snakeState, setSnakeState] = useState<SnakeState>(DEFAULT_SNAKE_STATE);
   const [showVisualization, setShowVisualization] = useState(false);
   const [animationSteps, setAnimationSteps] = useState<AnimationStep[]>([]);
   const [animationIndex, setAnimationIndex] = useState(0);
@@ -595,7 +600,7 @@ export default function Workbench() {
       setAnimationSteps([]);
       setGridEditMode(null);
       
-      // Set up the appropriate visualizer
+      // Set up the appropriate visualizer based on example id
       if (example.category === 'sorting') {
         setActiveVisualizer('sorting');
         setSortingState({
@@ -608,6 +613,26 @@ export default function Workbench() {
       } else if (example.category === 'pathfinding') {
         setActiveVisualizer('pathfinding');
         setPathfindingState(DEFAULT_PATHFINDING_STATE);
+        setShowVisualization(true);
+      } else if (exampleId === 'calculator') {
+        setActiveVisualizer('calculator');
+        setCalculatorState(DEFAULT_CALCULATOR_STATE);
+        setShowVisualization(true);
+      } else if (exampleId === 'quiz') {
+        setActiveVisualizer('quiz');
+        setQuizState(DEFAULT_QUIZ_STATE);
+        setShowVisualization(true);
+      } else if (exampleId === 'minimax') {
+        setActiveVisualizer('tictactoe');
+        setTictactoeState(DEFAULT_TICTACTOE_STATE);
+        setShowVisualization(true);
+      } else if (exampleId === 'fibonacci') {
+        setActiveVisualizer('fibonacci');
+        setFibonacciState(DEFAULT_FIBONACCI_STATE);
+        setShowVisualization(true);
+      } else if (exampleId === 'snake') {
+        setActiveVisualizer('snake');
+        setSnakeState(DEFAULT_SNAKE_STATE);
         setShowVisualization(true);
       } else {
         setActiveVisualizer(null);
@@ -1422,6 +1447,11 @@ export default function Workbench() {
                     title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
                     sortingState={sortingState}
                     pathfindingState={pathfindingState}
+                    calculatorState={calculatorState}
+                    quizState={quizState}
+                    tictactoeState={tictactoeState}
+                    fibonacciState={fibonacciState}
+                    snakeState={snakeState}
                     onClose={handleCloseVisualization}
                     onReset={handleResetVisualization}
                     onPlay={handlePlayVisualization}
@@ -1598,6 +1628,11 @@ export default function Workbench() {
                     title={currentAlgorithm ? algorithmExamples.find(e => e.id === currentAlgorithm)?.name : undefined}
                     sortingState={sortingState}
                     pathfindingState={pathfindingState}
+                    calculatorState={calculatorState}
+                    quizState={quizState}
+                    tictactoeState={tictactoeState}
+                    fibonacciState={fibonacciState}
+                    snakeState={snakeState}
                     onClose={handleCloseVisualization}
                     onReset={handleResetVisualization}
                     onPlay={handlePlayVisualization}
