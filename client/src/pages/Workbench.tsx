@@ -1102,7 +1102,7 @@ export default function Workbench() {
                       variant={showDiff ? "default" : "outline"}
                       size="sm"
                       onClick={() => setShowDiff(!showDiff)}
-                      className="w-full justify-start gap-2 h-7 text-xs"
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                       data-testid="button-ghost-diff"
                     >
                       <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
@@ -1113,8 +1113,8 @@ export default function Workbench() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open('#', '_blank')}
-                    className="w-full justify-start gap-2 h-7 text-xs"
+                    onClick={() => setHelpDialogOpen(true)}
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-documentation"
                   >
                     <BookOpen className="w-3 h-3" />
@@ -1125,8 +1125,15 @@ export default function Workbench() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {/* TODO: Implement share */}}
-                    className="w-full justify-start gap-2 h-7 text-xs"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(window.location.href);
+                        alert('Link copied to clipboard!');
+                      } catch {
+                        alert('Could not copy link');
+                      }
+                    }}
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-share"
                   >
                     <Share2 className="w-3 h-3" />
@@ -1193,7 +1200,7 @@ export default function Workbench() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowFloatingVariables(!showFloatingVariables)}
-                    className="w-full justify-start gap-2 h-7 text-xs"
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-toggle-variables"
                   >
                     Variables {showFloatingVariables ? '✓' : ''}
@@ -1251,7 +1258,7 @@ export default function Workbench() {
                     variant="outline"
                     size="sm"
                     onClick={handleExportPNG}
-                    className="w-full justify-start gap-2 h-7 text-xs"
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-export-png"
                   >
                     <Download className="w-3 h-3" />
@@ -1262,7 +1269,7 @@ export default function Workbench() {
                       variant="outline"
                       size="sm"
                       onClick={handleExportPDF}
-                      className="w-full justify-start gap-2 h-7 text-xs"
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                       data-testid="button-export-pdf"
                     >
                       <FileText className="w-3 h-3" />
