@@ -36,10 +36,12 @@ export function SortingVisualizer({
     return 'bg-primary';
   };
 
+  const maxBarHeight = 120;
+  
   return (
-    <div className={cn("flex items-end justify-center gap-1 h-full w-full p-4 bg-card rounded-lg border border-border", className)}>
+    <div className={cn("flex items-end justify-center gap-1 w-full p-4 bg-card rounded-lg border border-border", className)} style={{ height: `${maxBarHeight + 40}px` }}>
       {array.map((value, index) => {
-        const heightPercent = (value / maxValue) * 100;
+        const barHeight = Math.max((value / maxValue) * maxBarHeight, 8);
         return (
           <div
             key={index}
@@ -48,7 +50,7 @@ export function SortingVisualizer({
               "logigo-highlight-target flex-1 max-w-12 rounded-t transition-all duration-200 relative group",
               getBarColor(index)
             )}
-            style={{ height: `${Math.max(heightPercent, 5)}%` }}
+            style={{ height: `${barHeight}px` }}
             data-testid={`bar-${index}`}
           >
             <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
