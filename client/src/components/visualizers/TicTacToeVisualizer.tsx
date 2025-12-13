@@ -9,6 +9,8 @@ interface TicTacToeVisualizerProps {
   evaluatingCell: number | null;
   evaluationScore: number | null;
   className?: string;
+  onCellClick?: (index: number) => void;
+  interactive?: boolean;
 }
 
 export function TicTacToeVisualizer({
@@ -18,7 +20,9 @@ export function TicTacToeVisualizer({
   highlightedCell,
   evaluatingCell,
   evaluationScore,
-  className
+  className,
+  onCellClick,
+  interactive = false
 }: TicTacToeVisualizerProps) {
   const getWinningLine = (): number[] => {
     const winPatterns = [
@@ -67,9 +71,12 @@ export function TicTacToeVisualizer({
           const isHighlighted = highlightedCell === index;
           const isEvaluating = evaluatingCell === index;
           
+          const canClick = interactive && !cell && !winner && onCellClick;
+          
           return (
             <div
               key={index}
+              onClick={() => canClick && onCellClick(index)}
               className={cn(
                 "aspect-square flex items-center justify-center rounded-lg border-2 text-2xl font-bold transition-all",
                 isWinning && "border-emerald-500 bg-emerald-500/20",
@@ -77,7 +84,8 @@ export function TicTacToeVisualizer({
                 isEvaluating && !isWinning && "border-purple-500 bg-purple-500/10 animate-pulse",
                 !isWinning && !isHighlighted && !isEvaluating && "border-border bg-muted/30",
                 cell === 'X' && "text-blue-400",
-                cell === 'O' && "text-red-400"
+                cell === 'O' && "text-red-400",
+                canClick && "cursor-pointer hover:border-primary hover:bg-primary/10"
               )}
               data-testid={`ttt-cell-${index}`}
             >

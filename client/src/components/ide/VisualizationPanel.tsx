@@ -98,6 +98,8 @@ interface VisualizationPanelProps {
   editMode?: GridEditMode;
   onEditModeChange?: (mode: GridEditMode) => void;
   onCellClick?: (node: { x: number; y: number }) => void;
+  onTictactoeMove?: (index: number) => void;
+  onSnakeDirectionChange?: (direction: 'up' | 'down' | 'left' | 'right') => void;
   className?: string;
 }
 
@@ -118,6 +120,8 @@ export function VisualizationPanel({
   editMode,
   onEditModeChange,
   onCellClick,
+  onTictactoeMove,
+  onSnakeDirectionChange,
   className
 }: VisualizationPanelProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -333,6 +337,8 @@ export function VisualizationPanel({
             highlightedCell={tictactoeState.highlightedCell}
             evaluatingCell={tictactoeState.evaluatingCell}
             evaluationScore={tictactoeState.evaluationScore}
+            onCellClick={onTictactoeMove}
+            interactive={!!onTictactoeMove}
           />
         )}
         
@@ -355,6 +361,8 @@ export function VisualizationPanel({
             gameOver={snakeState.gameOver}
             direction={snakeState.direction}
             highlightedSegment={snakeState.highlightedSegment}
+            onDirectionChange={onSnakeDirectionChange}
+            interactive={!!onSnakeDirectionChange}
           />
         )}
       </div>

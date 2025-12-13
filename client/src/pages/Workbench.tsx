@@ -660,6 +660,11 @@ export default function Workbench() {
       });
     } else if (activeVisualizer === 'pathfinding') {
       setPathfindingState(DEFAULT_PATHFINDING_STATE);
+    } else if (activeVisualizer === 'tictactoe') {
+      setTictactoeState(DEFAULT_TICTACTOE_STATE);
+    } else if (activeVisualizer === 'snake') {
+      setSnakeGameActive(false);
+      setSnakeState(DEFAULT_SNAKE_STATE);
     }
   };
   
@@ -744,6 +749,206 @@ export default function Workbench() {
       return prev;
     });
   };
+  
+  // Handle TicTacToe cell click for interactive play
+  const handleTictactoeMove = (index: number) => {
+    // Stop any running animation when user makes a move
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+      animationIntervalRef.current = null;
+    }
+    setIsAnimating(false);
+    
+    // Helper function to check for winner
+    const checkWinner = (board: (string | null)[]): string | null => {
+      const patterns = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (const [a,b,c] of patterns) {
+        if (board[a] && board[a] === board[b] && board[b] === board[c]) return board[a];
+      }
+      if (board.every(c => c !== null)) return 'tie';
+      return null;
+    };
+    
+    // Helper to get AI move (simple random for now)
+    const getAIMove = (board: (string | null)[]): number => {
+      const emptyCells = board.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
+      return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    };
+    
+    setTictactoeState(prev => {
+      // Don't allow move if game is over or cell is taken
+      if (prev.winner || prev.board[index] !== null) return prev;
+      
+      // Player X makes move
+      const newBoard = [...prev.board];
+      newBoard[index] = 'X';
+      
+      // Check if player won
+      const playerWinner = checkWinner(newBoard);
+      if (playerWinner) {
+        return {
+          ...prev,
+          board: newBoard,
+          winner: playerWinner,
+          currentPlayer: 'O',
+          highlightedCell: index,
+          evaluatingCell: null,
+          evaluationScore: null
+        };
+      }
+      
+      // AI (O) makes move
+      const aiMoveIndex = getAIMove(newBoard);
+      if (aiMoveIndex !== undefined && aiMoveIndex >= 0) {
+        newBoard[aiMoveIndex] = 'O';
+        const aiWinner = checkWinner(newBoard);
+        
+        return {
+          ...prev,
+          board: newBoard,
+          winner: aiWinner,
+          currentPlayer: 'X',
+          highlightedCell: aiMoveIndex,
+          evaluatingCell: null,
+          evaluationScore: null
+        };
+      }
+      
+      return {
+        ...prev,
+        board: newBoard,
+        currentPlayer: 'O',
+        highlightedCell: index,
+        evaluatingCell: null,
+        evaluationScore: null
+      };
+    });
+  };
+  
+  // Handle Snake direction change
+  const handleSnakeDirectionChange = (newDirection: 'up' | 'down' | 'left' | 'right') => {
+    setSnakeState(prev => {
+      if (prev.gameOver) return prev;
+      return { ...prev, direction: newDirection };
+    });
+  };
+  
+  // Snake game loop - move snake automatically when playing
+  const snakeGameLoopRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const startSnakeGame = () => {
+    if (snakeGameLoopRef.current) {
+      clearInterval(snakeGameLoopRef.current);
+    }
+    
+    snakeGameLoopRef.current = setInterval(() => {
+      setSnakeState(prev => {
+        if (prev.gameOver) {
+          if (snakeGameLoopRef.current) {
+            clearInterval(snakeGameLoopRef.current);
+            snakeGameLoopRef.current = null;
+          }
+          return prev;
+        }
+        
+        const head = prev.snake[0];
+        let newHead: { x: number; y: number };
+        
+        switch (prev.direction) {
+          case 'up':
+            newHead = { x: head.x, y: head.y - 1 };
+            break;
+          case 'down':
+            newHead = { x: head.x, y: head.y + 1 };
+            break;
+          case 'left':
+            newHead = { x: head.x - 1, y: head.y };
+            break;
+          case 'right':
+            newHead = { x: head.x + 1, y: head.y };
+            break;
+        }
+        
+        // Check wall collision
+        if (newHead.x < 0 || newHead.x >= prev.gridSize || newHead.y < 0 || newHead.y >= prev.gridSize) {
+          return { ...prev, gameOver: true };
+        }
+        
+        // Check self collision
+        if (prev.snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+          return { ...prev, gameOver: true };
+        }
+        
+        const newSnake = [newHead, ...prev.snake];
+        let newFood = prev.food;
+        let newScore = prev.score;
+        
+        // Check food collision
+        if (newHead.x === prev.food.x && newHead.y === prev.food.y) {
+          newScore += 10;
+          // Generate new food position
+          const emptyCells: { x: number; y: number }[] = [];
+          for (let y = 0; y < prev.gridSize; y++) {
+            for (let x = 0; x < prev.gridSize; x++) {
+              if (!newSnake.some(s => s.x === x && s.y === y)) {
+                emptyCells.push({ x, y });
+              }
+            }
+          }
+          if (emptyCells.length > 0) {
+            newFood = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+          }
+        } else {
+          newSnake.pop(); // Remove tail if no food eaten
+        }
+        
+        return {
+          ...prev,
+          snake: newSnake,
+          food: newFood,
+          score: newScore,
+          highlightedSegment: null
+        };
+      });
+    }, 200);
+  };
+  
+  const stopSnakeGame = () => {
+    if (snakeGameLoopRef.current) {
+      clearInterval(snakeGameLoopRef.current);
+      snakeGameLoopRef.current = null;
+    }
+  };
+  
+  // Clean up snake game loop on unmount
+  useEffect(() => {
+    return () => {
+      if (snakeGameLoopRef.current) {
+        clearInterval(snakeGameLoopRef.current);
+      }
+    };
+  }, []);
+  
+  // Snake game state for tracking if actively playing
+  const [snakeGameActive, setSnakeGameActive] = useState(false);
+  
+  // Start/stop snake game based on active state
+  useEffect(() => {
+    if (snakeGameActive && activeVisualizer === 'snake' && showVisualization && !snakeState.gameOver) {
+      startSnakeGame();
+    } else {
+      stopSnakeGame();
+    }
+    
+    return () => stopSnakeGame();
+  }, [snakeGameActive, activeVisualizer, showVisualization, snakeState.gameOver]);
+  
+  // Stop snake game when switching away or closing
+  useEffect(() => {
+    if (activeVisualizer !== 'snake' || !showVisualization) {
+      setSnakeGameActive(false);
+    }
+  }, [activeVisualizer, showVisualization]);
   
   // Helper function to find flowchart node from line number
   const findNodeByLine = (lineNumber: number): string | null => {
@@ -877,6 +1082,22 @@ export default function Workbench() {
   };
 
   const handlePlayVisualization = () => {
+    // Special handling for snake - use real-time interactive game
+    if (activeVisualizer === 'snake') {
+      if (snakeGameActive) {
+        setSnakeGameActive(false);
+        setIsAnimating(false);
+      } else {
+        // Reset if game over
+        if (snakeState.gameOver) {
+          setSnakeState(DEFAULT_SNAKE_STATE);
+        }
+        setSnakeGameActive(true);
+        setIsAnimating(true);
+      }
+      return;
+    }
+    
     if (isAnimating) {
       // Pause animation
       if (animationIntervalRef.current) {
@@ -1479,6 +1700,8 @@ export default function Workbench() {
                     editMode={gridEditMode}
                     onEditModeChange={setGridEditMode}
                     onCellClick={handleGridCellClick}
+                    onTictactoeMove={handleTictactoeMove}
+                    onSnakeDirectionChange={handleSnakeDirectionChange}
                     className="h-auto"
                   />
                 </div>
@@ -1660,6 +1883,8 @@ export default function Workbench() {
                     editMode={gridEditMode}
                     onEditModeChange={setGridEditMode}
                     onCellClick={handleGridCellClick}
+                    onTictactoeMove={handleTictactoeMove}
+                    onSnakeDirectionChange={handleSnakeDirectionChange}
                     className="h-auto"
                   />
                 </div>

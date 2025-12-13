@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Position {
@@ -15,6 +15,8 @@ interface SnakeVisualizerProps {
   direction: 'up' | 'down' | 'left' | 'right';
   highlightedSegment: number | null;
   className?: string;
+  onDirectionChange?: (direction: 'up' | 'down' | 'left' | 'right') => void;
+  interactive?: boolean;
 }
 
 export function SnakeVisualizer({
@@ -25,8 +27,47 @@ export function SnakeVisualizer({
   gameOver,
   direction,
   highlightedSegment,
-  className
+  className,
+  onDirectionChange,
+  interactive = false
 }: SnakeVisualizerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!interactive || !onDirectionChange) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          if (direction !== 'down') onDirectionChange('up');
+          e.preventDefault();
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          if (direction !== 'up') onDirectionChange('down');
+          e.preventDefault();
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          if (direction !== 'right') onDirectionChange('left');
+          e.preventDefault();
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          if (direction !== 'left') onDirectionChange('right');
+          e.preventDefault();
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [interactive, onDirectionChange, direction]);
   const isSnake = (x: number, y: number): number => {
     return snake.findIndex(s => s.x === x && s.y === y);
   };
@@ -110,6 +151,16 @@ export function SnakeVisualizer({
           <span>Food</span>
         </div>
       </div>
+      
+      {interactive && (
+        <div className="text-center text-xs text-muted-foreground mt-1" data-testid="snake-controls-hint">
+          {gameOver ? (
+            <span>Press <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Play</kbd> to restart</span>
+          ) : (
+            <span>Use <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Arrow Keys</kbd> or <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">WASD</kbd> to move</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
