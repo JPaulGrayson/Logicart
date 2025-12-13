@@ -67,7 +67,7 @@ export function SnakeVisualizer({
       </div>
       
       <div 
-        className="grid gap-0.5 aspect-square max-w-[200px] mx-auto bg-muted/30 p-1 rounded-lg"
+        className="grid gap-0.5 aspect-square w-full max-w-[320px] mx-auto bg-muted/30 p-2 rounded-lg"
         style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
       >
         {Array.from({ length: gridSize * gridSize }).map((_, i) => {

@@ -61,7 +61,7 @@ export function TicTacToeVisualizer({
         )}
       </div>
       
-      <div className="grid grid-cols-3 gap-1 aspect-square max-w-[180px] mx-auto">
+      <div className="grid grid-cols-3 gap-2 aspect-square w-full max-w-[280px] mx-auto">
         {board.map((cell, index) => {
           const isWinning = winningLine.includes(index);
           const isHighlighted = highlightedCell === index;
