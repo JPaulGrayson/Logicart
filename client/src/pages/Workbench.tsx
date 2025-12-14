@@ -21,7 +21,7 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode } from 'lucide-react';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -1249,6 +1249,45 @@ export default function Workbench() {
     }
   };
 
+  // File input ref for code import
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportCode = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        adapter.writeFile(content);
+        setCurrentAlgorithm(null);
+        setActiveVisualizer(null);
+        setShowVisualization(false);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const handleExportCode = () => {
+    const blob = new Blob([code], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'logigo-code.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Cleanup interval and timeouts on unmount
   useEffect(() => {
     return () => {
@@ -1598,6 +1637,42 @@ export default function Workbench() {
                 <p className="text-[10px] text-foreground/60">
                   Load sample algorithms with LogiGo checkpoints
                 </p>
+              </div>
+              
+              {/* Code Import/Export Section */}
+              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
+                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Code</h3>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".js,.ts,.jsx,.tsx,.mjs"
+                  className="hidden"
+                  data-testid="input-import-file"
+                />
+                <div className="space-y-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImportCode}
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                    data-testid="button-import-code"
+                  >
+                    <Upload className="w-3 h-3" />
+                    Import Code
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCode}
+                    disabled={!code.trim()}
+                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                    data-testid="button-export-code"
+                  >
+                    <FileCode className="w-3 h-3" />
+                    Export Code
+                  </Button>
+                </div>
               </div>
               
               {/* Export Section */}
