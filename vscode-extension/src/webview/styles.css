@@ -23,6 +23,8 @@ body {
   background-color: #252526;
   border-bottom: 1px solid #3c3c3c;
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: space-between;
   align-items: center;
 }
@@ -38,6 +40,46 @@ body {
   color: #858585;
 }
 
+.container-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-title {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.container-toggle {
+  padding: 4px 10px;
+  font-size: 12px;
+  background-color: #3c3c3c;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.container-toggle:hover {
+  background-color: #4a4a4a;
+  border-color: #3b82f6;
+}
+
+.container-toggle.collapsed {
+  opacity: 0.7;
+}
+
+.container-toggle.expanded {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
 .flowchart-svg {
   flex: 1;
   width: 100%;
@@ -45,7 +87,7 @@ body {
 }
 
 .node {
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .node:hover {
@@ -70,4 +112,68 @@ body {
   fill: #858585;
   pointer-events: none;
   user-select: none;
+}
+
+/* Container node styles */
+.container-node {
+  transition: all 0.3s ease;
+}
+
+.container-node:hover rect:first-child {
+  stroke-width: 3;
+}
+
+.container-node.collapsed {
+  opacity: 0.85;
+}
+
+.collapse-button circle {
+  transition: fill 0.2s ease;
+}
+
+.collapse-button:hover circle {
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+/* Animated edge for loop back-arrows */
+.animated-edge {
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Zoom level indicators (future feature) */
+.zoom-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  background-color: rgba(59, 130, 246, 0.9);
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+  font-weight: 500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3c3c3c;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
