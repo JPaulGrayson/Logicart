@@ -53,6 +53,8 @@ export default function Workbench() {
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
   const [bookmarks, setBookmarks] = useState<Array<{ step: number; label: string }>>([]);
+  const [breakpoints, setBreakpoints] = useState<Set<string>>(new Set());
+  const [variableHistory, setVariableHistory] = useState<Array<{ step: number; variables: Record<string, unknown> }>>([]);
   
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,6 +104,33 @@ export default function Workbench() {
   
   // Grid edit mode for pathfinding visualizer
   const [gridEditMode, setGridEditMode] = useState<GridEditMode>(null);
+
+  // Load shared code from URL parameter on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedCode = urlParams.get('code');
+    if (encodedCode && isReady) {
+      try {
+        // Decode: first atob (base64 decode), then decodeURIComponent
+        const decoded = decodeURIComponent(atob(encodedCode));
+        if (decoded.trim()) {
+          adapter.writeFile(decoded);
+          // Clear the URL parameter to avoid reloading on refresh
+          const url = new URL(window.location.href);
+          url.searchParams.delete('code');
+          window.history.replaceState({}, '', url.toString());
+        }
+      } catch (e) {
+        console.warn('Failed to decode shared code:', e);
+      }
+    }
+  }, [isReady, adapter]);
+
+  // Clear breakpoints and variable history when code changes
+  useEffect(() => {
+    setBreakpoints(new Set());
+    setVariableHistory([]);
+  }, [code]);
 
   // Parse code whenever it changes
   useEffect(() => {
@@ -268,14 +297,8 @@ export default function Workbench() {
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
     
-    // Sample POI data for testing route distance calculation
-    const samplePois = [
-      { latitude: 37.7749, longitude: -122.4194 },
-      { latitude: 37.8044, longitude: -122.2712 },
-      { latitude: 37.8716, longitude: -122.2727 }
-    ];
-    
-    const success = interpreterRef.current.prepare('calculateRouteDistance', [samplePois]);
+    // Prepare the first function found in the code (no specific function name required)
+    const success = interpreterRef.current.prepare();
     
     if (success) {
       const prog = interpreterRef.current.getProgress();
@@ -321,57 +344,84 @@ export default function Workbench() {
       ? executionControllerRef.current.getStepDelay()
       : baseInterval / speed;
     
-    // Auto-step through execution
-    playIntervalRef.current = setInterval(() => {
-      if (interpreterRef.current) {
-        const step = interpreterRef.current.stepForward();
+    // Execute one step and schedule next (using setTimeout for clean breakpoint handling)
+    const executeStep = () => {
+      if (!interpreterRef.current) return;
+      
+      const step = interpreterRef.current.stepForward();
+      
+      if (step) {
+        setActiveNodeId(step.nodeId);
+        setExecutionState(step.state);
+        setProgress(interpreterRef.current.getProgress());
         
-        if (step) {
-          setActiveNodeId(step.nodeId);
-          setExecutionState(step.state);
-          setProgress(interpreterRef.current.getProgress());
-          
-          // Find and highlight the source line
-          const node = flowData.nodes.find(n => n.id === step.nodeId);
-          if (node?.data.sourceData) {
-            setHighlightedLine(node.data.sourceData.start.line);
-            adapter.navigateToLine(node.data.sourceData.start.line);
+        // Record variable history snapshot
+        const currentProgress = interpreterRef.current.getProgress();
+        setVariableHistory(prev => {
+          const existingIdx = prev.findIndex(s => s.step === currentProgress.current);
+          if (existingIdx >= 0) return prev;
+          return [...prev, { step: currentProgress.current, variables: { ...step.state.variables } }];
+        });
+        
+        // Find and highlight the source line
+        const node = flowData.nodes.find(n => n.id === step.nodeId);
+        if (node?.data.sourceData) {
+          setHighlightedLine(node.data.sourceData.start.line);
+          adapter.navigateToLine(node.data.sourceData.start.line);
+        }
+        
+        // Check for breakpoint - pause and don't schedule next step
+        if (breakpoints.has(step.nodeId)) {
+          setIsPlaying(false);
+          if (playIntervalRef.current) {
+            clearTimeout(playIntervalRef.current);
+            playIntervalRef.current = null;
           }
-        } else {
-          // Execution completed - immediately pause to clear interval
-          handlePause();
+          return; // Exit without scheduling next step
+        }
+        
+        // Schedule next step
+        playIntervalRef.current = setTimeout(executeStep, interval);
+      } else {
+        // Execution completed
+        setIsPlaying(false);
+        if (playIntervalRef.current) {
+          clearTimeout(playIntervalRef.current);
+          playIntervalRef.current = null;
+        }
+        
+        if (loop) {
+          // Clear any pending restart
+          if (restartTimeoutRef.current) {
+            clearTimeout(restartTimeoutRef.current);
+          }
           
-          if (loop) {
-            // Clear any pending restart
-            if (restartTimeoutRef.current) {
-              clearTimeout(restartTimeoutRef.current);
-            }
+          // Reset and restart after a brief delay
+          restartTimeoutRef.current = setTimeout(() => {
+            restartTimeoutRef.current = null;
             
-            // Reset and restart after a brief delay
-            // If user manually starts or toggles loop off, the timeout will be cleared
-            restartTimeoutRef.current = setTimeout(() => {
-              restartTimeoutRef.current = null;
-              
-              // Reset state
-              interpreterRef.current = null;
-              setActiveNodeId(null);
-              setExecutionState(null);
-              setHighlightedLine(null);
-              setProgress({ current: 0, total: 0 });
-              
-              // Start playing again (this will also clear any other pending restarts)
-              handlePlay();
-            }, 600);
-          }
+            // Reset state
+            interpreterRef.current = null;
+            setActiveNodeId(null);
+            setExecutionState(null);
+            setHighlightedLine(null);
+            setProgress({ current: 0, total: 0 });
+            
+            // Start playing again
+            handlePlay();
+          }, 600);
         }
       }
-    }, interval);
+    };
+    
+    // Start the execution chain
+    playIntervalRef.current = setTimeout(executeStep, interval);
   };
 
   const handlePause = () => {
     setIsPlaying(false);
     if (playIntervalRef.current) {
-      clearInterval(playIntervalRef.current);
+      clearTimeout(playIntervalRef.current);
       playIntervalRef.current = null;
     }
     // Also clear any pending restart
@@ -395,6 +445,14 @@ export default function Workbench() {
       setActiveNodeId(step.nodeId);
       setExecutionState(step.state);
       setProgress(interpreterRef.current.getProgress());
+      
+      // Record variable history snapshot
+      const currentProgress = interpreterRef.current.getProgress();
+      setVariableHistory(prev => {
+        const existingIdx = prev.findIndex(s => s.step === currentProgress.current);
+        if (existingIdx >= 0) return prev;
+        return [...prev, { step: currentProgress.current, variables: { ...step.state.variables } }];
+      });
       
       // Find and highlight the source line
       const node = flowData.nodes.find(n => n.id === step.nodeId);
@@ -463,6 +521,18 @@ export default function Workbench() {
     setBookmarks(prev => prev.filter(b => b.step !== step));
   };
 
+  const handleBreakpointToggle = (nodeId: string) => {
+    setBreakpoints(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
   const handleReset = () => {
     handlePause();
     interpreterRef.current = null;
@@ -470,6 +540,7 @@ export default function Workbench() {
     setExecutionState(null);
     setHighlightedLine(null);
     setProgress({ current: 0, total: 0 });
+    setVariableHistory([]);
   };
 
   const handleStop = () => {
@@ -769,10 +840,52 @@ export default function Workbench() {
       return null;
     };
     
-    // Helper to get AI move (simple random for now)
+    // Minimax algorithm for unbeatable AI
+    const minimax = (board: (string | null)[], isMaximizing: boolean, depth: number): number => {
+      const winner = checkWinner(board);
+      if (winner === 'O') return 10 - depth; // AI wins (prefer faster wins)
+      if (winner === 'X') return depth - 10; // Player wins
+      if (winner === 'tie') return 0;        // Draw
+      
+      const emptyCells = board.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
+      
+      if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (const idx of emptyCells) {
+          board[idx] = 'O';
+          bestScore = Math.max(bestScore, minimax(board, false, depth + 1));
+          board[idx] = null;
+        }
+        return bestScore;
+      } else {
+        let bestScore = Infinity;
+        for (const idx of emptyCells) {
+          board[idx] = 'X';
+          bestScore = Math.min(bestScore, minimax(board, true, depth + 1));
+          board[idx] = null;
+        }
+        return bestScore;
+      }
+    };
+    
+    // Get best move using minimax
     const getAIMove = (board: (string | null)[]): number => {
       const emptyCells = board.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
-      return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      let bestScore = -Infinity;
+      let bestMove = emptyCells[0];
+      
+      for (const idx of emptyCells) {
+        board[idx] = 'O';
+        const score = minimax(board, false, 0);
+        board[idx] = null;
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = idx;
+        }
+      }
+      
+      return bestMove;
     };
     
     setTictactoeState(prev => {
@@ -1371,6 +1484,19 @@ export default function Workbench() {
           }
         },
       },
+      {
+        key: 'o',
+        description: 'Import Code (Ctrl+O)',
+        action: handleImportCode,
+        ctrl: true,
+      },
+      {
+        key: 's',
+        description: 'Export Code (Ctrl+S)',
+        action: handleExportCode,
+        ctrl: true,
+        disabled: !hasCode,
+      },
     ],
     enabled: isReady,
   });
@@ -1516,17 +1642,21 @@ export default function Workbench() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        await navigator.clipboard.writeText(window.location.href);
-                        alert('Link copied to clipboard!');
+                        const encoded = btoa(encodeURIComponent(code));
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('code', encoded);
+                        await navigator.clipboard.writeText(url.toString());
+                        alert('Share link copied to clipboard!');
                       } catch {
                         alert('Could not copy link');
                       }
                     }}
+                    disabled={!code.trim()}
                     className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-share"
                   >
                     <Share2 className="w-3 h-3" />
-                    Share
+                    Share Flowchart
                   </Button>
                 </div>
               </div>
@@ -1722,8 +1852,10 @@ export default function Workbench() {
                   edges={flowData.edges} 
                   onNodeClick={handleNodeClick}
                   onNodeDoubleClick={handleNodeDoubleClick}
+                  onBreakpointToggle={handleBreakpointToggle}
                   activeNodeId={activeNodeId}
                   highlightedNodes={highlightedNodes}
+                  breakpoints={breakpoints}
                   runtimeState={runtimeState}
                 />
               )}
@@ -1799,7 +1931,12 @@ export default function Workbench() {
                     {features.hasFeature('timeTravel') && progress.total > 0 ? (
                       <div className="flex flex-col">
                         <div className="flex-1 overflow-auto">
-                          <VariableWatch state={executionState} />
+                          <VariableWatch 
+                            state={executionState}
+                            history={variableHistory}
+                            currentStep={progress.current}
+                            onJumpToStep={handleJumpToStep}
+                          />
                         </div>
                         <div className="border-t border-border p-2">
                           <TimelineScrubber
@@ -1814,7 +1951,12 @@ export default function Workbench() {
                         </div>
                       </div>
                     ) : (
-                      <VariableWatch state={executionState} />
+                      <VariableWatch 
+                            state={executionState}
+                            history={variableHistory}
+                            currentStep={progress.current}
+                            onJumpToStep={handleJumpToStep}
+                          />
                     )}
                   </div>
                 </div>

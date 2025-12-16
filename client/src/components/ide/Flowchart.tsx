@@ -14,8 +14,10 @@ interface FlowchartProps {
   edges: FlowEdge[];
   onNodeClick?: (node: Node) => void;
   onNodeDoubleClick?: (node: Node) => void;
+  onBreakpointToggle?: (nodeId: string) => void;
   activeNodeId?: string | null;
   highlightedNodes?: Set<string>;
+  breakpoints?: Set<string>;
   runtimeState?: RuntimeState;
 }
 
@@ -25,7 +27,7 @@ const nodeTypes = {
   container: ContainerNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, activeNodeId, highlightedNodes, runtimeState }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, activeNodeId, highlightedNodes, breakpoints, runtimeState }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -82,6 +84,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
     const updatedNodes = initialNodes.map(node => {
       const isActive = node.id === activeNodeId;
       const isHighlighted = highlightedNodes && highlightedNodes.has(node.id);
+      const hasBreakpoint = breakpoints && breakpoints.has(node.id);
       
       let className = node.className || '';
       
@@ -89,6 +92,10 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         className = 'active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
       } else if (isHighlighted) {
         className = 'highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
+      }
+      
+      if (hasBreakpoint) {
+        className += ' breakpoint-node';
       }
       
       // Preserve collapse state from current node state (if it exists)
@@ -114,7 +121,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
     });
     setNodes(updatedNodes);
     setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, setNodes, setEdges, getNodes]);
+  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, breakpoints, setNodes, setEdges, getNodes]);
   
   // Fit view and center when graph topology changes
   useEffect(() => {
@@ -134,6 +141,10 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => onNodeClick?.(node)}
         onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
+        onNodeContextMenu={(event, node) => {
+          event.preventDefault();
+          onBreakpointToggle?.(node.id);
+        }}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}

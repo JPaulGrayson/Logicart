@@ -5,6 +5,10 @@ export interface KeyboardShortcut {
   description: string;
   action: () => void;
   disabled?: boolean;
+  ctrl?: boolean;
+  meta?: boolean;
+  shift?: boolean;
+  alt?: boolean;
 }
 
 export interface UseKeyboardShortcutsOptions {
@@ -32,7 +36,25 @@ export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardS
       }
 
       const key = event.key.toLowerCase();
-      const shortcut = shortcuts.find(s => s.key.toLowerCase() === key && !s.disabled);
+      
+      const shortcut = shortcuts.find(s => {
+        if (s.disabled) return false;
+        if (s.key.toLowerCase() !== key) return false;
+        
+        // Check modifier keys
+        const needsCtrl = s.ctrl || s.meta;
+        const hasCtrl = event.ctrlKey || event.metaKey;
+        if (needsCtrl && !hasCtrl) return false;
+        if (!needsCtrl && hasCtrl) return false;
+        
+        if (s.shift && !event.shiftKey) return false;
+        if (!s.shift && event.shiftKey && key.length === 1) return false;
+        
+        if (s.alt && !event.altKey) return false;
+        if (!s.alt && event.altKey) return false;
+        
+        return true;
+      });
 
       if (shortcut) {
         event.preventDefault();

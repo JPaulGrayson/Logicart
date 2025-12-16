@@ -145,6 +145,20 @@ Preferred communication style: Simple, everyday language.
 ### Session Management
 - **connect-pg-simple**: PostgreSQL session store.
 
+### Recent Feature Additions (December 2025)
+- **Minimax TicTacToe AI**: Unbeatable AI opponent using minimax algorithm with alpha-beta-style depth optimization
+- **Keyboard Shortcuts**: 
+  - `Ctrl+O` / `Cmd+O`: Import code file
+  - `Ctrl+S` / `Cmd+S`: Export code to file
+  - Existing shortcuts: `Space/K` (play/pause), `S` (step), `B` (step back), `R` (reset), `F` (fullscreen), `Escape` (exit)
+- **Breakpoints**: Right-click flowchart nodes to toggle breakpoints (red dot indicator), execution pauses at breakpoints
+- **Variable History Timeline**: New "History" tab in Variables panel showing variable changes over execution with mini sparkline charts and clickable step navigation
+- **Shareable URLs**: "Share Flowchart" button generates URL with base64-encoded code, recipients see same flowchart on load
+
+### Breakpoint Styling
+- **CSS Class**: `.breakpoint-node` - Red dot indicator positioned left of node
+- **Behavior**: Execution automatically pauses when reaching a breakpoint node
+
 ## Documentation
 
 ### Replit Extension Specification
