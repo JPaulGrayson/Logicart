@@ -42,14 +42,107 @@ export interface FlowData {
 }
 
 function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
+  // Separate container nodes from regular nodes
+  const containerNodes = nodes.filter(n => n.type === 'container');
+  const regularNodes = nodes.filter(n => n.type !== 'container');
+
+  // If no containers, layout all nodes together
+  if (containerNodes.length === 0) {
+    layoutNodesWithDagre(regularNodes, edges);
+    return;
+  }
+
+  // Layout each container's children separately
+  let containerXOffset = 0;
+  const containerPadding = 40;
+  const containerSpacing = 60;
+  const headerHeight = 50;
+
+  for (const container of containerNodes) {
+    // Get children of this container
+    const childNodes = regularNodes.filter(n => n.parentNode === container.id);
+    const childIds = new Set(childNodes.map(n => n.id));
+
+    // Get edges that connect children within this container
+    const childEdges = edges.filter(e => childIds.has(e.source) && childIds.has(e.target));
+
+    if (childNodes.length > 0) {
+      // Layout children using dagre
+      layoutNodesWithDagre(childNodes, childEdges);
+
+      // Calculate bounds of children
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const child of childNodes) {
+        const x = child.position.x;
+        const y = child.position.y;
+        const w = child.style?.width || 150;
+        const h = child.style?.height || 40;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + w);
+        maxY = Math.max(maxY, y + h);
+      }
+
+      // Offset children to fit inside container with padding
+      const offsetX = containerXOffset + containerPadding - minX;
+      const offsetY = containerPadding + headerHeight - minY;
+
+      for (const child of childNodes) {
+        child.position.x += offsetX;
+        child.position.y += offsetY;
+      }
+
+      // Set container position and size
+      const containerWidth = (maxX - minX) + containerPadding * 2;
+      const containerHeight = (maxY - minY) + containerPadding * 2 + headerHeight;
+
+      container.position = {
+        x: containerXOffset,
+        y: 0
+      };
+      container.style = {
+        width: Math.max(containerWidth, 250),
+        height: containerHeight
+      };
+
+      // Move offset for next container
+      containerXOffset += Math.max(containerWidth, 250) + containerSpacing;
+    } else {
+      // Empty container
+      container.position = { x: containerXOffset, y: 0 };
+      container.style = { width: 250, height: 150 };
+      containerXOffset += 250 + containerSpacing;
+    }
+  }
+
+  // Handle orphan nodes (not in any container)
+  const orphanNodes = regularNodes.filter(n => !n.parentNode);
+  if (orphanNodes.length > 0) {
+    const orphanEdges = edges.filter(e =>
+      orphanNodes.some(n => n.id === e.source) &&
+      orphanNodes.some(n => n.id === e.target)
+    );
+    layoutNodesWithDagre(orphanNodes, orphanEdges);
+
+    // Offset orphans to appear after containers
+    for (const node of orphanNodes) {
+      node.position.x += containerXOffset;
+    }
+  }
+}
+
+// Helper function to layout nodes with dagre
+function layoutNodesWithDagre(nodes: FlowNode[], edges: FlowEdge[]): void {
+  if (nodes.length === 0) return;
+
   const g = new dagre.graphlib.Graph();
 
   g.setGraph({
     rankdir: 'TB',
-    nodesep: 80,
-    ranksep: 100,
-    marginx: 50,
-    marginy: 50
+    nodesep: 60,
+    ranksep: 80,
+    marginx: 20,
+    marginy: 20
   });
 
   g.setDefaultEdgeLabel(() => ({}));
@@ -63,7 +156,10 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   });
 
   edges.forEach((edge) => {
-    g.setEdge(edge.source, edge.target);
+    // Only add edge if both nodes are in this graph
+    if (nodes.some(n => n.id === edge.source) && nodes.some(n => n.id === edge.target)) {
+      g.setEdge(edge.source, edge.target);
+    }
   });
 
   dagre.layout(g);
