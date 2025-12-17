@@ -183,16 +183,16 @@ export class GhostDiff {
 
       switch (node.diffStatus) {
         case 'added':
-          styledNode.className = 'border-green-500 border-2 bg-green-50 shadow-lg shadow-green-500/50';
+          styledNode.className = 'border-green-500 border-2 bg-green-200 shadow-lg shadow-green-500/50';
           break;
         case 'removed':
-          styledNode.className = 'border-red-500 border-2 bg-red-50 opacity-50 shadow-lg shadow-red-500/50';
+          styledNode.className = 'border-red-500 border-2 bg-red-200 opacity-60 shadow-lg shadow-red-500/50';
           break;
         case 'modified':
-          styledNode.className = 'border-yellow-500 border-2 bg-yellow-50 shadow-lg shadow-yellow-500/50';
+          styledNode.className = 'border-yellow-500 border-2 bg-yellow-200 shadow-lg shadow-yellow-500/50';
           break;
         case 'unchanged':
-          styledNode.className = 'border-gray-300 border bg-white';
+          styledNode.className = 'border-gray-400 border bg-gray-100';
           break;
       }
 
