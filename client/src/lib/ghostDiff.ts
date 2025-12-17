@@ -6,6 +6,7 @@
  */
 
 import { FlowNode } from './parser';
+import type { CSSProperties } from 'react';
 
 export type DiffStatus = 'added' | 'removed' | 'modified' | 'unchanged';
 
@@ -181,20 +182,41 @@ export class GhostDiff {
     return nodes.map((node) => {
       const styledNode = { ...node };
 
+      // Use inline styles to avoid Tailwind purging issues
+      let diffStyle: CSSProperties = {};
+      
       switch (node.diffStatus) {
         case 'added':
-          styledNode.className = 'border-green-500 border-2 bg-green-200 shadow-lg shadow-green-500/50';
+          diffStyle = {
+            border: '2px solid #22c55e',
+            backgroundColor: '#bbf7d0',
+            boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.5)',
+          };
           break;
         case 'removed':
-          styledNode.className = 'border-red-500 border-2 bg-red-200 opacity-60 shadow-lg shadow-red-500/50';
+          diffStyle = {
+            border: '2px solid #ef4444',
+            backgroundColor: '#fecaca',
+            opacity: 0.6,
+            boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.5)',
+          };
           break;
         case 'modified':
-          styledNode.className = 'border-yellow-500 border-2 bg-yellow-200 shadow-lg shadow-yellow-500/50';
+          diffStyle = {
+            border: '2px solid #eab308',
+            backgroundColor: '#fef08a',
+            boxShadow: '0 10px 15px -3px rgba(234, 179, 8, 0.5)',
+          };
           break;
         case 'unchanged':
-          styledNode.className = 'border-gray-400 border bg-gray-100';
+          diffStyle = {
+            border: '1px solid #9ca3af',
+            backgroundColor: '#f3f4f6',
+          };
           break;
       }
+      
+      styledNode.style = { ...styledNode.style, ...diffStyle } as typeof styledNode.style;
 
       return styledNode;
     });
