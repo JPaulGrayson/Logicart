@@ -1,7 +1,7 @@
 {
   "name": "logigo",
-  "displayName": "LogiGo - Code Flow Visualizer",
-  "description": "Visualize JavaScript code as interactive flowcharts with step-by-step execution",
+  "displayName": "LogiGo for VS Code",
+  "description": "Visualize code as interactive flowcharts. Step through execution. Time travel debug. Part of the LogiGo family.",
   "version": "1.0.0",
   "publisher": "logigo",
   "icon": "icon.png",
@@ -22,7 +22,9 @@
   ],
   "activationEvents": [
     "onLanguage:javascript",
-    "onLanguage:typescript"
+    "onLanguage:typescript",
+    "onCommand:logigo.visualize",
+    "onCommand:logigo.execute"
   ],
   "main": "./dist/extension.js",
   "contributes": {

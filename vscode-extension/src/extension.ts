@@ -11,22 +11,29 @@ export function activate(context: vscode.ExtensionContext) {
 
   const visualizeCommand = vscode.commands.registerCommand('logigo.visualize', async () => {
     const editor = vscode.window.activeTextEditor;
-    
+
     if (!editor) {
       vscode.window.showWarningMessage('No active editor found');
       return;
     }
 
     const document = editor.document;
-    
-    if (document.languageId !== 'javascript' && document.languageId !== 'typescript') {
-      vscode.window.showWarningMessage('LogiGo only supports JavaScript and TypeScript files');
+    const languageId = document.languageId;
+    const isUntitled = document.isUntitled;
+
+    // Accept JavaScript, TypeScript, or untitled files (which might be JS)
+    const supportedLanguages = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact'];
+    const isSupportedLanguage = supportedLanguages.includes(languageId);
+
+    // For untitled or plaintext files, try to parse anyway
+    if (!isSupportedLanguage && !isUntitled && languageId !== 'plaintext') {
+      vscode.window.showWarningMessage(`LogiGo works best with JavaScript/TypeScript files (detected: ${languageId})`);
       return;
     }
 
     const code = document.getText();
-    const filePath = document.uri.fsPath;
-    
+    const filePath = document.uri.fsPath || 'Untitled';
+
     showFlowchart(context, code, filePath, document);
   });
 
@@ -37,6 +44,8 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
   const columnToShowIn = vscode.window.activeTextEditor
     ? vscode.window.activeTextEditor.viewColumn
     : undefined;
+
+  const isNewPanel = !currentPanel;
 
   if (currentPanel) {
     currentPanel.reveal(columnToShowIn);
@@ -62,17 +71,8 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
         documentChangeListener = undefined;
       }
     }, null, context.subscriptions);
-  }
 
-  currentDocument = document;
-  setupDocumentWatcher(context, document);
-  
-  // Set initial HTML content only when creating panel
-  if (!currentPanel.webview.html || currentPanel.webview.html === '') {
-    const flowData = parseCodeToFlow(code);
-    currentPanel.webview.html = getWebviewContent(currentPanel, context, flowData, filePath);
-    
-    // Setup message handler
+    // Setup message handler ONCE when panel is created
     currentPanel.webview.onDidReceiveMessage(
       async (message) => {
         switch (message.command) {
@@ -88,7 +88,7 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
               await currentDocument.save();
             }
             break;
-            
+
           case 'jumpToLine':
             const editor = vscode.window.activeTextEditor;
             if (editor && message.line !== undefined) {
@@ -98,15 +98,45 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
               vscode.window.showTextDocument(editor.document, editor.viewColumn);
             }
             break;
+
+          case 'insertCode':
+            console.log('[LogiGo] insertCode received, code length:', message.code?.length);
+
+            // Create a new untitled document with the example code
+            const newDoc = await vscode.workspace.openTextDocument({
+              language: 'javascript',
+              content: message.code
+            });
+            await vscode.window.showTextDocument(newDoc, vscode.ViewColumn.One);
+
+            // Update the tracked document to the new one
+            currentDocument = newDoc;
+
+            // Re-setup the document watcher for the new document
+            setupDocumentWatcher(context, newDoc);
+
+            // Small delay to ensure document is ready, then update webview
+            if (currentPanel) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+              updateWebview(currentPanel, context, message.code, 'Example');
+              console.log('[LogiGo] updateWebview called for example');
+            }
+
+            vscode.window.showInformationMessage('📚 Algorithm example loaded!');
+            break;
         }
       },
       undefined,
       context.subscriptions
     );
-  } else {
-    // Update existing webview
-    updateWebview(currentPanel, context, code, filePath);
   }
+
+  currentDocument = document;
+  setupDocumentWatcher(context, document);
+
+  // Always set/update the HTML content
+  const flowData = parseCodeToFlow(code);
+  currentPanel.webview.html = getWebviewContent(currentPanel, context, flowData, filePath);
 }
 
 function setupDocumentWatcher(context: vscode.ExtensionContext, document: vscode.TextDocument) {
@@ -128,30 +158,34 @@ function setupDocumentWatcher(context: vscode.ExtensionContext, document: vscode
       updateWebview(currentPanel, context, code, filePath);
     }
   });
-  
+
   context.subscriptions.push(documentChangeListener);
 }
 
 function updateWebview(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, code: string, filePath: string) {
+  console.log('[Extension] updateWebview called, code length:', code?.length);
   const flowData = parseCodeToFlow(code);
-  
+  console.log('[Extension] Parsed flowData, nodes:', flowData?.nodes?.length, 'edges:', flowData?.edges?.length);
+
   // Send update via postMessage instead of rebuilding HTML
+  console.log('[Extension] Sending updateFlow postMessage');
   panel.webview.postMessage({
     type: 'updateFlow',
     flowData,
     filePath
   });
+  console.log('[Extension] postMessage sent to webview');
 }
 
 function getWebviewContent(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, flowData: any, filePath: string): string {
   const webviewUri = panel.webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview', 'webview.js')
   );
-  
+
   const stylesUri = panel.webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview', 'webview.css')
   );
-  
+
   const nonce = getNonce();
 
   return `<!DOCTYPE html>
