@@ -86,12 +86,13 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       const isHighlighted = highlightedNodes && highlightedNodes.has(node.id);
       const hasBreakpoint = breakpoints && breakpoints.has(node.id);
       
+      // Preserve existing className (including diff styling) and add state classes
       let className = node.className || '';
       
       if (isActive) {
-        className = 'active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
+        className += ' active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
       } else if (isHighlighted) {
-        className = 'highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
+        className += ' highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
       }
       
       if (hasBreakpoint) {
@@ -109,7 +110,8 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       
       return {
         ...node,
-        className,
+        className: className.trim(),
+        style: node.style, // Preserve diff styling
         hidden,
         data: {
           ...node.data,
