@@ -22,7 +22,7 @@ export interface FlowNode {
     sourcePosition?: string;
     targetPosition?: string;
     className?: string;
-    style?: { width: number; height: number };
+    style?: Record<string, string | number | undefined>;
     parentNode?: string;           // For nodes inside containers
     extent?: 'parent';             // For React Flow - keep nodes inside parent
     hidden?: boolean;              // For React Flow - hide nodes (e.g., when parent collapsed)

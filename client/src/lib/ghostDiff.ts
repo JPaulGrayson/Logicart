@@ -6,7 +6,6 @@
  */
 
 import { FlowNode } from './parser';
-import type { CSSProperties } from 'react';
 
 export type DiffStatus = 'added' | 'removed' | 'modified' | 'unchanged';
 
@@ -181,42 +180,12 @@ export class GhostDiff {
   applyDiffStyling(nodes: DiffNode[]): DiffNode[] {
     return nodes.map((node) => {
       const styledNode = { ...node };
-
-      // Use inline styles to avoid Tailwind purging issues
-      let diffStyle: CSSProperties = {};
       
-      switch (node.diffStatus) {
-        case 'added':
-          diffStyle = {
-            border: '2px solid #22c55e',
-            backgroundColor: '#bbf7d0',
-            boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.5)',
-          };
-          break;
-        case 'removed':
-          diffStyle = {
-            border: '2px solid #ef4444',
-            backgroundColor: '#fecaca',
-            opacity: 0.6,
-            boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.5)',
-          };
-          break;
-        case 'modified':
-          diffStyle = {
-            border: '2px solid #eab308',
-            backgroundColor: '#fef08a',
-            boxShadow: '0 10px 15px -3px rgba(234, 179, 8, 0.5)',
-          };
-          break;
-        case 'unchanged':
-          diffStyle = {
-            border: '1px solid #9ca3af',
-            backgroundColor: '#f3f4f6',
-          };
-          break;
-      }
-      
-      styledNode.style = { ...styledNode.style, ...diffStyle } as typeof styledNode.style;
+      // Add CSS class based on diff status for styling via CSS
+      const diffClass = `diff-${node.diffStatus}`;
+      styledNode.className = styledNode.className 
+        ? `${styledNode.className} ${diffClass}` 
+        : diffClass;
 
       return styledNode;
     });
