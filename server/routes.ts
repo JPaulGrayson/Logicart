@@ -27,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, "..", "dist", "extension", "extension.json"));
   });
 
-  app.use("/assets", (req, res, next) => {
+  app.use("/extension-assets", (req, res, next) => {
     const assetPath = path.join(__dirname, "..", "dist", "extension", "assets", req.path);
     res.sendFile(assetPath);
   });
