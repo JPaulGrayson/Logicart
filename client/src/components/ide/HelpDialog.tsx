@@ -202,16 +202,122 @@ function processData(items) {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold mb-3">Premium Features</h3>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-sm">👻</span>
+                  Ghost Diff (Premium)
+                </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Advanced capabilities for power users:
+                  Visualize code changes directly on the flowchart. When you edit your code, Ghost Diff compares the previous version with your current version and highlights the differences:
+                </p>
+                <div className="mt-2 p-3 bg-muted/50 rounded-md space-y-2">
+                  <p className="text-xs font-semibold">Color Coding:</p>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded bg-green-500"></span>
+                      <span className="text-muted-foreground"><strong>Green:</strong> New nodes (code you just added)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded bg-red-500 opacity-50"></span>
+                      <span className="text-muted-foreground"><strong>Red/Ghost:</strong> Deleted nodes (code that was removed)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded bg-yellow-500"></span>
+                      <span className="text-muted-foreground"><strong>Yellow:</strong> Modified nodes (code that changed)</span>
+                    </li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Toggle with the "Show Diff" button in Flow Tools, or press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">D</kbd> on your keyboard.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  Breakpoints
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Pause execution at specific points in your code to inspect the program state:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Ghost Diff:</strong> Visualizes code changes between versions</li>
-                  <li>• <strong>Speed Governor:</strong> Extended speed controls (up to 20x)</li>
-                  <li>• <strong>Time Travel:</strong> Step backward through execution</li>
-                  <li>• <strong>Export:</strong> Save flowcharts as PNG or PDF</li>
-                  <li>• <strong>Natural Language Search:</strong> Query flowchart nodes</li>
+                  <li>• <strong>Set a breakpoint:</strong> Right-click on any flowchart node (no menu appears - the breakpoint toggles immediately)</li>
+                  <li>• <strong>Visual indicator:</strong> Once set, a red dot appears on the left side of the node</li>
+                  <li>• <strong>Execution pauses:</strong> When playback reaches a breakpoint, it automatically pauses</li>
+                  <li>• <strong>Inspect state:</strong> Check the Variables panel to see current values</li>
+                  <li>• <strong>Continue:</strong> Press Play to resume until the next breakpoint, or right-click again to remove it</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Breakpoints are cleared when you modify the code, as the flowchart structure may change.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-purple-500">~</span>
+                  Variable History Timeline
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Track how variables change throughout execution with a visual timeline:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Access:</strong> Click the "History" tab in the Variables panel</li>
+                  <li>• <strong>Value chips:</strong> Each variable shows clickable chips for each recorded value</li>
+                  <li>• <strong>Step navigation:</strong> Click any value chip to jump to that execution step</li>
+                  <li>• <strong>Bar charts:</strong> For numeric variables with multiple values, a mini bar chart appears below</li>
+                  <li>• <strong>Trend indicators:</strong> Numeric variables show up/down arrows when values change</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  History is reset when you modify the code or click Reset.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-blue-400">🔗</span>
+                  Shareable URLs
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Share your flowchart with others using a single link:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Generate link:</strong> Click "Share Flowchart" in Flow Tools</li>
+                  <li>• <strong>Clipboard copy:</strong> The link is copied to your clipboard (you'll see a confirmation)</li>
+                  <li>• <strong>How it works:</strong> Your code is encoded (base64) and embedded in the URL</li>
+                  <li>• <strong>Recipient view:</strong> Anyone with the link sees the exact same flowchart</li>
+                  <li>• <strong>No account needed:</strong> Sharing works without sign-up or login</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Note: Very long code may create long URLs. Some platforms truncate long URLs.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-orange-400">📚</span>
+                  Algorithm Examples
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Pre-loaded algorithm samples to help you learn and explore LogiGo's features:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Quick Sort:</strong> Divide-and-conquer sorting with partition visualization</li>
+                  <li>• <strong>Bubble Sort:</strong> Simple comparison-based sorting for beginners</li>
+                  <li>• <strong>A* Pathfinder:</strong> Optimal pathfinding with heuristic-based graph traversal</li>
+                  <li>• <strong>TicTacToe AI:</strong> Minimax algorithm for unbeatable game AI</li>
+                  <li>• <strong>Fibonacci:</strong> Classic recursive sequence calculation</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Access examples from the "Load an algorithm..." dropdown in the sidebar.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3">Other Premium Features</h3>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Speed Governor:</strong> Extended speed controls from 0.25x to 20x</li>
+                  <li>• <strong>Time Travel:</strong> Step backward through execution history</li>
+                  <li>• <strong>Export:</strong> Save flowcharts as PNG or PDF images</li>
+                  <li>• <strong>Natural Language Search:</strong> Search flowchart nodes using plain English queries</li>
                 </ul>
               </section>
             </TabsContent>
@@ -222,9 +328,9 @@ function processData(items) {
                 <section>
                   <h3 className="text-lg font-semibold mb-3">Execution Control</h3>
                   <div className="space-y-2">
-                    <ShortcutRow shortcut="Space" description="Play / Pause execution" />
-                    <ShortcutRow shortcut="→" description="Step forward (next step)" />
-                    <ShortcutRow shortcut="←" description="Step backward (Time Travel)" />
+                    <ShortcutRow shortcut="Space or K" description="Play / Pause execution" />
+                    <ShortcutRow shortcut="S or →" description="Step forward (next step)" />
+                    <ShortcutRow shortcut="B or ←" description="Step backward (Time Travel)" />
                     <ShortcutRow shortcut="R" description="Reset execution" />
                     <ShortcutRow shortcut="L" description="Toggle loop mode" />
                   </div>
@@ -242,10 +348,19 @@ function processData(items) {
                 <section>
                   <h3 className="text-lg font-semibold mb-3">View & Navigation</h3>
                   <div className="space-y-2">
-                    <ShortcutRow shortcut="Cmd/Ctrl + K" description="Focus Natural Language Search" />
-                    <ShortcutRow shortcut="Cmd/Ctrl + /" description="Toggle code editor sidebar" />
+                    <ShortcutRow shortcut="F" description="Toggle fullscreen (Workspace mode)" />
+                    <ShortcutRow shortcut="Escape" description="Exit fullscreen" />
                     <ShortcutRow shortcut="V" description="Toggle variables panel" />
                     <ShortcutRow shortcut="D" description="Toggle Ghost Diff overlay" />
+                    <ShortcutRow shortcut="Cmd/Ctrl + K" description="Focus Natural Language Search" />
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold mb-3">File Operations</h3>
+                  <div className="space-y-2">
+                    <ShortcutRow shortcut="Cmd/Ctrl + O" description="Import code from file" />
+                    <ShortcutRow shortcut="Cmd/Ctrl + S" description="Export code to file" />
                   </div>
                 </section>
 
@@ -254,14 +369,6 @@ function processData(items) {
                   <div className="space-y-2">
                     <ShortcutRow shortcut="Cmd/Ctrl + E" description="Export flowchart as PNG" />
                     <ShortcutRow shortcut="Cmd/Ctrl + P" description="Export flowchart as PDF" />
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">Testing & Debug</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="Cmd/Ctrl + T" description="Open test panel" />
-                    <ShortcutRow shortcut="Cmd/Ctrl + Shift + R" description="Test Reporter API" />
                   </div>
                 </section>
               </div>

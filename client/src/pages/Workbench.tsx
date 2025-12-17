@@ -1624,18 +1624,6 @@ export default function Workbench() {
                     </Button>
                   )}
                   
-                  {/* Documentation */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setHelpDialogOpen(true)}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-documentation"
-                  >
-                    <BookOpen className="w-3 h-3" />
-                    Documentation
-                  </Button>
-                  
                   {/* Share */}
                   <Button
                     variant="outline"
