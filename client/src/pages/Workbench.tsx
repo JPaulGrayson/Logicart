@@ -1663,8 +1663,8 @@ export default function Workbench() {
               
               {/* Code Editor Section - Fully Collapsible */}
               {showCodeEditor && !codeEditorCollapsed && (
-                <div className="border-b border-border flex-1 min-h-0 overflow-hidden">
-                  <div className="h-full border-b border-border">
+                <div className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
+                  <div className="h-full">
                     <CodeEditor 
                       code={code} 
                       onChange={handleCodeChange} 
