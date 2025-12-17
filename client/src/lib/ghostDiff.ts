@@ -37,7 +37,7 @@ export class GhostDiff {
   constructor(options: GhostDiffOptions = {}) {
     this.options = {
       debug: options.debug || false,
-      matchBy: options.matchBy || 'id',
+      matchBy: options.matchBy || 'signature', // Use signature matching by default for better accuracy
     };
   }
 
@@ -128,14 +128,16 @@ export class GhostDiff {
   }
 
   /**
-   * Generate a signature for a node based on its structure
+   * Generate a signature for a node based on its structure and source location
+   * Uses source line numbers for stable matching across re-parses
    */
   private getNodeSignature(node: FlowNode): string {
     const parts = [
       node.type,
-      node.data.label?.toLowerCase().replace(/\s+/g, '_'),
-      node.position.x, // Include position as part of signature
-      node.position.y,
+      // Use source location (line number) for stable matching
+      node.data.sourceData?.start?.line ?? 'no-line',
+      // Include a simplified label for disambiguation
+      node.data.label?.slice(0, 30).replace(/\s+/g, '_'),
     ].filter(Boolean);
 
     return parts.join('::');
