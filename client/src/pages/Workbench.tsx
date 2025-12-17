@@ -31,6 +31,38 @@ import { HelpDialog } from '@/components/ide/HelpDialog';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
+// Use sessionStorage for Ghost Diff - persists within browser session
+const STORAGE_KEY = '__logigo_original_snapshot';
+
+const getOriginalSnapshot = (): FlowNode[] => {
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('[Ghost Diff] Failed to read snapshot from storage');
+  }
+  return [];
+};
+
+const setOriginalSnapshot = (nodes: FlowNode[]) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(nodes));
+  } catch (e) {
+    console.warn('[Ghost Diff] Failed to save snapshot to storage');
+  }
+};
+
+const clearOriginalSnapshot = () => {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+    console.log('[Ghost Diff] Cleared original snapshot');
+  } catch (e) {
+    console.warn('[Ghost Diff] Failed to clear snapshot');
+  }
+};
+
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
@@ -59,8 +91,7 @@ export default function Workbench() {
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: false }));
-  const previousFlowDataRef = useRef<FlowNode[]>([]);
+  const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: true }));
   const executionControllerRef = useRef<ExecutionController>(new ExecutionController({ debug: false }));
   
   // Test feature states
@@ -143,20 +174,26 @@ export default function Workbench() {
     const timer = setTimeout(() => {
       const newFlowData = parseCodeToFlow(code);
       
-      // Compute diff if ghost-diff feature is enabled and there's previous data
-      if (features.hasFeature('ghostDiff') && previousFlowDataRef.current.length > 0) {
-        const diff = ghostDiffRef.current.diffTrees(previousFlowDataRef.current, newFlowData.nodes);
+      // Get current original snapshot (persists in window across HMR)
+      const currentSnapshot = getOriginalSnapshot();
+      
+      // Capture original snapshot on first successful parse
+      if (newFlowData.nodes.length > 0 && currentSnapshot.length === 0) {
+        setOriginalSnapshot(JSON.parse(JSON.stringify(newFlowData.nodes))); // Deep copy
+        console.log('[Ghost Diff] Original snapshot captured:', newFlowData.nodes.length, 'nodes');
+        // Don't diff on first parse - just store the original
+        setFlowData(newFlowData);
+      } else if (features.hasFeature('ghostDiff') && currentSnapshot.length > 0) {
+        // Compute diff against ORIGINAL snapshot (only on subsequent parses)
+        const diff = ghostDiffRef.current.diffTrees(currentSnapshot, newFlowData.nodes);
         const styledDiffNodes = ghostDiffRef.current.applyDiffStyling(diff.nodes);
         setDiffNodes(styledDiffNodes);
         
-        if (diff.stats.added > 0 || diff.stats.removed > 0 || diff.stats.modified > 0) {
-          console.log('[Ghost Diff]', diff.stats);
-        }
+        console.log('[Ghost Diff] Stats:', diff.stats);
+        setFlowData(newFlowData);
+      } else {
+        setFlowData(newFlowData);
       }
-      
-      // Update flow data and store for next diff
-      previousFlowDataRef.current = newFlowData.nodes;
-      setFlowData(newFlowData);
       
       // Reset interpreter when code changes
       interpreterRef.current = null;
@@ -1613,15 +1650,31 @@ export default function Workbench() {
                 <div className="space-y-1">
                   {/* Ghost Diff Toggle */}
                   {features.hasFeature('ghostDiff') && (
-                    <Button
-                      variant={showDiff ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setShowDiff(!showDiff)}
-                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                      data-testid="button-ghost-diff"
-                    >
-                      <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant={showDiff ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setShowDiff(!showDiff)}
+                        className="flex-1 justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                        data-testid="button-ghost-diff"
+                      >
+                        <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          clearOriginalSnapshot();
+                          setDiffNodes([]);
+                          setShowDiff(false);
+                        }}
+                        className="h-7 px-2 text-xs cursor-pointer hover:bg-destructive/20"
+                        title="Reset diff baseline to current code"
+                        data-testid="button-reset-diff"
+                      >
+                        ↺
+                      </Button>
+                    </div>
                   )}
                   
                   {/* Share */}

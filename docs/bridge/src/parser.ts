@@ -453,12 +453,23 @@ export function parseCodeToFlow(code: string): FlowData {
           currentParent = node.id;
           break;
         } else if (stmt.type === 'IfStatement') {
-          const testLabel = stmt.test.type === 'BinaryExpression' ? 'condition' : 'check';
-          const decisionNode = createNode(stmt, `if (${testLabel}) ?`, 'decision', undefined, loc);
-
+          // Extract actual condition text for better diff detection
+          let testLabel = 'condition';
           if (stmt.test.type === 'Identifier') {
-            decisionNode.data.label = `${stmt.test.name}?`;
+            testLabel = stmt.test.name;
+          } else if (stmt.test.type === 'BinaryExpression') {
+            // Build readable condition from binary expression
+            const left = stmt.test.left.name || stmt.test.left.value || 
+                        (stmt.test.left.object?.name ? `${stmt.test.left.object.name}.${stmt.test.left.property?.name}` : 'expr');
+            const op = stmt.test.operator;
+            const right = stmt.test.right.name || stmt.test.right.value || 'expr';
+            testLabel = `${left} ${op} ${right}`;
+          } else if (stmt.test.type === 'CallExpression') {
+            testLabel = stmt.test.callee?.name ? `${stmt.test.callee.name}()` : 'fn()';
+          } else if (stmt.test.type === 'MemberExpression') {
+            testLabel = `${stmt.test.object?.name || 'obj'}.${stmt.test.property?.name || 'prop'}`;
           }
+          const decisionNode = createNode(stmt, `if (${testLabel}) ?`, 'decision', undefined, loc);
 
           nodes.push(decisionNode);
           edges.push(createEdge(currentParent, decisionNode.id));
@@ -551,7 +562,17 @@ export function parseCodeToFlow(code: string): FlowData {
             currentParent = initNode.id;
           }
 
-          const loopCondition = createNode(stmt.test, 'for (...) ?', 'decision', undefined, loc);
+          // Extract actual for loop condition for better diff detection
+          let forTestLabel = '...';
+          if (stmt.test?.type === 'BinaryExpression') {
+            const left = stmt.test.left.name || stmt.test.left.value || 'expr';
+            const op = stmt.test.operator;
+            const right = stmt.test.right.name || stmt.test.right.value || 'expr';
+            forTestLabel = `${left} ${op} ${right}`;
+          } else if (stmt.test?.type === 'Identifier') {
+            forTestLabel = stmt.test.name;
+          }
+          const loopCondition = createNode(stmt.test, `for (${forTestLabel}) ?`, 'decision', undefined, loc);
           nodes.push(loopCondition);
           edges.push(createEdge(currentParent, loopCondition.id));
 

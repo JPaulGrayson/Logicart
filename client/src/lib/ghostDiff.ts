@@ -45,11 +45,18 @@ export class GhostDiff {
    * Compare two trees and return diff information
    */
   diffTrees(oldTree: FlowNode[], newTree: FlowNode[]): DiffResult {
-    if (this.options.debug) {
-      console.log('[GhostDiff] Comparing trees...', {
-        oldNodes: oldTree.length,
-        newNodes: newTree.length,
-      });
+    // Always log for debugging
+    console.log('[GhostDiff] Comparing trees...', {
+      oldNodes: oldTree.length,
+      newNodes: newTree.length,
+    });
+    
+    // Log decision node labels for comparison (most likely to change)
+    const oldDecisions = oldTree.filter(n => n.type === 'decision');
+    const newDecisions = newTree.filter(n => n.type === 'decision');
+    if (oldDecisions.length > 0) {
+      console.log('[GhostDiff] Old decision labels:', oldDecisions.map(n => n.data.label));
+      console.log('[GhostDiff] New decision labels:', newDecisions.map(n => n.data.label));
     }
 
     const result: DiffResult = {
@@ -128,16 +135,25 @@ export class GhostDiff {
   }
 
   /**
-   * Generate a signature for a node based on its structure and source location
-   * Uses source line numbers for stable matching across re-parses
+   * Generate a signature for a node based on its structure
+   * Uses type + first keyword/identifier for structural matching
    */
   private getNodeSignature(node: FlowNode): string {
+    const label = node.data.label || '';
+    
+    // Extract structural identifier: first word or up to first operator/value
+    // This captures "if", "for", "let x", "return", etc. without values
+    const structuralId = label
+      .replace(/\s+/g, ' ')
+      .split(/[=<>!+\-*/(){}[\];,]/)[0]
+      .trim()
+      .slice(0, 30) || 'no-id';
+    
     const parts = [
       node.type,
-      // Use source location (line number) for stable matching
-      node.data.sourceData?.start?.line ?? 'no-line',
-      // Include a simplified label for disambiguation
-      node.data.label?.slice(0, 30).replace(/\s+/g, '_'),
+      structuralId,
+      // Add source line as secondary key when available
+      node.data.sourceData?.start?.line ?? '',
     ].filter(Boolean);
 
     return parts.join('::');
@@ -147,30 +163,16 @@ export class GhostDiff {
    * Check if two nodes are different
    */
   private nodesAreDifferent(oldNode: FlowNode, newNode: FlowNode): boolean {
-    // Compare labels
+    // Compare labels (primary check)
     if (oldNode.data.label !== newNode.data.label) {
+      console.log('[GhostDiff] Label changed:', oldNode.data.label, '->', newNode.data.label);
       return true;
     }
 
     // Compare types
     if (oldNode.type !== newNode.type) {
+      console.log('[GhostDiff] Type changed:', oldNode.type, '->', newNode.type);
       return true;
-    }
-
-    // Compare positions (significant movement)
-    const positionChanged =
-      Math.abs(oldNode.position.x - newNode.position.x) > 10 ||
-      Math.abs(oldNode.position.y - newNode.position.y) > 10;
-
-    if (positionChanged) {
-      return true;
-    }
-
-    // Compare source data if available
-    if (oldNode.data.sourceData && newNode.data.sourceData) {
-      const oldSource = JSON.stringify(oldNode.data.sourceData);
-      const newSource = JSON.stringify(newNode.data.sourceData);
-      return oldSource !== newSource;
     }
 
     return false;
@@ -180,6 +182,7 @@ export class GhostDiff {
    * Apply diff styling to nodes for visualization
    */
   applyDiffStyling(nodes: DiffNode[]): DiffNode[] {
+    console.log('[Ghost Diff] Applying styling to', nodes.length, 'nodes');
     return nodes.map((node) => {
       const styledNode = { ...node };
       
@@ -188,6 +191,10 @@ export class GhostDiff {
       styledNode.className = styledNode.className 
         ? `${styledNode.className} ${diffClass}` 
         : diffClass;
+      
+      if (node.diffStatus !== 'unchanged') {
+        console.log('[Ghost Diff] Node', node.id, 'status:', node.diffStatus, 'className:', styledNode.className);
+      }
 
       return styledNode;
     });
