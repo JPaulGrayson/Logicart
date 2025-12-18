@@ -154,6 +154,28 @@ Preferred communication style: Simple, everyday language.
 - **Breakpoints**: Right-click flowchart nodes to toggle breakpoints (red dot indicator), execution pauses at breakpoints
 - **Variable History Timeline**: New "History" tab in Variables panel showing variable changes over execution with mini sparkline charts and clickable step navigation
 - **Shareable URLs**: "Share Flowchart" button generates URL with base64-encoded code, recipients see same flowchart on load
+- **Ghost Diff Enhancement**: Improved code change detection with actual condition values in flowchart labels
+
+### Ghost Diff Feature (Premium)
+- **Purpose**: Visualizes code changes as highlighted "ghost" nodes in the flowchart, showing what was added, removed, or modified
+- **How It Works**:
+  1. Original code snapshot captured automatically on first load (stored in sessionStorage)
+  2. User edits code → flowchart re-parses
+  3. Ghost Diff compares new nodes against original snapshot
+  4. Changed nodes are highlighted with colored glows
+- **Visual Indicators**:
+  - **Green glow** (`diff-added`): New nodes that weren't in original code
+  - **Red glow** (`diff-removed`): Nodes that existed in original but are now deleted
+  - **Yellow glow** (`diff-modified`): Nodes with changed content (e.g., condition value changed)
+  - **Gray dashed** (`diff-unchanged`): Nodes that remain the same
+- **Condition Value Detection**: Parser extracts actual condition values for accurate diff detection:
+  - If statements: `if (pois.length < 2) ?` instead of generic `if (condition) ?`
+  - For loops: `for (i < 10) ?` instead of generic `for (...) ?`
+- **UI Controls**:
+  - **Show/Hide Diff button** (`data-testid: button-ghost-diff`): Toggles diff visualization
+  - **Reset Diff button** (`data-testid: button-reset-diff`): Clears baseline and captures current code as new original
+- **Storage**: Uses sessionStorage key `__logigo_original_snapshot` for persistence across HMR updates
+- **Location**: `client/src/lib/ghostDiff.ts`, `client/src/pages/Workbench.tsx`
 
 ### Breakpoint Styling
 - **CSS Class**: `.breakpoint-node` - Red dot indicator positioned left of node
