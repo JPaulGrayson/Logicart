@@ -72,7 +72,10 @@ async function partition(array, low, high) {
     array[high] = temp;
     
     return (i + 1);
-}`
+}
+
+// Run the algorithm
+runQuickSort();`
   },
   {
     id: 'bubblesort',
@@ -110,7 +113,10 @@ async function runBubbleSort(array) {
         }
     }
     await LogiGo.checkpoint('bubble_sort:complete', { color: '#2ecc71' });
-}`
+}
+
+// Run with sample data
+runBubbleSort([64, 34, 25, 12, 22, 11, 90]);`
   },
   {
     id: 'astar',
@@ -190,7 +196,17 @@ function heuristic(a, b) {
 
 function key(node) {
     return node.x + ',' + node.y;
-}`
+}
+
+// Run with sample grid
+const grid = [
+  [0, 0, 0, 0, 0],
+  [0, 1, 1, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 1, 1, 0],
+  [0, 0, 0, 0, 0]
+];
+runAStar({x: 0, y: 0}, {x: 4, y: 4}, grid);`
   },
   // New examples from testing
   {
@@ -238,7 +254,11 @@ function parseExpression(expr) {
   }
   
   return calculate(parseFloat(num1), parseFloat(num2), operator);
-}`
+}
+
+// Run with sample expression
+let result = parseExpression("25+17");
+console.log(result);`
   },
   {
     id: 'quiz',
@@ -294,7 +314,15 @@ function playRound(state, userAnswer) {
   }
   
   return nextQuestion(state);
-}`
+}
+
+// Run with sample questions
+const questions = [
+  { text: "What is 2+2?", correct: "4" },
+  { text: "What is the capital of France?", correct: "Paris" }
+];
+let state = initializeQuiz(questions);
+playRound(state, "4");`
   },
   {
     id: 'minimax',
@@ -345,7 +373,12 @@ function minimax(board, depth, isMaximizing) {
     }
     return best;
   }
-}`
+}
+
+// Run with sample board
+const board = ['X', null, 'O', null, null, null, null, null, null];
+let bestScore = minimax(board, 0, true);
+console.log("Best score:", bestScore);`
   },
   {
     id: 'fibonacci',
@@ -370,7 +403,10 @@ function runDemo() {
   let result = fibonacci(10);
   console.log(result);
   return result;
-}`
+}
+
+// Run the demo
+runDemo();`
   },
   {
     id: 'maze',
@@ -404,7 +440,16 @@ function solveMaze(maze, x, y, visited) {
   // Backtrack
   visited.delete(x + ',' + y);
   return false;
-}`
+}
+
+// Run with sample maze (0=path, 1=wall, E=exit)
+const maze = [
+  [0, 0, 1, 0],
+  [1, 0, 0, 0],
+  [0, 0, 1, 0],
+  [0, 1, 0, 'E']
+];
+solveMaze(maze, 0, 0, new Set());`
   },
   {
     id: 'snake',
@@ -457,7 +502,19 @@ function gameLoop(state) {
   }
   
   return state;
-}`
+}
+
+// Run with sample state
+const state = {
+  snake: [{x: 5, y: 5}, {x: 4, y: 5}, {x: 3, y: 5}],
+  velocityX: 1,
+  velocityY: 0,
+  gridSize: 10,
+  food: {x: 7, y: 5},
+  score: 0,
+  gameOver: false
+};
+gameLoop(state);`
   }
 ];
 
