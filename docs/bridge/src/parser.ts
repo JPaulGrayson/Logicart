@@ -773,18 +773,30 @@ export function parseCodeToFlow(code: string): FlowData {
     // @ts-ignore
     const body = ast.body;
     
-    // First, check if there are executable top-level statements (not just function declarations)
+    // Separate function declarations from other statements
+    // @ts-ignore
+    const functionDeclarations = body.filter((stmt: any) => stmt.type === 'FunctionDeclaration');
     // @ts-ignore
     const topLevelExecutable = body.filter((stmt: any) => stmt.type !== 'FunctionDeclaration');
     
+    // Check if top-level statements are "trivial" (just variable declarations and simple function calls)
+    // If so, prefer showing function bodies which have the actual algorithm logic
+    const hasTrivialTopLevel = topLevelExecutable.length > 0 && topLevelExecutable.every((stmt: any) => 
+      stmt.type === 'VariableDeclaration' || 
+      stmt.type === 'ExpressionStatement'
+    );
+    
     let statements;
-    if (topLevelExecutable.length > 0) {
-      // Process ONLY the top-level executable statements (function calls, variable declarations, etc.)
-      // This handles code patterns like: function foo() {...}  foo();
-      // Function bodies are processed separately via processBlock when we encounter function bodies
+    if (functionDeclarations.length > 0 && hasTrivialTopLevel) {
+      // Has function declarations + trivial top-level code (like function calls)
+      // Process the first function's body to show the algorithm logic
+      // @ts-ignore
+      statements = functionDeclarations[0].body.body;
+    } else if (topLevelExecutable.length > 0) {
+      // Has substantial top-level code - process it
       statements = topLevelExecutable;
     } else if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
-      // Only function declarations with no top-level calls - process first function's body
+      // Only function declarations - process first function's body
       // @ts-ignore
       statements = body[0].body.body;
     } else {
