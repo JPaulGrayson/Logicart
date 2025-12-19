@@ -24,6 +24,17 @@ export class Interpreter {
   private nodeMap: Map<string, string>;
   private steps: InterpreterStep[];
   private currentStepIndex: number;
+  private functionDeclarations: Map<string, any> = new Map();
+  
+  // Helper: Set variable and sync with current call frame
+  private setVariable(name: string, value: any): void {
+    this.state.variables[name] = value;
+    // Also update the current call frame's variables if we're inside a function
+    if (this.state.callStack.length > 0) {
+      const currentFrame = this.state.callStack[this.state.callStack.length - 1];
+      currentFrame.variables[name] = value;
+    }
+  }
   
   constructor(code: string, nodeMap: Map<string, string>) {
     this.code = code;
@@ -55,8 +66,28 @@ export class Interpreter {
     this.steps = [];
     this.state.status = 'running';
     
-    // Find the function declaration
     const body = this.ast.body;
+    
+    // Build a map of function declarations for later lookup
+    this.functionDeclarations = new Map();
+    for (const node of body) {
+      if (node.type === 'FunctionDeclaration' && node.id) {
+        this.functionDeclarations.set(node.id.name, node);
+      }
+    }
+    
+    // Collect top-level statements that are NOT function declarations
+    const topLevelStatements = body.filter((node: any) => 
+      node.type !== 'FunctionDeclaration'
+    );
+    
+    // If there are top-level statements, execute them (they may include function calls)
+    if (topLevelStatements.length > 0) {
+      this.collectSteps(topLevelStatements);
+      return this.steps.length > 0;
+    }
+    
+    // Fallback: If no top-level statements, find and execute a specific function
     const targetFunction = body.find((node: any) => 
       node.type === 'FunctionDeclaration' && 
       (!functionName || node.id.name === functionName)
@@ -71,7 +102,7 @@ export class Interpreter {
     // Initialize function parameters
     if (targetFunction.params && args) {
       targetFunction.params.forEach((param: any, idx: number) => {
-        this.state.variables[param.name] = args[idx];
+        this.setVariable(param.name, args[idx]);
       });
     }
     
@@ -88,16 +119,18 @@ export class Interpreter {
       const nodeId = locKey ? this.nodeMap.get(locKey) : null;
       
       if (stmt.type === 'VariableDeclaration') {
+        // First evaluate and assign the variable
+        for (const decl of stmt.declarations) {
+          const value = this.evaluateExpression(decl.init);
+          this.setVariable(decl.id.name, value);
+        }
+        
+        // Then push step with state AFTER assignment so variable is visible
         if (nodeId) {
           this.steps.push({
             nodeId,
             state: this.cloneState()
           });
-        }
-        
-        for (const decl of stmt.declarations) {
-          const value = this.evaluateExpression(decl.init);
-          this.state.variables[decl.id.name] = value;
         }
       } else if (stmt.type === 'ReturnStatement') {
         if (nodeId) {
@@ -151,9 +184,18 @@ export class Interpreter {
           if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue') return result;
         }
       } else if (stmt.type === 'ForStatement') {
-        // Execute init
+        // Execute init FIRST, then capture step
         if (stmt.init) {
-          // Add step for init
+          if (stmt.init.type === 'VariableDeclaration') {
+            for (const decl of stmt.init.declarations) {
+              const value = this.evaluateExpression(decl.init);
+              this.setVariable(decl.id.name, value);
+            }
+          } else {
+            this.evaluateExpression(stmt.init);
+          }
+          
+          // Add step AFTER init evaluation so variable is visible
           const initLocKey = stmt.init.loc ? `${stmt.init.loc.start.line}:${stmt.init.loc.start.column}` : null;
           const initNodeId = initLocKey ? this.nodeMap.get(initLocKey) : null;
           if (initNodeId) {
@@ -161,15 +203,6 @@ export class Interpreter {
               nodeId: initNodeId,
               state: this.cloneState()
             });
-          }
-          
-          if (stmt.init.type === 'VariableDeclaration') {
-            for (const decl of stmt.init.declarations) {
-              const value = this.evaluateExpression(decl.init);
-              this.state.variables[decl.id.name] = value;
-            }
-          } else {
-            this.evaluateExpression(stmt.init);
           }
         }
         
@@ -269,14 +302,16 @@ export class Interpreter {
           if (!conditionResult) break;
         } while (true);
       } else if (stmt.type === 'ExpressionStatement') {
+        // Execute the expression first
+        this.evaluateExpression(stmt.expression);
+        
+        // Then push step with state AFTER execution
         if (nodeId) {
           this.steps.push({
             nodeId,
             state: this.cloneState()
           });
         }
-        
-        this.evaluateExpression(stmt.expression);
       }
     }
   }
@@ -287,6 +322,29 @@ export class Interpreter {
     switch (expr.type) {
       case 'Literal':
         return expr.value;
+      
+      case 'ArrayExpression':
+        return expr.elements.map((el: any) => this.evaluateExpression(el));
+      
+      case 'ObjectExpression':
+        const obj: Record<string, any> = {};
+        for (const prop of expr.properties) {
+          const key = prop.key.name || prop.key.value;
+          obj[key] = this.evaluateExpression(prop.value);
+        }
+        return obj;
+      
+      case 'NewExpression':
+        // Handle common constructors
+        if (expr.callee.type === 'Identifier') {
+          const constructorName = expr.callee.name;
+          const args = expr.arguments.map((arg: any) => this.evaluateExpression(arg));
+          if (constructorName === 'Set') return new Set(args[0] || []);
+          if (constructorName === 'Map') return new Map(args[0] || []);
+          if (constructorName === 'Date') return args.length > 0 ? new Date(args[0]) : new Date();
+          if (constructorName === 'Array') return args.length === 1 && typeof args[0] === 'number' ? new Array(args[0]) : args;
+        }
+        return undefined;
         
       case 'Identifier':
         return this.state.variables[expr.name];
@@ -357,38 +415,44 @@ export class Interpreter {
           const args = expr.arguments.map((arg: any) => this.evaluateExpression(arg));
           
           // Check if it's a function in the AST
-          const funcDecl = this.ast.body.find((node: any) => 
+          const funcDecl = this.functionDeclarations.get(fnName) || this.ast.body.find((node: any) => 
             node.type === 'FunctionDeclaration' && node.id.name === fnName
           );
           
           if (funcDecl) {
-            // Save current state
-            const savedVars = { ...this.state.variables };
+            // Track variables before call for scope cleanup
+            const preCallVars = new Set(Object.keys(this.state.variables));
             
-            // Set up parameters
+            // Push call frame FIRST so setVariable can sync to it
+            const callFrame = {
+              functionName: fnName,
+              variables: {} as Record<string, any>
+            };
+            this.state.callStack.push(callFrame);
+            
+            // Set up parameters using setVariable to sync with call frame
             funcDecl.params.forEach((param: any, idx: number) => {
-              this.state.variables[param.name] = args[idx];
+              this.setVariable(param.name, args[idx]);
             });
             
-            // Execute function body
-            const statements = funcDecl.body.body;
-            for (const stmt of statements) {
-              if (stmt.type === 'ReturnStatement') {
-                const result = this.evaluateExpression(stmt.argument);
-                // Restore state
-                this.state.variables = savedVars;
-                return result;
-              } else if (stmt.type === 'VariableDeclaration') {
-                for (const decl of stmt.declarations) {
-                  this.state.variables[decl.id.name] = this.evaluateExpression(decl.init);
-                }
-              } else if (stmt.type === 'ExpressionStatement') {
-                this.evaluateExpression(stmt.expression);
-              }
-            }
+            // Execute function body - steps capture state during traversal
+            // setVariable keeps call frame in sync throughout execution
+            const result = this.collectSteps(funcDecl.body.body);
             
-            // Restore state
-            this.state.variables = savedVars;
+            // Pop from call stack
+            this.state.callStack.pop();
+            
+            // Cleanup: remove variables declared inside the function
+            // Keep pre-existing variables (they may have been modified)
+            const postCallVars: Record<string, any> = {};
+            for (const name of preCallVars) {
+              postCallVars[name] = this.state.variables[name];
+            }
+            this.state.variables = postCallVars;
+            
+            if (result?.type === 'return') {
+              return result.value;
+            }
           }
         }
         break;
@@ -398,27 +462,27 @@ export class Interpreter {
         const leftName = expr.left.name;
         
         if (expr.operator === '=') {
-          this.state.variables[leftName] = rightValue;
+          this.setVariable(leftName, rightValue);
           return rightValue;
         } else if (expr.operator === '+=') {
           const leftValue = this.state.variables[leftName];
           const newValue = leftValue + rightValue;
-          this.state.variables[leftName] = newValue;
+          this.setVariable(leftName, newValue);
           return newValue;
         } else if (expr.operator === '-=') {
           const leftValue = this.state.variables[leftName];
           const newValue = leftValue - rightValue;
-          this.state.variables[leftName] = newValue;
+          this.setVariable(leftName, newValue);
           return newValue;
         } else if (expr.operator === '*=') {
           const leftValue = this.state.variables[leftName];
           const newValue = leftValue * rightValue;
-          this.state.variables[leftName] = newValue;
+          this.setVariable(leftName, newValue);
           return newValue;
         } else if (expr.operator === '/=') {
           const leftValue = this.state.variables[leftName];
           const newValue = leftValue / rightValue;
-          this.state.variables[leftName] = newValue;
+          this.setVariable(leftName, newValue);
           return newValue;
         }
         return rightValue;
@@ -429,11 +493,11 @@ export class Interpreter {
         
         if (expr.operator === '++') {
           const newValue = currentValue + 1;
-          this.state.variables[varName] = newValue;
+          this.setVariable(varName, newValue);
           return expr.prefix ? newValue : currentValue;
         } else if (expr.operator === '--') {
           const newValue = currentValue - 1;
-          this.state.variables[varName] = newValue;
+          this.setVariable(varName, newValue);
           return expr.prefix ? newValue : currentValue;
         }
         break;
