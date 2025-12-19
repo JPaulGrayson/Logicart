@@ -1039,6 +1039,59 @@ export default function Workbench() {
     });
   };
   
+  // Handle Quiz answer selection
+  const handleQuizAnswer = (answerIndex: number) => {
+    setQuizState(prev => {
+      if (prev.isAnswered) return prev;
+      
+      const isCorrect = answerIndex === prev.correctAnswer;
+      const newScore = isCorrect ? prev.score + 10 : prev.score;
+      
+      // Show answer result
+      const answeredState = {
+        ...prev,
+        selectedAnswer: answerIndex,
+        isAnswered: true,
+        score: newScore
+      };
+      
+      // Auto-advance to next question after a delay
+      setTimeout(() => {
+        setQuizState(current => {
+          const nextQuestionIndex = current.currentQuestion + 1;
+          
+          if (nextQuestionIndex >= current.totalQuestions) {
+            // Quiz complete - reset for replay
+            return {
+              ...DEFAULT_QUIZ_STATE,
+              score: current.score
+            };
+          }
+          
+          // Move to next question
+          const questions = [
+            { question: 'What is the capital of France?', options: ['London', 'Berlin', 'Paris', 'Madrid'], correct: 2 },
+            { question: 'What is 2 + 2?', options: ['3', '4', '5', '6'], correct: 1 },
+            { question: 'Which planet is closest to the Sun?', options: ['Venus', 'Mercury', 'Mars', 'Earth'], correct: 1 }
+          ];
+          
+          const nextQ = questions[nextQuestionIndex];
+          return {
+            ...current,
+            question: nextQ.question,
+            options: nextQ.options,
+            correctAnswer: nextQ.correct,
+            currentQuestion: nextQuestionIndex,
+            selectedAnswer: null,
+            isAnswered: false
+          };
+        });
+      }, 1500);
+      
+      return answeredState;
+    });
+  };
+  
   // Handle Snake direction change
   const handleSnakeDirectionChange = (newDirection: 'up' | 'down' | 'left' | 'right') => {
     setSnakeState(prev => {
@@ -2013,6 +2066,7 @@ export default function Workbench() {
                     onEditModeChange={setGridEditMode}
                     onCellClick={handleGridCellClick}
                     onTictactoeMove={handleTictactoeMove}
+                    onQuizAnswer={handleQuizAnswer}
                     onSnakeDirectionChange={handleSnakeDirectionChange}
                     className="h-auto"
                   />
@@ -2208,6 +2262,7 @@ export default function Workbench() {
                     onEditModeChange={setGridEditMode}
                     onCellClick={handleGridCellClick}
                     onTictactoeMove={handleTictactoeMove}
+                    onQuizAnswer={handleQuizAnswer}
                     onSnakeDirectionChange={handleSnakeDirectionChange}
                     className="h-auto"
                   />

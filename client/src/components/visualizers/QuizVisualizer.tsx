@@ -11,6 +11,7 @@ interface QuizVisualizerProps {
   totalQuestions: number;
   currentQuestion: number;
   isAnswered: boolean;
+  onAnswerSelect?: (answerIndex: number) => void;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export function QuizVisualizer({
   totalQuestions,
   currentQuestion,
   isAnswered,
+  onAnswerSelect,
   className
 }: QuizVisualizerProps) {
   return (
@@ -67,6 +69,7 @@ export function QuizVisualizer({
                 showResult && isCorrect && "border-emerald-500 bg-emerald-500/10",
                 showResult && isSelected && !isCorrect && "border-red-500 bg-red-500/10"
               )}
+              onClick={() => !isAnswered && onAnswerSelect?.(index)}
               data-testid={`quiz-option-${index}`}
             >
               <div className="flex items-center gap-2">

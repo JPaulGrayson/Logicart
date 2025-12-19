@@ -99,6 +99,7 @@ interface VisualizationPanelProps {
   onEditModeChange?: (mode: GridEditMode) => void;
   onCellClick?: (node: { x: number; y: number }) => void;
   onTictactoeMove?: (index: number) => void;
+  onQuizAnswer?: (answerIndex: number) => void;
   onSnakeDirectionChange?: (direction: 'up' | 'down' | 'left' | 'right') => void;
   className?: string;
 }
@@ -121,6 +122,7 @@ export function VisualizationPanel({
   onEditModeChange,
   onCellClick,
   onTictactoeMove,
+  onQuizAnswer,
   onSnakeDirectionChange,
   className
 }: VisualizationPanelProps) {
@@ -326,6 +328,7 @@ export function VisualizationPanel({
             totalQuestions={quizState.totalQuestions}
             currentQuestion={quizState.currentQuestion}
             isAnswered={quizState.isAnswered}
+            onAnswerSelect={onQuizAnswer}
           />
         )}
         
