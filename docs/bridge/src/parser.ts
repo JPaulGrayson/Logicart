@@ -772,12 +772,23 @@ export function parseCodeToFlow(code: string): FlowData {
 
     // @ts-ignore
     const body = ast.body;
-    let statements = body;
-
+    
+    // First, check if there are executable top-level statements (not just function declarations)
     // @ts-ignore
-    if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
+    const topLevelExecutable = body.filter((stmt: any) => stmt.type !== 'FunctionDeclaration');
+    
+    let statements;
+    if (topLevelExecutable.length > 0) {
+      // Process ONLY the top-level executable statements (function calls, variable declarations, etc.)
+      // This handles code patterns like: function foo() {...}  foo();
+      // Function bodies are processed separately via processBlock when we encounter function bodies
+      statements = topLevelExecutable;
+    } else if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
+      // Only function declarations with no top-level calls - process first function's body
       // @ts-ignore
       statements = body[0].body.body;
+    } else {
+      statements = body;
     }
 
     processBlock(statements, startNode.id);
