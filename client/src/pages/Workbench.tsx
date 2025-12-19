@@ -1100,6 +1100,42 @@ export default function Workbench() {
     });
   };
   
+  // Handle Calculator expression change
+  const handleCalculatorExpressionChange = (expression: string) => {
+    // Parse the expression
+    const match = expression.match(/^\s*(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)\s*$/);
+    if (match) {
+      const num1 = parseFloat(match[1]);
+      const op = match[2];
+      const num2 = parseFloat(match[3]);
+      let result: number;
+      
+      switch (op) {
+        case '+': result = num1 + num2; break;
+        case '-': result = num1 - num2; break;
+        case '*': result = num1 * num2; break;
+        case '/': result = num2 !== 0 ? num1 / num2 : NaN; break;
+        default: result = NaN;
+      }
+      
+      setCalculatorState({
+        expression,
+        num1: match[1],
+        num2: match[3],
+        operator: op,
+        result: isNaN(result) ? 'Error' : result,
+        currentStep: 'result'
+      });
+    } else {
+      setCalculatorState(prev => ({
+        ...prev,
+        expression,
+        result: 'Invalid expression',
+        currentStep: null
+      }));
+    }
+  };
+  
   // Snake game loop - move snake automatically when playing
   const snakeGameLoopRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -2068,6 +2104,7 @@ export default function Workbench() {
                     onTictactoeMove={handleTictactoeMove}
                     onQuizAnswer={handleQuizAnswer}
                     onSnakeDirectionChange={handleSnakeDirectionChange}
+                    onCalculatorExpressionChange={handleCalculatorExpressionChange}
                     className="h-auto"
                   />
                 </div>
@@ -2264,6 +2301,7 @@ export default function Workbench() {
                     onTictactoeMove={handleTictactoeMove}
                     onQuizAnswer={handleQuizAnswer}
                     onSnakeDirectionChange={handleSnakeDirectionChange}
+                    onCalculatorExpressionChange={handleCalculatorExpressionChange}
                     className="h-auto"
                   />
                 </div>

@@ -101,6 +101,7 @@ interface VisualizationPanelProps {
   onTictactoeMove?: (index: number) => void;
   onQuizAnswer?: (answerIndex: number) => void;
   onSnakeDirectionChange?: (direction: 'up' | 'down' | 'left' | 'right') => void;
+  onCalculatorExpressionChange?: (expression: string) => void;
   className?: string;
 }
 
@@ -124,6 +125,7 @@ export function VisualizationPanel({
   onTictactoeMove,
   onQuizAnswer,
   onSnakeDirectionChange,
+  onCalculatorExpressionChange,
   className
 }: VisualizationPanelProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -315,6 +317,8 @@ export function VisualizationPanel({
             operator={calculatorState.operator}
             result={calculatorState.result}
             currentStep={calculatorState.currentStep}
+            onExpressionChange={onCalculatorExpressionChange}
+            interactive={!!onCalculatorExpressionChange}
           />
         )}
         

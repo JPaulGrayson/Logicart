@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface CalculatorVisualizerProps {
   expression: string;
@@ -9,6 +10,8 @@ interface CalculatorVisualizerProps {
   result: string | number;
   currentStep: 'parse' | 'calculate' | 'result' | null;
   className?: string;
+  onExpressionChange?: (expression: string) => void;
+  interactive?: boolean;
 }
 
 export function CalculatorVisualizer({
@@ -18,21 +21,65 @@ export function CalculatorVisualizer({
   operator,
   result,
   currentStep,
-  className
+  className,
+  onExpressionChange,
+  interactive = false
 }: CalculatorVisualizerProps) {
+  const [inputValue, setInputValue] = useState(expression || '12+5');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleCalculate = () => {
+    if (onExpressionChange) {
+      onExpressionChange(inputValue);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleCalculate();
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-3 p-4 bg-card rounded-lg border border-border", className)}>
       <div className="text-center">
         <div className="text-xs text-muted-foreground mb-1">Expression</div>
-        <div 
-          className={cn(
-            "font-mono text-xl p-3 bg-muted rounded-lg border-2 transition-all",
-            currentStep === 'parse' ? "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]" : "border-transparent"
-          )}
-          data-testid="calculator-expression"
-        >
-          {expression || '...'}
-        </div>
+        {interactive ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              className={cn(
+                "flex-1 font-mono text-xl p-3 bg-muted rounded-lg border-2 transition-all text-center",
+                currentStep === 'parse' ? "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]" : "border-border"
+              )}
+              data-testid="calculator-input"
+              placeholder="e.g., 12+5"
+            />
+            <Button 
+              onClick={handleCalculate}
+              className="bg-primary hover:bg-primary/80"
+              data-testid="calculator-calculate-btn"
+            >
+              =
+            </Button>
+          </div>
+        ) : (
+          <div 
+            className={cn(
+              "font-mono text-xl p-3 bg-muted rounded-lg border-2 transition-all",
+              currentStep === 'parse' ? "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]" : "border-transparent"
+            )}
+            data-testid="calculator-expression"
+          >
+            {expression || '...'}
+          </div>
+        )}
       </div>
       
       <div className="flex items-center justify-center gap-2">
