@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { ExecutionState } from '@/lib/interpreter';
 import { VariableHistory, type VariableSnapshot } from './VariableHistory';
-import { Clock, Variable } from 'lucide-react';
+import { Clock, Variable, Info } from 'lucide-react';
 
 interface VariableWatchProps {
   state: ExecutionState | null;
   history?: VariableSnapshot[];
   currentStep?: number;
   onJumpToStep?: (step: number) => void;
+  hasFunctionCallsInCode?: boolean;
 }
 
-export function VariableWatch({ state, history = [], currentStep = 0, onJumpToStep }: VariableWatchProps) {
+export function VariableWatch({ state, history = [], currentStep = 0, onJumpToStep, hasFunctionCallsInCode = true }: VariableWatchProps) {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
   const hasVariables = state && Object.keys(state.variables).length > 0;
+  
+  const hasUndefinedParams = state && Object.values(state.variables).some(v => v === undefined);
+  const allParamsUndefined = state && Object.values(state.variables).every(v => v === undefined || v === 0);
   const hasHistory = history.length > 0;
 
   return (
@@ -47,12 +51,25 @@ export function VariableWatch({ state, history = [], currentStep = 0, onJumpToSt
         {activeTab === 'current' ? (
           hasVariables && state ? (
             <>
+              {!hasFunctionCallsInCode && hasUndefinedParams && (
+                <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex gap-2 items-start">
+                  <Info className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-yellow-200">
+                    <strong>No function call found.</strong> Add a call with sample data to see values, e.g., <code className="bg-card px-1 rounded">functionName([...])</code>
+                  </div>
+                </div>
+              )}
               <div className="space-y-3">
                 {Object.entries(state.variables).map(([name, value]) => (
                   <div key={name} className="flex flex-col gap-1" data-testid={`variable-${name}`}>
                     <div className="text-xs font-mono text-primary font-semibold">{name}</div>
-                    <div className="text-sm font-mono text-foreground bg-card px-3 py-2 rounded border border-border">
-                      {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                    <div className={`text-sm font-mono bg-card px-3 py-2 rounded border ${value === undefined ? 'border-yellow-500/50 text-muted-foreground italic' : 'border-border text-foreground'}`}>
+                      {value === undefined ? (
+                        <span className="flex items-center gap-2">
+                          undefined
+                          <span className="text-xs text-yellow-500/70">(no data provided)</span>
+                        </span>
+                      ) : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
                     </div>
                   </div>
                 ))}

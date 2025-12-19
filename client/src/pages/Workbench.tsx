@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import * as acorn from 'acorn';
 import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
 import { FlowchartSkeleton } from '@/components/ide/FlowchartSkeleton';
@@ -63,6 +64,48 @@ const clearOriginalSnapshot = () => {
   }
 };
 
+const detectFunctionCalls = (code: string): boolean => {
+  try {
+    let ast: any;
+    try {
+      ast = acorn.parse(code, { ecmaVersion: 2020, sourceType: 'module' });
+    } catch {
+      ast = acorn.parse(code, { ecmaVersion: 2020, sourceType: 'script' });
+    }
+    let foundCall = false;
+    
+    const walk = (node: any): void => {
+      if (!node || foundCall) return;
+      if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
+        return;
+      }
+      if (node.type === 'CallExpression' || node.type === 'NewExpression' || 
+          node.type === 'TaggedTemplateExpression' || node.type === 'ImportExpression') {
+        foundCall = true;
+        return;
+      }
+      for (const key in node) {
+        if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+        const child = node[key];
+        if (Array.isArray(child)) {
+          child.forEach(c => walk(c));
+        } else if (child && typeof child === 'object' && child.type) {
+          walk(child);
+        }
+      }
+    };
+    
+    for (const stmt of ast.body) {
+      if (stmt.type === 'FunctionDeclaration') continue;
+      walk(stmt);
+      if (foundCall) return true;
+    }
+    return false;
+  } catch {
+    return true;
+  }
+};
+
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
@@ -78,6 +121,7 @@ export default function Workbench() {
   const [isParsing, setIsParsing] = useState(false);
   const [parseReady, setParseReady] = useState(false);
   const [playQueued, setPlayQueued] = useState(false);
+  const [hasFunctionCalls, setHasFunctionCalls] = useState(() => detectFunctionCalls(code));
   
   // Premium features state
   const [showDiff, setShowDiff] = useState(false);
@@ -183,6 +227,7 @@ export default function Workbench() {
         console.log('[Ghost Diff] Original snapshot captured:', newFlowData.nodes.length, 'nodes');
         // Don't diff on first parse - just store the original
         setFlowData(newFlowData);
+        setHasFunctionCalls(detectFunctionCalls(code));
       } else if (features.hasFeature('ghostDiff') && currentSnapshot.length > 0) {
         // Compute diff against ORIGINAL snapshot (only on subsequent parses)
         const diff = ghostDiffRef.current.diffTrees(currentSnapshot, newFlowData.nodes);
@@ -191,8 +236,10 @@ export default function Workbench() {
         
         console.log('[Ghost Diff] Stats:', diff.stats);
         setFlowData(newFlowData);
+        setHasFunctionCalls(detectFunctionCalls(code));
       } else {
         setFlowData(newFlowData);
+        setHasFunctionCalls(detectFunctionCalls(code));
       }
       
       // Reset interpreter when code changes
@@ -1977,6 +2024,7 @@ export default function Workbench() {
                             history={variableHistory}
                             currentStep={progress.current}
                             onJumpToStep={handleJumpToStep}
+                            hasFunctionCallsInCode={hasFunctionCalls}
                           />
                         </div>
                         <div className="border-t border-border p-2">
@@ -1997,6 +2045,7 @@ export default function Workbench() {
                             history={variableHistory}
                             currentStep={progress.current}
                             onJumpToStep={handleJumpToStep}
+                            hasFunctionCallsInCode={hasFunctionCalls}
                           />
                     )}
                   </div>
