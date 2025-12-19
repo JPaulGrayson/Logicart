@@ -146,6 +146,13 @@ Preferred communication style: Simple, everyday language.
 - **connect-pg-simple**: PostgreSQL session store.
 
 ### Recent Feature Additions (December 2025)
+- **Interpreter Variable Capture Fix**: Variables now captured AFTER assignment so Debug Panel shows actual values (not undefined)
+  - `setVariable()` helper ensures all assignments sync with call stack frames
+  - ForStatement init now executes before step capture so loop counters display correctly
+  - Post-call cleanup removes function-local variables while preserving global mutations
+- **Function Call Detection**: AST-based detection (`detectFunctionCalls`) identifies code with function calls vs. definitions-only
+  - VariableWatch shows contextual help when code has no function calls
+  - Algorithm examples now include sample data and function invocations
 - **Minimax TicTacToe AI**: Unbeatable AI opponent using minimax algorithm with alpha-beta-style depth optimization
 - **Keyboard Shortcuts**: 
   - `Ctrl+O` / `Cmd+O`: Import code file
