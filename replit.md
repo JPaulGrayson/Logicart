@@ -162,6 +162,10 @@ Preferred communication style: Simple, everyday language.
 - **Variable History Timeline**: New "History" tab in Variables panel showing variable changes over execution with mini sparkline charts and clickable step navigation
 - **Shareable URLs**: "Share Flowchart" button generates URL with base64-encoded code, recipients see same flowchart on load
 - **Ghost Diff Enhancement**: Improved code change detection with actual condition values in flowchart labels
+- **Recursion Overflow Protection**: MAX_STEPS=5000 limit prevents browser freezing on deeply recursive algorithms
+  - Friendly toast notification guides users to Step mode (S key) when limit exceeded
+  - Steps array cleared on overflow to prevent partial autoplay
+  - RangeError catch for call stack exceeded errors
 
 ### Ghost Diff Feature (Premium)
 - **Purpose**: Visualizes code changes as highlighted "ghost" nodes in the flowchart, showing what was added, removed, or modified
