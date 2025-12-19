@@ -17,6 +17,10 @@ export interface InterpreterStep {
   state: ExecutionState;
 }
 
+// Maximum steps to collect before aborting (prevents stack overflow on recursive algorithms)
+// Set to 5000 as a balance between showing useful execution traces and preventing browser freezes
+const MAX_STEPS = 5000;
+
 export class Interpreter {
   private ast: any;
   private code: string;
@@ -25,6 +29,7 @@ export class Interpreter {
   private steps: InterpreterStep[];
   private currentStepIndex: number;
   private functionDeclarations: Map<string, any> = new Map();
+  private stepLimitExceeded: boolean = false;
   
   // Helper: Set variable and sync with current call frame
   private setVariable(name: string, value: any): void {
@@ -64,6 +69,7 @@ export class Interpreter {
     
     this.reset();
     this.steps = [];
+    this.stepLimitExceeded = false;
     this.state.status = 'running';
     
     const body = this.ast.body;
@@ -76,44 +82,93 @@ export class Interpreter {
       }
     }
     
-    // Collect top-level statements that are NOT function declarations
-    const topLevelStatements = body.filter((node: any) => 
-      node.type !== 'FunctionDeclaration'
-    );
-    
-    // If there are top-level statements, execute them (they may include function calls)
-    if (topLevelStatements.length > 0) {
-      this.collectSteps(topLevelStatements);
-      return this.steps.length > 0;
+    try {
+      // Collect top-level statements that are NOT function declarations
+      const topLevelStatements = body.filter((node: any) => 
+        node.type !== 'FunctionDeclaration'
+      );
+      
+      // If there are top-level statements, execute them (they may include function calls)
+      if (topLevelStatements.length > 0) {
+        this.collectSteps(topLevelStatements);
+        
+        // Check if we hit the step limit
+        if (this.stepLimitExceeded) {
+          this.steps = []; // Clear steps to prevent autoplay
+          this.state.status = 'error';
+          this.state.error = 'STEP_LIMIT: This algorithm has too many steps for autoplay. Try using Step mode (S key) to step through manually.';
+          return false;
+        }
+        
+        return this.steps.length > 0;
+      }
+      
+      // Fallback: If no top-level statements, find and execute a specific function
+      const targetFunction = body.find((node: any) => 
+        node.type === 'FunctionDeclaration' && 
+        (!functionName || node.id.name === functionName)
+      );
+      
+      if (!targetFunction) {
+        this.state.error = `Function ${functionName || 'default'} not found`;
+        this.state.status = 'error';
+        return false;
+      }
+      
+      // Initialize function parameters
+      if (targetFunction.params && args) {
+        targetFunction.params.forEach((param: any, idx: number) => {
+          this.setVariable(param.name, args[idx]);
+        });
+      }
+      
+      // Collect all execution steps
+      this.collectSteps(targetFunction.body.body);
+      
+      // Check if we hit the step limit
+      if (this.stepLimitExceeded) {
+        this.steps = []; // Clear steps to prevent autoplay
+        this.state.status = 'error';
+        this.state.error = 'STEP_LIMIT: This algorithm has too many steps for autoplay. Try using Step mode (S key) to step through manually.';
+        return false;
+      }
+      
+      return true;
+    } catch (e: any) {
+      // Catch stack overflow errors (RangeError: Maximum call stack size exceeded)
+      if (e instanceof RangeError && e.message.includes('call stack')) {
+        this.state.status = 'error';
+        this.state.error = 'RECURSION_DEPTH: This recursive algorithm is too deep for autoplay. Try using Step mode (S key) to step through manually.';
+        return false;
+      }
+      // Re-throw other errors
+      throw e;
     }
-    
-    // Fallback: If no top-level statements, find and execute a specific function
-    const targetFunction = body.find((node: any) => 
-      node.type === 'FunctionDeclaration' && 
-      (!functionName || node.id.name === functionName)
-    );
-    
-    if (!targetFunction) {
-      this.state.error = `Function ${functionName || 'default'} not found`;
-      this.state.status = 'error';
-      return false;
+  }
+  
+  // Check if the error is a step limit/recursion issue
+  isStepLimitError(): boolean {
+    return this.state.error?.startsWith('STEP_LIMIT:') || 
+           this.state.error?.startsWith('RECURSION_DEPTH:') || false;
+  }
+  
+  // Get user-friendly error message
+  getUserFriendlyError(): string | null {
+    if (!this.state.error) return null;
+    if (this.state.error.startsWith('STEP_LIMIT:') || this.state.error.startsWith('RECURSION_DEPTH:')) {
+      return this.state.error.split(': ')[1];
     }
-    
-    // Initialize function parameters
-    if (targetFunction.params && args) {
-      targetFunction.params.forEach((param: any, idx: number) => {
-        this.setVariable(param.name, args[idx]);
-      });
-    }
-    
-    // Collect all execution steps
-    this.collectSteps(targetFunction.body.body);
-    
-    return true;
+    return this.state.error;
   }
   
   private collectSteps(statements: any[], depth: number = 0): any {
     for (const stmt of statements) {
+      // Check step limit to prevent stack overflow on deeply recursive algorithms
+      if (this.steps.length >= MAX_STEPS) {
+        this.stepLimitExceeded = true;
+        return { type: 'step_limit' };
+      }
+      
       // Use location as the key to match with nodeMap
       const locKey = stmt.loc ? `${stmt.loc.start.line}:${stmt.loc.start.column}` : null;
       const nodeId = locKey ? this.nodeMap.get(locKey) : null;
@@ -175,13 +230,13 @@ export class Interpreter {
             ? stmt.consequent.body
             : [stmt.consequent];
           const result = this.collectSteps(consequentStmts, depth + 1);
-          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue') return result;
+          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue' || result?.type === 'step_limit') return result;
         } else if (stmt.alternate) {
           const alternateStmts = stmt.alternate.type === 'BlockStatement'
             ? stmt.alternate.body
             : [stmt.alternate];
           const result = this.collectSteps(alternateStmts, depth + 1);
-          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue') return result;
+          if (result?.type === 'return' || result?.type === 'break' || result?.type === 'continue' || result?.type === 'step_limit') return result;
         }
       } else if (stmt.type === 'ForStatement') {
         // Execute init FIRST, then capture step
@@ -229,7 +284,7 @@ export class Interpreter {
             : [stmt.body];
           const result = this.collectSteps(bodyStmts, depth + 1);
           
-          if (result?.type === 'return') return result;
+          if (result?.type === 'return' || result?.type === 'step_limit') return result;
           if (result?.type === 'break') break;
           // continue just proceeds to update
           
@@ -271,7 +326,7 @@ export class Interpreter {
             : [stmt.body];
           const result = this.collectSteps(bodyStmts, depth + 1);
           
-          if (result?.type === 'return') return result;
+          if (result?.type === 'return' || result?.type === 'step_limit') return result;
           if (result?.type === 'break') break;
           // continue just loops back
         }
@@ -283,7 +338,7 @@ export class Interpreter {
             : [stmt.body];
           const result = this.collectSteps(bodyStmts, depth + 1);
           
-          if (result?.type === 'return') return result;
+          if (result?.type === 'return' || result?.type === 'step_limit') return result;
           if (result?.type === 'break') break;
           
           // Check condition
@@ -452,6 +507,10 @@ export class Interpreter {
             
             if (result?.type === 'return') {
               return result.value;
+            }
+            // Propagate step limit to break out of execution
+            if (result?.type === 'step_limit') {
+              return undefined;
             }
           }
         }

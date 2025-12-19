@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as acorn from 'acorn';
+import { toast } from 'sonner';
 import { CodeEditor } from '@/components/ide/CodeEditor';
 import { Flowchart } from '@/components/ide/Flowchart';
 import { FlowchartSkeleton } from '@/components/ide/FlowchartSkeleton';
@@ -389,6 +390,22 @@ export default function Workbench() {
       setProgress(prog);
       return true;
     }
+    
+    // Check for step limit/recursion depth errors and show helpful message
+    if (interpreterRef.current.isStepLimitError()) {
+      const friendlyError = interpreterRef.current.getUserFriendlyError();
+      toast.warning('Algorithm too complex for autoplay', {
+        description: friendlyError || 'Try using Step mode (S key) to step through manually.',
+        duration: 8000,
+        action: {
+          label: 'Got it',
+          onClick: () => {}
+        }
+      });
+      // Clear the interpreter so user can retry
+      interpreterRef.current = null;
+    }
+    
     return false;
   };
 
