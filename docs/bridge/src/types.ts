@@ -12,6 +12,7 @@ export interface FlowNode {
     data: {
         label: string;
         userLabel?: string;         // User-defined label from // @logigo: comments
+        sourceSnippet?: string;     // Actual source code snippet for tooltip display
         description?: string;
         sourceData?: SourceLocation;
         children?: string[];        // For container nodes: IDs of child nodes

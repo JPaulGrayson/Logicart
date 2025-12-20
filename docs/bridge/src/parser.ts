@@ -353,6 +353,29 @@ export function parseCodeToFlow(code: string): FlowData {
       containerNodes.set('global', globalContainer);
     }
 
+    // Helper to extract source code snippet from location
+    const codeLines = code.split('\n');
+    const extractSourceSnippet = (loc: SourceLocation | undefined): string | undefined => {
+      if (!loc) return undefined;
+      try {
+        // For single-line statements, extract just that line (trimmed)
+        if (loc.start.line === loc.end.line) {
+          const line = codeLines[loc.start.line - 1];
+          if (line) {
+            return line.trim();
+          }
+        }
+        // For multi-line, extract the first line (usually contains the key info)
+        const firstLine = codeLines[loc.start.line - 1];
+        if (firstLine) {
+          return firstLine.trim();
+        }
+      } catch {
+        return undefined;
+      }
+      return undefined;
+    };
+
     const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
@@ -367,6 +390,9 @@ export function parseCodeToFlow(code: string): FlowData {
       if (stmt?.loc) {
         userLabel = userLabels.get(stmt.loc.start.line);
       }
+      
+      // Extract source code snippet for tooltip display
+      const sourceSnippet = extractSourceSnippet(loc);
       
       // Determine if this node belongs to a section/container
       let parentNode: string | undefined;
@@ -400,7 +426,7 @@ export function parseCodeToFlow(code: string): FlowData {
       return {
         id,
         type,
-        data: { label, userLabel, sourceData: loc },
+        data: { label, userLabel, sourceSnippet, sourceData: loc },
         position: { x: 0, y: 0 },
         className,
         parentNode,

@@ -7,9 +7,12 @@ const LabeledNode = ({ data, type }: NodeProps) => {
   
   const userLabel = data.userLabel as string | undefined;
   const codeLabel = data.label as string;
+  const sourceSnippet = data.sourceSnippet as string | undefined;
   
   const displayLabel = userLabel || codeLabel;
   const showTooltip = userLabel && isHovered;
+  // Show sourceSnippet if available, otherwise fall back to codeLabel
+  const tooltipCode = sourceSnippet || codeLabel;
   
   const isInput = type === 'input';
   const isOutput = type === 'output';
@@ -62,12 +65,12 @@ const LabeledNode = ({ data, type }: NodeProps) => {
           </TooltipTrigger>
           <TooltipContent 
             side="bottom" 
-            className="max-w-xs bg-card border border-border shadow-lg"
+            className="max-w-sm bg-card border border-border shadow-lg"
           >
             <div className="text-xs">
               <div className="text-muted-foreground mb-1 text-[10px] uppercase tracking-wide">Code:</div>
-              <code className="font-mono text-foreground bg-muted px-1.5 py-0.5 rounded text-[11px]">
-                {codeLabel}
+              <code className="font-mono text-foreground bg-muted px-1.5 py-0.5 rounded text-[11px] block whitespace-pre-wrap">
+                {tooltipCode}
               </code>
             </div>
           </TooltipContent>
