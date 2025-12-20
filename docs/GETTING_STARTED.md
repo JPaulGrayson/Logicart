@@ -202,20 +202,17 @@ Click "Share Flowchart" to generate a URL that includes your code. Recipients se
 
 ---
 
-## Quick Install via Replit Agent
+## Install LogiGo in Your Projects
 
-If you're using Replit, you can have your Replit Agent install LogiGo for you automatically.
+Add LogiGo to your own projects on any platform (Replit, VS Code, Cursor, Antigravity, Windsurf).
 
-**Just copy and paste the contents of [LOGIGO_INSTALL_GUIDE.md](./LOGIGO_INSTALL_GUIDE.md) into your Replit Agent chat.**
+**See the full installation guide: [INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md)**
 
-The guide includes:
-- NPM install command
-- Ready-to-paste checkpoint helper code
-- Checkpoint naming conventions
-- Before/after examples
-- Variable tracking best practices
-
-Your Replit Agent will automatically add LogiGo checkpoints to your key functions.
+The guide covers:
+- **LogiGoOverlay** - Visual debugging for frontend apps
+- **Checkpoint Helper** - Execution logging for backend apps
+- Platform-specific installation for all supported IDEs
+- Verification checklists and troubleshooting
 
 ---
 
@@ -224,4 +221,4 @@ Your Replit Agent will automatically add LogiGo checkpoints to your key function
 - Explore the built-in algorithm examples (Examples dropdown)
 - Try the Ghost Diff feature to visualize code changes
 - Check the Help dialog (`?` button) for more shortcuts and features
-- Use the [Replit Agent Install Guide](./LOGIGO_INSTALL_GUIDE.md) to add LogiGo to your projects
+- Use the [Installation Guide](./INSTALLATION_GUIDE.md) to add LogiGo to your projects

@@ -197,29 +197,23 @@ function processData(items) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-cyan-500">🤖</span>
-                  Quick Install via Replit Agent
+                  Install LogiGo in Your Project
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Using Replit? Have your Replit Agent install LogiGo automatically:
+                  Add LogiGo to your own projects on any platform:
                 </p>
-                <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal list-inside">
-                  <li>Copy the LogiGo Install Guide from the docs folder</li>
-                  <li>Paste it into your Replit Agent chat</li>
-                  <li>The Agent will install logigo-core and add checkpoints to your code</li>
-                </ol>
+                <div className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <p><strong>Supported Platforms:</strong> Replit, VS Code, Cursor, Antigravity, Windsurf</p>
+                </div>
                 <div className="mt-3 p-3 bg-muted/50 rounded-md">
-                  <p className="text-xs font-semibold mb-2">Tell your Agent:</p>
-                  <pre className="text-xs font-mono whitespace-pre-wrap">
-{`Install LogiGo to visualize my code execution.
-Run: npm install logigo-core
-Then add checkpoints like:
-  await LogiGo.checkpoint('step:name', {
-    variables: { key: value }
-  });`}
-                  </pre>
+                  <p className="text-xs font-semibold mb-2">Two Components:</p>
+                  <ul className="text-xs space-y-1">
+                    <li><strong>LogiGoOverlay</strong> - Visual debugging for frontend (React, Vue)</li>
+                    <li><strong>Checkpoint Helper</strong> - Execution logging for backend (Node.js, Express)</li>
+                  </ul>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Full guide: <code className="bg-muted px-1 py-0.5 rounded text-xs">docs/LOGIGO_INSTALL_GUIDE.md</code>
+                  Full installation guide: <code className="bg-muted px-1 py-0.5 rounded text-xs">docs/INSTALLATION_GUIDE.md</code>
                 </p>
               </section>
 
