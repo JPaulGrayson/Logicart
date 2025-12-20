@@ -202,8 +202,26 @@ Click "Share Flowchart" to generate a URL that includes your code. Recipients se
 
 ---
 
+## Quick Install via Replit Agent
+
+If you're using Replit, you can have your Replit Agent install LogiGo for you automatically.
+
+**Just copy and paste the contents of [LOGIGO_INSTALL_GUIDE.md](./LOGIGO_INSTALL_GUIDE.md) into your Replit Agent chat.**
+
+The guide includes:
+- NPM install command
+- Ready-to-paste checkpoint helper code
+- Checkpoint naming conventions
+- Before/after examples
+- Variable tracking best practices
+
+Your Replit Agent will automatically add LogiGo checkpoints to your key functions.
+
+---
+
 ## Next Steps
 
 - Explore the built-in algorithm examples (Examples dropdown)
 - Try the Ghost Diff feature to visualize code changes
 - Check the Help dialog (`?` button) for more shortcuts and features
+- Use the [Replit Agent Install Guide](./LOGIGO_INSTALL_GUIDE.md) to add LogiGo to your projects
