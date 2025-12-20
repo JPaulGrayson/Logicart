@@ -196,6 +196,35 @@ function processData(items) {
 
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-cyan-500">🤖</span>
+                  Quick Install via Replit Agent
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Using Replit? Have your Replit Agent install LogiGo automatically:
+                </p>
+                <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal list-inside">
+                  <li>Copy the LogiGo Install Guide from the docs folder</li>
+                  <li>Paste it into your Replit Agent chat</li>
+                  <li>The Agent will install logigo-core and add checkpoints to your code</li>
+                </ol>
+                <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                  <p className="text-xs font-semibold mb-2">Tell your Agent:</p>
+                  <pre className="text-xs font-mono whitespace-pre-wrap">
+{`Install LogiGo to visualize my code execution.
+Run: npm install logigo-core
+Then add checkpoints like:
+  await LogiGo.checkpoint('step:name', {
+    variables: { key: value }
+  });`}
+                  </pre>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Full guide: <code className="bg-muted px-1 py-0.5 rounded text-xs">docs/LOGIGO_INSTALL_GUIDE.md</code>
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                   User-Defined Labels
                 </h3>
