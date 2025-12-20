@@ -10,6 +10,35 @@ interface CodeSection {
   endLine: number;
 }
 
+// Helper to detect @logigo: label comments
+// Maps line numbers to user-defined labels
+function detectUserLabels(code: string): Map<number, string> {
+  const labels = new Map<number, string>();
+  const lines = code.split('\n');
+  const labelPattern = /\/\/\s*@logigo:\s*(.+)$/i;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const match = line.match(labelPattern);
+    
+    if (match) {
+      const label = match[1].trim();
+      // The label applies to the next non-empty, non-comment line
+      for (let j = i + 1; j < lines.length; j++) {
+        const nextLine = lines[j].trim();
+        // Skip empty lines and other comments
+        if (nextLine && !nextLine.startsWith('//')) {
+          // Line numbers are 1-indexed in AST
+          labels.set(j + 1, label);
+          break;
+        }
+      }
+    }
+  }
+  
+  return labels;
+}
+
 function detectSections(code: string, ast?: any): CodeSection[] {
   const lines = code.split('\n');
   const sections: CodeSection[] = [];
@@ -281,6 +310,9 @@ export function parseCodeToFlow(code: string): FlowData {
     const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
 
+    // Detect user-defined labels from // @logigo: comments
+    const userLabels = detectUserLabels(code);
+    
     // Detect sections from comment markers (or auto-detect functions)
     const sections = detectSections(code, ast);
     const containerNodes: Map<string, FlowNode> = new Map();
@@ -330,6 +362,12 @@ export function parseCodeToFlow(code: string): FlowData {
         nodeMap.set(locKey, id);
       }
       
+      // Look up user-defined label from // @logigo: comment
+      let userLabel: string | undefined;
+      if (stmt?.loc) {
+        userLabel = userLabels.get(stmt.loc.start.line);
+      }
+      
       // Determine if this node belongs to a section/container
       let parentNode: string | undefined;
       if (sections.length > 0 && stmt?.loc) {
@@ -362,7 +400,7 @@ export function parseCodeToFlow(code: string): FlowData {
       return {
         id,
         type,
-        data: { label, sourceData: loc },
+        data: { label, userLabel, sourceData: loc },
         position: { x: 0, y: 0 },
         className,
         parentNode,

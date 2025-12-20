@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css';
 import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
+import LabeledNode from './LabeledNode';
 import { FixedMiniMap } from './FixedMiniMap';
 import { Button } from '@/components/ui/button';
 import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
@@ -25,6 +26,9 @@ interface FlowchartProps {
 const nodeTypes = {
   decision: DecisionNode,
   container: ContainerNode,
+  default: LabeledNode,
+  input: LabeledNode,
+  output: LabeledNode,
 };
 
 function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, activeNodeId, highlightedNodes, breakpoints, runtimeState }: FlowchartProps) {

@@ -146,6 +146,17 @@ Preferred communication style: Simple, everyday language.
 - **connect-pg-simple**: PostgreSQL session store.
 
 ### Recent Feature Additions (December 2025)
+- **User-Defined Labels**: Developers can annotate code with `// @logigo: Label text` comments
+  - Labels appear in flowchart nodes instead of code snippets
+  - Blue dot indicator shows which nodes have user labels
+  - Hover over labeled nodes to see original code in tooltip
+  - Works in both Static and Live modes
+  - Parser's `detectUserLabels()` maps comment line numbers to labels
+  - LabeledNode and DecisionNode components display labels with tooltips
+- **Debug Panel Step Indicator**: Shows current step number, total steps, and active node label
+  - Displays user label if present, otherwise shows code snippet
+  - Green MapPin icon indicates current execution position
+- **Getting Started Guide**: New `docs/GETTING_STARTED.md` for customer integration
 - **Interpreter Variable Capture Fix**: Variables now captured AFTER assignment so Debug Panel shows actual values (not undefined)
   - `setVariable()` helper ensures all assignments sync with call stack frames
   - ForStatement init now executes before step capture so loop counters display correctly

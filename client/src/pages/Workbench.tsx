@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as acorn from 'acorn';
 import { toast } from 'sonner';
 import { CodeEditor } from '@/components/ide/CodeEditor';
@@ -161,6 +161,17 @@ export default function Workbench() {
     checkpointCount: 0
   });
   const [liveCheckpoints, setLiveCheckpoints] = useState<CheckpointPayload[]>([]);
+  
+  // Compute active node info for Debug Panel display
+  // Always use flowData.nodes for label lookup since diffNodes may not have userLabel data
+  const activeNodeInfo = useMemo(() => {
+    if (!activeNodeId) return { label: undefined, userLabel: undefined };
+    const activeNode = flowData.nodes.find(n => n.id === activeNodeId);
+    return {
+      label: activeNode?.data?.label as string | undefined,
+      userLabel: activeNode?.data?.userLabel as string | undefined
+    };
+  }, [activeNodeId, flowData.nodes]);
   
   // Algorithm visualization state
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(null);
@@ -2131,6 +2142,9 @@ export default function Workbench() {
                             state={executionState}
                             history={variableHistory}
                             currentStep={progress.current}
+                            totalSteps={progress.total}
+                            activeNodeLabel={activeNodeInfo.label}
+                            activeNodeUserLabel={activeNodeInfo.userLabel}
                             onJumpToStep={handleJumpToStep}
                             hasFunctionCallsInCode={hasFunctionCalls}
                           />
@@ -2152,6 +2166,9 @@ export default function Workbench() {
                             state={executionState}
                             history={variableHistory}
                             currentStep={progress.current}
+                            totalSteps={progress.total}
+                            activeNodeLabel={activeNodeInfo.label}
+                            activeNodeUserLabel={activeNodeInfo.userLabel}
                             onJumpToStep={handleJumpToStep}
                             hasFunctionCallsInCode={hasFunctionCalls}
                           />

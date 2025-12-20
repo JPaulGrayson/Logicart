@@ -11,6 +11,7 @@ export interface FlowNode {
     type: 'input' | 'output' | 'default' | 'decision' | 'container';
     data: {
         label: string;
+        userLabel?: string;         // User-defined label from // @logigo: comments
         description?: string;
         sourceData?: SourceLocation;
         children?: string[];        // For container nodes: IDs of child nodes

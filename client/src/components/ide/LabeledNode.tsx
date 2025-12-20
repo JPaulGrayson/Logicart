@@ -2,54 +2,53 @@ import React, { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const DecisionNode = ({ data }: NodeProps) => {
+const LabeledNode = ({ data, type }: NodeProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const userLabel = data.userLabel as string | undefined;
   const codeLabel = data.label as string;
+  
   const displayLabel = userLabel || codeLabel;
   const showTooltip = userLabel && isHovered;
   
+  const isInput = type === 'input';
+  const isOutput = type === 'output';
+  
+  let bgClass = 'bg-card border-border';
+  if (isInput) {
+    bgClass = 'bg-primary text-primary-foreground border-primary';
+  } else if (isOutput) {
+    bgClass = 'bg-destructive/20 border-destructive/50';
+  }
+  
   const content = (
     <div 
-      className="relative w-24 h-24 flex items-center justify-center"
+      className={`px-4 py-3 rounded-lg border-2 shadow-sm hover:shadow-md transition-all min-w-[120px] text-center ${bgClass}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      data-testid={`node-${data.label}`}
     >
-      {/* The Diamond Shape */}
-      <div className="absolute inset-0 bg-card border-2 border-accent rotate-45 rounded-sm shadow-sm hover:shadow-md transition-shadow bg-accent/5" />
-      
-      {/* User label indicator dot */}
-      {userLabel && (
-        <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full z-20" title="Has user label" />
-      )}
-      
-      {/* The Content (Stays Horizontal) */}
-      <div className="relative z-10 text-xs font-mono text-center p-2 pointer-events-none font-medium text-accent-foreground/90">
+      <div className="text-xs font-mono leading-tight">
         {userLabel ? (
-          <span className="font-medium">{displayLabel}</span>
+          <span className="font-medium text-foreground">{displayLabel}</span>
         ) : (
-          displayLabel
+          <span className="text-muted-foreground">{displayLabel}</span>
         )}
       </div>
-
-      {/* Handles - adjusted for the diamond shape */}
+      
+      {userLabel && (
+        <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" title="Has user label" />
+      )}
+      
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="!bg-accent !w-3 !h-3 !-mt-3" 
+        className="!bg-accent !w-2 !h-2" 
       />
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        id="true"
-        className="!bg-green-500 !w-3 !h-3 !-mb-3" 
-      />
-       <Handle 
-        type="source" 
-        position={Position.Right} 
-        id="false"
-        className="!bg-red-500 !w-3 !h-3 !-mr-3" 
+        className="!bg-accent !w-2 !h-2" 
       />
     </div>
   );
@@ -80,4 +79,4 @@ const DecisionNode = ({ data }: NodeProps) => {
   return content;
 };
 
-export default memo(DecisionNode);
+export default memo(LabeledNode);

@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
 import { ExecutionState } from '@/lib/interpreter';
 import { VariableHistory, type VariableSnapshot } from './VariableHistory';
-import { Clock, Variable, Info } from 'lucide-react';
+import { Clock, Variable, Info, MapPin } from 'lucide-react';
 
 interface VariableWatchProps {
   state: ExecutionState | null;
   history?: VariableSnapshot[];
   currentStep?: number;
+  totalSteps?: number;
+  activeNodeLabel?: string;
+  activeNodeUserLabel?: string;
   onJumpToStep?: (step: number) => void;
   hasFunctionCallsInCode?: boolean;
 }
 
-export function VariableWatch({ state, history = [], currentStep = 0, onJumpToStep, hasFunctionCallsInCode = true }: VariableWatchProps) {
+export function VariableWatch({ 
+  state, 
+  history = [], 
+  currentStep = 0, 
+  totalSteps = 0,
+  activeNodeLabel,
+  activeNodeUserLabel,
+  onJumpToStep, 
+  hasFunctionCallsInCode = true 
+}: VariableWatchProps) {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
   const hasVariables = state && Object.keys(state.variables).length > 0;
   
@@ -21,6 +33,25 @@ export function VariableWatch({ state, history = [], currentStep = 0, onJumpToSt
 
   return (
     <div className="h-full w-full bg-sidebar border-l border-border flex flex-col">
+      {/* Current Step Indicator */}
+      {(activeNodeLabel || currentStep > 0) && (
+        <div className="px-3 py-2 bg-accent/30 border-b border-border">
+          <div className="flex items-center gap-2 text-xs">
+            <MapPin className="w-3 h-3 text-green-500" />
+            <span className="text-muted-foreground">Step {currentStep}/{totalSteps}:</span>
+            {activeNodeUserLabel ? (
+              <span className="font-medium text-foreground" data-testid="current-step-label">
+                {activeNodeUserLabel}
+              </span>
+            ) : activeNodeLabel ? (
+              <code className="font-mono text-foreground bg-card px-1.5 py-0.5 rounded text-[11px]" data-testid="current-step-code">
+                {activeNodeLabel}
+              </code>
+            ) : null}
+          </div>
+        </div>
+      )}
+      
       <div className="h-10 border-b border-border flex items-center bg-sidebar/50 backdrop-blur">
         <button
           onClick={() => setActiveTab('current')}
