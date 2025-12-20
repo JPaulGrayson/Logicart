@@ -1,0 +1,146 @@
+// Check if we've reached max iterations
+    // Iteration 0 is the original (doesn't count toward maxIterations)
+    // maxIterations=4 means 4 GENERATED images (1,2,3,4) plus the original
+    // So we stop when iterationNumber exceeds maxIterations
+    if (iterationNumber > experiment.maxIterations) {
+      console.log(`Reached max iterations: iterationNumber=${iterationNumber}, maxIterations=${experiment.maxIterations}`);
+      await storage.updateExperiment(experimentId, { status: 'completed' });
+      activeLoops.delete(experimentId);
+      return;
+    }
+
+    // Create iteration record
+    const iteration = await storage.createIteration({
+      experimentId,
+      iterationNumber,
+      imageUrl: '', // Will be filled after generation
+      prompt: '',
+      visionModel: experiment.visionModel,
+      generationModel: experiment.generationModel,
+      status: 'processing',
+    });
+
+    const startTime = Date.now();
+
+    try {
+      // Step 1: Analyze image with vision model OR use manually edited prompt
+      let description: string;
+      let prompt: string;
+      
+      // Check if the previous iteration has a manually edited prompt
+      const previousIteration = experiment.iterations.length > 0 
+        ? experiment.iterations[experiment.iterations.length - 1]
+        : null;
+      
+      if (previousIteration && previousIteration.prompt && experiment.manualEditing) {
+        // Use the manually edited prompt from the previous iteration
+        console.log('Using manually edited prompt from previous iteration');
+        description = previousIteration.originalPrompt || previousIteration.prompt;
+        prompt = previousIteration.prompt;
+      } else {
+        // Generate new prompt from vision analysis
+        // Convert URL path to filesystem path (remove leading slash from /uploads/...)
+        const relativeImagePath = imageToAnalyze.startsWith('/') ? imageToAnalyze.substring(1) : imageToAnalyze;
+        const imagePath = path.join(process.cwd(), relativeImagePath);
+
+        if (experiment.visionModel === 'grok') {
+          description = await analyzeImageWithGrok(imagePath);
+          prompt = await generatePromptFromDescription(description);
+        } else if (experiment.visionModel === 'gemini') {
+          description = await analyzeImageWithGemini(imagePath);
+          prompt = await generatePromptWithGemini(description);
+        } else {
+          // GPT Vision fallback
+          const imageBuffer = fs.readFileSync(imagePath);
+          const base64Image = imageBuffer.toString('base64');
+          description = await analyzeImageWithGPT(base64Image);
+          prompt = description;
+        }
+      }
+
+      await storage.updateIteration(iteration.id, {
+        originalPrompt: description,
+        prompt,
+      });
+
+      // Step 2: Generate new image
+      let generatedImageUrl: string;
+      const fileName = `generated_${iteration.id}.png`;
+      const filePath = path.join(uploadDir, fileName);
+      
+      if (experiment.generationModel === 'dalle') {
+        const result = await generateImageWithDallE(prompt);
+        
+        // Download and save the image
+        const response = await fetch(result.url);
+        const buffer = await response.arrayBuffer();
+        fs.writeFileSync(filePath, Buffer.from(buffer));
+        generatedImageUrl = `/uploads/${fileName}`;
+      } else if (experiment.generationModel === 'aurora') {
+        const result = await generateImageWithAurora(prompt);
+        
+        // Download and save the image
+        const response = await fetch(result.url);
+        const buffer = await response.arrayBuffer();
+        fs.writeFileSync(filePath, Buffer.from(buffer));
+        generatedImageUrl = `/uploads/${fileName}`;
+      } else if (experiment.generationModel === 'gemini' || experiment.generationModel === 'imagen') {
+        // Gemini generates directly to file
+        await generateImageWithGemini(prompt, filePath);
+        generatedImageUrl = `/uploads/${fileName}`;
+      } else {
+        throw new Error(`Unsupported generation model: ${experiment.generationModel}`);
+      }
+
+      const processingTime = Date.now() - startTime;
+
+      // Update iteration with results
+      await storage.updateIteration(iteration.id, {
+        imageUrl: generatedImageUrl,
+        status: 'completed',
+        processingTimeMs: processingTime,
+        tokenCount: prompt.length, // Rough estimate
+        costEstimate: '$0.08', // Rough estimate
+      });
+
+      // Update experiment progress
+      await storage.updateExperiment(experimentId, {
+        currentIteration: iterationNumber,
+      });
+
+      // Schedule next iteration if auto-proceed is enabled
+      if (experiment.autoProceed && !experiment.manualEditing) {
+        const loopData = activeLoops.get(experimentId);
+        if (loopData) {
+          const timeout = setTimeout(() => {
+            processNextIteration(experimentId);
+          }, experiment.iterationDelay * 1000);
+          
+          // Update the loop data with the new timeout
+          activeLoops.set(experimentId, {
+            ...loopData,
+            interval: timeout,
+          });
+        }
+      } else {
+        // Pause for manual editing
+        await storage.updateExperiment(experimentId, { status: 'paused' });
+      }
+
+    } catch (error) {
+      console.error('Processing iteration error:', error);
+      await storage.updateIteration(iteration.id, {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      
+      await storage.updateExperiment(experimentId, { status: 'error' });
+      activeLoops.delete(experimentId);
+    }
+
+  } catch (error) {
+    console.error('Process next iteration error:', error);
+    await storage.updateExperiment(experimentId, { status: 'error' });
+    activeLoops.delete(experimentId);
+  }
+}
