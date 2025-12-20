@@ -27,6 +27,45 @@ Choose the right one based on where your code runs:
 
 ---
 
+## Visualization Modes Explained
+
+LogiGo offers three ways to visualize your code:
+
+### 1. Static Mode (Paste into Studio)
+**Best for**: Quick visualization, learning, code reviews
+
+Simply paste your JavaScript code into LogiGo Studio. The flowchart appears instantly.
+- ✅ No installation required
+- ✅ Works with any JavaScript code
+- ❌ No real-time execution tracking
+
+### 2. Frontend Live Mode (Overlay in Your App)
+**Best for**: Debugging React/Vue apps, interactive demos
+
+Install `logigo-core` and add the overlay to your frontend. See execution in real-time within your own app.
+- ✅ Real-time visualization
+- ✅ DOM element highlighting
+- ✅ Variable tracking
+- ❌ Only works with frontend apps
+
+### 3. Backend Logging Mode (Console Checkpoints)
+**Best for**: Debugging Node.js/Express servers, API logic
+
+Add the checkpoint helper to your server code. Execution flow is logged to the console.
+- ✅ Works with any Node.js code
+- ✅ Track variables and execution order
+- ❌ Console logs only (no visual flowchart)
+- 💡 **Tip**: Paste your server code into LogiGo Studio to see the flowchart structure
+
+> **Important**: Backend checkpoints log to the console only. For visual debugging of backend code, paste the code into LogiGo Studio to see the flowchart, then read the console logs alongside it.
+
+### Cross-App Debugging (Coming Soon)
+Currently, LogiGo cannot visualize one app's execution in a different app (e.g., VisionLoop checkpoints appearing in LogiGo Studio). This is because `postMessage` only works within the same browser window.
+
+**Future enhancement**: WebSocket bridge for cross-app debugging is planned.
+
+---
+
 ## Choose Your Platform
 
 - [Replit](#replit) - Full integration with Replit Agent
