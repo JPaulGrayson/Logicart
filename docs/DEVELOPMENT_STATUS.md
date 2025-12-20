@@ -1,154 +1,149 @@
 # LogiGo Studio - Development Status Report
 
-**Date:** December 14, 2025  
+**Date:** December 20, 2025  
 **For:** Antigravity Team (Code Extension & Premium Features)
 
 ---
 
 ## Executive Summary
 
-LogiGo Studio is a bidirectional code-to-flowchart visualization tool. Recent updates have added interactive game visualizers and code import/export functionality. The codebase is ready for review and integration with the Replit Extension.
+LogiGo Studio is a bidirectional code-to-flowchart visualization tool. The application now features full interactive algorithm examples, comprehensive keyboard shortcuts, breakpoints, variable history timeline, shareable URLs, Ghost Diff visualization, and dual control systems (Execution Controls + Runtime Controls).
 
 ---
 
-## Recent Feature Implementations
+## Completed Features
 
-### 1. Interactive TicTacToe Game
+### 1. Interactive Algorithm Examples
 
-**Files Modified:**
-- `client/src/components/visualizers/TicTacToeVisualizer.tsx`
-- `client/src/components/ide/VisualizationPanel.tsx`
-- `client/src/pages/Workbench.tsx`
+All algorithm examples are now fully interactive:
 
-**Implementation Details:**
-```typescript
-// TicTacToeVisualizer.tsx - Added props
-interface TicTacToeVisualizerProps {
-  // ... existing props
-  onCellClick?: (index: number) => void;  // NEW
-  interactive?: boolean;                   // NEW
-}
-
-// Cells are now clickable when interactive
-const canClick = interactive && !cell && !winner && onCellClick;
-```
-
-**Game Logic (Workbench.tsx lines 751-823):**
-- Player X (human) clicks to place move
-- AI (O) responds with random move selection
-- Winner detection using standard 8 patterns
-- Tie detection when board is full
+| Example | Category | Interaction |
+|---------|----------|-------------|
+| Quick Sort | Sorting | Watch bars animate during sorting |
+| Bubble Sort | Sorting | Watch bars animate during sorting |
+| A* Pathfinder | Pathfinding | Click grid to place walls, set start/end |
+| Maze Solver | Pathfinding | Recursive backtracking visualization |
+| TicTacToe AI | Games | Click cells to play against minimax AI |
+| Snake Game | Games | Arrow keys/WASD to control snake |
+| Quiz Game | Games | Click answers, score updates |
+| Fibonacci | Math | Watch memoization bars grow |
+| Calculator | Math | Enter custom expressions (e.g., "25*4") |
 
 ---
 
-### 2. Interactive Snake Game
+### 2. Dual Control Systems
 
-**Files Modified:**
-- `client/src/components/visualizers/SnakeVisualizer.tsx`
-- `client/src/components/ide/VisualizationPanel.tsx`
-- `client/src/pages/Workbench.tsx`
+**Execution Controls (Sidebar - Free)**
+- Play/Pause, Step Forward/Back, Reset, Stop
+- Loop toggle for continuous replay
+- Speed: 0.5x, 1x, 2x
+- Keyboard shortcuts: Space, S, B, R, L
 
-**Implementation Details:**
-```typescript
-// SnakeVisualizer.tsx - Added props and keyboard listener
-interface SnakeVisualizerProps {
-  // ... existing props
-  onDirectionChange?: (direction: 'up' | 'down' | 'left' | 'right') => void;
-  interactive?: boolean;
-}
-
-// Keyboard event listener for Arrow Keys + WASD
-useEffect(() => {
-  if (!interactive || !onDirectionChange) return;
-  const handleKeyDown = (e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowUp': case 'w': case 'W':
-        if (direction !== 'down') onDirectionChange('up');
-        break;
-      // ... other directions
-    }
-  };
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
-}, [interactive, onDirectionChange, direction]);
-```
-
-**Game Loop (Workbench.tsx lines 834-949):**
-- `snakeGameActive` state controls whether game is running
-- `snakeGameLoopRef` stores interval reference
-- `startSnakeGame()` / `stopSnakeGame()` functions
-- 200ms tick rate for snake movement
-- Collision detection for walls and self
-- Food collection and respawn logic
-
-**Key Behavior:**
-- Snake does NOT auto-start on example load
-- User must click Play button to begin
-- Play/Pause toggles the game loop
-- Reset restores initial state
+**Runtime Controls (Floating Overlay - Premium)**
+- Same controls as Execution Controls
+- Extended speeds: 0.25x, 0.5x, 1x, 2x, 3x, 5x, 10x, 20x⚡
+- Always visible floating panel
+- Purple gradient styling
 
 ---
 
-### 3. Code Import/Export
+### 3. Keyboard Shortcuts
 
-**Files Modified:**
-- `client/src/pages/Workbench.tsx`
+| Category | Shortcut | Action |
+|----------|----------|--------|
+| Execution | Space/K | Play/Pause |
+| Execution | S/→ | Step forward |
+| Execution | B/← | Step backward |
+| Execution | R | Reset |
+| Execution | L | Toggle loop |
+| Speed | [ | Decrease speed |
+| Speed | ] | Increase speed |
+| Speed | 1-5 | Speed presets |
+| View | F | Toggle fullscreen |
+| View | Escape | Exit fullscreen |
+| View | V | Toggle variables panel |
+| View | D | Toggle Ghost Diff |
+| File | Ctrl+O | Import code |
+| File | Ctrl+S | Export code |
+| Export | Ctrl+E | Export as PNG |
+| Export | Ctrl+P | Export as PDF |
 
-**Implementation Details:**
-```typescript
-// File input ref for import
-const fileInputRef = useRef<HTMLInputElement>(null);
+---
 
-// Import handler - opens file picker
-const handleImportCode = () => {
-  fileInputRef.current?.click();
-};
+### 4. Breakpoints
 
-// File change handler - reads file content
-const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target?.result as string;
-    if (content) {
-      adapter.writeFile(content);
-      setCurrentAlgorithm(null);
-      setActiveVisualizer(null);
-      setShowVisualization(false);
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = ''; // Allow re-selecting same file
-};
+- **Set breakpoint:** Right-click any flowchart node
+- **Visual indicator:** Red dot on left side of node
+- **Behavior:** Execution pauses at breakpoints during playback
+- **Clear:** Right-click again, or modify code
 
-// Export handler - triggers download
-const handleExportCode = () => {
-  const blob = new Blob([code], { type: 'text/javascript' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'logigo-code.js';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
-```
+---
 
-**UI Location:**
-- New "CODE" section in sidebar (above Export section)
-- Accepts: .js, .ts, .jsx, .tsx, .mjs files
-- Export disabled when no code present
+### 5. Variable History Timeline
+
+- **Access:** "History" tab in Debug Panel
+- **Features:**
+  - Clickable value chips for each recorded value
+  - Click to jump to that execution step
+  - Mini bar charts for numeric variables
+  - Trend indicators (up/down arrows)
+
+---
+
+### 6. Shareable URLs
+
+- **Generate:** Click "Share Flowchart" in Flow Tools
+- **Encoding:** Code is base64-encoded in URL
+- **Recipients:** See exact same flowchart without login
+
+---
+
+### 7. Ghost Diff (Premium)
+
+Visualizes code changes on the flowchart:
+
+| Color | Meaning |
+|-------|---------|
+| Green glow | New nodes (added code) |
+| Red/ghost | Deleted nodes (removed code) |
+| Yellow glow | Modified nodes (changed code) |
+
+- **Toggle:** "Show Diff" button or D key
+- **Reset:** "Reset Diff" to capture new baseline
+- **Condition detection:** Shows actual values (e.g., `if (n <= 1) ?`)
+
+---
+
+### 8. Fullscreen Modes
+
+**Workspace Mode (F key)**
+- Fullscreen flowchart with floating controls
+- Play/pause, step, reset, progress indicator
+
+**Presentation Mode**
+- Clean view with hidden controls
+- Controls appear on hover
+- Ideal for screen sharing
+
+---
+
+### 9. Zoom Controls & Hierarchical Views
+
+**Zoom Controls:**
+- Auto-fit with 70% minimum zoom
+- Manual zoom in/out buttons (+/-20%)
+- Status pill shows current zoom level
+
+**Hierarchical Views:**
+- Mile-high view (<70% zoom): Major sections only
+- 1000ft view (70-130%): Full flow logic
+- 100ft view (>130%): Maximum detail
 
 ---
 
 ## Architecture Overview
 
 ### IDE Adapter Pattern
-
-The app uses a pluggable adapter pattern for multi-IDE integration:
 
 ```
 client/src/adapters/
@@ -157,158 +152,104 @@ client/src/adapters/
 └── ReplitAdapter.ts     # Replit Extension mode
 ```
 
-**Key Interface Methods:**
-```typescript
-interface IDEAdapter {
-  writeFile(content: string): Promise<void>;
-  readFile(): Promise<string>;
-  navigateToLine(line: number): void;
-  supportsEditing(): boolean;
-  hasIntegratedEditor(): boolean;
-}
-```
-
-### VisualizationPanel Component
-
-Central hub for all algorithm visualizers:
-
-```
-client/src/components/ide/VisualizationPanel.tsx
-```
-
-**Props Interface:**
-```typescript
-interface VisualizationPanelProps {
-  type: VisualizerType;
-  sortingState?: SortingState;
-  pathfindingState?: PathfindingState;
-  calculatorState?: CalculatorState;
-  quizState?: QuizState;
-  tictactoeState?: TicTacToeState;
-  fibonacciState?: FibonacciState;
-  snakeState?: SnakeState;
-  onClose?: () => void;
-  onReset?: () => void;
-  onPlay?: () => void;
-  isPlaying?: boolean;
-  editMode?: GridEditMode;
-  onEditModeChange?: (mode: GridEditMode) => void;
-  onCellClick?: (node: { x: number; y: number }) => void;
-  onTictactoeMove?: (index: number) => void;           // NEW
-  onSnakeDirectionChange?: (direction: Direction) => void; // NEW
-}
-```
-
-### Reporter API (for Extension Integration)
-
-Located in `shared/reporter-api.ts`:
-
-```typescript
-// Message types for logigo-core communication
-type LogiGoMessage = 
-  | { type: 'LOGIGO_SESSION_START'; payload: SessionStartPayload }
-  | { type: 'LOGIGO_CHECKPOINT'; payload: CheckpointPayload };
-
-// Checkpoint data structure
-interface CheckpointPayload {
-  id: string;
-  timestamp: number;
-  variables: Record<string, unknown>;
-  domElement?: string;  // For Visual Handshake
-  color?: string;
-  metadata?: { line?: number; column?: number };
-}
-```
-
----
-
-## File Structure Reference
+### File Structure
 
 ```
 client/src/
 ├── pages/
-│   └── Workbench.tsx          # Main IDE workbench (1924 lines)
+│   └── Workbench.tsx          # Main IDE workbench
 ├── components/
 │   ├── ide/
 │   │   ├── Flowchart.tsx      # React Flow wrapper
 │   │   ├── VisualizationPanel.tsx
 │   │   ├── CodeEditor.tsx
-│   │   └── ExecutionControls.tsx
+│   │   ├── ExecutionControls.tsx
+│   │   ├── RuntimeOverlay.tsx  # Premium floating controls
+│   │   ├── HelpDialog.tsx      # Documentation
+│   │   └── VariableWatch.tsx   # Variable history
 │   └── visualizers/
 │       ├── SortingVisualizer.tsx
 │       ├── PathfindingVisualizer.tsx
 │       ├── TicTacToeVisualizer.tsx  # Interactive
 │       ├── SnakeVisualizer.tsx      # Interactive
-│       ├── CalculatorVisualizer.tsx
-│       ├── QuizVisualizer.tsx
+│       ├── CalculatorVisualizer.tsx # Interactive
+│       ├── QuizVisualizer.tsx       # Interactive
 │       └── FibonacciVisualizer.tsx
 ├── lib/
 │   ├── parser.ts              # Acorn AST → FlowNodes
 │   ├── interpreter.ts         # Step-through execution
 │   ├── codePatcher.ts         # Bidirectional editing
-│   ├── ghostDiff.ts           # Premium: code diff visualization
+│   ├── ghostDiff.ts           # Code diff visualization
 │   ├── features.ts            # Feature flag system
-│   └── algorithmExamples.ts   # Built-in algorithm samples
+│   └── algorithmExamples.ts   # Built-in samples
 └── adapters/
-    ├── IDEAdapter.ts
-    ├── StandaloneAdapter.ts
-    └── ReplitAdapter.ts
+    └── ...
 ```
 
 ---
 
 ## Premium Features Status
 
-Controlled via `client/src/lib/features.ts`:
-
 | Feature | Status | Notes |
 |---------|--------|-------|
 | ghostDiff | ✅ Active | Code change visualization |
-| executionController | ✅ Active | Speed governor |
+| executionController | ✅ Active | Speed governor (0.25x-20x) |
 | timeTravel | ✅ Active | Step backward/forward |
 | naturalLanguageSearch | ⏳ Planned | AI-powered search |
 | exportToPDF | ✅ Active | Full documentation export |
+| overlay | ✅ Active | Runtime Controls floating panel |
 
 ---
 
-## Testing Notes
+## Testing Data-TestIDs
 
-**Test IDs for Automation:**
 ```
 button-import-code       - Import Code button
 button-export-code       - Export Code button
+button-play / button-pause - Execution controls
+button-step              - Step forward
+button-step-backward     - Step backward
+button-reset             - Reset execution
+button-ghost-diff        - Toggle Ghost Diff
+button-reset-diff        - Reset diff baseline
+button-share             - Share flowchart URL
 ttt-cell-{0-8}          - TicTacToe grid cells
 snake-cell-{x}-{y}      - Snake grid cells
 snake-score             - Snake score display
-snake-controls-hint     - Keyboard controls hint
-button-viz-play         - Visualization play button
-button-viz-reset        - Visualization reset button
+quiz-option-{0-3}       - Quiz answer buttons
+quiz-score              - Quiz score display
+calculator-input        - Calculator expression input
+calculator-calculate-btn - Calculator = button
+calculator-result       - Calculator result display
 select-example          - Algorithm examples dropdown
+runtime-overlay         - Premium floating controls
+overlay-button-play     - Overlay play button
+overlay-button-step     - Overlay step button
 ```
 
 ---
 
-## Suggested Next Steps
+## Recent Bug Fixes
 
-1. **Smarter TicTacToe AI** - Implement actual minimax algorithm
-2. **Keyboard shortcuts** - Ctrl+O/Ctrl+S for import/export
-3. **Breakpoints** - Click nodes to set execution breakpoints
-4. **Variable history** - Graph variable changes over time
-5. **Code sharing** - Generate shareable flowchart links
+- **Interpreter Variable Capture:** Variables now captured AFTER assignment
+- **Function Call Detection:** AST-based detection for contextual help
+- **Recursion Overflow Protection:** MAX_STEPS=5000 limit with friendly toast
+- **Snake Game:** Keyboard works when Play clicked in visualization panel
+- **Calculator:** User can enter custom expressions
+- **Quiz Game:** Answers clickable, score updates, auto-advances
 
 ---
 
 ## Git Status
 
-To pull and review:
 ```bash
 git pull origin main
 npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5000`
+App available at `http://localhost:5000`
 
 ---
 
-*Generated for Antigravity team collaboration*
+*Generated for Antigravity team collaboration - December 2025*

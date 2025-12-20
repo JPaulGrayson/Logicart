@@ -299,15 +299,86 @@ function processData(items) {
                 <p className="text-sm text-muted-foreground mb-3">
                   Pre-loaded algorithm samples to help you learn and explore LogiGo's features:
                 </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Quick Sort:</strong> Divide-and-conquer sorting with partition visualization</li>
-                  <li>• <strong>Bubble Sort:</strong> Simple comparison-based sorting for beginners</li>
-                  <li>• <strong>A* Pathfinder:</strong> Optimal pathfinding with heuristic-based graph traversal</li>
-                  <li>• <strong>TicTacToe AI:</strong> Minimax algorithm for unbeatable game AI</li>
-                  <li>• <strong>Fibonacci:</strong> Classic recursive sequence calculation</li>
-                </ul>
+                <div className="space-y-3 text-sm text-muted-foreground ml-4">
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Sorting Algorithms</p>
+                    <ul className="space-y-1">
+                      <li>• <strong>Quick Sort:</strong> Divide-and-conquer sorting with partition visualization</li>
+                      <li>• <strong>Bubble Sort:</strong> Simple comparison-based sorting for beginners</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Pathfinding</p>
+                    <ul className="space-y-1">
+                      <li>• <strong>A* Pathfinder:</strong> Optimal pathfinding with heuristic-based graph traversal</li>
+                      <li>• <strong>Maze Solver:</strong> Recursive backtracking to find a path through a maze</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Games (Interactive)</p>
+                    <ul className="space-y-1">
+                      <li>• <strong>TicTacToe AI:</strong> Play against an unbeatable minimax AI opponent</li>
+                      <li>• <strong>Snake Game:</strong> Classic snake game - use Arrow keys or WASD to play</li>
+                      <li>• <strong>Quiz Game:</strong> Interactive trivia quiz with score tracking</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Math & Recursion</p>
+                    <ul className="space-y-1">
+                      <li>• <strong>Fibonacci Memoized:</strong> Optimized recursive calculation with memoization</li>
+                      <li>• <strong>Calculator:</strong> Enter custom expressions like "25*4" to compute</li>
+                    </ul>
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Access examples from the "Load an algorithm..." dropdown in the sidebar.
+                  Access examples from the "Examples" dropdown in the sidebar.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-purple-400">🎛️</span>
+                  Execution Controls vs Runtime Controls
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  LogiGo has two types of playback controls that serve different purposes:
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="p-3 bg-muted/50 rounded-md">
+                    <p className="text-sm font-semibold mb-2">Execution Controls (Sidebar)</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Located in the left sidebar, these step through your code line-by-line with flowchart highlighting:
+                    </p>
+                    <ul className="space-y-1 text-xs text-muted-foreground">
+                      <li>• <strong>Play/Pause:</strong> Auto-step through code</li>
+                      <li>• <strong>Step Forward:</strong> Move one step forward</li>
+                      <li>• <strong>Step Back:</strong> Move one step backward <span className="text-purple-400">(Premium: Time Travel)</span></li>
+                      <li>• <strong>Reset/Stop:</strong> Return to beginning or end execution</li>
+                      <li>• <strong>Loop:</strong> Toggle continuous replay</li>
+                      <li>• <strong>Speed:</strong> 0.5x, 1x, 2x (Premium: up to 20x)</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-md border border-purple-500/30">
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      Runtime Controls (Floating Overlay - Premium)
+                      <span className="text-[10px] text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded">PREMIUM</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      A floating purple panel at the bottom center that stays visible even when scrolling:
+                    </p>
+                    <ul className="space-y-1 text-xs text-muted-foreground">
+                      <li>• <strong>Same controls:</strong> Play, Step Back, Step Forward, Reset, Stop</li>
+                      <li>• <strong>Extended speeds:</strong> 0.25x, 0.5x, 1x, 2x, 3x, 5x, 10x, 20x⚡</li>
+                      <li>• <strong>Always visible:</strong> Floats above the canvas for quick access</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-3">
+                  <strong>Key difference:</strong> Execution Controls are for debugging code logic step-by-step. 
+                  Runtime Controls provide persistent access with premium speed options for power users.
                 </p>
               </section>
 
