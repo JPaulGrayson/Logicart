@@ -1,7 +1,7 @@
 export interface AlgorithmExample {
   id: string;
   name: string;
-  category: 'sorting' | 'pathfinding' | 'search' | 'other';
+  category: 'sorting' | 'pathfinding' | 'search' | 'other' | 'integration';
   description: string;
   code: string;
   domPattern?: string;
@@ -515,6 +515,448 @@ const state = {
   gameOver: false
 };
 gameLoop(state);`
+  },
+  // Integration Examples - Show how to add LogiGo to existing apps
+  {
+    id: 'integration-todo',
+    name: 'Todo App Integration',
+    category: 'integration',
+    description: 'Learn how to add LogiGo checkpoints to a typical todo app - step by step',
+    code: `// ================================================
+// INTEGRATION EXAMPLE: Adding LogiGo to a Todo App
+// ================================================
+// This example shows BOTH integration methods:
+// 1. Static Mode: Use // @logigo: comments for flowchart labels
+// 2. Live Mode: Use LogiGo.checkpoint() for runtime visualization
+
+// --- TODO STORAGE ---
+// @logigo: Initialize todo storage
+const todos = [];
+
+// --- ADD TODO ---
+// @logigo: Add new todo function
+async function addTodo(text) {
+  // Checkpoint: Track function entry with variable state
+  await LogiGo.checkpoint('todo:add:start', { 
+    variables: { text, todoCount: todos.length } 
+  });
+  
+  // @logigo: Create todo object
+  const todo = {
+    id: Date.now(),
+    text: text,
+    completed: false
+  };
+  
+  // Checkpoint: Track new todo creation
+  await LogiGo.checkpoint('todo:add:created', { 
+    variables: { todo } 
+  });
+  
+  // @logigo: Add to list
+  todos.push(todo);
+  
+  // @logigo: Return new todo
+  return todo;
+}
+
+// --- TOGGLE COMPLETE ---
+// @logigo: Toggle todo completion
+async function toggleTodo(id) {
+  await LogiGo.checkpoint('todo:toggle:start', { 
+    variables: { searchId: id } 
+  });
+  
+  // @logigo: Find todo by ID
+  for (let i = 0; i < todos.length; i++) {
+    // Checkpoint: Highlight each comparison
+    await LogiGo.checkpoint('todo:toggle:compare:' + i, {
+      color: '#f1c40f',
+      variables: { checking: todos[i].id, target: id }
+    });
+    
+    // @logigo: Check if match
+    if (todos[i].id === id) {
+      // @logigo: Toggle status
+      todos[i].completed = !todos[i].completed;
+      
+      // Checkpoint: Found and toggled
+      await LogiGo.checkpoint('todo:toggle:done', {
+        color: '#2ecc71',
+        variables: { toggled: todos[i] }
+      });
+      return todos[i];
+    }
+  }
+  // @logigo: Not found
+  return null;
+}
+
+// --- DELETE TODO ---
+// @logigo: Delete todo function
+async function deleteTodo(id) {
+  await LogiGo.checkpoint('todo:delete:start', { variables: { id } });
+  
+  // @logigo: Find index
+  for (let i = 0; i < todos.length; i++) {
+    // @logigo: Check if match
+    if (todos[i].id === id) {
+      // @logigo: Remove from array
+      todos.splice(i, 1);
+      
+      await LogiGo.checkpoint('todo:delete:done', { 
+        color: '#e74c3c',
+        variables: { deletedId: id, remaining: todos.length }
+      });
+      return true;
+    }
+  }
+  // @logigo: Not found
+  return false;
+}
+
+// --- FILTER TODOS ---
+// @logigo: Get filtered todos
+async function getFilteredTodos(filter) {
+  await LogiGo.checkpoint('todo:filter:start', { variables: { filter } });
+  
+  // @logigo: Check filter type
+  if (filter === 'completed') {
+    // @logigo: Return only completed
+    const result = todos.filter(t => t.completed);
+    await LogiGo.checkpoint('todo:filter:done', { variables: { count: result.length } });
+    return result;
+  }
+  // @logigo: Check for active filter
+  if (filter === 'active') {
+    // @logigo: Return only active
+    const result = todos.filter(t => !t.completed);
+    await LogiGo.checkpoint('todo:filter:done', { variables: { count: result.length } });
+    return result;
+  }
+  // @logigo: Return all
+  return todos;
+}
+
+// --- RUN DEMO ---
+// In Static Mode: Flowchart shows labeled nodes
+// In Live Mode: Checkpoints fire during execution
+async function runDemo() {
+  await addTodo("Learn LogiGo");
+  await addTodo("Build amazing app");
+  await addTodo("Ship to users");
+  await toggleTodo(todos[0].id);
+  await getFilteredTodos('completed');
+}
+
+runDemo();`
+  },
+  {
+    id: 'integration-api',
+    name: 'API Handler Integration',
+    category: 'integration',
+    description: 'Add LogiGo to API request/response handling code',
+    code: `// ================================================
+// INTEGRATION EXAMPLE: API Handler with LogiGo
+// ================================================
+// Shows how to visualize request processing flow
+// Demonstrates: validation, rate limiting, error paths
+
+// --- REQUEST VALIDATOR ---
+// @logigo: Validate incoming request
+async function validateRequest(request) {
+  await LogiGo.checkpoint('validate:start', { 
+    variables: { hasBody: !!request.body } 
+  });
+  
+  // @logigo: Check if body exists
+  if (!request.body) {
+    await LogiGo.checkpoint('validate:fail', { 
+      color: '#e74c3c',
+      variables: { error: 'Missing body' }
+    });
+    return { valid: false, error: 'Missing body' };
+  }
+  
+  // @logigo: Check required fields
+  if (!request.body.email) {
+    await LogiGo.checkpoint('validate:fail', { 
+      color: '#e74c3c',
+      variables: { error: 'Missing email' }
+    });
+    return { valid: false, error: 'Missing email' };
+  }
+  
+  // @logigo: Validate email format
+  const emailRegex = /^[^@]+@[^@]+\\.[^@]+$/;
+  if (!emailRegex.test(request.body.email)) {
+    await LogiGo.checkpoint('validate:fail', { 
+      color: '#e74c3c',
+      variables: { error: 'Invalid email' }
+    });
+    return { valid: false, error: 'Invalid email format' };
+  }
+  
+  // @logigo: Request is valid
+  await LogiGo.checkpoint('validate:pass', { 
+    color: '#2ecc71',
+    variables: { email: request.body.email }
+  });
+  return { valid: true };
+}
+
+// --- RATE LIMITER ---
+// @logigo: Rate limit storage
+const rateLimits = {};
+
+// @logigo: Check rate limit
+async function checkRateLimit(clientId) {
+  const now = Date.now();
+  const windowMs = 60000;
+  const maxRequests = 10;
+  
+  await LogiGo.checkpoint('ratelimit:check', { 
+    variables: { clientId } 
+  });
+  
+  // @logigo: Initialize client record
+  if (!rateLimits[clientId]) {
+    rateLimits[clientId] = { count: 0, resetAt: now + windowMs };
+    await LogiGo.checkpoint('ratelimit:new_client', { 
+      color: '#3498db',
+      variables: { clientId }
+    });
+  }
+  
+  const client = rateLimits[clientId];
+  
+  // @logigo: Check if window expired
+  if (now > client.resetAt) {
+    // @logigo: Reset window
+    client.count = 0;
+    client.resetAt = now + windowMs;
+  }
+  
+  // @logigo: Increment count
+  client.count++;
+  
+  // @logigo: Check limit
+  if (client.count > maxRequests) {
+    await LogiGo.checkpoint('ratelimit:exceeded', { 
+      color: '#e74c3c',
+      variables: { count: client.count, max: maxRequests }
+    });
+    return { allowed: false, retryAfter: client.resetAt - now };
+  }
+  
+  // @logigo: Request allowed
+  await LogiGo.checkpoint('ratelimit:allowed', { 
+    color: '#2ecc71',
+    variables: { remaining: maxRequests - client.count }
+  });
+  return { allowed: true, remaining: maxRequests - client.count };
+}
+
+// --- REQUEST HANDLER ---
+// @logigo: Handle API request
+async function handleRequest(request) {
+  await LogiGo.checkpoint('request:received', { 
+    variables: { clientId: request.clientId }
+  });
+  
+  // @logigo: Check rate limit first
+  const rateCheck = await checkRateLimit(request.clientId);
+  if (!rateCheck.allowed) {
+    await LogiGo.checkpoint('response:429', { color: '#e74c3c' });
+    return { status: 429, body: { error: 'Too many requests' } };
+  }
+  
+  // @logigo: Validate request
+  const validation = await validateRequest(request);
+  if (!validation.valid) {
+    await LogiGo.checkpoint('response:400', { color: '#e74c3c' });
+    return { status: 400, body: { error: validation.error } };
+  }
+  
+  // @logigo: Process request
+  const result = { id: Date.now(), email: request.body.email };
+  
+  // @logigo: Return success
+  await LogiGo.checkpoint('response:200', { 
+    color: '#2ecc71',
+    variables: { result }
+  });
+  return { status: 200, body: result };
+}
+
+// --- TEST THE FLOW ---
+async function runDemo() {
+  const testRequest = {
+    clientId: 'user-123',
+    body: { email: 'test@example.com' }
+  };
+  await handleRequest(testRequest);
+}
+
+runDemo();`
+  },
+  {
+    id: 'integration-checkout',
+    name: 'Checkout Flow Integration',
+    category: 'integration',
+    description: 'Visualize e-commerce checkout logic with validation and totals',
+    code: `// ================================================
+// INTEGRATION EXAMPLE: E-commerce Checkout
+// ================================================
+// Visualize cart calculations and checkout flow
+// Shows: state management, calculations, discounts
+
+// --- CART STATE ---
+// @logigo: Initialize cart
+const cart = {
+  items: [],
+  coupon: null
+};
+
+// --- ADD TO CART ---
+// @logigo: Add item to cart
+async function addToCart(product, quantity) {
+  await LogiGo.checkpoint('cart:add:start', { 
+    variables: { product: product.name, quantity }
+  });
+  
+  // @logigo: Check if already in cart
+  const existing = cart.items.find(i => i.productId === product.id);
+  
+  if (existing) {
+    // @logigo: Update quantity
+    existing.quantity += quantity;
+    await LogiGo.checkpoint('cart:add:updated', { 
+      color: '#f1c40f',
+      variables: { item: existing.name, newQty: existing.quantity }
+    });
+  } else {
+    // @logigo: Add new item
+    cart.items.push({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity
+    });
+    await LogiGo.checkpoint('cart:add:new', { 
+      color: '#2ecc71',
+      variables: { item: product.name }
+    });
+  }
+  
+  return cart;
+}
+
+// --- CALCULATE SUBTOTAL ---
+// @logigo: Calculate cart subtotal
+async function calculateSubtotal() {
+  let subtotal = 0;
+  
+  await LogiGo.checkpoint('calc:subtotal:start', { 
+    variables: { itemCount: cart.items.length }
+  });
+  
+  // @logigo: Sum all items
+  for (let item of cart.items) {
+    // @logigo: Calculate item total
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    
+    await LogiGo.checkpoint('calc:item', { 
+      variables: { item: item.name, total: itemTotal.toFixed(2) }
+    });
+  }
+  
+  await LogiGo.checkpoint('calc:subtotal:done', { 
+    variables: { subtotal: subtotal.toFixed(2) }
+  });
+  return subtotal;
+}
+
+// --- APPLY COUPON ---
+// @logigo: Apply discount coupon
+async function applyCoupon(code) {
+  await LogiGo.checkpoint('coupon:check', { variables: { code } });
+  
+  const coupons = {
+    'SAVE10': { type: 'percent', value: 10 },
+    'SAVE20': { type: 'percent', value: 20 },
+    'FLAT50': { type: 'fixed', value: 50 }
+  };
+  
+  // @logigo: Look up coupon
+  if (coupons[code]) {
+    cart.coupon = coupons[code];
+    await LogiGo.checkpoint('coupon:applied', { 
+      color: '#2ecc71',
+      variables: { discount: cart.coupon.value + (cart.coupon.type === 'percent' ? '%' : ' off') }
+    });
+    return { success: true, coupon: cart.coupon };
+  }
+  
+  // @logigo: Invalid coupon
+  await LogiGo.checkpoint('coupon:invalid', { color: '#e74c3c' });
+  return { success: false, error: 'Invalid code' };
+}
+
+// --- CALCULATE TOTAL ---
+// @logigo: Calculate final total
+async function calculateTotal() {
+  // @logigo: Get subtotal
+  let total = await calculateSubtotal();
+  const originalTotal = total;
+  
+  // @logigo: Apply coupon if present
+  if (cart.coupon) {
+    if (cart.coupon.type === 'percent') {
+      // @logigo: Apply percentage discount
+      const discount = total * (cart.coupon.value / 100);
+      total = total - discount;
+      await LogiGo.checkpoint('discount:percent', { 
+        color: '#9b59b6',
+        variables: { discount: discount.toFixed(2) }
+      });
+    } else {
+      // @logigo: Apply fixed discount
+      total = Math.max(0, total - cart.coupon.value);
+      await LogiGo.checkpoint('discount:fixed', { 
+        color: '#9b59b6',
+        variables: { discount: cart.coupon.value }
+      });
+    }
+  }
+  
+  // @logigo: Add tax (8%)
+  const tax = total * 0.08;
+  total += tax;
+  
+  await LogiGo.checkpoint('calc:final', { 
+    color: '#2ecc71',
+    variables: { 
+      subtotal: originalTotal.toFixed(2), 
+      tax: tax.toFixed(2), 
+      total: total.toFixed(2) 
+    }
+  });
+  
+  // @logigo: Return final total
+  return { subtotal: originalTotal, tax, total };
+}
+
+// --- RUN CHECKOUT DEMO ---
+async function runDemo() {
+  await addToCart({ id: 1, name: 'Widget', price: 29.99 }, 2);
+  await addToCart({ id: 2, name: 'Gadget', price: 49.99 }, 1);
+  await applyCoupon('SAVE10');
+  await calculateTotal();
+}
+
+runDemo();`
   }
 ];
 

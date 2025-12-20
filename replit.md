@@ -1,18 +1,16 @@
 # LogiGo - Code-to-Flowchart Visualization Tool
 
 ## Overview
-
-LogiGo is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application parses JavaScript functions using AST analysis and renders them as interactive graphs using React Flow, with a key ambition to support bi-directional editing where flowchart modifications update the source code.
+LogiGo is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application parses JavaScript functions using AST analysis and renders them as interactive graphs using React Flow. A key ambition is to support bi-directional editing where flowchart modifications update the source code.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
 ### Frontend Architecture
 - **Technology Stack**: React 18+ with TypeScript, Vite, React Router (wouter), TanStack Query, Tailwind CSS v4.
-- **UI Layout**: Workbench-style IDE with a 2-panel, flowchart-first layout. Features a minimal header, resizable left sidebar (20% default) for tools, code editor, and execution controls, and a maximized right panel for the flowchart canvas. Includes a floating status pill and a docked, dismissible variables panel.
+- **UI Layout**: Workbench-style IDE with a 2-panel, flowchart-first layout, featuring a minimal header, resizable left sidebar, and maximized right panel for the flowchart canvas.
 - **Key Libraries**: `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, shadcn/ui.
 - **Design Pattern**: Resizable panel layout with custom React Flow nodes (e.g., `DecisionNode`).
 - **Styling**: "Technical, Clean, Blueprint-like" aesthetic with dark mode, blue accent, JetBrains Mono font for code, and Inter for UI, using Tailwind CSS.
@@ -23,7 +21,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Server Framework**: Express.js with TypeScript, handling static file serving.
-- **Storage Interface**: Abstract `IStorage` with an in-memory implementation, with Drizzle ORM schema defined for future PostgreSQL integration.
+- **Storage Interface**: Abstract `IStorage` with an in-memory implementation.
 
 ### Data Flow Architecture
 - **Code → Graph Pipeline**: User code parsed via Acorn, converted to FlowNodes/FlowEdges, rendered by React Flow.
@@ -52,55 +50,38 @@ Preferred communication style: Simple, everyday language.
     - **Live Mode (Premium)**: Runtime overlay showing live execution data from instrumented code using `LogiGo.checkpoint()`.
     - **Blueprint Schema (Future)**: AI-generated JSON blueprints.
 - **Reporter API**: `window.postMessage` broadcasts from logigo-core with event types like `LOGIGO_SESSION_START` and `LOGIGO_CHECKPOINT`. Workbench listens for these messages, defaulting to Static Mode if no session is detected.
-- **Visual Handshake**: Highlights DOM elements on the page when related code checkpoints execute, linking logic to UI.
 
 ### Flowchart-Visualization Sync
-- **Real-time Highlighting**: Flowchart nodes highlight with green pulsing glow during algorithm visualization playback
-- **Step-Type Mapping**: Different algorithm operations (init, compare, swap, complete) map to corresponding flowchart regions
-- **Line-Number Correlation**: Uses nodeMap to find flowchart node IDs from source code line numbers
-- **CSS Classes**: 
-  - `.active-node` - Green outline with pulsing animation for currently executing code
-  - `.highlighted-node` - Purple outline for user-selected or referenced nodes
+- **Real-time Highlighting**: Flowchart nodes highlight with green pulsing glow during algorithm visualization playback.
+- **Step-Type Mapping**: Different algorithm operations map to corresponding flowchart regions.
+- **Line-Number Correlation**: Uses nodeMap to find flowchart node IDs from source code line numbers.
+- **CSS Classes**: `.active-node` (green pulsing outline), `.highlighted-node` (purple outline).
 
 ### Algorithm Examples Library
-- **Built-in Examples**: Pre-loaded algorithm samples for learning and testing with LogiGo checkpoints
-- **Available Algorithms**:
-  - **Quick Sort**: Divide-and-conquer sorting with partition visualization
-  - **Bubble Sort**: Simple comparison-based sorting for beginners
-  - **A* Pathfinder**: Optimal pathfinding with heuristic-based graph traversal
-- **Checkpoint Instrumentation**: All examples include `LogiGo.checkpoint()` calls with:
-  - Descriptive checkpoint IDs (e.g., `partition:compare:${j}`)
-  - DOM element targeting for Visual Handshake (e.g., `#bar-${index}`, `#cell-${x}-${y}`)
-  - Custom colors for different operations (yellow=compare, red=swap, green=complete)
-  - Variable state tracking in checkpoint payloads
-- **UI Integration**: Examples dropdown in sidebar with category grouping (Sorting, Pathfinding)
-- **Location**: `client/src/lib/algorithmExamples.ts`
+- **Built-in Examples**: Pre-loaded algorithm samples with `LogiGo.checkpoint()` instrumentation for learning and testing. Includes Quick Sort, Bubble Sort, A* Pathfinder.
 
 ### Hierarchical Views Architecture
-- **Zoom-based Views**: Manages large codebases with section grouping and container nodes.
-    - **Mile-high view (< 70% zoom)**: Shows only container nodes.
-    - **1000ft view (70-130% zoom)**: Shows all nodes and flow logic (default).
-    - **100ft detail view (> 130% zoom)**: Maximum detail visibility.
-- **Section Detection**: Prioritizes comment-based markers, then auto-detects top-level function declarations, falling back to a "Global Flow" container.
-- **Container Nodes**: Custom React Flow nodes with purple gradient, child count badges, and click-to-toggle collapse/expand functionality.
-- **State Management**: Collapse state persisted and preserved across zoom changes.
-- **Performance Optimizations**: Uses React Flow events for zoom detection and avoids unnecessary viewport resets.
+- **Zoom-based Views**: Manages large codebases with section grouping and container nodes at different zoom levels: Mile-high, 1000ft (default), 100ft detail.
+- **Section Detection**: Prioritizes comment-based markers, then auto-detects top-level function declarations.
+- **Container Nodes**: Custom React Flow nodes with purple gradient, child count badges, and collapse/expand functionality.
 
 ### Fullscreen Modes
 - **Dual Fullscreen Modes**: Optimized for desktop/laptop presentation and focused work.
-    - **Workspace Mode**: Fullscreen flowchart with floating controls (exit, play/pause, step, reset, progress indicator).
-    - **Presentation Mode**: Clean view with hidden controls (appear on hover), ideal for screen sharing.
-- **Keyboard Shortcuts**: 
-    - `F` key toggles fullscreen (enters Workspace mode)
-    - `Escape` key exits fullscreen from any mode
-- **Entry Points**: Fullscreen and Presentation icon buttons in top-left of flowchart canvas.
-- **UI Behavior**: Controls fade in on hover in Presentation mode, showing "Show Controls" button and escape hint.
+    - **Workspace Mode**: Fullscreen flowchart with floating controls.
+    - **Presentation Mode**: Clean view with hidden controls (appear on hover).
+- **Keyboard Shortcuts**: `F` key toggles fullscreen (Workspace mode), `Escape` exits fullscreen.
 
 ### Zoom Controls
-- **Auto-fit with Minimum Zoom**: Ensures flowchart remains readable by clamping zoom to 70% minimum.
-- **Manual Zoom Buttons**: Zoom In (+20%), Zoom Out (-20%), Auto-fit buttons in bottom-right corner.
-- **Implementation**: Uses React Flow's fitView() followed by zoom clamping via setViewport() to enforce minimum threshold.
-- **Status Pill**: Displays current view level and zoom percentage in top-right corner.
+- **Auto-fit with Minimum Zoom**: Ensures readability by clamping zoom to 70% minimum.
+- **Manual Zoom Buttons**: Zoom In (+20%), Zoom Out (-20%), Auto-fit buttons.
+
+### Ghost Diff Feature (Premium)
+- **Purpose**: Visualizes code changes as highlighted "ghost" nodes in the flowchart (added, removed, modified).
+- **How It Works**: Compares new flowchart nodes against an original snapshot, highlighting changes with colored glows (green, red, yellow).
+- **UI Controls**: "Show/Hide Diff" and "Reset Diff" buttons.
+
+### Breakpoints
+- **Functionality**: Right-click flowchart nodes to toggle breakpoints (red dot indicator); execution pauses at breakpoints.
 
 ## External Dependencies
 
@@ -144,68 +125,3 @@ Preferred communication style: Simple, everyday language.
 
 ### Session Management
 - **connect-pg-simple**: PostgreSQL session store.
-
-### Recent Feature Additions (December 2025)
-- **User-Defined Labels**: Developers can annotate code with `// @logigo: Label text` comments
-  - Labels appear in flowchart nodes instead of code snippets
-  - Blue dot indicator shows which nodes have user labels
-  - Hover over labeled nodes to see original code in tooltip
-  - Works in both Static and Live modes
-  - Parser's `detectUserLabels()` maps comment line numbers to labels
-  - LabeledNode and DecisionNode components display labels with tooltips
-- **Debug Panel Step Indicator**: Shows current step number, total steps, and active node label
-  - Displays user label if present, otherwise shows code snippet
-  - Green MapPin icon indicates current execution position
-- **Getting Started Guide**: New `docs/GETTING_STARTED.md` for customer integration
-- **Interpreter Variable Capture Fix**: Variables now captured AFTER assignment so Debug Panel shows actual values (not undefined)
-  - `setVariable()` helper ensures all assignments sync with call stack frames
-  - ForStatement init now executes before step capture so loop counters display correctly
-  - Post-call cleanup removes function-local variables while preserving global mutations
-- **Function Call Detection**: AST-based detection (`detectFunctionCalls`) identifies code with function calls vs. definitions-only
-  - VariableWatch shows contextual help when code has no function calls
-  - Algorithm examples now include sample data and function invocations
-- **Minimax TicTacToe AI**: Unbeatable AI opponent using minimax algorithm with alpha-beta-style depth optimization
-- **Keyboard Shortcuts**: 
-  - `Ctrl+O` / `Cmd+O`: Import code file
-  - `Ctrl+S` / `Cmd+S`: Export code to file
-  - Existing shortcuts: `Space/K` (play/pause), `S` (step), `B` (step back), `R` (reset), `F` (fullscreen), `Escape` (exit)
-- **Breakpoints**: Right-click flowchart nodes to toggle breakpoints (red dot indicator), execution pauses at breakpoints
-- **Variable History Timeline**: New "History" tab in Variables panel showing variable changes over execution with mini sparkline charts and clickable step navigation
-- **Shareable URLs**: "Share Flowchart" button generates URL with base64-encoded code, recipients see same flowchart on load
-- **Ghost Diff Enhancement**: Improved code change detection with actual condition values in flowchart labels
-- **Recursion Overflow Protection**: MAX_STEPS=5000 limit prevents browser freezing on deeply recursive algorithms
-  - Friendly toast notification guides users to Step mode (S key) when limit exceeded
-  - Steps array cleared on overflow to prevent partial autoplay
-  - RangeError catch for call stack exceeded errors
-
-### Ghost Diff Feature (Premium)
-- **Purpose**: Visualizes code changes as highlighted "ghost" nodes in the flowchart, showing what was added, removed, or modified
-- **How It Works**:
-  1. Original code snapshot captured automatically on first load (stored in sessionStorage)
-  2. User edits code → flowchart re-parses
-  3. Ghost Diff compares new nodes against original snapshot
-  4. Changed nodes are highlighted with colored glows
-- **Visual Indicators**:
-  - **Green glow** (`diff-added`): New nodes that weren't in original code
-  - **Red glow** (`diff-removed`): Nodes that existed in original but are now deleted
-  - **Yellow glow** (`diff-modified`): Nodes with changed content (e.g., condition value changed)
-  - **Gray dashed** (`diff-unchanged`): Nodes that remain the same
-- **Condition Value Detection**: Parser extracts actual condition values for accurate diff detection:
-  - If statements: `if (pois.length < 2) ?` instead of generic `if (condition) ?`
-  - For loops: `for (i < 10) ?` instead of generic `for (...) ?`
-- **UI Controls**:
-  - **Show/Hide Diff button** (`data-testid: button-ghost-diff`): Toggles diff visualization
-  - **Reset Diff button** (`data-testid: button-reset-diff`): Clears baseline and captures current code as new original
-- **Storage**: Uses sessionStorage key `__logigo_original_snapshot` for persistence across HMR updates
-- **Location**: `client/src/lib/ghostDiff.ts`, `client/src/pages/Workbench.tsx`
-
-### Breakpoint Styling
-- **CSS Class**: `.breakpoint-node` - Red dot indicator positioned left of node
-- **Behavior**: Execution automatically pauses when reaching a breakpoint node
-
-## Documentation
-
-### Replit Extension Specification
-- **Location**: `docs/REPLIT_EXTENSION_SPEC.md`
-- **Purpose**: Technical specification for Antigravity team to build the Replit Extension
-- **Contents**: Reporter API contract, IDE Adapter interface, message protocols, user workflows, testing checklist
