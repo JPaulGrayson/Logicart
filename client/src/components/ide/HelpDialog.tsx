@@ -117,6 +117,25 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     The flowchart on the right shows your code's control flow. Active nodes are highlighted in real-time as execution progresses. Zoom in/out to see different levels of detail.
                   </p>
                 </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold">💡</span>
+                    Pro Tip: Add Labels
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Make your flowcharts more readable by adding human-friendly labels:
+                  </p>
+                  <div className="p-3 bg-muted/50 rounded-md font-mono text-xs">
+                    {'// @logigo: Initialize counter'}<br />
+                    let i = 0;<br /><br />
+                    {'// @logigo: Check if done'}<br />
+                    while (i {'<'} 10) {'{ ... }'}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Nodes with labels show a blue dot. Hover to see the original code.
+                  </p>
+                </section>
               </div>
             </TabsContent>
 
@@ -173,6 +192,35 @@ function processData(items) {
 }`}
                   </pre>
                 </div>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  User-Defined Labels
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Add human-readable labels to your code that appear directly in the flowchart instead of code snippets:
+                </p>
+                <div className="mt-2 p-3 bg-muted/50 rounded-md">
+                  <p className="text-xs font-semibold mb-2">Syntax:</p>
+                  <pre className="text-xs font-mono">
+{`// @logigo: Initialize counter
+let i = 0;
+
+// @logigo: Check loop condition
+while (i < 10) {
+  // @logigo: Increment counter
+  i++;
+}`}
+                  </pre>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4 mt-3">
+                  <li>• <strong>Blue dot indicator:</strong> Nodes with user labels show a blue dot in the top-right corner</li>
+                  <li>• <strong>Hover for code:</strong> Hover over labeled nodes to see the original code in a tooltip</li>
+                  <li>• <strong>Debug Panel:</strong> Step indicator shows user labels when stepping through execution</li>
+                  <li>• <strong>Works everywhere:</strong> Labels work in both Static Mode and Live Mode</li>
+                </ul>
               </section>
 
               <section>
