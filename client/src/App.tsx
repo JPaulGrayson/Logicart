@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Workbench from "@/pages/Workbench";
 import TestMiniMap from "@/pages/TestMiniMap";
 import EmbedDemo from "@/pages/EmbedDemo";
+import RemoteMode from "@/pages/RemoteMode";
 
 function Router() {
   return (
@@ -15,6 +16,8 @@ function Router() {
       <Route path="/" component={Workbench} />
       <Route path="/test" component={TestMiniMap} />
       <Route path="/embed-demo" component={EmbedDemo} />
+      <Route path="/remote" component={RemoteMode} />
+      <Route path="/remote/:sessionId" component={RemoteMode} />
       <Route component={NotFound} />
     </Switch>
   );

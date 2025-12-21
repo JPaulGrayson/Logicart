@@ -1,12 +1,49 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
 import OpenAI from "openai";
+import crypto from "crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+interface Checkpoint {
+  id: string;
+  label?: string;
+  variables: Record<string, any>;
+  line?: number;
+  timestamp: number;
+}
+
+interface RemoteSession {
+  id: string;
+  name?: string;
+  code?: string;
+  checkpoints: Checkpoint[];
+  sseClients: Response[];
+  createdAt: Date;
+  lastActivity: Date;
+}
+
+const remoteSessions = new Map<string, RemoteSession>();
+
+const SESSION_TIMEOUT_MS = 60 * 60 * 1000;
+const MAX_SESSIONS = 100;
+const MAX_QUEUE_DEPTH = 1000;
+
+function cleanupExpiredSessions() {
+  const now = Date.now();
+  for (const [id, session] of remoteSessions) {
+    if (now - session.lastActivity.getTime() > SESSION_TIMEOUT_MS) {
+      session.sseClients.forEach(client => client.end());
+      remoteSessions.delete(id);
+    }
+  }
+}
+
+setInterval(cleanupExpiredSessions, 60 * 1000);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve LogiGo demo files (must be before Vite middleware)
@@ -91,6 +128,179 @@ Rewrite the code according to the instructions. Output only the new code, no exp
         message: error instanceof Error ? error.message : "Failed to rewrite code" 
       });
     }
+  });
+
+  // ============================================
+  // Remote Mode API - Cross-Replit Communication
+  // ============================================
+
+  // Create a new remote session
+  app.post("/api/remote/session", (req, res) => {
+    try {
+      if (remoteSessions.size >= MAX_SESSIONS) {
+        return res.status(503).json({ error: "Maximum sessions reached. Try again later." });
+      }
+
+      const { code, name } = req.body;
+      const sessionId = crypto.randomUUID();
+      
+      const session: RemoteSession = {
+        id: sessionId,
+        name: name || "Remote Session",
+        code: code || undefined,
+        checkpoints: [],
+        sseClients: [],
+        createdAt: new Date(),
+        lastActivity: new Date()
+      };
+
+      remoteSessions.set(sessionId, session);
+
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:5000';
+      const connectUrl = `${protocol}://${host}/remote/${sessionId}`;
+
+      res.json({ 
+        sessionId, 
+        connectUrl,
+        message: "Session created. Open connectUrl in LogiGo to view checkpoints."
+      });
+    } catch (error) {
+      console.error("Session creation error:", error);
+      res.status(500).json({ error: "Failed to create session" });
+    }
+  });
+
+  // Send a checkpoint to a session
+  app.post("/api/remote/checkpoint", (req, res) => {
+    try {
+      const { sessionId, checkpoint } = req.body;
+
+      if (!sessionId || !checkpoint) {
+        return res.status(400).json({ error: "Missing sessionId or checkpoint" });
+      }
+
+      const session = remoteSessions.get(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const checkpointData: Checkpoint = {
+        id: checkpoint.id || `checkpoint-${session.checkpoints.length}`,
+        label: checkpoint.label,
+        variables: checkpoint.variables || {},
+        line: checkpoint.line,
+        timestamp: Date.now()
+      };
+
+      // Apply queue depth limit (drop oldest if exceeded)
+      if (session.checkpoints.length >= MAX_QUEUE_DEPTH) {
+        session.checkpoints.shift();
+      }
+      session.checkpoints.push(checkpointData);
+      session.lastActivity = new Date();
+
+      // Broadcast to all SSE clients
+      const eventData = JSON.stringify(checkpointData);
+      session.sseClients.forEach(client => {
+        client.write(`event: checkpoint\ndata: ${eventData}\n\n`);
+      });
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Checkpoint error:", error);
+      res.status(500).json({ error: "Failed to process checkpoint" });
+    }
+  });
+
+  // End a session
+  app.post("/api/remote/session/end", (req, res) => {
+    try {
+      const { sessionId } = req.body;
+
+      if (!sessionId) {
+        return res.status(400).json({ error: "Missing sessionId" });
+      }
+
+      const session = remoteSessions.get(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      // Notify all clients session ended
+      session.sseClients.forEach(client => {
+        client.write(`event: session_end\ndata: {}\n\n`);
+        client.end();
+      });
+
+      remoteSessions.delete(sessionId);
+
+      res.json({ ended: true });
+    } catch (error) {
+      console.error("Session end error:", error);
+      res.status(500).json({ error: "Failed to end session" });
+    }
+  });
+
+  // SSE stream for real-time checkpoint updates
+  app.get("/api/remote/stream/:sessionId", (req, res) => {
+    const { sessionId } = req.params;
+    const session = remoteSessions.get(sessionId);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Set up SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.flushHeaders();
+
+    // Send initial session info
+    res.write(`event: session_info\ndata: ${JSON.stringify({
+      id: session.id,
+      name: session.name,
+      code: session.code,
+      checkpointCount: session.checkpoints.length
+    })}\n\n`);
+
+    // Send existing checkpoints
+    session.checkpoints.forEach(cp => {
+      res.write(`event: checkpoint\ndata: ${JSON.stringify(cp)}\n\n`);
+    });
+
+    // Add client to session
+    session.sseClients.push(res);
+
+    // Remove client on disconnect
+    req.on("close", () => {
+      const index = session.sseClients.indexOf(res);
+      if (index > -1) {
+        session.sseClients.splice(index, 1);
+      }
+    });
+  });
+
+  // Get session info (for debugging/testing)
+  app.get("/api/remote/session/:sessionId", (req, res) => {
+    const { sessionId } = req.params;
+    const session = remoteSessions.get(sessionId);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    res.json({
+      id: session.id,
+      name: session.name,
+      code: session.code,
+      checkpointCount: session.checkpoints.length,
+      viewerCount: session.sseClients.length,
+      createdAt: session.createdAt,
+      lastActivity: session.lastActivity
+    });
   });
 
   const httpServer = createServer(app);
