@@ -34,20 +34,33 @@ Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The c
 
 IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
 
-Guidelines:
+After adding checkpoints, ALSO register the code for flowchart visualization. Add this call somewhere in the frontend code that runs on page load:
+
+LogiGo.registerCode(`
+// Paste the main function or component with checkpoints here
+function myMainFunction() {
+  checkpoint('start', {});
+  // ... rest of the function with checkpoints ...
+}
+`);
+
+Guidelines for checkpoints:
 - Add checkpoint('step-name', { key: value }) at key points
 - Track user interactions: checkpoint('button-clicked', { action })
 - Track state changes: checkpoint('state-update', { before, after })
 - Track API calls: checkpoint('api-call', { endpoint, data })
 
 Example:
-function handleSubmit(data) {
-  checkpoint('form-submit', { fields: Object.keys(data) });
-  // ... existing code ...
+function handleUpload(file) {
+  checkpoint('upload-start', { fileName: file.name });
+  // ... upload logic ...
+  checkpoint('upload-complete', { success: true });
 }
 ```
 
-Your AI agent will automatically add the checkpoint calls to your frontend code!
+Your AI agent will:
+1. Add checkpoint calls to your frontend code
+2. Register the code with LogiGo so you can see the flowchart
 
 ---
 
@@ -55,7 +68,9 @@ Your AI agent will automatically add the checkpoint calls to your frontend code!
 
 1. Run your app
 2. Click the **"View in LogiGo"** badge in the bottom-right corner
-3. Watch the checkpoints appear in real-time as you interact with your app!
+3. You'll see two tabs:
+   - **Flowchart** - Visual representation of your code with nodes lighting up as checkpoints fire
+   - **Trace** - List of checkpoints in order they were called
 
 ---
 
@@ -76,6 +91,10 @@ Just copy, paste, and let your AI agent do the work!
 - Make sure the script tag is in the `<head>` section
 - Check your browser console for any errors
 - Make sure LogiGo is running
+
+**Only seeing Trace, no Flowchart tab?**
+- The AI agent needs to call `LogiGo.registerCode()` with the code
+- Ask your agent: "Register the instrumented code with LogiGo using LogiGo.registerCode()"
 
 **Checkpoints not showing?**
 - Make sure your AI agent added checkpoints to **frontend** code only (not backend/server files)

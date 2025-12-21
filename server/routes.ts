@@ -295,6 +295,35 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     });
   });
 
+  // Register code for a session (for flowchart visualization)
+  app.post("/api/remote/code", (req, res) => {
+    try {
+      const { sessionId, code } = req.body;
+
+      if (!sessionId || !code) {
+        return res.status(400).json({ error: "Missing sessionId or code" });
+      }
+
+      const session = remoteSessions.get(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      session.code = code;
+      session.lastActivity = new Date();
+
+      // Notify SSE clients about the code update
+      session.sseClients.forEach(client => {
+        client.write(`event: code_update\ndata: ${JSON.stringify({ code })}\n\n`);
+      });
+
+      res.json({ success: true, message: "Code registered for flowchart visualization" });
+    } catch (error) {
+      console.error("Code registration error:", error);
+      res.status(500).json({ error: "Failed to register code" });
+    }
+  });
+
   // Get session info (for debugging/testing)
   app.get("/api/remote/session/:sessionId", (req, res) => {
     const { sessionId } = req.params;
@@ -387,11 +416,28 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     });
   };
   
-  // Also expose as LogiGo.checkpoint for namespaced access
+  // Register code for flowchart visualization
   window.LogiGo = window.LogiGo || {};
   window.LogiGo.checkpoint = window.checkpoint;
   window.LogiGo.sessionId = SESSION_ID;
   window.LogiGo.viewUrl = "${viewUrl}";
+  
+  window.LogiGo.registerCode = function(code) {
+    fetch(LOGIGO_URL + "/api/remote/code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: SESSION_ID, code: code }),
+      mode: "cors"
+    }).then(function(r) {
+      if (r.ok) {
+        console.log("[LogiGo] Code registered for flowchart visualization");
+      } else {
+        console.warn("[LogiGo] Code registration failed:", r.status);
+      }
+    }).catch(function(e) {
+      console.warn("[LogiGo] Code registration error:", e.message);
+    });
+  };
   
   // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {

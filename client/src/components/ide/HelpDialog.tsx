@@ -175,16 +175,25 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                   <div>
                     <p className="text-sm font-medium text-foreground mb-2">Step 2: Ask your AI agent to add checkpoints</p>
                     <p className="text-xs text-muted-foreground mb-2">Copy this prompt and paste it into your app's AI agent:</p>
-                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto">
 {`Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
 
 IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
 
-Guidelines:
+After adding checkpoints, ALSO call LogiGo.registerCode() with the instrumented code so LogiGo can show a flowchart. Add this call at the end of your main component file:
+
+LogiGo.registerCode(\`
+// Paste the key function with checkpoints here
+function myFunction() {
+  checkpoint('start', {});
+  // ... code with checkpoints ...
+}
+\`);
+
+Guidelines for checkpoints:
 - Add checkpoint('step-name', { key: value }) at key points
 - Track user interactions: checkpoint('button-clicked', { action })
 - Track state changes: checkpoint('state-update', { before, after })
-- Track API calls: checkpoint('api-call', { endpoint, data })
 
 Example:
 function handleSubmit(data) {

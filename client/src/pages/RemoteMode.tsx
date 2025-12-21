@@ -167,6 +167,11 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
       setActiveCheckpoint(checkpoint);
     });
 
+    eventSource.addEventListener('code_update', (e) => {
+      const { code } = JSON.parse(e.data);
+      setSessionInfo(prev => prev ? { ...prev, code } : null);
+    });
+
     eventSource.addEventListener('session_end', () => {
       setConnected(false);
       eventSource.close();
