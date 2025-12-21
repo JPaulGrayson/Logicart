@@ -177,6 +177,23 @@ export default function RemoteMode() {
     }
   };
 
+  const handleCreateSession = async () => {
+    try {
+      const response = await fetch('/api/remote/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'LogiGo Test Session' })
+      });
+      const data = await response.json();
+      if (data.sessionId) {
+        window.history.pushState({}, '', `/remote/${data.sessionId}`);
+        connectToSession(data.sessionId);
+      }
+    } catch (error) {
+      console.error('Failed to create session:', error);
+    }
+  };
+
   const clearCheckpoints = () => {
     setCheckpoints([]);
     setActiveCheckpoint(null);
@@ -323,9 +340,23 @@ async function checkpoint(id, variables = {}) {
                   <Play className="w-4 h-4 mr-2" /> Connect
                 </Button>
               </div>
+              
+              <div className="pt-4 border-t border-gray-700">
+                <p className="text-sm text-gray-400 mb-3">
+                  Or create a new session directly:
+                </p>
+                <Button 
+                  onClick={handleCreateSession} 
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  data-testid="create-session-button"
+                >
+                  <Wifi className="w-4 h-4 mr-2" /> Create Session
+                </Button>
+              </div>
+              
               <div className="pt-4 border-t border-gray-700">
                 <p className="text-sm text-gray-400 mb-2">
-                  To create a session from your app, make this API call:
+                  To create a session from your external app, make this API call:
                 </p>
                 <pre className="bg-gray-900 p-3 rounded text-xs text-green-400 overflow-x-auto">
 {`POST /api/remote/session
