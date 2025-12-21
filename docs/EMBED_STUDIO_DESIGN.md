@@ -92,6 +92,10 @@ interface LogiGoEmbedProps {
   showMinimap?: boolean;       // Show flowchart minimap (default: false)
   showHistory?: boolean;       // Show checkpoint history panel (default: true)
   
+  // === Focus Mode (per Antigravity recommendation) ===
+  focusFile?: string;          // Only show this file's flowchart (e.g., "src/utils/sort.ts")
+  focusFunction?: string;      // Auto-locate and zoom to function (e.g., "processImage")
+  
   // Theming
   theme?: 'dark' | 'light' | 'auto';
   
@@ -553,8 +557,9 @@ function injectCheckpoints(
   const edits: CodeEdit[] = [];
   
   checkpoints.forEach(cp => {
-    // Generate checkpoint call
-    const checkpointCall = `await LogiGo.checkpoint('${cp.id}', { ${
+    // Generate SYNCHRONOUS checkpoint call (per Antigravity's recommendation)
+    // No async/await - keeps function signatures unchanged
+    const checkpointCall = `LogiGo.checkpoint('${cp.id}', { ${
       cp.capturedVariables.map(v => `${v}: ${v}`).join(', ')
     } });\n`;
     
@@ -569,6 +574,64 @@ function injectCheckpoints(
   return applyEdits(code, edits.sort((a, b) => b.position.line - a.position.line));
 }
 ```
+
+### Synchronous Checkpoint Architecture
+
+Per Antigravity's review, checkpoints are **synchronous by default** to avoid breaking function signatures:
+
+```javascript
+// In logigo-core runtime:
+class LogiGoRuntime {
+  private queue: CheckpointData[] = [];
+  private flushScheduled = false;
+  
+  checkpoint(id: string, variables?: Record<string, any>) {
+    // Synchronous - just queue the message
+    this.queue.push({ 
+      id, 
+      variables: variables ? this.serialize(variables) : {},
+      timestamp: Date.now() 
+    });
+    
+    // Process async via microtask - doesn't block execution
+    if (!this.flushScheduled) {
+      this.flushScheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+  }
+  
+  // Optional: For step debugging where user wants to pause
+  async checkpointAsync(id: string, variables?: Record<string, any>) {
+    this.checkpoint(id, variables);
+    
+    // Check if breakpoint is set
+    if (this.breakpoints.has(id)) {
+      await this.waitForResume();
+    }
+  }
+  
+  private flush() {
+    const batch = this.queue.splice(0);
+    this.flushScheduled = false;
+    
+    batch.forEach(data => {
+      window.postMessage({
+        source: 'LOGIGO_CORE',
+        type: 'LOGIGO_CHECKPOINT',
+        payload: { ...data, manifestVersion: this.manifestHash }
+      }, '*');
+    });
+  }
+}
+```
+
+**Benefits:**
+- Functions stay synchronous - no signature changes
+- Callers don't need to add `await`
+- TypeScript types remain valid
+- Works in sync-only contexts
+
+**For step debugging:** Use `await LogiGo.checkpointAsync(id)` which pauses at breakpoints.
 
 ### Runtime Contract: MANIFEST_HASH & Session Alignment
 
@@ -833,7 +896,28 @@ window.addEventListener('message', (event) => {
 });
 ```
 
-### Bundler Adapters
+### Implementation Phases (Per Antigravity Review)
+
+**Phase 1 (MVP): CLI-Based Manifest Generation**
+
+No bundler integration required. Users run a CLI command to generate the manifest:
+
+```bash
+# Generate manifest from source files
+npx logigo-manifest generate src/ --output public/logigo-manifest.json
+
+# Watch mode for development
+npx logigo-manifest watch src/ --output public/logigo-manifest.json --debounce 300
+```
+
+Usage:
+```jsx
+<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+```
+
+**Phase 2: Bundler Plugins**
+
+Seamless DX with automatic manifest generation during build:
 
 **Vite Plugin:**
 ```javascript
@@ -863,6 +947,36 @@ module.exports = {
     })
   ]
 }
+```
+
+### Hot Reload Debouncing
+
+Per Antigravity's recommendation, debounce manifest updates to prevent layout thrashing:
+
+```typescript
+// In CLI watch mode or bundler plugin
+let debounceTimer: NodeJS.Timeout | null = null;
+
+function onFileChange(file: string) {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  
+  debounceTimer = setTimeout(() => {
+    regenerateManifest();
+    emitManifestReady();
+  }, 300);  // 300ms debounce
+}
+```
+
+**Session-aware invalidation:**
+```typescript
+// If manifest changes during active session, notify user
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'LOGIGO_MANIFEST_READY') {
+    if (activeSession && e.data.payload.manifestHash !== currentHash) {
+      showNotification('Code changed - restart session to see updates');
+    }
+  }
+});
 ```
 
 ### Fallback Mode (No Build Integration)
