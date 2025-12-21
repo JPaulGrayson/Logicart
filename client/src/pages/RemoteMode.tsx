@@ -1,11 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Copy, Check, Wifi, WifiOff, Play, RotateCcw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List } from 'lucide-react';
+import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { parseCodeToFlow } from '@/lib/parser';
 
 interface Checkpoint {
   id: string;
@@ -20,6 +24,70 @@ interface SessionInfo {
   name: string;
   code?: string;
   checkpointCount: number;
+}
+
+interface FlowData {
+  nodes: Node[];
+  edges: Edge[];
+  nodeMap?: Map<string, string>;
+}
+
+const ACTIVE_NODE_STYLE = {
+  boxShadow: '0 0 0 3px #22c55e, 0 0 20px rgba(34, 197, 94, 0.4)',
+  transition: 'box-shadow 0.2s ease'
+};
+
+function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNumber?: number }) {
+  const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView } = useReactFlow();
+  const nodeMapRef = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    try {
+      const result = parseCodeToFlow(code);
+      nodeMapRef.current = result.nodeMap || new Map();
+      setNodes(result.nodes as Node[]);
+      setEdges(result.edges as Edge[]);
+      setTimeout(() => fitView({ padding: 0.2 }), 100);
+    } catch (error) {
+      console.error('Parse error:', error);
+    }
+  }, [code, setNodes, setEdges, fitView]);
+
+  useEffect(() => {
+    if (activeLineNumber && nodeMapRef.current.size > 0) {
+      const lineKey = `${activeLineNumber}:0`;
+      const activeNodeId = nodeMapRef.current.get(lineKey);
+      
+      setNodes(nodes => nodes.map(node => ({
+        ...node,
+        style: {
+          ...node.style,
+          ...(node.id === activeNodeId ? ACTIVE_NODE_STYLE : { boxShadow: undefined })
+        }
+      })));
+    }
+  }, [activeLineNumber, setNodes]);
+
+  return (
+    <div className="h-full w-full">
+      <ReactFlow
+        nodes={nodesState}
+        edges={edgesState}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.1}
+        maxZoom={2}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background color="#374151" gap={20} size={1} />
+        <Controls />
+      </ReactFlow>
+    </div>
+  );
 }
 
 export default function RemoteMode() {
@@ -126,6 +194,71 @@ async function checkpoint(id, variables = {}) {
     return new Date(ts).toLocaleTimeString();
   };
 
+  const renderTraceView = () => {
+    if (checkpoints.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <p>Waiting for checkpoints...</p>
+          <p className="text-xs mt-2">Send checkpoints from your external app</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {checkpoints.map((cp, index) => (
+          <div
+            key={`${cp.id}-${cp.timestamp}`}
+            className={`p-3 rounded border cursor-pointer transition-colors ${
+              activeCheckpoint?.timestamp === cp.timestamp
+                ? 'bg-blue-900/30 border-blue-500'
+                : 'bg-gray-900 border-gray-700 hover:border-gray-600'
+            }`}
+            onClick={() => setActiveCheckpoint(cp)}
+            data-testid={`checkpoint-${index}`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${
+                  activeCheckpoint?.timestamp === cp.timestamp 
+                    ? 'bg-green-500' 
+                    : 'bg-gray-500'
+                }`} />
+                <span className="font-mono text-sm text-blue-400">{cp.id}</span>
+                {cp.label && (
+                  <span className="text-xs text-gray-400">- {cp.label}</span>
+                )}
+                {cp.line && (
+                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+                    Line {cp.line}
+                  </Badge>
+                )}
+              </div>
+              <span className="text-xs text-gray-500">
+                {formatTimestamp(cp.timestamp)}
+              </span>
+            </div>
+            {Object.keys(cp.variables).length > 0 && (
+              <div className="mt-2 pl-4 border-l-2 border-gray-700">
+                {Object.entries(cp.variables).map(([key, value]) => (
+                  <div key={key} className="text-xs">
+                    <span className="text-purple-400">{key}</span>
+                    <span className="text-gray-500">: </span>
+                    <span className="text-gray-300">
+                      {typeof value === 'object' 
+                        ? JSON.stringify(value) 
+                        : String(value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6" data-testid="remote-mode-page">
       <div className="max-w-6xl mx-auto">
@@ -184,7 +317,7 @@ Response: { "sessionId": "abc123", "connectUrl": "..." }`}
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Session Info */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="pb-2">
@@ -205,6 +338,14 @@ Response: { "sessionId": "abc123", "connectUrl": "..." }`}
                   <p className="text-xs text-gray-500">Checkpoints</p>
                   <p className="text-sm text-gray-300">{checkpoints.length}</p>
                 </div>
+                {sessionInfo?.code && (
+                  <div>
+                    <p className="text-xs text-gray-500">Mode</p>
+                    <Badge variant="outline" className="border-purple-500 text-purple-400 text-xs">
+                      <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                    </Badge>
+                  </div>
+                )}
                 <div className="pt-2 space-y-2">
                   <Button 
                     variant="outline" 
@@ -229,68 +370,51 @@ Response: { "sessionId": "abc123", "connectUrl": "..." }`}
               </CardContent>
             </Card>
 
-            {/* Execution Trace */}
-            <Card className="bg-gray-800 border-gray-700 lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-lg">Execution Trace</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  {checkpoints.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                      <p>Waiting for checkpoints...</p>
-                      <p className="text-xs mt-2">Send checkpoints from your external app</p>
+            {/* Main View - Trace or Flowchart */}
+            <Card className="bg-gray-800 border-gray-700 lg:col-span-3">
+              {sessionInfo?.code ? (
+                <Tabs defaultValue="flowchart" className="h-full flex flex-col">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white text-lg">Visualization</CardTitle>
+                      <TabsList className="bg-gray-900">
+                        <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
+                          <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                        </TabsTrigger>
+                        <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
+                          <List className="w-3 h-3 mr-1" /> Trace
+                        </TabsTrigger>
+                      </TabsList>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {checkpoints.map((cp, index) => (
-                        <div
-                          key={`${cp.id}-${cp.timestamp}`}
-                          className={`p-3 rounded border cursor-pointer transition-colors ${
-                            activeCheckpoint?.timestamp === cp.timestamp
-                              ? 'bg-blue-900/30 border-blue-500'
-                              : 'bg-gray-900 border-gray-700 hover:border-gray-600'
-                          }`}
-                          onClick={() => setActiveCheckpoint(cp)}
-                          data-testid={`checkpoint-${index}`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${
-                                activeCheckpoint?.timestamp === cp.timestamp 
-                                  ? 'bg-green-500' 
-                                  : 'bg-gray-500'
-                              }`} />
-                              <span className="font-mono text-sm text-blue-400">{cp.id}</span>
-                              {cp.label && (
-                                <span className="text-xs text-gray-400">- {cp.label}</span>
-                              )}
-                            </div>
-                            <span className="text-xs text-gray-500">
-                              {formatTimestamp(cp.timestamp)}
-                            </span>
-                          </div>
-                          {Object.keys(cp.variables).length > 0 && (
-                            <div className="mt-2 pl-4 border-l-2 border-gray-700">
-                              {Object.entries(cp.variables).map(([key, value]) => (
-                                <div key={key} className="text-xs">
-                                  <span className="text-purple-400">{key}</span>
-                                  <span className="text-gray-500">: </span>
-                                  <span className="text-gray-300">
-                                    {typeof value === 'object' 
-                                      ? JSON.stringify(value) 
-                                      : String(value)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
+                  </CardHeader>
+                  <CardContent className="flex-1 p-0">
+                    <TabsContent value="flowchart" className="h-[450px] m-0">
+                      <ReactFlowProvider>
+                        <FlowchartPanel 
+                          code={sessionInfo.code} 
+                          activeLineNumber={activeCheckpoint?.line}
+                        />
+                      </ReactFlowProvider>
+                    </TabsContent>
+                    <TabsContent value="trace" className="m-0 px-4 pb-4">
+                      <ScrollArea className="h-[400px]">
+                        {renderTraceView()}
+                      </ScrollArea>
+                    </TabsContent>
+                  </CardContent>
+                </Tabs>
+              ) : (
+                <>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-white text-lg">Execution Trace</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px]">
+                      {renderTraceView()}
+                    </ScrollArea>
+                  </CardContent>
+                </>
+              )}
             </Card>
           </div>
         )}
