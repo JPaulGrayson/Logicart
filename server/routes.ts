@@ -134,6 +134,18 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   // Remote Mode API - Cross-Replit Communication
   // ============================================
 
+  // CORS middleware for remote API endpoints
+  app.use("/api/remote", (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Create a new remote session
   app.post("/api/remote/session", (req, res) => {
     try {
@@ -301,6 +313,105 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       createdAt: session.createdAt,
       lastActivity: session.lastActivity
     });
+  });
+
+  // ============================================
+  // One-Line Bootstrap Script
+  // ============================================
+  
+  // Serve the bootstrap script - auto-creates session and sets up checkpoint()
+  app.get("/remote.js", (req, res) => {
+    try {
+      // Get the project name from query param or use default
+      const projectName = req.query.project || req.query.name || "Remote App";
+      
+      // Create a new session
+      if (remoteSessions.size >= MAX_SESSIONS) {
+        res.status(503).type("application/javascript").send(
+          `console.error("LogiGo: Maximum sessions reached. Try again later.");`
+        );
+        return;
+      }
+
+      const sessionId = crypto.randomUUID();
+      const session: RemoteSession = {
+        id: sessionId,
+        name: String(projectName),
+        code: undefined,
+        checkpoints: [],
+        sseClients: [],
+        createdAt: new Date(),
+        lastActivity: new Date()
+      };
+      remoteSessions.set(sessionId, session);
+
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:5000';
+      const baseUrl = `${protocol}://${host}`;
+      const viewUrl = `${baseUrl}/remote/${sessionId}`;
+
+      // Return the bootstrap script with session info baked in
+      const script = `
+// LogiGo Remote Mode - Auto-configured
+(function() {
+  var LOGIGO_URL = "${baseUrl}";
+  var SESSION_ID = "${sessionId}";
+  var PROJECT_NAME = "${String(projectName).replace(/"/g, '\\"')}";
+  
+  console.log("🔗 LogiGo Remote Mode connected!");
+  console.log("📊 View flowchart at: ${viewUrl}");
+  
+  // Create the checkpoint function
+  window.checkpoint = function(id, variables) {
+    variables = variables || {};
+    var data = {
+      sessionId: SESSION_ID,
+      checkpoint: {
+        id: id,
+        variables: variables,
+        timestamp: Date.now()
+      }
+    };
+    
+    // Use sendBeacon for reliability, fallback to fetch
+    var payload = JSON.stringify(data);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(LOGIGO_URL + "/api/remote/checkpoint", new Blob([payload], {type: "application/json"}));
+    } else {
+      fetch(LOGIGO_URL + "/api/remote/checkpoint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true
+      }).catch(function() {});
+    }
+  };
+  
+  // Also expose as LogiGo.checkpoint for namespaced access
+  window.LogiGo = window.LogiGo || {};
+  window.LogiGo.checkpoint = window.checkpoint;
+  window.LogiGo.sessionId = SESSION_ID;
+  window.LogiGo.viewUrl = "${viewUrl}";
+  
+  // Show a small notification
+  if (typeof document !== "undefined") {
+    var notification = document.createElement("div");
+    notification.innerHTML = '🔗 <a href="${viewUrl}" target="_blank" style="color:#60a5fa">LogiGo Connected</a>';
+    notification.style.cssText = "position:fixed;bottom:10px;right:10px;background:#1e293b;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;font-family:sans-serif;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
+    document.body ? document.body.appendChild(notification) : document.addEventListener("DOMContentLoaded", function() { document.body.appendChild(notification); });
+    setTimeout(function() { notification.style.opacity = "0"; notification.style.transition = "opacity 0.5s"; }, 5000);
+    setTimeout(function() { notification.remove(); }, 5500);
+  }
+})();
+`;
+
+      res.type("application/javascript").send(script);
+    } catch (error) {
+      console.error("Bootstrap script error:", error);
+      res.status(500).type("application/javascript").send(
+        `console.error("LogiGo: Failed to initialize remote mode");`
+      );
+    }
   });
 
   const httpServer = createServer(app);

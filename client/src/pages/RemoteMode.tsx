@@ -325,47 +325,65 @@ async function checkpoint(id, variables = {}) {
               <CardTitle className="text-white">Connect to a Session</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-400">
-                Enter a session ID to connect, or create a new session from your external app.
-              </p>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter session ID..."
-                  value={inputSessionId}
-                  onChange={(e) => setInputSessionId(e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
-                  data-testid="session-id-input"
-                />
-                <Button onClick={handleConnect} data-testid="connect-button">
-                  <Play className="w-4 h-4 mr-2" /> Connect
-                </Button>
+              {/* One-Line Integration - Primary Method */}
+              <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+                <h3 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
+                  <span>✨</span> Easiest Method: One-Line Script
+                </h3>
+                <p className="text-gray-300 text-sm mb-3">
+                  Add this single line to your external app's HTML and it will automatically connect:
+                </p>
+                <div className="bg-gray-900 rounded p-3 flex items-center justify-between gap-2">
+                  <code className="text-green-400 text-sm overflow-x-auto flex-1">
+                    {`<script src="${window.location.origin}/remote.js?project=MyApp"></script>`}
+                  </code>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`<script src="${window.location.origin}/remote.js?project=MyApp"></script>`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="shrink-0"
+                    data-testid="copy-script-button"
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <p className="text-gray-500 text-xs mt-2">
+                  A notification will appear with a link to view your flowchart. Then add <code className="text-blue-400">checkpoint('label', {'{'} vars {'}'})</code> calls to your code.
+                </p>
+              </div>
+
+              {/* Manual Connection */}
+              <div className="pt-4 border-t border-gray-700">
+                <p className="text-sm text-gray-400 mb-2">Or connect to an existing session:</p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter session ID..."
+                    value={inputSessionId}
+                    onChange={(e) => setInputSessionId(e.target.value)}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    data-testid="session-id-input"
+                  />
+                  <Button onClick={handleConnect} data-testid="connect-button">
+                    <Play className="w-4 h-4 mr-2" /> Connect
+                  </Button>
+                </div>
               </div>
               
               <div className="pt-4 border-t border-gray-700">
                 <p className="text-sm text-gray-400 mb-3">
-                  Or create a new session directly:
+                  Or create a session to view here first:
                 </p>
                 <Button 
                   onClick={handleCreateSession} 
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
                   data-testid="create-session-button"
                 >
                   <Wifi className="w-4 h-4 mr-2" /> Create Session
                 </Button>
-              </div>
-              
-              <div className="pt-4 border-t border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">
-                  To create a session from your external app, make this API call:
-                </p>
-                <pre className="bg-gray-900 p-3 rounded text-xs text-green-400 overflow-x-auto">
-{`POST /api/remote/session
-Content-Type: application/json
-
-{ "name": "My App" }
-
-Response: { "sessionId": "abc123", "connectUrl": "..." }`}
-                </pre>
               </div>
             </CardContent>
           </Card>
