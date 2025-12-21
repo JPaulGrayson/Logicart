@@ -44,6 +44,14 @@ Preferred communication style: Simple, everyday language.
 - **Core Modules**: `runtime.js` (execution control), `overlay.js` (injectable floating UI), `parser.js` (lightweight AST parser), `differ.js` (Ghost Diff engine).
 - **Global API**: Exposes `window.LogiGo.checkpoint()` for checkpoint-based debugging.
 
+### Embeddable Studio Architecture (logigo-embed)
+- **Build-Time Manifest Pipeline**: Bundler plugins (Vite/Webpack) generate `logigo-manifest.json` with precomputed flowchart nodes, edges, and checkpoint metadata.
+- **Node ID Hashing**: Deterministic IDs using SHA256 of file path + line + normalized AST signature to survive code transformations.
+- **Reporter API Extensions**: `LOGIGO_MANIFEST_READY` event at page load, `manifestVersion` in checkpoints for version alignment.
+- **Distribution**: ESM (React as peer dependency) and UMD (standalone with bundled React) for maximum compatibility.
+- **API**: `<LogiGoEmbed manifestUrl="/logigo-manifest.json" />` for production, `code` prop for demos only.
+- **Design Document**: See `docs/EMBED_STUDIO_DESIGN.md` for full specification.
+
 ### Hybrid Architecture Integration
 - **Three-tier Hybrid Model**:
     - **Static Mode (Default)**: Instant flowchart from pasted code via Acorn parsing.
