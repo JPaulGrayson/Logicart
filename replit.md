@@ -52,6 +52,17 @@ Preferred communication style: Simple, everyday language.
 - **API**: `<LogiGoEmbed code={jsCode} />` for Static Mode, `manifestUrl` prop for future Live Mode.
 - **Design Document**: See `docs/EMBED_STUDIO_DESIGN.md` for full specification.
 
+### Cross-Replit Communication (Remote Mode)
+- **Purpose**: Enables external Replit apps to send checkpoint data to LogiGo for real-time visualization.
+- **API Endpoints**:
+  - `POST /api/remote/session` - Create a session, returns sessionId and connectUrl
+  - `POST /api/remote/checkpoint` - Send checkpoint data to a session
+  - `POST /api/remote/session/end` - End a session
+  - `GET /api/remote/stream/:sessionId` - SSE stream for real-time updates
+- **Frontend**: `/remote` page with trace view showing linear execution of checkpoints.
+- **Features**: Multiple viewers per session, auto-expiring sessions (1 hour), copy integration code button.
+- **Design Document**: See `docs/CROSS_REPLIT_DESIGN.md` for full specification.
+
 ### Hybrid Architecture Integration
 - **Three-tier Hybrid Model**:
     - **Static Mode (Default)**: Instant flowchart from pasted code via Acorn parsing.
