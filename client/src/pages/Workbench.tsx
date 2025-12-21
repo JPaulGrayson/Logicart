@@ -23,7 +23,8 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi } from 'lucide-react';
+import { Link } from 'wouter';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -1863,6 +1864,19 @@ export default function Workbench() {
                     <Share2 className="w-3 h-3" />
                     Share Flowchart
                   </Button>
+                  
+                  {/* Remote Mode */}
+                  <Link href="/remote">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      data-testid="button-remote-mode"
+                    >
+                      <Wifi className="w-3 h-3" />
+                      Remote Mode
+                    </Button>
+                  </Link>
                 </div>
               </div>
               
