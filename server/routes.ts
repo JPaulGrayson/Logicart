@@ -373,18 +373,18 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       }
     };
     
-    // Use sendBeacon for reliability, fallback to fetch
+    // Use fetch for cross-origin reliability
     var payload = JSON.stringify(data);
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(LOGIGO_URL + "/api/remote/checkpoint", new Blob([payload], {type: "application/json"}));
-    } else {
-      fetch(LOGIGO_URL + "/api/remote/checkpoint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-        keepalive: true
-      }).catch(function() {});
-    }
+    fetch(LOGIGO_URL + "/api/remote/checkpoint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      mode: "cors"
+    }).then(function(r) {
+      if (!r.ok) console.warn("[LogiGo] Checkpoint failed:", r.status);
+    }).catch(function(e) {
+      console.warn("[LogiGo] Checkpoint error:", e.message);
+    });
   };
   
   // Also expose as LogiGo.checkpoint for namespaced access
