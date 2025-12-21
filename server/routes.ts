@@ -206,7 +206,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
         client.write(`event: checkpoint\ndata: ${eventData}\n\n`);
       });
 
-      res.json({ received: true });
+      res.json({ success: true, checkpointCount: session.checkpoints.length });
     } catch (error) {
       console.error("Checkpoint error:", error);
       res.status(500).json({ error: "Failed to process checkpoint" });

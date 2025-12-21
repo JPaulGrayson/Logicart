@@ -7,9 +7,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List } from 'lucide-react';
-import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { parseCodeToFlow } from '@/lib/parser';
+import DecisionNode from '@/components/ide/DecisionNode';
+import ContainerNode from '@/components/ide/ContainerNode';
+import LabeledNode from '@/components/ide/LabeledNode';
+
+const nodeTypes: NodeTypes = {
+  decision: DecisionNode,
+  container: ContainerNode,
+  default: LabeledNode,
+  input: LabeledNode,
+  output: LabeledNode,
+};
 
 interface Checkpoint {
   id: string;
@@ -37,6 +48,16 @@ const ACTIVE_NODE_STYLE = {
   transition: 'box-shadow 0.2s ease'
 };
 
+function findNodeByLine(nodeMap: Map<string, string>, line: number): string | undefined {
+  for (const [key, nodeId] of nodeMap.entries()) {
+    const [lineStr] = key.split(':');
+    if (parseInt(lineStr, 10) === line) {
+      return nodeId;
+    }
+  }
+  return undefined;
+}
+
 function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNumber?: number }) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -46,7 +67,7 @@ function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNu
   useEffect(() => {
     try {
       const result = parseCodeToFlow(code);
-      nodeMapRef.current = result.nodeMap || new Map();
+      nodeMapRef.current = result.nodeMap instanceof Map ? result.nodeMap : new Map();
       setNodes(result.nodes as Node[]);
       setEdges(result.edges as Edge[]);
       setTimeout(() => fitView({ padding: 0.2 }), 100);
@@ -56,18 +77,18 @@ function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNu
   }, [code, setNodes, setEdges, fitView]);
 
   useEffect(() => {
-    if (activeLineNumber && nodeMapRef.current.size > 0) {
-      const lineKey = `${activeLineNumber}:0`;
-      const activeNodeId = nodeMapRef.current.get(lineKey);
-      
-      setNodes(nodes => nodes.map(node => ({
-        ...node,
-        style: {
-          ...node.style,
-          ...(node.id === activeNodeId ? ACTIVE_NODE_STYLE : { boxShadow: undefined })
-        }
-      })));
-    }
+    const activeNodeId = activeLineNumber && nodeMapRef.current.size > 0
+      ? findNodeByLine(nodeMapRef.current, activeLineNumber)
+      : undefined;
+    
+    setNodes(nodes => nodes.map(node => ({
+      ...node,
+      style: {
+        ...node.style,
+        boxShadow: node.id === activeNodeId ? ACTIVE_NODE_STYLE.boxShadow : undefined,
+        transition: ACTIVE_NODE_STYLE.transition
+      }
+    })));
   }, [activeLineNumber, setNodes]);
 
   return (
@@ -77,6 +98,7 @@ function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNu
         edges={edgesState}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.1}
