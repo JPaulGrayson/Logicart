@@ -159,6 +159,46 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-purple-500">🤖</span>
+                  Remote Mode - For Vibe Coders (Easiest!)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Connect any external app to LogiGo without writing code yourself. Just two steps:
+                </p>
+                <div className="space-y-4 ml-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Step 1: Add the script tag to your app's HTML</p>
+                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs">
+                      {'<script src="YOUR_LOGIGO_URL/remote.js?project=MyApp"></script>'}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Step 2: Ask your AI agent to add checkpoints</p>
+                    <p className="text-xs text-muted-foreground mb-2">Copy this prompt and paste it into your app's AI agent:</p>
+                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-40 overflow-y-auto">
+{`Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
+
+Guidelines:
+- Add checkpoint('step-name', { key: value }) at key points
+- Track loop iterations: checkpoint('loop-iteration', { i, total })
+- Track function starts: checkpoint('function-start', { args })
+- Track results: checkpoint('result', { data })
+
+Example:
+for (let i = 0; i < items.length; i++) {
+  checkpoint('processing-item', { i, total: items.length });
+  // ... existing code ...
+}`}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  That's it! Your AI agent adds the checkpoints, and they appear in LogiGo automatically.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-green-500">●</span>
                   Live Mode (Runtime Debugging)
                 </h3>
