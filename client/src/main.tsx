@@ -1,3 +1,4 @@
+window.checkpoint = checkpoint;
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
