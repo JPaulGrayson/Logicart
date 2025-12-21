@@ -175,25 +175,27 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                   <div>
                     <p className="text-sm font-medium text-foreground mb-2">Step 2: Ask your AI agent to add checkpoints</p>
                     <p className="text-xs text-muted-foreground mb-2">Copy this prompt and paste it into your app's AI agent:</p>
-                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-40 overflow-y-auto">
-{`Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
+                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">
+{`Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
+
+IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
 
 Guidelines:
 - Add checkpoint('step-name', { key: value }) at key points
-- Track loop iterations: checkpoint('loop-iteration', { i, total })
-- Track function starts: checkpoint('function-start', { args })
-- Track results: checkpoint('result', { data })
+- Track user interactions: checkpoint('button-clicked', { action })
+- Track state changes: checkpoint('state-update', { before, after })
+- Track API calls: checkpoint('api-call', { endpoint, data })
 
 Example:
-for (let i = 0; i < items.length; i++) {
-  checkpoint('processing-item', { i, total: items.length });
+function handleSubmit(data) {
+  checkpoint('form-submit', { fields: Object.keys(data) });
   // ... existing code ...
 }`}
                     </div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
-                  That's it! Your AI agent adds the checkpoints, and they appear in LogiGo automatically.
+                  That's it! Your AI agent adds the checkpoints to your frontend code, and they appear in LogiGo automatically when triggered.
                 </p>
               </section>
 

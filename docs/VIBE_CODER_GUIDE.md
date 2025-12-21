@@ -21,7 +21,7 @@ Replace `YOUR_LOGIGO_URL` with your LogiGo app's URL (you can find this in the b
 </head>
 ```
 
-When your app loads, you'll see a small notification in the bottom-right corner with a link to view your flowchart.
+When your app loads, you'll see a **"View in LogiGo"** badge in the bottom-right corner. Click it to open your flowchart!
 
 ---
 
@@ -30,34 +30,32 @@ When your app loads, you'll see a small notification in the bottom-right corner 
 Copy this prompt and paste it into your app's AI agent (like Replit Agent):
 
 ```
-Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
+Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
+
+IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
 
 Guidelines:
-- Add checkpoint('step-name', { key: value }) calls at key points in the code
-- Track loop iterations: checkpoint('loop-iteration', { i, total })
-- Track function starts: checkpoint('function-start', { args })  
-- Track results: checkpoint('result', { data })
-- Track errors: checkpoint('error', { message })
+- Add checkpoint('step-name', { key: value }) at key points
+- Track user interactions: checkpoint('button-clicked', { action })
+- Track state changes: checkpoint('state-update', { before, after })
+- Track API calls: checkpoint('api-call', { endpoint, data })
 
 Example:
-for (let i = 0; i < items.length; i++) {
-  checkpoint('processing-item', { i, total: items.length, item: items[i] });
+function handleSubmit(data) {
+  checkpoint('form-submit', { fields: Object.keys(data) });
   // ... existing code ...
 }
-
-Add checkpoints to the main processing logic, loops, and any async operations. Keep checkpoint names descriptive but short.
 ```
 
-Your AI agent will automatically add the checkpoint calls to your code!
+Your AI agent will automatically add the checkpoint calls to your frontend code!
 
 ---
 
 ## Step 3: View Your Flowchart
 
 1. Run your app
-2. Click the notification link, OR
-3. Go to LogiGo → Remote Mode to see your session
-4. Watch the checkpoints appear in real-time as your code runs!
+2. Click the **"View in LogiGo"** badge in the bottom-right corner
+3. Watch the checkpoints appear in real-time as you interact with your app!
 
 ---
 
@@ -74,15 +72,19 @@ Just copy, paste, and let your AI agent do the work!
 
 ## Troubleshooting
 
-**Notification doesn't appear?**
+**Badge doesn't appear?**
 - Make sure the script tag is in the `<head>` section
 - Check your browser console for any errors
 - Make sure LogiGo is running
 
 **Checkpoints not showing?**
-- Make sure your AI agent actually added `checkpoint()` calls to your code
-- Run the part of your app that has the checkpoints
+- Make sure your AI agent added checkpoints to **frontend** code only (not backend/server files)
+- Interact with your app to trigger the code that has checkpoints
 - Check that you're viewing the correct session in LogiGo
+
+**Agent added checkpoints to backend code?**
+- Ask the agent to remove them from server files
+- The `checkpoint()` function only works in the browser, not on the server
 
 **Need help?**
 Click the help button (?) in LogiGo's header for more documentation.

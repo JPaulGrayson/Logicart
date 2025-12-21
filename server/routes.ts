@@ -393,20 +393,21 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   window.LogiGo.sessionId = SESSION_ID;
   window.LogiGo.viewUrl = "${viewUrl}";
   
-  // Show a small notification
+  // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {
-    function showNotification() {
-      var notification = document.createElement("div");
-      notification.innerHTML = '🔗 <a href="${viewUrl}" target="_blank" style="color:#60a5fa">LogiGo Connected</a>';
-      notification.style.cssText = "position:fixed;bottom:10px;right:10px;background:#1e293b;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;font-family:sans-serif;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
-      document.body.appendChild(notification);
-      setTimeout(function() { notification.style.opacity = "0"; notification.style.transition = "opacity 0.5s"; }, 5000);
-      setTimeout(function() { if (notification.parentNode) notification.remove(); }, 5500);
+    function showBadge() {
+      if (document.getElementById("logigo-badge")) return;
+      var badge = document.createElement("div");
+      badge.id = "logigo-badge";
+      badge.innerHTML = '<a href="${viewUrl}" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
+      badge.style.cssText = "position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;font-family:system-ui,-apple-system,sans-serif;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:1px solid #334155;display:flex;align-items:center;";
+      badge.querySelector("button").onclick = function() { badge.remove(); };
+      document.body.appendChild(badge);
     }
     if (document.body) {
-      showNotification();
+      showBadge();
     } else {
-      document.addEventListener("DOMContentLoaded", showNotification);
+      document.addEventListener("DOMContentLoaded", showBadge);
     }
   }
 })();
