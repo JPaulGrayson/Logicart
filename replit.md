@@ -45,11 +45,11 @@ Preferred communication style: Simple, everyday language.
 - **Global API**: Exposes `window.LogiGo.checkpoint()` for checkpoint-based debugging.
 
 ### Embeddable Studio Architecture (logigo-embed)
-- **Build-Time Manifest Pipeline**: Bundler plugins (Vite/Webpack) generate `logigo-manifest.json` with precomputed flowchart nodes, edges, and checkpoint metadata.
-- **Node ID Hashing**: Deterministic IDs using SHA256 of file path + line + normalized AST signature to survive code transformations.
-- **Reporter API Extensions**: `LOGIGO_MANIFEST_READY` event at page load, `manifestVersion` in checkpoints for version alignment.
+- **Phase 1 (Implemented)**: Runtime parsing approach with self-contained parser. Static Mode visualizes JavaScript code as flowcharts immediately without build configuration.
+- **Demo Page**: `/embed-demo` showcases the LogiGoEmbed component with position controls and example switching.
+- **Phase 2 (Planned)**: Build-time manifest with bundler plugins for Live Mode checkpoint highlighting.
 - **Distribution**: ESM (React as peer dependency) and UMD (standalone with bundled React) for maximum compatibility.
-- **API**: `<LogiGoEmbed manifestUrl="/logigo-manifest.json" />` for production, `code` prop for demos only.
+- **API**: `<LogiGoEmbed code={jsCode} />` for Static Mode, `manifestUrl` prop for future Live Mode.
 - **Design Document**: See `docs/EMBED_STUDIO_DESIGN.md` for full specification.
 
 ### Hybrid Architecture Integration
