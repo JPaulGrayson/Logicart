@@ -1787,8 +1787,8 @@ export default function Workbench() {
       </header>
       
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
-      <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
+      <div className="flex-1 overflow-hidden min-h-0">
+        <ResizablePanelGroup direction="horizontal" autoSaveId="logigo-workbench-panels">
           {/* Left Sidebar - Controls (Resizable) */}
           <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
