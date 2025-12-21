@@ -395,12 +395,19 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   
   // Show a small notification
   if (typeof document !== "undefined") {
-    var notification = document.createElement("div");
-    notification.innerHTML = '🔗 <a href="${viewUrl}" target="_blank" style="color:#60a5fa">LogiGo Connected</a>';
-    notification.style.cssText = "position:fixed;bottom:10px;right:10px;background:#1e293b;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;font-family:sans-serif;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
-    document.body ? document.body.appendChild(notification) : document.addEventListener("DOMContentLoaded", function() { document.body.appendChild(notification); });
-    setTimeout(function() { notification.style.opacity = "0"; notification.style.transition = "opacity 0.5s"; }, 5000);
-    setTimeout(function() { notification.remove(); }, 5500);
+    function showNotification() {
+      var notification = document.createElement("div");
+      notification.innerHTML = '🔗 <a href="${viewUrl}" target="_blank" style="color:#60a5fa">LogiGo Connected</a>';
+      notification.style.cssText = "position:fixed;bottom:10px;right:10px;background:#1e293b;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;font-family:sans-serif;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
+      document.body.appendChild(notification);
+      setTimeout(function() { notification.style.opacity = "0"; notification.style.transition = "opacity 0.5s"; }, 5000);
+      setTimeout(function() { if (notification.parentNode) notification.remove(); }, 5500);
+    }
+    if (document.body) {
+      showNotification();
+    } else {
+      document.addEventListener("DOMContentLoaded", showNotification);
+    }
   }
 })();
 `;
