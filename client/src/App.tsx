@@ -7,12 +7,14 @@ import { AdapterProvider } from "@/contexts/AdapterContext";
 import NotFound from "@/pages/not-found";
 import Workbench from "@/pages/Workbench";
 import TestMiniMap from "@/pages/TestMiniMap";
+import EmbedDemo from "@/pages/EmbedDemo";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Workbench} />
       <Route path="/test" component={TestMiniMap} />
+      <Route path="/embed-demo" component={EmbedDemo} />
       <Route component={NotFound} />
     </Switch>
   );
