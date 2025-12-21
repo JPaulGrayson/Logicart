@@ -206,13 +206,30 @@ export default {
 - **Static Mode:** Paste code → instant flowchart (working)
 - **Reporter API spec:** Message format for checkpoint communication
 - **logigo-core package:** Runtime library with `window.LogiGo.checkpoint()`
+- **logigo-embed package (Phase 1):** Embeddable React component with runtime parsing for Static Mode
 
-## What We're Building
+## Implementation Status
 
-- **logigo-embed package:** The embeddable React component
-- **Bundler plugins:** Vite and Webpack integrations
+### Phase 1 (Complete)
+- **LogiGoEmbed component:** Floating overlay with runtime JavaScript parsing
+- **Static Mode:** Parse code on the fly, render flowchart, no build integration needed
+- **Demo page:** `/embed-demo` shows component in action with position controls
+- **Features:** Collapse/expand, position options, dark/light themes
+
+### Phase 2 (Planned)
+- **Bundler plugins:** Vite and Webpack integrations for build-time manifest
+- **Live Mode:** Checkpoint-driven node highlighting (requires manifest for ID matching)
 - **logigo-install CLI:** `npx logigo-install` to add embed to any project
 - **Manifest generation:** Build-time AST analysis and checkpoint injection
+
+### Architecture Decision: Static Mode First
+
+We chose to implement Static Mode (runtime parsing) first because:
+1. **Zero friction:** Works immediately without build configuration
+2. **Covers 80% use case:** Most users want to visualize single functions/files
+3. **Simpler distribution:** No bundler plugin complexity for initial adoption
+
+Live Mode (with checkpoint highlighting) requires matching node IDs between the manifest and checkpoints. This only works with build-time manifest generation, which we're implementing in Phase 2.
 
 ---
 
