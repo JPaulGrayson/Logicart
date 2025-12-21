@@ -121,7 +121,26 @@ export default function RemoteMode() {
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [copied, setCopied] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  
+  // Agent prompt for vibe coders - paste this into your app's AI agent
+  const agentPrompt = `Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
+
+Guidelines:
+- Add checkpoint('step-name', { key: value }) calls at key points in the code
+- Track loop iterations: checkpoint('loop-iteration', { i, total })
+- Track function starts: checkpoint('function-start', { args })  
+- Track results: checkpoint('result', { data })
+- Track errors: checkpoint('error', { message })
+
+Example:
+for (let i = 0; i < items.length; i++) {
+  checkpoint('processing-item', { i, total: items.length, item: items[i] });
+  // ... existing code ...
+}
+
+Add checkpoints to the main processing logic, loops, and any async operations. Keep checkpoint names descriptive but short.`;
 
   const connectToSession = (sid: string) => {
     if (eventSourceRef.current) {
@@ -352,7 +371,38 @@ async function checkpoint(id, variables = {}) {
                   </Button>
                 </div>
                 <p className="text-gray-500 text-xs mt-2">
-                  A notification will appear with a link to view your flowchart. Then add <code className="text-blue-400">checkpoint('label', {'{'} vars {'}'})</code> calls to your code.
+                  A notification will appear with a link to view your flowchart.
+                </p>
+              </div>
+
+              {/* Step 2: Agent Prompt for adding checkpoints */}
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+                <h3 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
+                  <span>🤖</span> Step 2: Ask Your AI Agent to Add Checkpoints
+                </h3>
+                <p className="text-gray-300 text-sm mb-3">
+                  Copy this prompt and paste it into your app's AI agent (like Replit Agent). It will automatically add checkpoint() calls to your code:
+                </p>
+                <div className="bg-gray-900 rounded p-3 space-y-2">
+                  <pre className="text-blue-300 text-xs overflow-x-auto whitespace-pre-wrap max-h-32 overflow-y-auto">
+                    {agentPrompt}
+                  </pre>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(agentPrompt);
+                      setPromptCopied(true);
+                      setTimeout(() => setPromptCopied(false), 2000);
+                    }}
+                    className="w-full"
+                    data-testid="copy-agent-prompt-button"
+                  >
+                    {promptCopied ? <><Check className="w-4 h-4 mr-2" /> Copied!</> : <><Copy className="w-4 h-4 mr-2" /> Copy Agent Prompt</>}
+                  </Button>
+                </div>
+                <p className="text-gray-500 text-xs mt-2">
+                  No coding required - just paste and let your AI agent do the work!
                 </p>
               </div>
 
