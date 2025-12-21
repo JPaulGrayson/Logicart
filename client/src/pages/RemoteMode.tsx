@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List } from 'lucide-react';
+import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List, Code2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { parseCodeToFlow } from '@/lib/parser';
@@ -122,6 +124,8 @@ export default function RemoteMode() {
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [copied, setCopied] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
+  const [showCodeDialog, setShowCodeDialog] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
   const eventSourceRef = useRef<EventSource | null>(null);
   
   // Agent prompt for vibe coders - paste this into your app's AI agent
@@ -221,6 +225,14 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
   const clearCheckpoints = () => {
     setCheckpoints([]);
     setActiveCheckpoint(null);
+  };
+
+  const handleSubmitCode = () => {
+    if (codeInput.trim() && sessionInfo) {
+      setSessionInfo({ ...sessionInfo, code: codeInput.trim() });
+      setShowCodeDialog(false);
+      setCodeInput('');
+    }
   };
 
   const copyIntegrationCode = () => {
@@ -473,6 +485,16 @@ async function checkpoint(id, variables = {}) {
                   </div>
                 )}
                 <div className="pt-2 space-y-2">
+                  {!sessionInfo?.code && (
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      onClick={() => setShowCodeDialog(true)}
+                      data-testid="add-code-button"
+                    >
+                      <Code2 className="w-4 h-4 mr-2" /> Add Code for Flowchart
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -545,6 +567,39 @@ async function checkpoint(id, variables = {}) {
           </div>
         )}
       </div>
+
+      {/* Paste Code Dialog */}
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Code for Flowchart</DialogTitle>
+            <DialogDescription>
+              Paste the JavaScript function you want to visualize. The flowchart will show the control flow 
+              and highlight nodes as checkpoints fire.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder={`// Paste your JavaScript code here
+function handleUpload(file) {
+  checkpoint('upload-start', { fileName: file.name });
+  // ... your code ...
+  checkpoint('upload-complete', { success: true });
+}`}
+            value={codeInput}
+            onChange={(e) => setCodeInput(e.target.value)}
+            className="min-h-[300px] font-mono text-sm"
+            data-testid="code-input"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCodeDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitCode} disabled={!codeInput.trim()}>
+              <GitBranch className="w-4 h-4 mr-2" /> Create Flowchart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
