@@ -1,5 +1,14 @@
 export { LogiGoEmbed, default } from './LogiGoEmbed';
-export type { LogiGoEmbedProps, EmbedState, CheckpointEntry } from './types';
+export type { 
+  LogiGoEmbedProps, 
+  EmbedState, 
+  CheckpointEntry,
+  CheckpointPayload,
+  LogiGoManifest,
+  FlowNode,
+  FlowEdge,
+  CheckpointMetadata
+} from './types';
 
 declare global {
   interface Window {

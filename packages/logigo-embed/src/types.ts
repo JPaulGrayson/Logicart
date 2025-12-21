@@ -1,5 +1,8 @@
 export interface LogiGoEmbedProps {
-  code: string;
+  code?: string;
+  
+  manifestUrl?: string;
+  manifestHash?: string;
   
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   
@@ -9,12 +12,79 @@ export interface LogiGoEmbedProps {
   showVariables?: boolean;
   showControls?: boolean;
   showMinimap?: boolean;
+  showHistory?: boolean;
+  
+  focusFile?: string;
+  focusFunction?: string;
   
   theme?: 'dark' | 'light' | 'auto';
   
   onNodeClick?: (nodeId: string) => void;
+  onCheckpoint?: (checkpoint: CheckpointPayload) => void;
+  onManifestLoad?: (manifest: LogiGoManifest) => void;
   onReady?: () => void;
   onError?: (error: Error) => void;
+}
+
+export interface CheckpointPayload {
+  id: string;
+  timestamp: number;
+  variables: Record<string, any>;
+  manifestVersion?: string;
+}
+
+export interface LogiGoManifest {
+  version: '1.0';
+  hash: string;
+  generatedAt: number;
+  
+  files: {
+    [path: string]: {
+      checksum: string;
+      functions: string[];
+    }
+  };
+  
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  
+  checkpoints: {
+    [nodeId: string]: CheckpointMetadata;
+  };
+}
+
+export interface FlowNode {
+  id: string;
+  type: 'default' | 'decision' | 'input' | 'output' | 'container';
+  position: { x: number; y: number };
+  data: {
+    label: string;
+    nodeType?: string;
+    sourceFile?: string;
+    sourceLine?: number;
+    sourceColumn?: number;
+  };
+  style?: Record<string, any>;
+}
+
+export interface FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  type?: string;
+  animated?: boolean;
+  style?: Record<string, any>;
+}
+
+export interface CheckpointMetadata {
+  file: string;
+  line: number;
+  column: number;
+  label: string;
+  type: string;
+  parentFunction: string;
+  capturedVariables: string[];
 }
 
 export interface EmbedState {

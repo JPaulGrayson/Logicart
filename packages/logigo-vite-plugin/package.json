@@ -1,0 +1,44 @@
+{
+  "name": "logigo-vite-plugin",
+  "version": "1.0.0",
+  "description": "Vite plugin for LogiGo build-time instrumentation",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "dependencies": {
+    "acorn": "^8.11.0",
+    "dagre": "^0.8.5",
+    "magic-string": "^0.30.0"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.52",
+    "@types/estree": "^1.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "logigo",
+    "flowchart",
+    "visualization",
+    "debugging"
+  ],
+  "license": "MIT"
+}

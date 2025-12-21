@@ -5,6 +5,18 @@
 
 ---
 
+## Implementation Status
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| LogiGoEmbed (Static Mode) | ✅ Complete | `packages/logigo-embed/` |
+| LogiGoEmbed (Live Mode) | ✅ Complete | `packages/logigo-embed/` |
+| Vite Plugin | ✅ Complete | `packages/logigo-vite-plugin/` |
+| Manifest Schema | ✅ Complete | `packages/logigo-vite-plugin/src/types.ts` |
+| logigo-core Runtime | ✅ Complete | `packages/logigo-core/` |
+
+---
+
 ## Overview
 
 The Embeddable Studio is a self-contained React component that provides the full LogiGo visualization experience as a floating panel within any React application.

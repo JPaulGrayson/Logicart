@@ -1,0 +1,34 @@
+{
+  "name": "logigo-core",
+  "version": "1.0.0",
+  "description": "LogiGo runtime library for checkpoint-based debugging",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime.js",
+      "types": "./dist/runtime.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "logigo",
+    "debugging",
+    "visualization",
+    "checkpoint"
+  ],
+  "license": "MIT"
+}

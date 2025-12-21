@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import * as acorn from 'acorn';
 import dagre from 'dagre';
-import { LogiGoEmbedProps, EmbedState } from './types';
+import { LogiGoEmbedProps, EmbedState, LogiGoManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
 
 interface FlowNode {
   id: string;
@@ -202,6 +202,28 @@ function applyLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   });
 }
 
+function convertManifestToFlowData(manifest: LogiGoManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
+  const nodes: FlowNode[] = manifest.nodes.map(n => ({
+    id: n.id,
+    type: (n.type === 'decision' ? 'decision' : n.type === 'input' ? 'input' : n.type === 'output' ? 'output' : 'default') as FlowNode['type'],
+    data: { label: n.data.label },
+    position: n.position,
+    style: n.style
+  }));
+
+  const edges: FlowEdge[] = manifest.edges.map(e => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    label: e.label,
+    type: e.type || 'smoothstep',
+    animated: e.animated,
+    style: e.style
+  }));
+
+  return { nodes, edges };
+}
+
 const DecisionNode = ({ data }: { data: { label: string } }) => (
   <div style={{
     width: '100%',
@@ -271,12 +293,17 @@ function FlowchartPanel({ nodes, edges, activeNodeId, onNodeClick }: {
 
 export function LogiGoEmbed({
   code,
+  manifestUrl,
+  manifestHash,
   position = 'bottom-right',
   defaultOpen = true,
   defaultSize = { width: 400, height: 300 },
   showVariables = true,
+  showHistory = false,
   theme = 'dark',
   onNodeClick,
+  onCheckpoint,
+  onManifestLoad,
   onReady,
   onError
 }: LogiGoEmbedProps) {
@@ -287,15 +314,108 @@ export function LogiGoEmbed({
     variables: {},
     checkpointHistory: []
   });
+  
+  const [manifest, setManifest] = useState<LogiGoManifest | null>(null);
+  const [manifestNodes, setManifestNodes] = useState<FlowNode[]>([]);
+  const [manifestEdges, setManifestEdges] = useState<FlowEdge[]>([]);
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [sessionHash, setSessionHash] = useState<string | null>(null);
 
-  const { nodes, edges } = useMemo(() => {
-    try {
-      return parseCode(code);
-    } catch (error) {
-      onError?.(error as Error);
-      return { nodes: [], edges: [] };
+  const { nodes: parsedNodes, edges: parsedEdges } = useMemo(() => {
+    if (code && !manifestUrl) {
+      try {
+        return parseCode(code);
+      } catch (error) {
+        onError?.(error as Error);
+        return { nodes: [], edges: [] };
+      }
     }
-  }, [code, onError]);
+    return { nodes: [], edges: [] };
+  }, [code, manifestUrl, onError]);
+
+  const nodes = isLiveMode ? manifestNodes : parsedNodes;
+  const edges = isLiveMode ? manifestEdges : parsedEdges;
+
+  useEffect(() => {
+    if (!manifestUrl) return;
+
+    async function fetchManifest() {
+      try {
+        const response = await fetch(manifestUrl!);
+        if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
+        
+        const data: LogiGoManifest = await response.json();
+        
+        if (manifestHash && data.hash !== manifestHash) {
+          console.warn('[LogiGo] Manifest hash mismatch, may be stale');
+        }
+        
+        setManifest(data);
+        setSessionHash(data.hash);
+        
+        const { nodes, edges } = convertManifestToFlowData(data);
+        setManifestNodes(nodes);
+        setManifestEdges(edges);
+        setIsLiveMode(true);
+        
+        onManifestLoad?.(data);
+        console.log(`[LogiGo] Loaded manifest with ${nodes.length} nodes`);
+      } catch (error) {
+        console.error('[LogiGo] Failed to load manifest:', error);
+        onError?.(error as Error);
+      }
+    }
+
+    fetchManifest();
+  }, [manifestUrl, manifestHash, onManifestLoad, onError]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.source !== 'LOGIGO_CORE') return;
+      
+      if (event.data.type === 'LOGIGO_MANIFEST_READY') {
+        const { manifestUrl: url, manifestHash: hash, sessionId } = event.data.payload;
+        console.log(`[LogiGo] Session started: ${sessionId}`);
+        setSessionHash(hash);
+        
+        if (!manifest && url) {
+          fetch(url)
+            .then(res => res.json())
+            .then((data: LogiGoManifest) => {
+              setManifest(data);
+              const { nodes, edges } = convertManifestToFlowData(data);
+              setManifestNodes(nodes);
+              setManifestEdges(edges);
+              setIsLiveMode(true);
+              onManifestLoad?.(data);
+            })
+            .catch(err => console.error('[LogiGo] Failed to load manifest:', err));
+        }
+      }
+      
+      if (event.data.type === 'LOGIGO_CHECKPOINT') {
+        const payload = event.data.payload as CheckpointPayload;
+        const { id, variables, timestamp, manifestVersion } = payload;
+        
+        if (sessionHash && manifestVersion && manifestVersion !== sessionHash) {
+          console.warn('[LogiGo] Checkpoint from different session, ignoring');
+          return;
+        }
+        
+        setState(prev => ({
+          ...prev,
+          activeNodeId: id,
+          variables: variables || {},
+          checkpointHistory: [...prev.checkpointHistory, { id, timestamp, variables: variables || {} }]
+        }));
+        
+        onCheckpoint?.(payload);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [manifest, sessionHash, onCheckpoint, onManifestLoad]);
 
   useEffect(() => {
     if (nodes.length > 0) {
@@ -303,34 +423,15 @@ export function LogiGoEmbed({
     }
   }, [nodes, onReady]);
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.source !== 'LOGIGO_CORE') return;
-      
-      if (event.data.type === 'LOGIGO_CHECKPOINT') {
-        const { id, variables, timestamp } = event.data.payload;
-        setState(prev => ({
-          ...prev,
-          activeNodeId: id,
-          variables: variables || {},
-          checkpointHistory: [...prev.checkpointHistory, { id, timestamp, variables: variables || {} }]
-        }));
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  const nodeCount = nodes.length;
-  const hasParseError = nodes.length === 1 && nodes[0]?.id === 'error';
-
   const positionStyles: Record<string, React.CSSProperties> = {
     'bottom-right': { bottom: 16, right: 16 },
     'bottom-left': { bottom: 16, left: 16 },
     'top-right': { top: 16, right: 16 },
     'top-left': { top: 16, left: 16 }
   };
+
+  const modeLabel = isLiveMode ? 'LIVE' : 'STATIC';
+  const modeColor = isLiveMode ? '#22c55e' : '#60a5fa';
 
   if (!state.isOpen) {
     return (
@@ -388,14 +489,27 @@ export function LogiGoEmbed({
           borderBottom: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`
         }}
       >
-        <span style={{ 
-          color: theme === 'dark' ? '#60a5fa' : '#3b82f6', 
-          fontWeight: 600, 
-          fontSize: 12,
-          fontFamily: 'system-ui, sans-serif'
-        }}>
-          LogiGo
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ 
+            color: theme === 'dark' ? '#60a5fa' : '#3b82f6', 
+            fontWeight: 600, 
+            fontSize: 12,
+            fontFamily: 'system-ui, sans-serif'
+          }}>
+            LogiGo
+          </span>
+          <span style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: modeColor,
+            background: `${modeColor}20`,
+            padding: '2px 6px',
+            borderRadius: 4,
+            fontFamily: 'system-ui, sans-serif'
+          }}>
+            {modeLabel}
+          </span>
+        </div>
         <button
           onClick={() => setState(prev => ({ ...prev, isOpen: false }))}
           style={{
@@ -441,6 +555,30 @@ export function LogiGoEmbed({
           {Object.entries(state.variables).map(([key, value]) => (
             <div key={key}>
               <span style={{ color: '#60a5fa' }}>{key}</span>: {JSON.stringify(value)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showHistory && state.checkpointHistory.length > 0 && (
+        <div
+          style={{
+            padding: '8px 12px',
+            background: theme === 'dark' ? '#0f172a' : '#f9fafb',
+            borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+            fontSize: 10,
+            fontFamily: 'monospace',
+            color: theme === 'dark' ? '#9ca3af' : '#6b7280',
+            maxHeight: 60,
+            overflow: 'auto'
+          }}
+        >
+          <div style={{ marginBottom: 4, fontWeight: 600, color: theme === 'dark' ? '#60a5fa' : '#3b82f6' }}>
+            History ({state.checkpointHistory.length})
+          </div>
+          {state.checkpointHistory.slice(-5).map((cp, i) => (
+            <div key={i} style={{ opacity: 0.7 + (i / 10) }}>
+              {cp.id}
             </div>
           ))}
         </div>

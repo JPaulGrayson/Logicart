@@ -45,12 +45,29 @@ Preferred communication style: Simple, everyday language.
 - **Global API**: Exposes `window.LogiGo.checkpoint()` for checkpoint-based debugging.
 
 ### Embeddable Studio Architecture (logigo-embed)
-- **Phase 1 (Implemented)**: Runtime parsing approach with self-contained parser. Static Mode visualizes JavaScript code as flowcharts immediately without build configuration.
+- **Static Mode (Complete)**: Runtime parsing approach with self-contained parser. Visualizes JavaScript code as flowcharts immediately without build configuration.
+- **Live Mode (Complete)**: Build-time manifest integration with real-time checkpoint highlighting.
 - **Demo Page**: `/embed-demo` showcases the LogiGoEmbed component with position controls and example switching.
-- **Phase 2 (Planned)**: Build-time manifest with bundler plugins for Live Mode checkpoint highlighting.
 - **Distribution**: ESM (React as peer dependency) and UMD (standalone with bundled React) for maximum compatibility.
-- **API**: `<LogiGoEmbed code={jsCode} />` for Static Mode, `manifestUrl` prop for future Live Mode.
+- **API**: `<LogiGoEmbed code={jsCode} />` for Static Mode, `<LogiGoEmbed manifestUrl="/logigo-manifest.json" />` for Live Mode.
 - **Design Document**: See `docs/EMBED_STUDIO_DESIGN.md` for full specification.
+
+### Vite Plugin (logigo-vite-plugin)
+- **Location**: `packages/logigo-vite-plugin/`
+- **Purpose**: Build-time instrumentation for Live Mode.
+- **Features**:
+  - Parses JavaScript/TypeScript files with Acorn
+  - Generates stable node IDs using hash-based algorithm
+  - Injects `LogiGo.checkpoint()` calls with scope-aware variable capture
+  - Generates `logigo-manifest.json` with pre-computed flowchart nodes/edges
+  - Emits `logigo-runtime.js` with full runtime API
+- **Runtime API**: `LogiGo.checkpoint()`, `LogiGo.checkpointAsync()`, `LogiGo.setBreakpoint()`, `LogiGo.resume()`
+
+### logigo-core Runtime Package
+- **Location**: `packages/logigo-core/`
+- **Purpose**: Standalone runtime library for manual checkpoint instrumentation.
+- **API**: `checkpoint()`, `checkpointAsync()`, `createRuntime()`, breakpoint management.
+- **Use Case**: For projects not using the Vite plugin, developers can manually add checkpoints.
 
 ### Cross-Replit Communication (Remote Mode)
 - **Purpose**: Enables external Replit apps to send checkpoint data to LogiGo for real-time visualization.
