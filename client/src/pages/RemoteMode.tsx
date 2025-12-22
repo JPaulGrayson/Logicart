@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
@@ -320,6 +323,129 @@ function MiniChatPanel() {
   );
 }
 
+// Playback Controls for stepping through checkpoints
+function PlaybackControls({ 
+  checkpoints,
+  currentStep,
+  isPlaying,
+  speed,
+  loop,
+  onStepChange,
+  onPlayPause,
+  onSpeedChange,
+  onLoopToggle,
+  onReset
+}: {
+  checkpoints: Checkpoint[];
+  currentStep: number;
+  isPlaying: boolean;
+  speed: number;
+  loop: boolean;
+  onStepChange: (step: number) => void;
+  onPlayPause: () => void;
+  onSpeedChange: (speed: number) => void;
+  onLoopToggle: () => void;
+  onReset: () => void;
+}) {
+  const totalSteps = checkpoints.length;
+  const canStepForward = currentStep < totalSteps;
+  const canStepBackward = currentStep > 0;
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-gray-900 border-t border-gray-700">
+      {/* Play/Pause */}
+      <button
+        onClick={onPlayPause}
+        disabled={totalSteps === 0}
+        className="p-2 rounded bg-gray-800 hover:bg-gray-700 transition-colors disabled:opacity-50"
+        data-testid={isPlaying ? "button-pause" : "button-play"}
+        title={isPlaying ? "Pause" : "Play"}
+      >
+        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+      </button>
+
+      {/* Step Backward */}
+      <button
+        onClick={() => onStepChange(Math.max(0, currentStep - 1))}
+        disabled={!canStepBackward || isPlaying}
+        className="p-2 rounded bg-gray-800 hover:bg-gray-700 transition-colors disabled:opacity-50"
+        data-testid="button-step-backward"
+        title="Step Backward"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+
+      {/* Step Forward */}
+      <button
+        onClick={() => onStepChange(Math.min(totalSteps, currentStep + 1))}
+        disabled={!canStepForward || isPlaying}
+        className="p-2 rounded bg-gray-800 hover:bg-gray-700 transition-colors disabled:opacity-50"
+        data-testid="button-step-forward"
+        title="Step Forward"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+
+      {/* Reset */}
+      <button
+        onClick={onReset}
+        className="p-2 rounded bg-gray-800 hover:bg-gray-700 transition-colors"
+        data-testid="button-reset"
+        title="Reset to Start"
+      >
+        <RotateCcw className="w-4 h-4" />
+      </button>
+
+      {/* Loop Toggle */}
+      <button
+        onClick={onLoopToggle}
+        className={`p-2 rounded transition-colors ${loop ? 'bg-purple-600 text-white' : 'bg-gray-800 hover:bg-gray-700'}`}
+        data-testid="button-loop"
+        title={loop ? "Loop enabled" : "Loop disabled"}
+      >
+        <Repeat className="w-4 h-4" />
+      </button>
+
+      <div className="h-6 w-px bg-gray-700" />
+
+      {/* Timeline Slider */}
+      <div className="flex-1 flex items-center gap-3">
+        <Slider
+          value={[currentStep]}
+          min={0}
+          max={Math.max(1, totalSteps)}
+          step={1}
+          onValueChange={([value]) => onStepChange(value)}
+          disabled={isPlaying}
+          className="flex-1"
+          data-testid="timeline-slider"
+        />
+        <span className="text-xs text-gray-400 font-mono w-20 text-right">
+          {currentStep} / {totalSteps}
+        </span>
+      </div>
+
+      <div className="h-6 w-px bg-gray-700" />
+
+      {/* Speed Control */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-500">Speed:</span>
+        <Select value={speed.toString()} onValueChange={(v) => onSpeedChange(parseFloat(v))}>
+          <SelectTrigger className="w-[70px] h-8 text-xs bg-gray-800 border-gray-600" data-testid="select-speed">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0.5">0.5x</SelectItem>
+            <SelectItem value="1">1x</SelectItem>
+            <SelectItem value="2">2x</SelectItem>
+            <SelectItem value="5">5x</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
+
 // Trace Flowchart Panel - generates flowchart from checkpoint data
 function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: Checkpoint[]; activeCheckpoint: Checkpoint | null }) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -395,6 +521,14 @@ export default function RemoteMode() {
   const [codeInput, setCodeInput] = useState('');
   const eventSourceRef = useRef<EventSource | null>(null);
   
+  // Playback state
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [loop, setLoop] = useState(false);
+  const [isLiveMode, setIsLiveMode] = useState(true);
+  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Agent prompt for vibe coders - paste this into your app's AI agent
   const agentPrompt = `Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
 
@@ -422,6 +556,10 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
     setCheckpoints([]);
     setActiveCheckpoint(null);
     setConnected(false);
+    // Reset playback state for new session
+    setCurrentStep(0);
+    setIsPlaying(false);
+    setIsLiveMode(true);
 
     const eventSource = new EventSource(`/api/remote/stream/${sid}`);
     eventSourceRef.current = eventSource;
@@ -435,7 +573,8 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
     eventSource.addEventListener('checkpoint', (e) => {
       const checkpoint = JSON.parse(e.data);
       setCheckpoints(prev => [...prev, checkpoint]);
-      setActiveCheckpoint(checkpoint);
+      // Only update active checkpoint in live mode - playback mode controls its own view
+      // This is handled by the isLiveMode useEffect, so we don't set it here
     });
 
     eventSource.addEventListener('code_update', (e) => {
@@ -492,6 +631,81 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
   const clearCheckpoints = () => {
     setCheckpoints([]);
     setActiveCheckpoint(null);
+    setCurrentStep(0);
+    setIsPlaying(false);
+    setIsLiveMode(true);
+  };
+
+  // Update active checkpoint based on current step when in playback mode
+  useEffect(() => {
+    if (!isLiveMode && checkpoints.length > 0 && currentStep > 0) {
+      setActiveCheckpoint(checkpoints[currentStep - 1] || null);
+    }
+  }, [currentStep, checkpoints, isLiveMode]);
+
+  // Auto-play effect
+  useEffect(() => {
+    if (isPlaying && checkpoints.length > 0) {
+      const intervalMs = 1000 / playbackSpeed;
+      playIntervalRef.current = setInterval(() => {
+        setCurrentStep(prev => {
+          if (prev >= checkpoints.length) {
+            if (loop) {
+              return 1;
+            } else {
+              setIsPlaying(false);
+              return prev;
+            }
+          }
+          return prev + 1;
+        });
+      }, intervalMs);
+    }
+    
+    return () => {
+      if (playIntervalRef.current) {
+        clearInterval(playIntervalRef.current);
+      }
+    };
+  }, [isPlaying, playbackSpeed, loop, checkpoints.length]);
+
+  // When new checkpoints arrive in live mode, stay at the latest and update active checkpoint
+  useEffect(() => {
+    if (isLiveMode && checkpoints.length > 0) {
+      setCurrentStep(checkpoints.length);
+      setActiveCheckpoint(checkpoints[checkpoints.length - 1]);
+    }
+  }, [checkpoints.length, isLiveMode, checkpoints]);
+
+  const handleStepChange = (step: number) => {
+    setIsLiveMode(false);
+    setCurrentStep(step);
+  };
+
+  const handlePlayPause = () => {
+    if (!isPlaying) {
+      setIsLiveMode(false);
+      if (currentStep >= checkpoints.length) {
+        setCurrentStep(0);
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleReset = () => {
+    setIsPlaying(false);
+    setCurrentStep(0);
+    setIsLiveMode(false);
+    setActiveCheckpoint(null);
+  };
+
+  const goLive = () => {
+    setIsPlaying(false);
+    setIsLiveMode(true);
+    setCurrentStep(checkpoints.length);
+    if (checkpoints.length > 0) {
+      setActiveCheckpoint(checkpoints[checkpoints.length - 1]);
+    }
   };
 
   const handleSubmitCode = () => {
@@ -765,13 +979,25 @@ async function checkpoint(id, variables = {}) {
               </CardContent>
             </Card>
 
-            {/* Main View - Always show Trace Flowchart */}
+            {/* Main View - Flowchart with Playback Controls */}
             <div className="lg:col-span-3 flex flex-col gap-4">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-gray-800 border-gray-700 overflow-hidden">
                 <Tabs defaultValue="flowchart" className="h-full flex flex-col">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-white text-lg">Execution Flow</CardTitle>
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-white text-lg">Execution Flow</CardTitle>
+                        {/* Live/Playback Mode Indicator */}
+                        {isLiveMode ? (
+                          <Badge className="bg-green-600 text-white text-xs animate-pulse">
+                            <Wifi className="w-3 h-3 mr-1" /> LIVE
+                          </Badge>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={goLive} className="h-6 text-xs border-green-600 text-green-400 hover:bg-green-900">
+                            <Wifi className="w-3 h-3 mr-1" /> Go Live
+                          </Button>
+                        )}
+                      </div>
                       <TabsList className="bg-gray-900">
                         <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
                           <GitBranch className="w-3 h-3 mr-1" /> Flowchart
@@ -783,7 +1009,7 @@ async function checkpoint(id, variables = {}) {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 p-0">
-                    <TabsContent value="flowchart" className="h-[350px] m-0">
+                    <TabsContent value="flowchart" className="h-[280px] m-0">
                       <ReactFlowProvider>
                         <TraceFlowchartPanel 
                           checkpoints={checkpoints}
@@ -792,12 +1018,54 @@ async function checkpoint(id, variables = {}) {
                       </ReactFlowProvider>
                     </TabsContent>
                     <TabsContent value="trace" className="m-0 px-4 pb-4">
-                      <ScrollArea className="h-[300px]">
+                      <ScrollArea className="h-[230px]">
                         {renderTraceView()}
                       </ScrollArea>
                     </TabsContent>
                   </CardContent>
                 </Tabs>
+                
+                {/* Playback Controls */}
+                <PlaybackControls
+                  checkpoints={checkpoints}
+                  currentStep={currentStep}
+                  isPlaying={isPlaying}
+                  speed={playbackSpeed}
+                  loop={loop}
+                  onStepChange={handleStepChange}
+                  onPlayPause={handlePlayPause}
+                  onSpeedChange={setPlaybackSpeed}
+                  onLoopToggle={() => setLoop(!loop)}
+                  onReset={handleReset}
+                />
+                
+                {/* Current Checkpoint Variables */}
+                {activeCheckpoint && (
+                  <div className="p-3 bg-gray-900 border-t border-gray-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-400 font-semibold">
+                        Checkpoint: <span className="text-purple-400">{activeCheckpoint.id}</span>
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(activeCheckpoint.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {Object.keys(activeCheckpoint.variables).length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {Object.entries(activeCheckpoint.variables).map(([key, value]) => (
+                          <div key={key} className="bg-gray-800 rounded px-2 py-1">
+                            <span className="text-xs text-blue-400">{key}:</span>
+                            <span className="text-xs text-gray-300 ml-1 font-mono">
+                              {typeof value === 'object' ? JSON.stringify(value).slice(0, 30) : String(value).slice(0, 30)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">No variables captured</p>
+                    )}
+                  </div>
+                )}
               </Card>
               
               {/* Mini Chat for requesting checkpoints */}
