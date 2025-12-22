@@ -9,6 +9,7 @@ import Workbench from "@/pages/Workbench";
 import TestMiniMap from "@/pages/TestMiniMap";
 import EmbedDemo from "@/pages/EmbedDemo";
 import RemoteMode from "@/pages/RemoteMode";
+import ZeroClickDemo from "@/pages/ZeroClickDemo";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/embed-demo" component={EmbedDemo} />
       <Route path="/remote" component={RemoteMode} />
       <Route path="/remote/:sessionId" component={RemoteMode} />
+      <Route path="/zero-click-demo" component={ZeroClickDemo} />
       <Route component={NotFound} />
     </Switch>
   );
