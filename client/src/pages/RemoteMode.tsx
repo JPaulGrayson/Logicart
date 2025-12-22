@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List, Code2 } from 'lucide-react';
+import { Copy, Check, Wifi, WifiOff, Play, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
@@ -208,6 +208,116 @@ function buildTraceGraph(checkpoints: Checkpoint[]): { nodes: Node[]; edges: Edg
   }
 
   return { nodes, edges };
+}
+
+// Quick action prompts for the mini-chat
+const QUICK_ACTIONS = [
+  { label: 'Trace API Calls', prompt: 'Add LogiGo checkpoints before and after all API fetch calls in the frontend. Use descriptive IDs like api-request-start and api-response-received. Capture request URLs and response status.' },
+  { label: 'Debug Form Flow', prompt: 'Add LogiGo checkpoints to trace form submission flow. Add checkpoints for form-submit-start, validation steps, and form-submit-complete. Capture form field values.' },
+  { label: 'Track User Actions', prompt: 'Add LogiGo checkpoints to key user interaction handlers (button clicks, navigation). Use IDs like button-clicked, nav-changed. Capture relevant state.' },
+];
+
+function generateCheckpointPrompt(userRequest: string): string {
+  return `Add LogiGo checkpoints to: ${userRequest}
+
+IMPORTANT - Follow these rules:
+1. Only add checkpoints to FRONTEND files (React components, client-side code)
+2. Do NOT add checkpoints to server/backend files
+3. Use the checkpoint() function that's already available from the LogiGo script
+4. Use descriptive IDs in kebab-case (e.g., 'upload-start', 'api-response')
+5. Capture relevant variables as the second argument
+
+Example:
+checkpoint('feature-step', { relevantVar, status });`;
+}
+
+// Mini Chat Panel for requesting checkpoint changes
+function MiniChatPanel() {
+  const [customRequest, setCustomRequest] = useState('');
+  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const copyPrompt = async (prompt: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopiedPrompt(label);
+      setTimeout(() => setCopiedPrompt(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleCustomSubmit = () => {
+    if (!customRequest.trim()) return;
+    const prompt = generateCheckpointPrompt(customRequest);
+    copyPrompt(prompt, 'custom');
+    setCustomRequest('');
+  };
+
+  return (
+    <div className="bg-gray-900 border-t border-gray-700">
+      <button 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-4 py-2 flex items-center justify-between text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+        data-testid="toggle-mini-chat"
+      >
+        <span className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          Request Checkpoints
+        </span>
+        <span className="text-gray-500">{isExpanded ? '▼' : '▲'}</span>
+      </button>
+      
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-3">
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2">
+            {QUICK_ACTIONS.map((action) => (
+              <Button
+                key={action.label}
+                size="sm"
+                variant="outline"
+                className={`text-xs ${copiedPrompt === action.label ? 'bg-green-900 border-green-600' : 'border-gray-600 hover:border-purple-500'}`}
+                onClick={() => copyPrompt(action.prompt, action.label)}
+                data-testid={`quick-action-${action.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {copiedPrompt === action.label ? (
+                  <><Check className="w-3 h-3 mr-1" /> Copied!</>
+                ) : (
+                  <><Sparkles className="w-3 h-3 mr-1" /> {action.label}</>
+                )}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Custom Request */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Describe what you want to trace..."
+              value={customRequest}
+              onChange={(e) => setCustomRequest(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCustomSubmit()}
+              className="flex-1 bg-gray-800 border-gray-600 text-sm"
+              data-testid="custom-request-input"
+            />
+            <Button
+              size="sm"
+              onClick={handleCustomSubmit}
+              disabled={!customRequest.trim()}
+              className={copiedPrompt === 'custom' ? 'bg-green-600' : 'bg-purple-600 hover:bg-purple-700'}
+              data-testid="copy-custom-prompt"
+            >
+              {copiedPrompt === 'custom' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </Button>
+          </div>
+          
+          <p className="text-xs text-gray-500">
+            Click a quick action or type your request, then paste the prompt into Agent chat
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Trace Flowchart Panel - generates flowchart from checkpoint data
@@ -656,7 +766,7 @@ async function checkpoint(id, variables = {}) {
             </Card>
 
             {/* Main View - Always show Trace Flowchart */}
-            <Card className="bg-gray-800 border-gray-700 lg:col-span-3">
+            <Card className="bg-gray-800 border-gray-700 lg:col-span-3 overflow-hidden">
               <Tabs defaultValue="flowchart" className="h-full flex flex-col">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -672,7 +782,7 @@ async function checkpoint(id, variables = {}) {
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 p-0">
-                  <TabsContent value="flowchart" className="h-[450px] m-0">
+                  <TabsContent value="flowchart" className="h-[350px] m-0">
                     <ReactFlowProvider>
                       <TraceFlowchartPanel 
                         checkpoints={checkpoints}
@@ -681,12 +791,15 @@ async function checkpoint(id, variables = {}) {
                     </ReactFlowProvider>
                   </TabsContent>
                   <TabsContent value="trace" className="m-0 px-4 pb-4">
-                    <ScrollArea className="h-[400px]">
+                    <ScrollArea className="h-[300px]">
                       {renderTraceView()}
                     </ScrollArea>
                   </TabsContent>
                 </CardContent>
               </Tabs>
+              
+              {/* Mini Chat for requesting checkpoints */}
+              <MiniChatPanel />
             </Card>
           </div>
         )}
