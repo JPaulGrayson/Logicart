@@ -766,41 +766,45 @@ async function checkpoint(id, variables = {}) {
             </Card>
 
             {/* Main View - Always show Trace Flowchart */}
-            <Card className="bg-gray-800 border-gray-700 lg:col-span-3 overflow-hidden">
-              <Tabs defaultValue="flowchart" className="h-full flex flex-col">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white text-lg">Execution Flow</CardTitle>
-                    <TabsList className="bg-gray-900">
-                      <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
-                        <GitBranch className="w-3 h-3 mr-1" /> Flowchart
-                      </TabsTrigger>
-                      <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
-                        <List className="w-3 h-3 mr-1" /> Trace
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 p-0">
-                  <TabsContent value="flowchart" className="h-[350px] m-0">
-                    <ReactFlowProvider>
-                      <TraceFlowchartPanel 
-                        checkpoints={checkpoints}
-                        activeCheckpoint={activeCheckpoint}
-                      />
-                    </ReactFlowProvider>
-                  </TabsContent>
-                  <TabsContent value="trace" className="m-0 px-4 pb-4">
-                    <ScrollArea className="h-[300px]">
-                      {renderTraceView()}
-                    </ScrollArea>
-                  </TabsContent>
-                </CardContent>
-              </Tabs>
+            <div className="lg:col-span-3 flex flex-col gap-4">
+              <Card className="bg-gray-800 border-gray-700">
+                <Tabs defaultValue="flowchart" className="h-full flex flex-col">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white text-lg">Execution Flow</CardTitle>
+                      <TabsList className="bg-gray-900">
+                        <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
+                          <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                        </TabsTrigger>
+                        <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
+                          <List className="w-3 h-3 mr-1" /> Trace
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 p-0">
+                    <TabsContent value="flowchart" className="h-[350px] m-0">
+                      <ReactFlowProvider>
+                        <TraceFlowchartPanel 
+                          checkpoints={checkpoints}
+                          activeCheckpoint={activeCheckpoint}
+                        />
+                      </ReactFlowProvider>
+                    </TabsContent>
+                    <TabsContent value="trace" className="m-0 px-4 pb-4">
+                      <ScrollArea className="h-[300px]">
+                        {renderTraceView()}
+                      </ScrollArea>
+                    </TabsContent>
+                  </CardContent>
+                </Tabs>
+              </Card>
               
               {/* Mini Chat for requesting checkpoints */}
-              <MiniChatPanel />
-            </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <MiniChatPanel />
+              </Card>
+            </div>
           </div>
         )}
       </div>
