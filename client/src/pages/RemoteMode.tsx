@@ -9,14 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Minimize2, Download, FileImage, FileText } from 'lucide-react';
+import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Minimize2, Download, FileImage, FileText, Ghost, Circle } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { parseCodeToFlow } from '@/lib/parser';
+import { parseCodeToFlow, FlowNode } from '@/lib/parser';
+import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
 import DecisionNode from '@/components/ide/DecisionNode';
 import ContainerNode from '@/components/ide/ContainerNode';
 import LabeledNode from '@/components/ide/LabeledNode';
@@ -497,15 +498,31 @@ function PlaybackControls({
 }
 
 // Code Flowchart Panel - parses source code and highlights executed checkpoints
-function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: { 
+function CodeFlowchartPanel({ 
+  code, 
+  checkpoints, 
+  activeCheckpoint,
+  originalCode,
+  showDiff,
+  breakpoints,
+  onBreakpointToggle,
+  onDiffStats
+}: { 
   code: string; 
   checkpoints: Checkpoint[]; 
-  activeCheckpoint: Checkpoint | null 
+  activeCheckpoint: Checkpoint | null;
+  originalCode?: string | null;
+  showDiff?: boolean;
+  breakpoints?: Set<string>;
+  onBreakpointToggle?: (nodeId: string) => void;
+  onDiffStats?: (stats: { added: number; removed: number; modified: number }) => void;
 }) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
   const nodeMapRef = useRef<Map<string, string>>(new Map());
+  const originalNodesRef = useRef<FlowNode[]>([]);
+  const ghostDiffRef = useRef(new GhostDiff({ debug: true }));
 
   // Parse code and build flowchart
   useEffect(() => {
@@ -520,9 +537,23 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
     }
   }, [code, setNodes, setEdges, fitView]);
 
-  // Highlight nodes that match checkpoint lines or IDs
+  // Parse original code for Ghost Diff comparison
   useEffect(() => {
-    // Build a set of executed lines from checkpoints
+    if (originalCode) {
+      try {
+        const result = parseCodeToFlow(originalCode);
+        originalNodesRef.current = result.nodes;
+      } catch (error) {
+        console.error('Original code parse error:', error);
+        originalNodesRef.current = [];
+      }
+    } else {
+      originalNodesRef.current = [];
+    }
+  }, [originalCode]);
+
+  // Highlight nodes that match checkpoint lines or IDs, apply Ghost Diff and breakpoints
+  useEffect(() => {
     const executedLines = new Set<number>();
     checkpoints.forEach(cp => {
       if (cp.line) executedLines.add(cp.line);
@@ -532,11 +563,33 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
     const hasLineData = executedLines.size > 0 || activeLine;
     
     setNodes(nodes => {
+      let processedNodes = nodes;
+      
+      // Apply Ghost Diff if enabled and we have original code
+      if (showDiff && originalNodesRef.current.length > 0) {
+        const currentFlowNodes = nodes.map(n => ({
+          ...n,
+          data: n.data as { label: string; sourceData?: any },
+        })) as FlowNode[];
+        
+        const diffResult = ghostDiffRef.current.diffTrees(originalNodesRef.current, currentFlowNodes);
+        const styledDiffNodes = ghostDiffRef.current.applyDiffStyling(diffResult.nodes);
+        
+        if (onDiffStats) {
+          onDiffStats({
+            added: diffResult.stats.added,
+            removed: diffResult.stats.removed,
+            modified: diffResult.stats.modified
+          });
+        }
+        
+        processedNodes = styledDiffNodes as Node[];
+      }
+      
       // Find nodes that have line info by checking nodeMap
       const matchedNodes = new Set<string>();
       
       if (hasLineData) {
-        // Try to match by line number using nodeMapRef
         for (const [key, nodeId] of nodeMapRef.current.entries()) {
           const [lineStr] = key.split(':');
           const line = parseInt(lineStr, 10);
@@ -546,14 +599,12 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
         }
       }
       
-      // Only apply dimming if we have matches, otherwise show all at full opacity
       const shouldDim = matchedNodes.size > 0;
       
-      return nodes.map(node => {
-        // Check if this node was executed
+      return processedNodes.map(node => {
         const isExecuted = matchedNodes.has(node.id);
+        const hasBreakpoint = breakpoints?.has(node.id);
         
-        // Check if this is the active checkpoint's node
         let isActive = false;
         if (activeLine) {
           for (const [key, nodeId] of nodeMapRef.current.entries()) {
@@ -565,22 +616,35 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
           }
         }
         
+        let boxShadow = node.style?.boxShadow;
+        if (isActive) {
+          boxShadow = '0 0 0 3px #22c55e, 0 0 20px rgba(34, 197, 94, 0.5)';
+        } else if (isExecuted) {
+          boxShadow = '0 0 0 2px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.3)';
+        } else if (hasBreakpoint) {
+          boxShadow = '0 0 0 2px #ef4444, 0 0 10px rgba(239, 68, 68, 0.3)';
+        }
+        
         return {
           ...node,
+          className: `${node.className || ''} ${hasBreakpoint ? 'breakpoint-node' : ''}`.trim(),
           style: {
             ...node.style,
-            boxShadow: isActive 
-              ? '0 0 0 3px #22c55e, 0 0 20px rgba(34, 197, 94, 0.5)' 
-              : isExecuted 
-                ? '0 0 0 2px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.3)' 
-                : undefined,
+            boxShadow,
             opacity: shouldDim && !isExecuted && !isActive ? 0.4 : 1,
             transition: 'all 0.2s ease'
           }
         };
       });
     });
-  }, [checkpoints, activeCheckpoint, setNodes]);
+  }, [checkpoints, activeCheckpoint, showDiff, breakpoints, onDiffStats, setNodes]);
+
+  const handleNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    if (onBreakpointToggle) {
+      onBreakpointToggle(node.id);
+    }
+  }, [onBreakpointToggle]);
 
   if (!code.trim()) {
     return (
@@ -601,6 +665,7 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
         edges={edgesState}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeContextMenu={handleNodeContextMenu}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
@@ -616,7 +681,17 @@ function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: {
 }
 
 // Trace Flowchart Panel - generates flowchart from checkpoint data
-function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: Checkpoint[]; activeCheckpoint: Checkpoint | null }) {
+function TraceFlowchartPanel({ 
+  checkpoints, 
+  activeCheckpoint,
+  breakpoints,
+  onBreakpointToggle
+}: { 
+  checkpoints: Checkpoint[]; 
+  activeCheckpoint: Checkpoint | null;
+  breakpoints?: Set<string>;
+  onBreakpointToggle?: (nodeId: string) => void;
+}) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
@@ -630,20 +705,38 @@ function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: C
     }
   }, [checkpoints, setNodes, setEdges, fitView]);
 
-  // Highlight active checkpoint
+  // Highlight active checkpoint and apply breakpoints
   useEffect(() => {
-    if (!activeCheckpoint) return;
-    
-    setNodes(nodes => nodes.map(node => ({
-      ...node,
-      style: {
-        ...node.style,
-        boxShadow: node.id === activeCheckpoint.id ? ACTIVE_NODE_STYLE.boxShadow : undefined,
-        border: node.id === activeCheckpoint.id ? '2px solid #22c55e' : '1px solid #475569',
-        transition: ACTIVE_NODE_STYLE.transition
+    setNodes(nodes => nodes.map(node => {
+      const isActive = activeCheckpoint?.id === node.id;
+      const hasBreakpoint = breakpoints?.has(node.id);
+      
+      let boxShadow = undefined;
+      if (isActive) {
+        boxShadow = ACTIVE_NODE_STYLE.boxShadow;
+      } else if (hasBreakpoint) {
+        boxShadow = '0 0 0 2px #ef4444, 0 0 10px rgba(239, 68, 68, 0.3)';
       }
-    })));
-  }, [activeCheckpoint, setNodes]);
+      
+      return {
+        ...node,
+        className: `${node.className || ''} ${hasBreakpoint ? 'breakpoint-node' : ''}`.trim(),
+        style: {
+          ...node.style,
+          boxShadow,
+          border: isActive ? '2px solid #22c55e' : hasBreakpoint ? '2px solid #ef4444' : '1px solid #475569',
+          transition: ACTIVE_NODE_STYLE.transition
+        }
+      };
+    }));
+  }, [activeCheckpoint, breakpoints, setNodes]);
+
+  const handleNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    if (onBreakpointToggle) {
+      onBreakpointToggle(node.id);
+    }
+  }, [onBreakpointToggle]);
 
   if (checkpoints.length === 0) {
     return (
@@ -663,6 +756,7 @@ function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: C
         edges={edgesState}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeContextMenu={handleNodeContextMenu}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.1}
@@ -701,6 +795,14 @@ export default function RemoteMode() {
   // Fullscreen and export state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const flowchartRef = useRef<HTMLDivElement>(null);
+  
+  // Ghost Diff state
+  const [showDiff, setShowDiff] = useState(false);
+  const [originalCode, setOriginalCode] = useState<string | null>(null);
+  const [diffStats, setDiffStats] = useState<{ added: number; removed: number; modified: number } | null>(null);
+  
+  // Breakpoints state
+  const [breakpoints, setBreakpoints] = useState<Set<string>>(new Set());
 
   // Keyboard shortcuts for fullscreen - use functional setState to avoid stale closure
   useEffect(() => {
@@ -937,6 +1039,41 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
       console.error('Export to PDF failed:', err);
     }
   };
+
+  // Ghost Diff: Toggle diff view - captures baseline on first enable
+  const toggleGhostDiff = () => {
+    if (!showDiff) {
+      // Enabling diff - capture baseline if not already set
+      if (!originalCode && sessionInfo?.code) {
+        setOriginalCode(sessionInfo.code);
+      }
+      setShowDiff(true);
+    } else {
+      // Disabling diff - keep baseline for next toggle
+      setShowDiff(false);
+    }
+  };
+
+  // Ghost Diff: Reset baseline and restart fresh comparison
+  const resetGhostDiff = () => {
+    if (sessionInfo?.code) {
+      setOriginalCode(sessionInfo.code);
+      setDiffStats(null);
+    }
+  };
+
+  // Breakpoint: Toggle breakpoint on a node
+  const toggleBreakpoint = useCallback((nodeId: string) => {
+    setBreakpoints(prev => {
+      const newBreakpoints = new Set(prev);
+      if (newBreakpoints.has(nodeId)) {
+        newBreakpoints.delete(nodeId);
+      } else {
+        newBreakpoints.add(nodeId);
+      }
+      return newBreakpoints;
+    });
+  }, []);
 
   const handleSubmitCode = () => {
     if (codeInput.trim() && sessionInfo) {
@@ -1259,6 +1396,75 @@ async function checkpoint(id, variables = {}) {
                             <TooltipContent><p>Export as PDF</p></TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
+                        
+                        {/* Ghost Diff Toggle - only show when code is available */}
+                        {sessionInfo?.code && (
+                          <>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant={showDiff ? "default" : "ghost"} 
+                                    onClick={toggleGhostDiff} 
+                                    className={`h-8 px-2 ${showDiff ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                                    data-testid="toggle-ghost-diff"
+                                  >
+                                    <Ghost className="w-4 h-4" />
+                                    {diffStats && showDiff && (
+                                      <span className="ml-1 text-xs">
+                                        +{diffStats.added} -{diffStats.removed}
+                                      </span>
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{showDiff ? 'Hide Ghost Diff' : 'Show Ghost Diff'}</p>
+                                  <p className="text-xs text-gray-400">Highlight code changes</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            {showDiff && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      onClick={resetGhostDiff} 
+                                      className="h-8 px-2 text-gray-400 hover:text-white"
+                                      data-testid="reset-ghost-diff"
+                                    >
+                                      <RotateCcw className="w-3 h-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Reset Baseline</p>
+                                    <p className="text-xs text-gray-400">Set current code as new baseline</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </>
+                        )}
+                        
+                        {/* Breakpoints indicator */}
+                        {breakpoints.size > 0 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="border-red-500 text-red-400 text-xs">
+                                  <Circle className="w-2 h-2 mr-1 fill-red-500" /> {breakpoints.size}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{breakpoints.size} breakpoint(s) set</p>
+                                <p className="text-xs text-gray-400">Right-click nodes to toggle</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        
                         {/* Fullscreen Toggle */}
                         <TooltipProvider>
                           <Tooltip>
@@ -1293,6 +1499,8 @@ async function checkpoint(id, variables = {}) {
                           <TraceFlowchartPanel 
                             checkpoints={checkpoints}
                             activeCheckpoint={activeCheckpoint}
+                            breakpoints={breakpoints}
+                            onBreakpointToggle={toggleBreakpoint}
                           />
                         </ReactFlowProvider>
                       </div>
@@ -1304,6 +1512,11 @@ async function checkpoint(id, variables = {}) {
                             code={sessionInfo.code}
                             checkpoints={checkpoints}
                             activeCheckpoint={activeCheckpoint}
+                            originalCode={originalCode}
+                            showDiff={showDiff}
+                            breakpoints={breakpoints}
+                            onBreakpointToggle={toggleBreakpoint}
+                            onDiffStats={setDiffStats}
                           />
                         </ReactFlowProvider>
                       </TabsContent>
