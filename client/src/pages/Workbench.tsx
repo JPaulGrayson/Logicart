@@ -23,7 +23,7 @@ import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug } from 'lucide-react';
 import { Link } from 'wouter';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -150,6 +150,13 @@ export default function Workbench() {
   
   // Help dialog state
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  
+  // AI Debug / Visualize Flow state
+  const [showDebugPane, setShowDebugPane] = useState(false);
+  const [debugSessionId, setDebugSessionId] = useState<string | null>(null);
+  const [debugPromptCopied, setDebugPromptCopied] = useState(false);
+  const [debugCheckpoints, setDebugCheckpoints] = useState<Array<{ id: string; variables: Record<string, unknown>; timestamp: number }>>([]);
+  const [originalCodeSnapshot, setOriginalCodeSnapshot] = useState<string | null>(null);
   
   // Fullscreen mode state: null = normal, 'workspace' = with controls, 'presentation' = clean
   const [fullscreenMode, setFullscreenMode] = useState<'workspace' | 'presentation' | null>(null);
@@ -1775,15 +1782,38 @@ export default function Workbench() {
           )}
         </div>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setHelpDialogOpen(true)}
-          className="h-7 px-2"
-          data-testid="button-help"
-        >
-          <HelpCircle className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showDebugPane ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              if (!showDebugPane) {
+                // Capture original code for Ghost Diff when opening debug pane
+                setOriginalCodeSnapshot(code);
+                // Also set the sessionStorage snapshot for Ghost Diff to use
+                const originalNodes = parseCodeToFlow(code).nodes;
+                setOriginalSnapshot(originalNodes);
+                setDebugCheckpoints([]);
+                setDebugSessionId(null);
+              }
+              setShowDebugPane(!showDebugPane);
+            }}
+            className={`h-7 gap-1.5 text-xs ${showDebugPane ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10'}`}
+            data-testid="button-debug-with-ai"
+          >
+            <Bug className="w-3.5 h-3.5" />
+            Debug with AI
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setHelpDialogOpen(true)}
+            className="h-7 px-2"
+            data-testid="button-help"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </Button>
+        </div>
       </header>
       
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
@@ -2233,6 +2263,154 @@ export default function Workbench() {
       
       {/* Help Dialog */}
       <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
+      
+      {/* AI Debug Pane - Slides in from right */}
+      {showDebugPane && (
+        <div className="fixed top-10 right-0 bottom-0 w-[400px] bg-card border-l border-border z-40 flex flex-col shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between p-3 border-b border-border bg-gradient-to-r from-purple-900/30 to-blue-900/30">
+            <div className="flex items-center gap-2">
+              <Bug className="w-4 h-4 text-purple-400" />
+              <h3 className="font-semibold text-sm">Debug with AI</h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDebugPane(false)}
+              className="h-6 w-6 p-0"
+              data-testid="button-close-debug-pane"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Step 1: Generate Prompt */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">1</span>
+                <h4 className="font-medium text-sm">Copy Debug Prompt</h4>
+              </div>
+              <p className="text-xs text-muted-foreground ml-8">
+                Give this to your AI agent to add debug checkpoints to your code
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const prompt = `Add LogiGo.checkpoint() calls to help debug this code. Add checkpoints at:
+- Function entry (capture input parameters)
+- Before/after if-else branches (capture decision variables)
+- Inside loops (capture iteration state)
+- Before return statements (capture return value)
+- In catch blocks (capture error info)
+
+First, add this script tag to the HTML:
+<script src="${window.location.origin}/remote.js?project=DebugSession&autoOpen=true"></script>
+
+Then add checkpoint calls like:
+LogiGo.checkpoint('function-start', { param1, param2 });
+LogiGo.checkpoint('loop-iteration', { index: i, value });
+LogiGo.checkpoint('branch-taken', { condition: x > 0 });
+
+Current code to debug:
+\`\`\`javascript
+${code}
+\`\`\``;
+                  navigator.clipboard.writeText(prompt);
+                  setDebugPromptCopied(true);
+                  setTimeout(() => setDebugPromptCopied(false), 2000);
+                  toast.success('Debug prompt copied to clipboard');
+                }}
+                className="ml-8 gap-2"
+                data-testid="button-copy-debug-prompt"
+              >
+                {debugPromptCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {debugPromptCopied ? 'Copied!' : 'Copy Prompt'}
+              </Button>
+            </div>
+            
+            {/* Step 2: Open Visualization */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">2</span>
+                <h4 className="font-medium text-sm">Open Live Visualization</h4>
+              </div>
+              <p className="text-xs text-muted-foreground ml-8">
+                Open the visualization page to see checkpoints as they fire
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.open('/remote', '_blank');
+                }}
+                className="ml-8 gap-2"
+                data-testid="button-open-visualization"
+              >
+                <Radio className="w-4 h-4" />
+                Open Remote Mode
+              </Button>
+            </div>
+            
+            {/* Step 3: Ghost Diff */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">3</span>
+                <h4 className="font-medium text-sm">See What Changed</h4>
+              </div>
+              <p className="text-xs text-muted-foreground ml-8">
+                After AI adds checkpoints, toggle Ghost Diff to see the changes
+              </p>
+              {originalCodeSnapshot && code !== originalCodeSnapshot ? (
+                <div className="ml-8 p-2 bg-green-900/30 border border-green-700/50 rounded text-xs">
+                  <p className="text-green-400 font-medium">Code has changed since opening debug pane!</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Compute diff between original snapshot and current code
+                      const originalNodes = getOriginalSnapshot();
+                      const currentNodes = flowData.nodes;
+                      
+                      if (originalNodes.length > 0) {
+                        const diffResult = ghostDiffRef.current.diffTrees(originalNodes, currentNodes);
+                        console.log('[Ghost Diff] AI changes:', diffResult);
+                        // Apply styling to show the diff visually
+                        const styledDiffNodes = ghostDiffRef.current.applyDiffStyling(diffResult.nodes);
+                        setDiffNodes(styledDiffNodes);
+                        setShowDiff(true);
+                        toast.success('Ghost Diff enabled - showing AI changes');
+                      } else {
+                        toast.error('No baseline snapshot found');
+                      }
+                    }}
+                    className="mt-2 gap-2"
+                    data-testid="button-show-ghost-diff"
+                  >
+                    <span>👻</span> Show Ghost Diff
+                  </Button>
+                </div>
+              ) : (
+                <p className="ml-8 text-xs text-gray-500 italic">
+                  Waiting for code changes...
+                </p>
+              )}
+            </div>
+            
+            {/* Quick Tips */}
+            <div className="mt-6 p-3 bg-muted/50 rounded-lg">
+              <h4 className="font-medium text-xs mb-2">Quick Tips</h4>
+              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Checkpoints capture variable state at that moment</li>
+                <li>Use descriptive IDs like 'validation-check' or 'loop-start'</li>
+                <li>The flowchart builds automatically from checkpoint sequence</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Fullscreen Overlay */}
       {fullscreenMode && (
