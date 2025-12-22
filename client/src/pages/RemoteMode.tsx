@@ -448,6 +448,125 @@ function PlaybackControls({
   );
 }
 
+// Code Flowchart Panel - parses source code and highlights executed checkpoints
+function CodeFlowchartPanel({ code, checkpoints, activeCheckpoint }: { 
+  code: string; 
+  checkpoints: Checkpoint[]; 
+  activeCheckpoint: Checkpoint | null 
+}) {
+  const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView } = useReactFlow();
+  const nodeMapRef = useRef<Map<string, string>>(new Map());
+
+  // Parse code and build flowchart
+  useEffect(() => {
+    try {
+      const result = parseCodeToFlow(code);
+      nodeMapRef.current = result.nodeMap instanceof Map ? result.nodeMap : new Map();
+      setNodes(result.nodes as Node[]);
+      setEdges(result.edges as Edge[]);
+      setTimeout(() => fitView({ padding: 0.2 }), 100);
+    } catch (error) {
+      console.error('Parse error:', error);
+    }
+  }, [code, setNodes, setEdges, fitView]);
+
+  // Highlight nodes that match checkpoint lines or IDs
+  useEffect(() => {
+    // Build a set of executed lines from checkpoints
+    const executedLines = new Set<number>();
+    checkpoints.forEach(cp => {
+      if (cp.line) executedLines.add(cp.line);
+    });
+    
+    const activeLine = activeCheckpoint?.line;
+    const hasLineData = executedLines.size > 0 || activeLine;
+    
+    setNodes(nodes => {
+      // Find nodes that have line info by checking nodeMap
+      const matchedNodes = new Set<string>();
+      
+      if (hasLineData) {
+        // Try to match by line number using nodeMapRef
+        for (const [key, nodeId] of nodeMapRef.current.entries()) {
+          const [lineStr] = key.split(':');
+          const line = parseInt(lineStr, 10);
+          if (executedLines.has(line)) {
+            matchedNodes.add(nodeId);
+          }
+        }
+      }
+      
+      // Only apply dimming if we have matches, otherwise show all at full opacity
+      const shouldDim = matchedNodes.size > 0;
+      
+      return nodes.map(node => {
+        // Check if this node was executed
+        const isExecuted = matchedNodes.has(node.id);
+        
+        // Check if this is the active checkpoint's node
+        let isActive = false;
+        if (activeLine) {
+          for (const [key, nodeId] of nodeMapRef.current.entries()) {
+            const [lineStr] = key.split(':');
+            if (parseInt(lineStr, 10) === activeLine && nodeId === node.id) {
+              isActive = true;
+              break;
+            }
+          }
+        }
+        
+        return {
+          ...node,
+          style: {
+            ...node.style,
+            boxShadow: isActive 
+              ? '0 0 0 3px #22c55e, 0 0 20px rgba(34, 197, 94, 0.5)' 
+              : isExecuted 
+                ? '0 0 0 2px #3b82f6, 0 0 10px rgba(59, 130, 246, 0.3)' 
+                : undefined,
+            opacity: shouldDim && !isExecuted && !isActive ? 0.4 : 1,
+            transition: 'all 0.2s ease'
+          }
+        };
+      });
+    });
+  }, [checkpoints, activeCheckpoint, setNodes]);
+
+  if (!code.trim()) {
+    return (
+      <div className="h-full w-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <Code2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p>No source code added</p>
+          <p className="text-xs mt-2">Click "Add Source Code" to visualize your code</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full">
+      <ReactFlow
+        nodes={nodesState}
+        edges={edgesState}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.1}
+        maxZoom={2}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background color="#374151" gap={20} size={1} />
+        <Controls />
+      </ReactFlow>
+    </div>
+  );
+}
+
 // Trace Flowchart Panel - generates flowchart from checkpoint data
 function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: Checkpoint[]; activeCheckpoint: Checkpoint | null }) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -1028,7 +1147,16 @@ async function checkpoint(id, variables = {}) {
                     </Badge>
                   </div>
                 )}
-                <div className="pt-2">
+                <div className="pt-2 space-y-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setShowCodeDialog(true)}
+                    data-testid="add-source-code-button"
+                  >
+                    <Code2 className="w-4 h-4 mr-2" /> {sessionInfo?.code ? 'Update Source' : 'Add Source Code'}
+                  </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -1096,10 +1224,15 @@ async function checkpoint(id, variables = {}) {
                         </TooltipProvider>
                         <TabsList className="bg-gray-900">
                           <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
-                            <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                            <GitBranch className="w-3 h-3 mr-1" /> Trace
                           </TabsTrigger>
+                          {sessionInfo?.code && (
+                            <TabsTrigger value="codeview" className="text-xs" data-testid="tab-codeview">
+                              <Code2 className="w-3 h-3 mr-1" /> Code View
+                            </TabsTrigger>
+                          )}
                           <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
-                            <List className="w-3 h-3 mr-1" /> Trace
+                            <List className="w-3 h-3 mr-1" /> List
                           </TabsTrigger>
                         </TabsList>
                       </div>
@@ -1116,6 +1249,17 @@ async function checkpoint(id, variables = {}) {
                         </ReactFlowProvider>
                       </div>
                     </TabsContent>
+                    {sessionInfo?.code && (
+                      <TabsContent value="codeview" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                        <ReactFlowProvider>
+                          <CodeFlowchartPanel 
+                            code={sessionInfo.code}
+                            checkpoints={checkpoints}
+                            activeCheckpoint={activeCheckpoint}
+                          />
+                        </ReactFlowProvider>
+                      </TabsContent>
+                    )}
                     <TabsContent value="trace" className="m-0 px-4 pb-4">
                       <ScrollArea className="h-[230px]">
                         {renderTraceView()}
