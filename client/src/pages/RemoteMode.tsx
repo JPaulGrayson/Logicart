@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Download } from 'lucide-react';
+import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Minimize2, Download, FileImage, FileText } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow, NodeTypes } from '@xyflow/react';
@@ -529,6 +531,24 @@ export default function RemoteMode() {
   const [isLiveMode, setIsLiveMode] = useState(true);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Fullscreen and export state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const flowchartRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcuts for fullscreen - use functional setState to avoid stale closure
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+      if (e.key === 'f' && !e.ctrlKey && !e.metaKey && e.target === document.body) {
+        setIsFullscreen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
   // Agent prompt for vibe coders - paste this into your app's AI agent
   const agentPrompt = `Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
 
@@ -705,6 +725,49 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
     setCurrentStep(checkpoints.length);
     if (checkpoints.length > 0) {
       setActiveCheckpoint(checkpoints[checkpoints.length - 1]);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const exportToPng = async () => {
+    if (!flowchartRef.current) return;
+    try {
+      const dataUrl = await toPng(flowchartRef.current, {
+        backgroundColor: '#1f2937',
+        pixelRatio: 2
+      });
+      const link = document.createElement('a');
+      link.download = `logigo-trace-${sessionId || 'flowchart'}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Export to PNG failed:', err);
+    }
+  };
+
+  const exportToPdf = async () => {
+    if (!flowchartRef.current) return;
+    try {
+      const dataUrl = await toPng(flowchartRef.current, {
+        backgroundColor: '#1f2937',
+        pixelRatio: 2
+      });
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
+      
+      const pdf = new jsPDF({
+        orientation: img.width > img.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [img.width, img.height]
+      });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, img.width, img.height);
+      pdf.save(`logigo-trace-${sessionId || 'flowchart'}.pdf`);
+    } catch (err) {
+      console.error('Export to PDF failed:', err);
     }
   };
 
@@ -981,7 +1044,7 @@ async function checkpoint(id, variables = {}) {
 
             {/* Main View - Flowchart with Playback Controls */}
             <div className="lg:col-span-3 flex flex-col gap-4">
-              <Card className="bg-gray-800 border-gray-700 overflow-hidden">
+              <Card className={`bg-gray-800 border-gray-700 overflow-hidden ${isFullscreen ? 'fixed inset-4 z-50 flex flex-col' : ''}`}>
                 <Tabs defaultValue="flowchart" className="h-full flex flex-col">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
@@ -998,24 +1061,60 @@ async function checkpoint(id, variables = {}) {
                           </Button>
                         )}
                       </div>
-                      <TabsList className="bg-gray-900">
-                        <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
-                          <GitBranch className="w-3 h-3 mr-1" /> Flowchart
-                        </TabsTrigger>
-                        <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
-                          <List className="w-3 h-3 mr-1" /> Trace
-                        </TabsTrigger>
-                      </TabsList>
+                      <div className="flex items-center gap-2">
+                        {/* Export Buttons */}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="sm" variant="ghost" onClick={exportToPng} className="h-8 w-8 p-0" data-testid="export-png">
+                                <FileImage className="w-4 h-4 text-gray-400" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Export as PNG</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="sm" variant="ghost" onClick={exportToPdf} className="h-8 w-8 p-0" data-testid="export-pdf">
+                                <FileText className="w-4 h-4 text-gray-400" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Export as PDF</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        {/* Fullscreen Toggle */}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="sm" variant="ghost" onClick={toggleFullscreen} className="h-8 w-8 p-0" data-testid="toggle-fullscreen">
+                                {isFullscreen ? <Minimize2 className="w-4 h-4 text-gray-400" /> : <Maximize2 className="w-4 h-4 text-gray-400" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TabsList className="bg-gray-900">
+                          <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
+                            <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                          </TabsTrigger>
+                          <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
+                            <List className="w-3 h-3 mr-1" /> Trace
+                          </TabsTrigger>
+                        </TabsList>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 p-0">
-                    <TabsContent value="flowchart" className="h-[280px] m-0">
-                      <ReactFlowProvider>
-                        <TraceFlowchartPanel 
-                          checkpoints={checkpoints}
-                          activeCheckpoint={activeCheckpoint}
-                        />
-                      </ReactFlowProvider>
+                    <TabsContent value="flowchart" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                      <div ref={flowchartRef} className="h-full w-full">
+                        <ReactFlowProvider>
+                          <TraceFlowchartPanel 
+                            checkpoints={checkpoints}
+                            activeCheckpoint={activeCheckpoint}
+                          />
+                        </ReactFlowProvider>
+                      </div>
                     </TabsContent>
                     <TabsContent value="trace" className="m-0 px-4 pb-4">
                       <ScrollArea className="h-[230px]">
