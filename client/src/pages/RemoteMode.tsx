@@ -641,17 +641,7 @@ async function checkpoint(id, variables = {}) {
                     </Badge>
                   </div>
                 )}
-                <div className="pt-2 space-y-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={copyIntegrationCode}
-                    data-testid="copy-code-button"
-                  >
-                    {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                    {copied ? 'Copied!' : 'Copy Integration Code'}
-                  </Button>
+                <div className="pt-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
