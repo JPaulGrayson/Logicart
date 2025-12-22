@@ -220,7 +220,43 @@ function buildTraceGraph(checkpoints: Checkpoint[]): { nodes: Node[]; edges: Edg
 const LOGIGO_HOST = window.location.origin;
 
 const QUICK_ACTIONS = [
-  { label: 'Trace API Calls', prompt: `Add LogiGo tracing to my frontend API calls.
+  { label: '🔍 Debug Function', icon: 'bug', prompt: `Help me debug this function by adding LogiGo checkpoints at every decision point.
+
+STEP 1: Add this script tag to index.html (before closing </body>):
+<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+
+STEP 2: Add checkpoint() calls to the problematic function to trace execution:
+
+CHECKPOINT PLACEMENT STRATEGY:
+1. FUNCTION ENTRY - capture all inputs:
+   checkpoint('function-start', { param1, param2, ...args });
+
+2. EVERY IF/ELSE BRANCH - show which path was taken:
+   if (condition) {
+     checkpoint('condition-true', { condition, reason: 'why this branch' });
+   } else {
+     checkpoint('condition-false', { condition, reason: 'why not' });
+   }
+
+3. LOOP ITERATIONS - show progress and values:
+   for (let i = 0; i < arr.length; i++) {
+     checkpoint('loop-iteration', { i, current: arr[i], total: arr.length });
+   }
+
+4. BEFORE RETURN - show the final result:
+   checkpoint('returning', { result, success: true });
+   return result;
+
+5. ERROR CASES - capture what went wrong:
+   checkpoint('error-caught', { error: err.message, context });
+
+IMPORTANT:
+- Only modify FRONTEND files (React components, client-side code)
+- Do NOT add checkpoints to server/backend files  
+- LogiGo will auto-open showing a flowchart of exactly what happened
+- Each checkpoint becomes a node - the path through them shows execution flow` },
+
+  { label: '⚡ Trace API Calls', icon: 'api', prompt: `Add LogiGo tracing to my frontend API calls.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
 <script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
@@ -234,7 +270,7 @@ IMPORTANT:
 - Do NOT add checkpoints to server/backend files
 - LogiGo will auto-open in a new tab when the first checkpoint fires` },
   
-  { label: 'Debug Form Flow', prompt: `Add LogiGo tracing to my form submission flow.
+  { label: '📝 Debug Form Flow', icon: 'form', prompt: `Add LogiGo tracing to my form submission flow.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
 <script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
@@ -249,7 +285,7 @@ IMPORTANT:
 - Do NOT add checkpoints to server/backend files
 - LogiGo will auto-open when the first checkpoint fires` },
   
-  { label: 'Track User Actions', prompt: `Add LogiGo tracing to user interactions.
+  { label: '👆 Track User Actions', icon: 'click', prompt: `Add LogiGo tracing to user interactions.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
 <script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
@@ -271,18 +307,23 @@ function generateCheckpointPrompt(userRequest: string): string {
 STEP 1: Add this script tag to index.html (before closing </body>):
 <script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
 
-STEP 2: Add checkpoint() calls to trace the requested functionality.
+STEP 2: Add checkpoint() calls at KEY DECISION POINTS to trace execution flow:
 
-IMPORTANT - Follow these rules:
+CHECKPOINT PLACEMENT STRATEGY:
+- Function entry: checkpoint('function-start', { ...inputs });
+- Each if/else branch: checkpoint('branch-taken', { condition, path: 'true/false' });
+- Loop iterations: checkpoint('loop-step', { index, current, total });
+- Before returns: checkpoint('returning', { result });
+- Error catches: checkpoint('error', { message, context });
+
+IMPORTANT:
 1. Only add checkpoints to FRONTEND files (React components, client-side code)
 2. Do NOT add checkpoints to server/backend files
-3. Use the checkpoint() function that's available from the LogiGo script
-4. Use descriptive IDs in kebab-case (e.g., 'upload-start', 'api-response')
-5. Capture relevant variables as the second argument
-6. LogiGo will auto-open in a new tab when the first checkpoint fires
+3. Use descriptive IDs in kebab-case (e.g., 'validate-input', 'fetch-complete')
+4. Capture relevant variables - this shows up in the flowchart!
+5. LogiGo auto-opens showing a visual flowchart of exactly what happened
 
-Example:
-checkpoint('feature-step', { relevantVar, status });`;
+Each checkpoint becomes a flowchart node. The path through them reveals the execution flow.`;
 }
 
 // Mini Chat Panel for requesting checkpoint changes
