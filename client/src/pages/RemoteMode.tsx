@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Minimize2, Download, FileImage, FileText, Ghost, Circle } from 'lucide-react';
+import { Copy, Check, Wifi, WifiOff, Play, Pause, RotateCcw, GitBranch, List, Code2, Sparkles, MessageSquare, ChevronLeft, ChevronRight, Repeat, Maximize2, Minimize2, Download, FileImage, FileText, Ghost, Circle, Clock, ArrowRight } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -736,6 +736,32 @@ function TraceFlowchartPanel({
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
+  
+  // Tooltip state for hovered node
+  const [hoveredNode, setHoveredNode] = useState<{ id: string; x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Build node stats map for tooltip (using latest occurrence data)
+  const nodeStatsMap = useMemo(() => {
+    const stats = new Map<string, { count: number; lastVars: Record<string, any>; lastTimestamp: number }>();
+    for (const cp of checkpoints) {
+      const existing = stats.get(cp.id);
+      if (existing) {
+        existing.count++;
+        existing.lastVars = cp.variables;
+        existing.lastTimestamp = cp.timestamp;
+      } else {
+        stats.set(cp.id, { count: 1, lastVars: cp.variables, lastTimestamp: cp.timestamp });
+      }
+    }
+    return stats;
+  }, [checkpoints]);
+
+  // Get tooltip data for hovered node (uses latest occurrence, not first)
+  const hoveredCheckpointData = useMemo(() => {
+    if (!hoveredNode) return null;
+    return nodeStatsMap.get(hoveredNode.id);
+  }, [hoveredNode, nodeStatsMap]);
 
   useEffect(() => {
     const { nodes, edges } = buildTraceGraph(checkpoints);
@@ -779,6 +805,21 @@ function TraceFlowchartPanel({
     }
   }, [onBreakpointToggle]);
 
+  const handleNodeMouseEnter = useCallback((event: React.MouseEvent, node: Node) => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setHoveredNode({
+        id: node.id,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      });
+    }
+  }, []);
+
+  const handleNodeMouseLeave = useCallback(() => {
+    setHoveredNode(null);
+  }, []);
+
   if (checkpoints.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center text-gray-500">
@@ -791,13 +832,15 @@ function TraceFlowchartPanel({
   }
 
   return (
-    <div className="h-full w-full">
+    <div ref={containerRef} className="h-full w-full relative">
       <ReactFlow
         nodes={nodesState}
         edges={edgesState}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeContextMenu={handleNodeContextMenu}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.1}
@@ -807,7 +850,132 @@ function TraceFlowchartPanel({
         <Background color="#374151" gap={20} size={1} />
         <Controls />
       </ReactFlow>
+      
+      {/* Tooltip for hovered node */}
+      {hoveredNode && hoveredCheckpointData && (
+        <div 
+          className="absolute z-50 bg-gray-900 border border-gray-600 rounded-lg shadow-xl p-3 max-w-xs pointer-events-none"
+          style={{ 
+            left: Math.min(hoveredNode.x + 10, (containerRef.current?.offsetWidth || 300) - 200),
+            top: Math.min(hoveredNode.y + 10, (containerRef.current?.offsetHeight || 200) - 100)
+          }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-purple-400" data-testid="tooltip-checkpoint-id">
+              {hoveredNode.id}
+            </span>
+            {hoveredCheckpointData.count > 1 && (
+              <span className="text-xs text-gray-500">×{hoveredCheckpointData.count}</span>
+            )}
+          </div>
+          {Object.keys(hoveredCheckpointData.lastVars).length > 0 ? (
+            <div className="space-y-1">
+              {Object.entries(hoveredCheckpointData.lastVars).slice(0, 5).map(([key, value]) => (
+                <div key={key} className="flex gap-2 text-xs">
+                  <span className="text-blue-400">{key}:</span>
+                  <span className="text-gray-300 font-mono truncate max-w-[150px]">
+                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                  </span>
+                </div>
+              ))}
+              {Object.keys(hoveredCheckpointData.lastVars).length > 5 && (
+                <div className="text-xs text-gray-500">
+                  +{Object.keys(hoveredCheckpointData.lastVars).length - 5} more...
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">No variables</p>
+          )}
+          <div className="text-xs text-gray-500 mt-2 border-t border-gray-700 pt-1">
+            {new Date(hoveredCheckpointData.lastTimestamp).toLocaleTimeString()}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Checkpoint Timeline Panel - shows all checkpoints in chronological sequence
+function CheckpointTimelinePanel({ 
+  checkpoints, 
+  activeCheckpoint,
+  activeIndex,
+  onCheckpointClick
+}: { 
+  checkpoints: Checkpoint[];
+  activeCheckpoint: Checkpoint | null;
+  activeIndex?: number;
+  onCheckpointClick?: (index: number) => void;
+}) {
+  // Derive active index from activeCheckpoint if not provided
+  const computedActiveIndex = activeIndex ?? (activeCheckpoint 
+    ? checkpoints.findIndex(cp => cp.id === activeCheckpoint.id && cp.timestamp === activeCheckpoint.timestamp)
+    : -1);
+
+  if (checkpoints.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <p>No checkpoints yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <ScrollArea className="h-[230px]">
+      <div className="p-4 space-y-1">
+        {checkpoints.map((cp, index) => {
+          const isActive = index === computedActiveIndex;
+          const isFirstOccurrence = checkpoints.findIndex(c => c.id === cp.id) === index;
+          
+          return (
+            <div key={`${cp.id}-${cp.timestamp}-${index}`} className="flex items-start gap-2">
+              {/* Timeline connector */}
+              <div className="flex flex-col items-center">
+                <div 
+                  className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                    isActive ? 'bg-green-500 ring-2 ring-green-400' : 
+                    isFirstOccurrence ? 'bg-purple-500' : 'bg-gray-600'
+                  }`}
+                />
+                {index < checkpoints.length - 1 && (
+                  <div className="w-0.5 h-6 bg-gray-700" />
+                )}
+              </div>
+              
+              {/* Checkpoint info */}
+              <button
+                onClick={() => onCheckpointClick?.(index)}
+                className={`flex-1 text-left p-2 rounded-lg transition-colors ${
+                  isActive 
+                    ? 'bg-green-900/30 border border-green-600' 
+                    : 'bg-gray-800/50 hover:bg-gray-700/50 border border-transparent'
+                }`}
+                data-testid={`timeline-checkpoint-${index}`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${isActive ? 'text-green-400' : 'text-purple-400'}`}>
+                    {cp.id}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    #{index + 1}
+                  </span>
+                </div>
+                {Object.keys(cp.variables).length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {Object.entries(cp.variables).slice(0, 3).map(([key, value]) => (
+                      <span key={key} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-400">
+                        {key}: <span className="text-gray-300 font-mono">{String(value).slice(0, 15)}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }
 
@@ -1526,6 +1694,9 @@ async function checkpoint(id, variables = {}) {
                               <Code2 className="w-3 h-3 mr-1" /> Code View
                             </TabsTrigger>
                           )}
+                          <TabsTrigger value="timeline" className="text-xs" data-testid="tab-timeline">
+                            <Clock className="w-3 h-3 mr-1" /> Timeline
+                          </TabsTrigger>
                           <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
                             <List className="w-3 h-3 mr-1" /> List
                           </TabsTrigger>
@@ -1562,6 +1733,14 @@ async function checkpoint(id, variables = {}) {
                         </ReactFlowProvider>
                       </TabsContent>
                     )}
+                    <TabsContent value="timeline" className="m-0">
+                      <CheckpointTimelinePanel 
+                        checkpoints={checkpoints}
+                        activeCheckpoint={activeCheckpoint}
+                        activeIndex={currentStep > 0 ? currentStep - 1 : -1}
+                        onCheckpointClick={(index) => handleStepChange(index + 1)}
+                      />
+                    </TabsContent>
                     <TabsContent value="trace" className="m-0 px-4 pb-4">
                       <ScrollArea className="h-[230px]">
                         {renderTraceView()}
