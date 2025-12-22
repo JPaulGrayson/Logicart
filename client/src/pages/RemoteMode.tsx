@@ -114,6 +114,163 @@ function FlowchartPanel({ code, activeLineNumber }: { code: string; activeLineNu
   );
 }
 
+// Build a flowchart directly from checkpoint data - no source code needed!
+function buildTraceGraph(checkpoints: Checkpoint[]): { nodes: Node[]; edges: Edge[] } {
+  if (checkpoints.length === 0) {
+    return { nodes: [], edges: [] };
+  }
+
+  // Track unique checkpoint IDs and their occurrence counts
+  const nodeStats = new Map<string, { count: number; lastVars: Record<string, any> }>();
+  const transitions = new Map<string, number>(); // "from->to" -> count
+
+  // Build stats from checkpoints
+  let prevId: string | null = null;
+  for (const cp of checkpoints) {
+    const existing = nodeStats.get(cp.id);
+    if (existing) {
+      existing.count++;
+      existing.lastVars = cp.variables;
+    } else {
+      nodeStats.set(cp.id, { count: 1, lastVars: cp.variables });
+    }
+
+    if (prevId && prevId !== cp.id) {
+      const transKey = `${prevId}->${cp.id}`;
+      transitions.set(transKey, (transitions.get(transKey) || 0) + 1);
+    }
+    prevId = cp.id;
+  }
+
+  // Create nodes in execution order (first occurrence)
+  const seenIds = new Set<string>();
+  const orderedIds: string[] = [];
+  for (const cp of checkpoints) {
+    if (!seenIds.has(cp.id)) {
+      seenIds.add(cp.id);
+      orderedIds.push(cp.id);
+    }
+  }
+
+  // Layout nodes vertically
+  const nodes: Node[] = orderedIds.map((id, index) => {
+    const stats = nodeStats.get(id)!;
+    const countBadge = stats.count > 1 ? ` (×${stats.count})` : '';
+    
+    return {
+      id,
+      type: 'default',
+      position: { x: 200, y: index * 100 },
+      data: { 
+        label: id + countBadge,
+        code: Object.keys(stats.lastVars).length > 0 
+          ? Object.entries(stats.lastVars).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n')
+          : undefined
+      },
+      style: {
+        background: '#1e293b',
+        border: '1px solid #475569',
+        borderRadius: '8px',
+        padding: '10px 16px',
+        color: '#e2e8f0',
+        fontSize: '13px',
+        fontFamily: 'system-ui, sans-serif',
+        minWidth: '150px',
+        textAlign: 'center' as const
+      }
+    };
+  });
+
+  // Create edges for transitions
+  const edges: Edge[] = [];
+  const addedEdges = new Set<string>();
+  
+  prevId = null;
+  for (const cp of checkpoints) {
+    if (prevId && prevId !== cp.id) {
+      const edgeId = `${prevId}-${cp.id}`;
+      if (!addedEdges.has(edgeId)) {
+        addedEdges.add(edgeId);
+        const transCount = transitions.get(`${prevId}->${cp.id}`) || 1;
+        edges.push({
+          id: edgeId,
+          source: prevId,
+          target: cp.id,
+          type: 'smoothstep',
+          animated: false,
+          label: transCount > 1 ? `×${transCount}` : undefined,
+          style: { stroke: '#6366f1', strokeWidth: 2 },
+          labelStyle: { fill: '#a5b4fc', fontSize: 10 }
+        });
+      }
+    }
+    prevId = cp.id;
+  }
+
+  return { nodes, edges };
+}
+
+// Trace Flowchart Panel - generates flowchart from checkpoint data
+function TraceFlowchartPanel({ checkpoints, activeCheckpoint }: { checkpoints: Checkpoint[]; activeCheckpoint: Checkpoint | null }) {
+  const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    const { nodes, edges } = buildTraceGraph(checkpoints);
+    setNodes(nodes);
+    setEdges(edges);
+    if (nodes.length > 0) {
+      setTimeout(() => fitView({ padding: 0.3 }), 100);
+    }
+  }, [checkpoints, setNodes, setEdges, fitView]);
+
+  // Highlight active checkpoint
+  useEffect(() => {
+    if (!activeCheckpoint) return;
+    
+    setNodes(nodes => nodes.map(node => ({
+      ...node,
+      style: {
+        ...node.style,
+        boxShadow: node.id === activeCheckpoint.id ? ACTIVE_NODE_STYLE.boxShadow : undefined,
+        border: node.id === activeCheckpoint.id ? '2px solid #22c55e' : '1px solid #475569',
+        transition: ACTIVE_NODE_STYLE.transition
+      }
+    })));
+  }, [activeCheckpoint, setNodes]);
+
+  if (checkpoints.length === 0) {
+    return (
+      <div className="h-full w-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <p>Waiting for checkpoints...</p>
+          <p className="text-xs mt-2">Flowchart will appear automatically</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full">
+      <ReactFlow
+        nodes={nodesState}
+        edges={edgesState}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        fitView
+        fitViewOptions={{ padding: 0.3 }}
+        minZoom={0.1}
+        maxZoom={2}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background color="#374151" gap={20} size={1} />
+        <Controls />
+      </ReactFlow>
+    </div>
+  );
+}
+
 export default function RemoteMode() {
   const params = useParams<{ sessionId?: string }>();
   const [sessionId, setSessionId] = useState(params.sessionId || '');
@@ -485,16 +642,6 @@ async function checkpoint(id, variables = {}) {
                   </div>
                 )}
                 <div className="pt-2 space-y-2">
-                  {!sessionInfo?.code && (
-                    <Button 
-                      size="sm" 
-                      className="w-full bg-purple-600 hover:bg-purple-700"
-                      onClick={() => setShowCodeDialog(true)}
-                      data-testid="add-code-button"
-                    >
-                      <Code2 className="w-4 h-4 mr-2" /> Add Code for Flowchart
-                    </Button>
-                  )}
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -518,51 +665,38 @@ async function checkpoint(id, variables = {}) {
               </CardContent>
             </Card>
 
-            {/* Main View - Trace or Flowchart */}
+            {/* Main View - Always show Trace Flowchart */}
             <Card className="bg-gray-800 border-gray-700 lg:col-span-3">
-              {sessionInfo?.code ? (
-                <Tabs defaultValue="flowchart" className="h-full flex flex-col">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white text-lg">Visualization</CardTitle>
-                      <TabsList className="bg-gray-900">
-                        <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
-                          <GitBranch className="w-3 h-3 mr-1" /> Flowchart
-                        </TabsTrigger>
-                        <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
-                          <List className="w-3 h-3 mr-1" /> Trace
-                        </TabsTrigger>
-                      </TabsList>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 p-0">
-                    <TabsContent value="flowchart" className="h-[450px] m-0">
-                      <ReactFlowProvider>
-                        <FlowchartPanel 
-                          code={sessionInfo.code} 
-                          activeLineNumber={activeCheckpoint?.line}
-                        />
-                      </ReactFlowProvider>
-                    </TabsContent>
-                    <TabsContent value="trace" className="m-0 px-4 pb-4">
-                      <ScrollArea className="h-[400px]">
-                        {renderTraceView()}
-                      </ScrollArea>
-                    </TabsContent>
-                  </CardContent>
-                </Tabs>
-              ) : (
-                <>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-white text-lg">Execution Trace</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              <Tabs defaultValue="flowchart" className="h-full flex flex-col">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-white text-lg">Execution Flow</CardTitle>
+                    <TabsList className="bg-gray-900">
+                      <TabsTrigger value="flowchart" className="text-xs" data-testid="tab-flowchart">
+                        <GitBranch className="w-3 h-3 mr-1" /> Flowchart
+                      </TabsTrigger>
+                      <TabsTrigger value="trace" className="text-xs" data-testid="tab-trace">
+                        <List className="w-3 h-3 mr-1" /> Trace
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 p-0">
+                  <TabsContent value="flowchart" className="h-[450px] m-0">
+                    <ReactFlowProvider>
+                      <TraceFlowchartPanel 
+                        checkpoints={checkpoints}
+                        activeCheckpoint={activeCheckpoint}
+                      />
+                    </ReactFlowProvider>
+                  </TabsContent>
+                  <TabsContent value="trace" className="m-0 px-4 pb-4">
                     <ScrollArea className="h-[400px]">
                       {renderTraceView()}
                     </ScrollArea>
-                  </CardContent>
-                </>
-              )}
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
             </Card>
           </div>
         )}
