@@ -215,22 +215,70 @@ function buildTraceGraph(checkpoints: Checkpoint[]): { nodes: Node[]; edges: Edg
   return { nodes, edges };
 }
 
-// Quick action prompts for the mini-chat
+// Quick action prompts for the mini-chat - generates zero-click integration
+const LOGIGO_HOST = window.location.origin;
+
 const QUICK_ACTIONS = [
-  { label: 'Trace API Calls', prompt: 'Add LogiGo checkpoints before and after all API fetch calls in the frontend. Use descriptive IDs like api-request-start and api-response-received. Capture request URLs and response status.' },
-  { label: 'Debug Form Flow', prompt: 'Add LogiGo checkpoints to trace form submission flow. Add checkpoints for form-submit-start, validation steps, and form-submit-complete. Capture form field values.' },
-  { label: 'Track User Actions', prompt: 'Add LogiGo checkpoints to key user interaction handlers (button clicks, navigation). Use IDs like button-clicked, nav-changed. Capture relevant state.' },
+  { label: 'Trace API Calls', prompt: `Add LogiGo tracing to my frontend API calls.
+
+STEP 1: Add this script tag to index.html (before closing </body>):
+<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+
+STEP 2: Add checkpoint() calls before and after all fetch/API calls in frontend files:
+- checkpoint('api-request-start', { url, method })
+- checkpoint('api-response', { url, status, data })
+
+IMPORTANT:
+- Only modify FRONTEND files (React components, client-side code)
+- Do NOT add checkpoints to server/backend files
+- LogiGo will auto-open in a new tab when the first checkpoint fires` },
+  
+  { label: 'Debug Form Flow', prompt: `Add LogiGo tracing to my form submission flow.
+
+STEP 1: Add this script tag to index.html (before closing </body>):
+<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+
+STEP 2: Add checkpoint() calls to trace the form:
+- checkpoint('form-submit-start', { formData })
+- checkpoint('validation-check', { isValid, errors })
+- checkpoint('form-submit-complete', { success, response })
+
+IMPORTANT:
+- Only modify FRONTEND files
+- Do NOT add checkpoints to server/backend files
+- LogiGo will auto-open when the first checkpoint fires` },
+  
+  { label: 'Track User Actions', prompt: `Add LogiGo tracing to user interactions.
+
+STEP 1: Add this script tag to index.html (before closing </body>):
+<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+
+STEP 2: Add checkpoint() calls to interaction handlers:
+- checkpoint('button-clicked', { buttonId, action })
+- checkpoint('nav-changed', { from, to })
+- checkpoint('modal-opened', { modalId })
+
+IMPORTANT:
+- Only modify FRONTEND files
+- Do NOT add checkpoints to server/backend files
+- LogiGo will auto-open when the first checkpoint fires` },
 ];
 
 function generateCheckpointPrompt(userRequest: string): string {
-  return `Add LogiGo checkpoints to: ${userRequest}
+  return `Add LogiGo tracing to: ${userRequest}
+
+STEP 1: Add this script tag to index.html (before closing </body>):
+<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+
+STEP 2: Add checkpoint() calls to trace the requested functionality.
 
 IMPORTANT - Follow these rules:
 1. Only add checkpoints to FRONTEND files (React components, client-side code)
 2. Do NOT add checkpoints to server/backend files
-3. Use the checkpoint() function that's already available from the LogiGo script
+3. Use the checkpoint() function that's available from the LogiGo script
 4. Use descriptive IDs in kebab-case (e.g., 'upload-start', 'api-response')
 5. Capture relevant variables as the second argument
+6. LogiGo will auto-open in a new tab when the first checkpoint fires
 
 Example:
 checkpoint('feature-step', { relevantVar, status });`;

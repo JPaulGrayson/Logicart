@@ -353,6 +353,11 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     try {
       // Get the project name from query param or use default
       const projectName = req.query.project || req.query.name || "Remote App";
+      // Get source code if provided (base64 encoded for URL safety)
+      const encodedCode = req.query.code as string | undefined;
+      const sourceCode = encodedCode ? Buffer.from(encodedCode, 'base64').toString('utf-8') : undefined;
+      // Auto-open option (default: true for zero-click experience)
+      const autoOpen = req.query.autoOpen !== 'false';
       
       // Create a new session
       if (remoteSessions.size >= MAX_SESSIONS) {
@@ -366,7 +371,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       const session: RemoteSession = {
         id: sessionId,
         name: String(projectName),
-        code: undefined,
+        code: sourceCode,
         checkpoints: [],
         sseClients: [],
         createdAt: new Date(),
@@ -381,23 +386,44 @@ Rewrite the code according to the instructions. Output only the new code, no exp
 
       // Return the bootstrap script with session info baked in
       const script = `
-// LogiGo Remote Mode - Auto-configured
+// LogiGo Remote Mode - Auto-configured (Zero-Click Experience)
 (function() {
   var LOGIGO_URL = "${baseUrl}";
   var SESSION_ID = "${sessionId}";
   var PROJECT_NAME = "${String(projectName).replace(/"/g, '\\"')}";
+  var AUTO_OPEN = ${autoOpen};
+  var hasOpenedLogigo = false;
+  var checkpointCount = 0;
   
   console.log("🔗 LogiGo Remote Mode connected!");
   console.log("📊 View flowchart at: ${viewUrl}");
+  ${sourceCode ? 'console.log("📝 Source code loaded for visualization");' : ''}
+  
+  // Auto-open LogiGo on first checkpoint
+  function openLogigoIfNeeded() {
+    if (AUTO_OPEN && !hasOpenedLogigo && checkpointCount === 1) {
+      hasOpenedLogigo = true;
+      window.open("${viewUrl}", "_blank", "noopener,noreferrer");
+      console.log("🚀 LogiGo opened automatically!");
+    }
+  }
   
   // Create the checkpoint function
-  window.checkpoint = function(id, variables) {
+  window.checkpoint = function(id, variables, options) {
     variables = variables || {};
+    options = options || {};
+    checkpointCount++;
+    
+    // Auto-open LogiGo synchronously on first checkpoint (before async fetch)
+    // This happens within the user gesture context to avoid popup blockers
+    openLogigoIfNeeded();
+    
     var data = {
       sessionId: SESSION_ID,
       checkpoint: {
         id: id,
         variables: variables,
+        line: options.line,
         timestamp: Date.now()
       }
     };
@@ -421,6 +447,12 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   window.LogiGo.checkpoint = window.checkpoint;
   window.LogiGo.sessionId = SESSION_ID;
   window.LogiGo.viewUrl = "${viewUrl}";
+  window.LogiGo.openNow = function() {
+    if (!hasOpenedLogigo) {
+      hasOpenedLogigo = true;
+      window.open("${viewUrl}", "_blank", "noopener,noreferrer");
+    }
+  };
   
   window.LogiGo.registerCode = function(code) {
     fetch(LOGIGO_URL + "/api/remote/code", {
