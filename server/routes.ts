@@ -119,12 +119,29 @@ function parseCodeToGrounding(code: string): GroundingContext {
           });
           if (parentId) edges.push({ source: parentId, target: id });
           
+          // Process consequent (true branch) with decision as parent
+          // Then update the edge to add condition
+          const edgeCountBefore = edges.length;
           const consequentId = processNode(node.consequent, id);
-          if (consequentId) edges.push({ source: id, target: consequentId, condition: 'true' });
+          // Add condition to the edge that was just created
+          if (edges.length > edgeCountBefore) {
+            const lastEdge = edges[edges.length - 1];
+            if (lastEdge.source === id) {
+              lastEdge.condition = 'true';
+            }
+          }
           
+          // Process alternate (false branch)
           if (node.alternate) {
+            const edgeCountBeforeAlt = edges.length;
             const alternateId = processNode(node.alternate, id);
-            if (alternateId) edges.push({ source: id, target: alternateId, condition: 'false' });
+            // Add condition to the edge that was just created
+            if (edges.length > edgeCountBeforeAlt) {
+              const lastEdge = edges[edges.length - 1];
+              if (lastEdge.source === id) {
+                lastEdge.condition = 'false';
+              }
+            }
           }
           return id;
         }

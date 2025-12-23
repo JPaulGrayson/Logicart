@@ -48,30 +48,36 @@ export function generateGroundingContext(nodes: FlowNode[], edges: FlowEdge[]): 
     });
   });
   
-  const mapNodeType = (flowType: string): GroundingNodeType => {
+  const mapNodeType = (flowType: string, label: string): GroundingNodeType => {
     switch (flowType) {
       case 'input': return 'FUNCTION';
       case 'decision': return 'DECISION';
       case 'container': return 'LOOP';
-      default: return 'ACTION';
+      default:
+        // Check if it's a loop based on label content
+        const lowerLabel = label.toLowerCase();
+        if (lowerLabel.startsWith('for') || lowerLabel.startsWith('while')) {
+          return 'LOOP';
+        }
+        return 'ACTION';
     }
   };
   
   let complexityScore = 0;
-  const flowNodes = nodes.filter(n => n.type !== 'container');
   
-  const groundingNodes: GroundingNode[] = flowNodes.map(node => {
+  // Include ALL nodes (don't filter out containers - they represent loops)
+  const groundingNodes: GroundingNode[] = nodes.map(node => {
     const label = node.data.label || '';
-    const lowerLabel = label.toLowerCase();
+    const nodeType = mapNodeType(node.type, label);
     
-    if (lowerLabel.includes('if') || lowerLabel.includes('switch') || 
-        lowerLabel.includes('for') || lowerLabel.includes('while')) {
+    // Count complexity based on actual node types
+    if (nodeType === 'DECISION' || nodeType === 'LOOP') {
       complexityScore++;
     }
     
     return {
       id: node.id,
-      type: mapNodeType(node.type),
+      type: nodeType,
       label: node.data.userLabel || label,
       snippet: label.slice(0, 50),
       parents: parentMap.get(node.id) || [],
