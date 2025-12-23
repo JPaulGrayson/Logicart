@@ -659,15 +659,18 @@ export function generateGroundingContext(nodes: FlowNode[], edges: FlowEdge[]): 
   });
   
   const mapNodeType = (flowType: string, label: string): GroundingNodeType => {
+    const lowerLabel = label.toLowerCase();
+    
+    // Check for loop patterns first (loops may be tagged as 'decision' in FlowNode)
+    if (lowerLabel.startsWith('for') || lowerLabel.startsWith('while') || 
+        lowerLabel.includes('for (') || lowerLabel.includes('while (')) {
+      return 'LOOP';
+    }
+    
     switch (flowType) {
       case 'input': return 'FUNCTION';
       case 'decision': return 'DECISION';
-      default:
-        const lowerLabel = label.toLowerCase();
-        if (lowerLabel.startsWith('for') || lowerLabel.startsWith('while')) {
-          return 'LOOP';
-        }
-        return 'ACTION';
+      default: return 'ACTION';
     }
   };
   
