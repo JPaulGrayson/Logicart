@@ -24,7 +24,8 @@
     "onLanguage:javascript",
     "onLanguage:typescript",
     "onCommand:logigo.visualize",
-    "onCommand:logigo.execute"
+    "onCommand:logigo.execute",
+    "onCommand:logigo.copyGroundingContext"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -37,6 +38,11 @@
       {
         "command": "logigo.execute",
         "title": "LogiGo: Execute Step-by-Step"
+      },
+      {
+        "command": "logigo.copyGroundingContext",
+        "title": "LogiGo: Copy AI Context to Clipboard",
+        "icon": "$(json)"
       }
     ],
     "menus": {

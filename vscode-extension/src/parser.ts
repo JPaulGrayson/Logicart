@@ -612,3 +612,93 @@ export function parseCodeToFlow(code: string): FlowData {
     };
   }
 }
+
+// ============================================
+// Grounding Layer - AI Context Export
+// ============================================
+
+export type GroundingNodeType = "FUNCTION" | "DECISION" | "LOOP" | "ACTION";
+
+export interface GroundingNode {
+  id: string;
+  type: GroundingNodeType;
+  label: string;
+  snippet: string;
+  parents: string[];
+  children: Array<{ targetId: string; condition?: string }>;
+}
+
+export interface GroundingSummary {
+  entryPoint: string;
+  nodeCount: number;
+  complexityScore: number;
+}
+
+export interface GroundingContext {
+  summary: GroundingSummary;
+  flow: GroundingNode[];
+}
+
+export function generateGroundingContext(nodes: FlowNode[], edges: FlowEdge[]): GroundingContext {
+  const parentMap = new Map<string, string[]>();
+  const childrenMap = new Map<string, Array<{ targetId: string; condition?: string }>>();
+  
+  edges.forEach(edge => {
+    if (!parentMap.has(edge.target)) {
+      parentMap.set(edge.target, []);
+    }
+    parentMap.get(edge.target)!.push(edge.source);
+    
+    if (!childrenMap.has(edge.source)) {
+      childrenMap.set(edge.source, []);
+    }
+    childrenMap.get(edge.source)!.push({
+      targetId: edge.target,
+      condition: edge.label || undefined
+    });
+  });
+  
+  const mapNodeType = (flowType: string, label: string): GroundingNodeType => {
+    switch (flowType) {
+      case 'input': return 'FUNCTION';
+      case 'decision': return 'DECISION';
+      default:
+        const lowerLabel = label.toLowerCase();
+        if (lowerLabel.startsWith('for') || lowerLabel.startsWith('while')) {
+          return 'LOOP';
+        }
+        return 'ACTION';
+    }
+  };
+  
+  let complexityScore = 0;
+  
+  const groundingNodes: GroundingNode[] = nodes.map(node => {
+    const label = node.data.label || '';
+    const nodeType = mapNodeType(node.type, label);
+    
+    if (nodeType === 'DECISION' || nodeType === 'LOOP') {
+      complexityScore++;
+    }
+    
+    return {
+      id: node.id,
+      type: nodeType,
+      label: label,
+      snippet: label.slice(0, 50),
+      parents: parentMap.get(node.id) || [],
+      children: childrenMap.get(node.id) || []
+    };
+  });
+  
+  const entryNode = nodes.find(n => n.type === 'input');
+  
+  return {
+    summary: {
+      entryPoint: entryNode?.id || groundingNodes[0]?.id || 'unknown',
+      nodeCount: groundingNodes.length,
+      complexityScore
+    },
+    flow: groundingNodes
+  };
+}

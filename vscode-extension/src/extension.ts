@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseCodeToFlow } from '@logigo/bridge';
+import { parseCodeToFlow, generateGroundingContext } from './parser';
 
 let currentPanel: vscode.WebviewPanel | undefined;
 let currentDocument: vscode.TextDocument | undefined;
@@ -38,6 +38,56 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(visualizeCommand);
+
+  // Command: Copy AI Grounding Context to Clipboard
+  const copyGroundingCommand = vscode.commands.registerCommand('logigo.copyGroundingContext', async () => {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+      vscode.window.showWarningMessage('No active editor found');
+      return;
+    }
+
+    const document = editor.document;
+    const code = document.getText();
+
+    try {
+      const flowData = parseCodeToFlow(code);
+      const groundingContext = generateGroundingContext(flowData.nodes, flowData.edges);
+      const jsonString = JSON.stringify(groundingContext, null, 2);
+
+      await vscode.env.clipboard.writeText(jsonString);
+      vscode.window.showInformationMessage(
+        `LogiGo: AI context copied! (${groundingContext.summary.nodeCount} nodes, complexity: ${groundingContext.summary.complexityScore})`
+      );
+    } catch (error) {
+      vscode.window.showErrorMessage(`LogiGo: Failed to generate context - ${error}`);
+    }
+  });
+
+  context.subscriptions.push(copyGroundingCommand);
+
+  // Register LM Context Provider (VS Code 1.90+)
+  // This allows AI assistants to access the flowchart context directly
+  try {
+    if ('lm' in vscode && typeof (vscode as any).lm?.registerContextProvider === 'function') {
+      const contextProvider = (vscode as any).lm.registerContextProvider({
+        id: 'logigo.flowchartContext',
+        selector: { language: ['javascript', 'typescript', 'javascriptreact', 'typescriptreact'] },
+        provideContext: async (document: vscode.TextDocument) => {
+          const code = document.getText();
+          const flowData = parseCodeToFlow(code);
+          const groundingContext = generateGroundingContext(flowData.nodes, flowData.edges);
+          return JSON.stringify(groundingContext);
+        }
+      });
+      context.subscriptions.push(contextProvider);
+      console.log('LogiGo: LM context provider registered');
+    }
+  } catch (e) {
+    // lm.contextProvider not available in this VS Code version
+    console.log('LogiGo: LM context provider not available (requires VS Code 1.90+)');
+  }
 }
 
 function showFlowchart(context: vscode.ExtensionContext, code: string, filePath: string, document: vscode.TextDocument) {
