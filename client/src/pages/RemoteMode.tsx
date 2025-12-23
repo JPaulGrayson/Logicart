@@ -922,7 +922,7 @@ function CheckpointTimelinePanel({
   }
 
   return (
-    <ScrollArea className="h-[230px]">
+    <ScrollArea className="h-full">
       <div className="p-4 space-y-1">
         {checkpoints.map((cp, index) => {
           const isActive = index === computedActiveIndex;
