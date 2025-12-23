@@ -1733,7 +1733,7 @@ async function checkpoint(id, variables = {}) {
                         </ReactFlowProvider>
                       </TabsContent>
                     )}
-                    <TabsContent value="timeline" className="m-0">
+                    <TabsContent value="timeline" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'} overflow-auto`}>
                       <CheckpointTimelinePanel 
                         checkpoints={checkpoints}
                         activeCheckpoint={activeCheckpoint}
@@ -1741,8 +1741,8 @@ async function checkpoint(id, variables = {}) {
                         onCheckpointClick={(index) => handleStepChange(index + 1)}
                       />
                     </TabsContent>
-                    <TabsContent value="trace" className="m-0 px-4 pb-4">
-                      <ScrollArea className="h-[230px]">
+                    <TabsContent value="trace" className={`m-0 px-4 pb-4 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                      <ScrollArea className="h-full">
                         {renderTraceView()}
                       </ScrollArea>
                     </TabsContent>
