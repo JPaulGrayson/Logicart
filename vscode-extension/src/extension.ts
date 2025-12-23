@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseCodeToFlow, generateGroundingContext } from './parser';
+import { parseCodeToFlow } from './parser';
+import { generateGroundingContext } from '@logigo/core';
 
 let currentPanel: vscode.WebviewPanel | undefined;
 let currentDocument: vscode.TextDocument | undefined;

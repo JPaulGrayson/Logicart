@@ -101,6 +101,7 @@
   },
   "dependencies": {
     "@logigo/bridge": "file:../bridge",
+    "@logigo/core": "file:../packages/logigo-core",
     "acorn": "^8.15.0",
     "dagre": "^0.8.5",
     "react": "^18.2.0",
