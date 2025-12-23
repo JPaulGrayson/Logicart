@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import express from "express";
 import OpenAI from "openai";
 import crypto from "crypto";
+import type { GroundingContext, GroundingNode, GroundingNodeType } from "@shared/grounding-types";
+import * as acorn from "acorn";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +46,222 @@ function cleanupExpiredSessions() {
 }
 
 setInterval(cleanupExpiredSessions, 60 * 1000);
+
+// Helper: Parse JavaScript code to GroundingContext (server-side)
+function parseCodeToGrounding(code: string): GroundingContext {
+  interface SimpleNode {
+    id: string;
+    type: GroundingNodeType;
+    label: string;
+    snippet: string;
+    line: number;
+  }
+  
+  interface SimpleEdge {
+    source: string;
+    target: string;
+    condition?: string;
+  }
+  
+  const nodes: SimpleNode[] = [];
+  const edges: SimpleEdge[] = [];
+  let nodeCounter = 0;
+  let complexityScore = 0;
+  
+  const createNodeId = () => `n${nodeCounter++}`;
+  
+  try {
+    const ast = acorn.parse(code, {
+      ecmaVersion: 2020,
+      sourceType: 'module',
+      locations: true
+    });
+    
+    function processNode(node: any, parentId: string | null): string | null {
+      if (!node) return null;
+      
+      switch (node.type) {
+        case 'FunctionDeclaration':
+        case 'FunctionExpression':
+        case 'ArrowFunctionExpression': {
+          const id = createNodeId();
+          const name = node.id?.name || 'anonymous';
+          nodes.push({
+            id,
+            type: 'FUNCTION',
+            label: `function ${name}`,
+            snippet: code.slice(node.start, Math.min(node.start + 50, node.end)),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          
+          if (node.body) {
+            const bodyStatements = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
+            let lastId = id;
+            for (const stmt of bodyStatements) {
+              const stmtId = processNode(stmt, lastId);
+              if (stmtId) lastId = stmtId;
+            }
+          }
+          return id;
+        }
+        
+        case 'IfStatement': {
+          complexityScore++;
+          const id = createNodeId();
+          const testCode = code.slice(node.test.start, node.test.end);
+          nodes.push({
+            id,
+            type: 'DECISION',
+            label: `if (${testCode.slice(0, 30)})`,
+            snippet: testCode.slice(0, 50),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          
+          const consequentId = processNode(node.consequent, id);
+          if (consequentId) edges.push({ source: id, target: consequentId, condition: 'true' });
+          
+          if (node.alternate) {
+            const alternateId = processNode(node.alternate, id);
+            if (alternateId) edges.push({ source: id, target: alternateId, condition: 'false' });
+          }
+          return id;
+        }
+        
+        case 'ForStatement':
+        case 'WhileStatement':
+        case 'ForOfStatement':
+        case 'ForInStatement': {
+          complexityScore++;
+          const id = createNodeId();
+          const loopType = node.type.replace('Statement', '').toLowerCase();
+          nodes.push({
+            id,
+            type: 'LOOP',
+            label: loopType,
+            snippet: code.slice(node.start, Math.min(node.start + 50, node.end)),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          
+          if (node.body) processNode(node.body, id);
+          return id;
+        }
+        
+        case 'SwitchStatement': {
+          complexityScore++;
+          const id = createNodeId();
+          const discrim = code.slice(node.discriminant.start, node.discriminant.end);
+          nodes.push({
+            id,
+            type: 'DECISION',
+            label: `switch (${discrim.slice(0, 20)})`,
+            snippet: discrim.slice(0, 50),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          return id;
+        }
+        
+        case 'ReturnStatement': {
+          const id = createNodeId();
+          const retValue = node.argument ? code.slice(node.argument.start, node.argument.end) : 'void';
+          nodes.push({
+            id,
+            type: 'ACTION',
+            label: `return ${retValue.slice(0, 20)}`,
+            snippet: retValue.slice(0, 50),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          return id;
+        }
+        
+        case 'ExpressionStatement': {
+          const id = createNodeId();
+          const exprCode = code.slice(node.expression.start, node.expression.end);
+          nodes.push({
+            id,
+            type: 'ACTION',
+            label: exprCode.slice(0, 40),
+            snippet: exprCode.slice(0, 50),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          return id;
+        }
+        
+        case 'VariableDeclaration': {
+          const id = createNodeId();
+          const declCode = code.slice(node.start, node.end);
+          nodes.push({
+            id,
+            type: 'ACTION',
+            label: declCode.slice(0, 40),
+            snippet: declCode.slice(0, 50),
+            line: node.loc?.start?.line || 0
+          });
+          if (parentId) edges.push({ source: parentId, target: id });
+          return id;
+        }
+        
+        case 'BlockStatement': {
+          let lastId = parentId;
+          for (const stmt of node.body) {
+            const stmtId = processNode(stmt, lastId);
+            if (stmtId) lastId = stmtId;
+          }
+          return lastId;
+        }
+        
+        default:
+          return parentId;
+      }
+    }
+    
+    // Process all top-level statements
+    const body = (ast as any).body;
+    let lastId: string | null = null;
+    for (const node of body) {
+      const nodeId = processNode(node, lastId);
+      if (nodeId) lastId = nodeId;
+    }
+    
+  } catch (error) {
+    console.error("Acorn parse error:", error);
+  }
+  
+  // Build parent/children maps
+  const parentMap = new Map<string, string[]>();
+  const childrenMap = new Map<string, Array<{ targetId: string; condition?: string }>>();
+  
+  edges.forEach(edge => {
+    if (!parentMap.has(edge.target)) parentMap.set(edge.target, []);
+    parentMap.get(edge.target)!.push(edge.source);
+    
+    if (!childrenMap.has(edge.source)) childrenMap.set(edge.source, []);
+    childrenMap.get(edge.source)!.push({ targetId: edge.target, condition: edge.condition });
+  });
+  
+  const groundingNodes: GroundingNode[] = nodes.map(n => ({
+    id: n.id,
+    type: n.type,
+    label: n.label,
+    snippet: n.snippet,
+    parents: parentMap.get(n.id) || [],
+    children: childrenMap.get(n.id) || []
+  }));
+  
+  return {
+    summary: {
+      entryPoint: nodes[0]?.id || 'unknown',
+      nodeCount: nodes.length,
+      complexityScore
+    },
+    flow: groundingNodes
+  };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve LogiGo demo files (must be before Vite middleware)
@@ -126,6 +344,30 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       console.error("Code rewrite error:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to rewrite code" 
+      });
+    }
+  });
+
+  // ============================================
+  // Grounding Layer API - AI Context Export
+  // ============================================
+
+  app.post("/api/export/grounding", (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Missing or invalid 'code' field" });
+      }
+
+      // Parse the code to extract flowchart structure
+      const grounding = parseCodeToGrounding(code);
+      
+      res.json(grounding);
+    } catch (error) {
+      console.error("Grounding export error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to generate grounding context" 
       });
     }
   });
