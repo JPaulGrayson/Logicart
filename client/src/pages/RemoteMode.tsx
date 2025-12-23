@@ -1566,8 +1566,8 @@ async function checkpoint(id, variables = {}) {
 
             {/* Main View - Flowchart with Playback Controls */}
             <div className="lg:col-span-3 flex flex-col gap-4">
-              <Card className={`bg-gray-800 border-gray-700 overflow-hidden ${isFullscreen ? 'fixed inset-4 z-50 flex flex-col' : ''}`}>
-                <Tabs defaultValue="flowchart" className="h-full flex flex-col">
+              <Card className={`bg-gray-800 border-gray-700 flex flex-col ${isFullscreen ? 'fixed inset-4 z-50' : 'min-h-[450px]'}`}>
+                <Tabs defaultValue="flowchart" className="flex-1 flex flex-col min-h-0">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1704,8 +1704,8 @@ async function checkpoint(id, variables = {}) {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 p-0">
-                    <TabsContent value="flowchart" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                  <CardContent className="flex-1 p-0 min-h-0 flex flex-col">
+                    <TabsContent value="flowchart" className="m-0 flex-1 min-h-[300px]">
                       <div ref={flowchartRef} className="h-full w-full">
                         <ReactFlowProvider>
                           <TraceFlowchartPanel 
@@ -1718,7 +1718,7 @@ async function checkpoint(id, variables = {}) {
                       </div>
                     </TabsContent>
                     {sessionInfo?.code && (
-                      <TabsContent value="codeview" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                      <TabsContent value="codeview" className="m-0 flex-1 min-h-[300px]">
                         <ReactFlowProvider>
                           <CodeFlowchartPanel 
                             code={sessionInfo.code}
@@ -1733,7 +1733,7 @@ async function checkpoint(id, variables = {}) {
                         </ReactFlowProvider>
                       </TabsContent>
                     )}
-                    <TabsContent value="timeline" className={`m-0 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'} overflow-auto`}>
+                    <TabsContent value="timeline" className="m-0 flex-1 min-h-[300px] overflow-auto">
                       <CheckpointTimelinePanel 
                         checkpoints={checkpoints}
                         activeCheckpoint={activeCheckpoint}
@@ -1741,7 +1741,7 @@ async function checkpoint(id, variables = {}) {
                         onCheckpointClick={(index) => handleStepChange(index + 1)}
                       />
                     </TabsContent>
-                    <TabsContent value="trace" className={`m-0 px-4 pb-4 ${isFullscreen ? 'h-[calc(100vh-280px)]' : 'h-[280px]'}`}>
+                    <TabsContent value="trace" className="m-0 px-4 pb-4 flex-1 min-h-[300px]">
                       <ScrollArea className="h-full">
                         {renderTraceView()}
                       </ScrollArea>
