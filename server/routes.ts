@@ -978,6 +978,144 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     }
   }
   
+  // ============================================
+  // Zero-Code Auto-Discovery & Function Wrapping
+  // ============================================
+  // NOTE: This feature works with traditional global scripts.
+  // For ES module/Vite apps, use the logigo-vite-plugin for build-time instrumentation.
+  
+  var discoveredCode = [];
+  var discoveredSrcSet = new Set();
+  var wrappedFunctions = new Set();
+  var autoDiscoveryEnabled = false; // Opt-in for security
+  
+  // Enable auto-discovery (opt-in for security - code will be sent to Studio)
+  window.LogiGo.enableAutoDiscovery = function() {
+    autoDiscoveryEnabled = true;
+    console.log('[LogiGo] Auto-discovery enabled. Source code will be sent to Studio for visualization.');
+    return window.LogiGo.autoDiscover();
+  };
+  
+  // Auto-discover inline and external scripts
+  function discoverScripts() {
+    var scripts = document.querySelectorAll('script');
+    var promises = [];
+    
+    scripts.forEach(function(script) {
+      // Skip LogiGo's own script, external libraries, and already-discovered
+      if (script.src && script.src.includes('remote.js')) return;
+      if (script.src && (script.src.includes('node_modules') || script.src.includes('cdn') || script.src.includes('unpkg') || script.src.includes('jsdelivr'))) return;
+      
+      var srcKey = script.src || ('inline-' + script.textContent.slice(0, 50));
+      if (discoveredSrcSet.has(srcKey)) return;
+      discoveredSrcSet.add(srcKey);
+      
+      if (script.src && !script.src.includes('node_modules')) {
+        // External script - fetch it
+        promises.push(
+          fetch(script.src)
+            .then(function(r) { return r.ok ? r.text() : ''; })
+            .then(function(code) {
+              if (code && code.length > 10) {
+                discoveredCode.push({ src: script.src, code: code });
+              }
+            })
+            .catch(function() {})
+        );
+      } else if (script.textContent && script.textContent.trim().length > 10) {
+        // Inline script
+        discoveredCode.push({ src: 'inline', code: script.textContent });
+      }
+    });
+    
+    return Promise.all(promises);
+  }
+  
+  // Simple function extractor using regex (for zero-dependency operation)
+  function extractFunctions(code) {
+    var functions = [];
+    // Match: function name(...) { or const/let/var name = function(...) { or const/let/var name = (...) =>
+    var fnRegex = /(?:function\\s+(\\w+)|(?:const|let|var)\\s+(\\w+)\\s*=\\s*(?:function|\\([^)]*\\)\\s*=>|async\\s+function|async\\s*\\([^)]*\\)\\s*=>))/g;
+    var match;
+    while ((match = fnRegex.exec(code)) !== null) {
+      var name = match[1] || match[2];
+      if (name && !wrappedFunctions.has(name)) {
+        functions.push(name);
+      }
+    }
+    return functions;
+  }
+  
+  // Wrap global functions to auto-fire checkpoints
+  function wrapGlobalFunctions() {
+    var wrappedCount = 0;
+    discoveredCode.forEach(function(item) {
+      var fns = extractFunctions(item.code);
+      fns.forEach(function(fnName) {
+        if (typeof window[fnName] === 'function' && !wrappedFunctions.has(fnName)) {
+          var original = window[fnName];
+          wrappedFunctions.add(fnName);
+          
+          window[fnName] = function() {
+            checkpoint(fnName + '-start', { args: Array.prototype.slice.call(arguments).slice(0, 3) });
+            try {
+              var result = original.apply(this, arguments);
+              if (result && typeof result.then === 'function') {
+                return result.then(function(r) {
+                  checkpoint(fnName + '-end', { result: typeof r });
+                  return r;
+                }).catch(function(e) {
+                  checkpoint(fnName + '-error', { error: e.message });
+                  throw e;
+                });
+              }
+              checkpoint(fnName + '-end', { result: typeof result });
+              return result;
+            } catch (e) {
+              checkpoint(fnName + '-error', { error: e.message });
+              throw e;
+            }
+          };
+          wrappedCount++;
+        }
+      });
+    });
+    if (wrappedCount > 0) {
+      console.log('[LogiGo] Auto-wrapped ' + wrappedCount + ' global function(s)');
+    }
+  }
+  
+  // Auto-register all discovered code with Studio
+  function autoRegisterCode() {
+    if (discoveredCode.length === 0) return;
+    
+    var combined = discoveredCode.map(function(item) {
+      return '// Source: ' + item.src + '\\n' + item.code;
+    }).join('\\n\\n');
+    
+    if (combined.length > 100) {
+      window.LogiGo.registerCode(combined);
+      console.log('[LogiGo] Registered ' + discoveredCode.length + ' script(s) for flowchart visualization');
+    }
+  }
+  
+  // Run auto-discovery (can be called manually)
+  window.LogiGo.autoDiscover = function() {
+    if (!autoDiscoveryEnabled) {
+      console.log('[LogiGo] Auto-discovery is disabled. Call LogiGo.enableAutoDiscovery() to enable.');
+      return Promise.resolve({ scriptsFound: 0, functionsWrapped: 0, enabled: false });
+    }
+    
+    return discoverScripts().then(function() {
+      autoRegisterCode();
+      wrapGlobalFunctions();
+      return { scriptsFound: discoveredCode.length, functionsWrapped: wrappedFunctions.size, enabled: true };
+    });
+  };
+  
+  // Show hint about auto-discovery in console
+  console.log('[LogiGo] Tip: Call LogiGo.enableAutoDiscovery() to auto-wrap global functions (works with traditional scripts, not ES modules)');
+  
   // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {
     function showBadge() {

@@ -141,6 +141,21 @@ Preferred communication style: Simple, everyday language.
 - **Remote Highlight Overlay**: Animated blue border with smooth transitions, falls back to toast notification
 - **Studio Integration**: `handleNodeClick` sends highlight commands, `handshakeNodeId` tracks pending handshakes
 
+### Zero-Code Auto-Discovery
+- **Purpose**: Enable "vibe coders" to get LogiGo integration with just one script tag plus one console call.
+- **Limitation**: Only works with traditional global scripts (functions on `window`). ES module/Vite apps need the logigo-vite-plugin for build-time instrumentation.
+- **Security**: Opt-in only - call `LogiGo.enableAutoDiscovery()` to consent to sending source code to Studio.
+- **Features**:
+  - `discoverScripts()`: Scans all `<script>` tags (inline and external), fetches source code
+  - `extractFunctions()`: Uses regex to identify function declarations and expressions
+  - `wrapGlobalFunctions()`: Wraps discovered global functions with checkpoint-firing wrappers
+  - `autoRegisterCode()`: Sends combined source to Studio for flowchart visualization
+  - De-duplication: Uses `discoveredSrcSet` to prevent duplicate script processing
+- **API**: 
+  - `window.LogiGo.enableAutoDiscovery()`: Enable and run auto-discovery (opt-in for security)
+  - `window.LogiGo.autoDiscover()`: Re-run discovery (requires prior enable)
+- **Checkpoint Behavior**: Fires `{fnName}-start`, `{fnName}-end`, or `{fnName}-error` checkpoints
+
 ## External Dependencies
 
 ### Database

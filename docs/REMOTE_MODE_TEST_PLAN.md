@@ -20,51 +20,38 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 
 ---
 
-## Step 1: Seed VisionLoop with Automatic Instrumentation
+## Step 1: Seed VisionLoop (One Script Tag!)
 
-### 1.1 Install the Vite Plugin
+### 1.1 Add ONE Script Tag
 
-In your VisionLoop project, add the plugin to `vite.config.ts`:
-
-```typescript
-import { defineConfig } from 'vite';
-import { logigoPlugin } from 'logigo-vite-plugin';
-
-export default defineConfig({
-  plugins: [
-    logigoPlugin({
-      // Automatically instrument all JS/TS files
-      autoInstrument: true,
-      // Capture variables in scope at each checkpoint
-      captureVariables: true,
-      // Output manifest for pre-computed flowchart
-      manifestPath: 'logigo-manifest.json'
-    })
-  ]
-});
-```
-
-### 1.2 Add the Runtime Script
-
-The plugin auto-injects the runtime, but for Remote Mode you also need the connection script:
+Add this single line to your app's HTML:
 
 ```html
-<!-- In your index.html -->
 <script src="https://YOUR-LOGIGO-URL/remote.js?project=VisionLoop"></script>
 ```
 
-### 1.3 Build and Run
+### 1.2 What Happens Automatically
 
-```bash
-npm run build  # or npm run dev for development
+When the page loads:
+1. **Connection established** - Session created with Studio
+2. **Badge appears** - Floating "View in LogiGo" badge in bottom-right
+3. **Tip shown in console** - How to enable auto-discovery
+
+### 1.3 Enable Auto-Discovery (Opt-In)
+
+For traditional script apps, enable auto-discovery in your browser console:
+
+```javascript
+LogiGo.enableAutoDiscovery()
 ```
 
-The plugin will:
-- ✅ Parse all JS/TS files with Acorn
-- ✅ Inject `LogiGo.checkpoint()` at every statement, decision, loop, return
-- ✅ Capture in-scope variables automatically
-- ✅ Generate `logigo-manifest.json` with flowchart nodes/edges
-- ✅ Emit `logigo-runtime.js` with the full API
+This will:
+- ✅ Scan all `<script>` tags (inline and external)
+- ✅ Send source to Studio for flowchart visualization
+- ✅ Wrap global functions to fire checkpoints on entry/exit
+
+> **Note:** Auto-discovery works with **traditional global scripts** only.
+> For ES module/Vite apps, use the Vite plugin (see Alternative section).
 
 ### 1.4 Verify Connection
 
@@ -73,12 +60,48 @@ Open your app in a browser. Check the console for:
 ```
 🔗 LogiGo Studio connected!
 📊 View flowchart at: https://YOUR-LOGIGO-URL/?session=SESSION_ID
+[LogiGo] Tip: Call LogiGo.enableAutoDiscovery() to auto-wrap global functions
+```
+
+After calling `enableAutoDiscovery()`:
+```
+[LogiGo] Auto-discovery enabled. Source code will be sent to Studio for visualization.
+[LogiGo] Registered 3 script(s) for flowchart visualization
+[LogiGo] Auto-wrapped 5 global function(s)
 ```
 
 **Expected:**
 - ✅ Floating badge appears (bottom-right): "View in LogiGo" with green dot
 - ✅ Console shows connection messages
-- ✅ Checkpoints fire automatically as code executes
+- ✅ After enabling auto-discovery, function checkpoints fire when code executes
+
+---
+
+## Alternative: Vite Plugin (Optional, for Build-Time Instrumentation)
+
+For more granular control, you can use the Vite plugin instead:
+
+### Install the Vite Plugin
+
+```typescript
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { logigoPlugin } from 'logigo-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    logigoPlugin({
+      autoInstrument: true,
+      captureVariables: true
+    })
+  ]
+});
+```
+
+This provides:
+- ✅ Build-time instrumentation (faster runtime)
+- ✅ Statement-level checkpoints (not just function entry/exit)
+- ✅ Pre-computed flowchart manifest
 
 ---
 
