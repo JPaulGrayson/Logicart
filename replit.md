@@ -119,6 +119,28 @@ Preferred communication style: Simple, everyday language.
 ### Breakpoints
 - **Functionality**: Right-click flowchart nodes to toggle breakpoints (red dot indicator); execution pauses at breakpoints.
 
+### Self-Healing Connection Loop
+- **Purpose**: Automatic connection recovery for remote sessions between external apps and Studio.
+- **Remote.js Features**:
+  - `fetchWithRetry`: Exponential backoff (3 retries, 1s base delay) for checkpoint sending
+  - Session renewal: Creates new session on 404 errors, updates SESSION_ID globally
+  - Status badge with colored dot (green=connected, yellow=reconnecting, red=error)
+- **Studio SSE Features**:
+  - Automatic reconnection with exponential backoff (5 attempts, 1s base delay)
+  - Connection status states: `disconnected` → `connecting` → `connected` → `reconnecting`
+  - Visual indicator in header badge with pulsing animation
+
+### Visual Handshake
+- **Purpose**: Bidirectional click-to-highlight between Studio flowchart and remote app DOM elements.
+- **WebSocket Control Channel**: `/api/remote/control/:sessionId` with session-scoped messaging
+- **Message Types** (defined in `shared/control-types.ts`):
+  - `HIGHLIGHT_ELEMENT`: Studio → Remote (click node to highlight in remote app)
+  - `CONFIRM_HIGHLIGHT`: Remote → Studio (acknowledgment with element selector)
+  - `REMOTE_FOCUS`: Remote → Studio (click element to highlight node)
+  - `PING/PONG`: Heartbeat for connection health
+- **Remote Highlight Overlay**: Animated blue border with smooth transitions, falls back to toast notification
+- **Studio Integration**: `handleNodeClick` sends highlight commands, `handshakeNodeId` tracks pending handshakes
+
 ## External Dependencies
 
 ### Database
