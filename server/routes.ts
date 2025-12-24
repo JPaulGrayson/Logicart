@@ -655,27 +655,125 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   var hasOpenedLogigo = false;
   var checkpointCount = 0;
   
+  // Self-healing configuration
+  var MAX_RETRIES = 3;
+  var BASE_DELAY = 1000;
+  var sessionExpired = false;
+  var registeredCode = null;
+  var connectionStatus = 'connected';
+  
   console.log("🔗 LogiGo Studio connected!");
   console.log("📊 View flowchart at: ${studioUrl}");
   ${sourceCode ? 'console.log("📝 Source code loaded for visualization");' : ''}
+  
+  // Helper: sleep for exponential backoff
+  function sleep(ms) {
+    return new Promise(function(resolve) { setTimeout(resolve, ms); });
+  }
+  
+  // Helper: update connection status and badge
+  function updateStatus(status) {
+    connectionStatus = status;
+    var badge = document.getElementById("logigo-badge");
+    if (!badge) return;
+    var statusDot = badge.querySelector(".logigo-status-dot");
+    if (!statusDot) return;
+    if (status === 'connected') {
+      statusDot.style.background = '#22c55e';
+      statusDot.title = 'Connected';
+    } else if (status === 'reconnecting') {
+      statusDot.style.background = '#f59e0b';
+      statusDot.title = 'Reconnecting...';
+    } else if (status === 'error') {
+      statusDot.style.background = '#ef4444';
+      statusDot.title = 'Connection error';
+    }
+  }
+  
+  // Helper: retry with exponential backoff
+  async function fetchWithRetry(url, options, retries) {
+    retries = retries === undefined ? MAX_RETRIES : retries;
+    var lastError;
+    for (var attempt = 0; attempt <= retries; attempt++) {
+      try {
+        var response = await fetch(url, options);
+        if (response.ok) {
+          updateStatus('connected');
+          return response;
+        }
+        if (response.status === 404) {
+          console.warn("[LogiGo] Session expired (404). Attempting renewal...");
+          var renewed = await renewSession();
+          if (renewed) {
+            // Update the request body with the new session ID
+            var parsed = JSON.parse(options.body);
+            parsed.sessionId = SESSION_ID;
+            options.body = JSON.stringify(parsed);
+            attempt = -1; // Reset attempts after successful renewal
+            continue;
+          }
+        }
+        lastError = new Error("HTTP " + response.status);
+      } catch (e) {
+        lastError = e;
+      }
+      if (attempt < retries) {
+        var delay = BASE_DELAY * Math.pow(2, attempt);
+        updateStatus('reconnecting');
+        console.log("[LogiGo] Retry " + (attempt + 1) + "/" + retries + " in " + delay + "ms...");
+        await sleep(delay);
+      }
+    }
+    updateStatus('error');
+    throw lastError;
+  }
+  
+  // Session renewal: create new session and migrate
+  async function renewSession() {
+    try {
+      console.log("[LogiGo] Creating new session...");
+      var response = await fetch(LOGIGO_URL + "/api/remote/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: PROJECT_NAME, code: registeredCode }),
+        mode: "cors"
+      });
+      if (!response.ok) {
+        console.error("[LogiGo] Session renewal failed:", response.status);
+        return false;
+      }
+      var data = await response.json();
+      var oldSessionId = SESSION_ID;
+      SESSION_ID = data.sessionId;
+      window.LogiGo.sessionId = SESSION_ID;
+      window.LogiGo.viewUrl = data.studioUrl || (LOGIGO_URL + "/?session=" + SESSION_ID);
+      window.LogiGo.studioUrl = data.studioUrl || (LOGIGO_URL + "/?session=" + SESSION_ID);
+      console.log("✅ [LogiGo] Session renewed: " + oldSessionId.slice(0,8) + " → " + SESSION_ID.slice(0,8));
+      console.log("📊 New Studio URL: " + window.LogiGo.studioUrl);
+      updateStatus('connected');
+      sessionExpired = false;
+      return true;
+    } catch (e) {
+      console.error("[LogiGo] Session renewal error:", e.message);
+      return false;
+    }
+  }
   
   // Auto-open LogiGo Studio on first checkpoint
   function openLogigoIfNeeded() {
     if (AUTO_OPEN && !hasOpenedLogigo && checkpointCount === 1) {
       hasOpenedLogigo = true;
-      window.open("${studioUrl}", "_blank", "noopener,noreferrer");
+      window.open(window.LogiGo.studioUrl, "_blank", "noopener,noreferrer");
       console.log("🚀 LogiGo Studio opened automatically!");
     }
   }
   
-  // Create the checkpoint function
+  // Create the checkpoint function with retry logic
   window.checkpoint = function(id, variables, options) {
     variables = variables || {};
     options = options || {};
     checkpointCount++;
     
-    // Auto-open LogiGo synchronously on first checkpoint (before async fetch)
-    // This happens within the user gesture context to avoid popup blockers
     openLogigoIfNeeded();
     
     var data = {
@@ -688,17 +786,14 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       }
     };
     
-    // Use fetch for cross-origin reliability
     var payload = JSON.stringify(data);
-    fetch(LOGIGO_URL + "/api/remote/checkpoint", {
+    fetchWithRetry(LOGIGO_URL + "/api/remote/checkpoint", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: payload,
       mode: "cors"
-    }).then(function(r) {
-      if (!r.ok) console.warn("[LogiGo] Checkpoint failed:", r.status);
     }).catch(function(e) {
-      console.warn("[LogiGo] Checkpoint error:", e.message);
+      console.warn("[LogiGo] Checkpoint failed after retries:", e.message);
     });
   };
   
@@ -708,34 +803,33 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   window.LogiGo.sessionId = SESSION_ID;
   window.LogiGo.viewUrl = "${studioUrl}";
   window.LogiGo.studioUrl = "${studioUrl}";
-  window.LogiGo.remoteUrl = "${viewUrl}"; // Legacy: Remote Mode URL if needed
+  window.LogiGo.remoteUrl = "${viewUrl}";
+  window.LogiGo.connectionStatus = function() { return connectionStatus; };
+  window.LogiGo.renewSession = renewSession;
   window.LogiGo.openNow = function() {
     if (!hasOpenedLogigo) {
       hasOpenedLogigo = true;
-      window.open("${studioUrl}", "_blank", "noopener,noreferrer");
+      window.open(window.LogiGo.studioUrl, "_blank", "noopener,noreferrer");
     }
   };
   window.LogiGo.openStudio = function() {
-    window.open("${studioUrl}", "_blank", "noopener,noreferrer");
+    window.open(window.LogiGo.studioUrl, "_blank", "noopener,noreferrer");
   };
   window.LogiGo.openRemote = function() {
-    window.open("${viewUrl}", "_blank", "noopener,noreferrer");
+    window.open(window.LogiGo.remoteUrl, "_blank", "noopener,noreferrer");
   };
   
   window.LogiGo.registerCode = function(code) {
-    fetch(LOGIGO_URL + "/api/remote/code", {
+    registeredCode = code;
+    fetchWithRetry(LOGIGO_URL + "/api/remote/code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId: SESSION_ID, code: code }),
       mode: "cors"
     }).then(function(r) {
-      if (r.ok) {
-        console.log("[LogiGo] Code registered for flowchart visualization");
-      } else {
-        console.warn("[LogiGo] Code registration failed:", r.status);
-      }
+      console.log("[LogiGo] Code registered for flowchart visualization");
     }).catch(function(e) {
-      console.warn("[LogiGo] Code registration error:", e.message);
+      console.warn("[LogiGo] Code registration failed after retries:", e.message);
     });
   };
   
@@ -745,7 +839,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       if (document.getElementById("logigo-badge")) return;
       var badge = document.createElement("div");
       badge.id = "logigo-badge";
-      badge.innerHTML = '<a href="${studioUrl}" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
+      badge.innerHTML = '<span class="logigo-status-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:8px;" title="Connected"></span><a href="' + window.LogiGo.studioUrl + '" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
       badge.style.cssText = "position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;font-family:system-ui,-apple-system,sans-serif;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:1px solid #334155;display:flex;align-items:center;";
       badge.querySelector("button").onclick = function() { badge.remove(); };
       document.body.appendChild(badge);

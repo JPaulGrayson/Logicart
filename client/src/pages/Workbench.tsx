@@ -173,10 +173,15 @@ export default function Workbench() {
   // Remote session state (for ?session= URL parameter - connects to external app)
   const [remoteSessionId, setRemoteSessionId] = useState<string | null>(null);
   const [remoteSessionName, setRemoteSessionName] = useState<string | null>(null);
-  const [remoteConnected, setRemoteConnected] = useState(false);
+  const [remoteConnectionStatus, setRemoteConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'reconnecting'>('disconnected');
   const [remoteCheckpoints, setRemoteCheckpoints] = useState<Array<{ id: string; variables: Record<string, unknown>; timestamp: number }>>([]);
   const [remoteActiveCheckpoint, setRemoteActiveCheckpoint] = useState<{ id: string; variables: Record<string, unknown> } | null>(null);
   const remoteEventSourceRef = useRef<EventSource | null>(null);
+  const remoteReconnectAttemptRef = useRef(0);
+  const remoteReconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Backwards compatibility
+  const remoteConnected = remoteConnectionStatus === 'connected';
   
   // Compute active node info for Debug Panel display
   // Always use flowData.nodes for label lookup since diffNodes may not have userLabel data
@@ -238,6 +243,12 @@ export default function Workbench() {
     
     console.log('[Remote Session] Connecting to session:', sessionId);
     setRemoteSessionId(sessionId);
+    setRemoteConnectionStatus('connecting');
+    
+    // Self-healing configuration
+    const MAX_RECONNECT_ATTEMPTS = 5;
+    const BASE_RECONNECT_DELAY = 1000;
+    let sessionEnded = false;
     
     // Fetch session info and code
     fetch(`/api/remote/session/${sessionId}`)
@@ -269,67 +280,108 @@ export default function Workbench() {
       })
       .catch(err => {
         console.error('[Remote Session] Failed to fetch session:', err);
+        setRemoteConnectionStatus('disconnected');
         toast.error('Session not found', {
           description: 'The remote session may have expired. Ask the app to reconnect.'
         });
       });
     
-    // Connect to SSE for live checkpoint updates
-    const eventSource = new EventSource(`/api/remote/stream/${sessionId}`);
-    remoteEventSourceRef.current = eventSource;
-    
-    eventSource.addEventListener('session_info', (e) => {
-      const info = JSON.parse(e.data);
-      setRemoteSessionName(info.name || 'Remote App');
-      setRemoteConnected(true);
+    // SSE connection with automatic reconnection
+    function connectSSE() {
+      if (sessionEnded) return;
       
-      // If code is updated, reload it
-      if (info.code) {
-        adapter.writeFile(info.code);
-      }
-    });
-    
-    eventSource.addEventListener('checkpoint', (e) => {
-      const checkpoint = JSON.parse(e.data);
-      console.log('[Remote Session] Checkpoint received:', checkpoint.id);
-      setRemoteCheckpoints(prev => [...prev, checkpoint]);
-      setRemoteActiveCheckpoint(checkpoint);
-    });
-    
-    eventSource.addEventListener('code_update', (e) => {
-      const { code: newCode } = JSON.parse(e.data);
-      if (newCode) {
-        adapter.writeFile(newCode);
-        toast.info('Code updated from remote app');
-      }
-    });
-    
-    eventSource.addEventListener('session_end', () => {
-      console.log('[Remote Session] Session ended by remote app');
-      setRemoteConnected(false);
-      toast.info('Remote session ended', {
-        description: 'The remote app disconnected. Your flowchart is preserved.'
+      const eventSource = new EventSource(`/api/remote/stream/${sessionId}`);
+      remoteEventSourceRef.current = eventSource;
+      
+      eventSource.addEventListener('session_info', (e) => {
+        const info = JSON.parse(e.data);
+        setRemoteSessionName(info.name || 'Remote App');
+        setRemoteConnectionStatus('connected');
+        remoteReconnectAttemptRef.current = 0; // Reset on successful connection
+        
+        // If code is updated, reload it
+        if (info.code) {
+          adapter.writeFile(info.code);
+        }
       });
-    });
+      
+      eventSource.addEventListener('checkpoint', (e) => {
+        const checkpoint = JSON.parse(e.data);
+        console.log('[Remote Session] Checkpoint received:', checkpoint.id);
+        setRemoteCheckpoints(prev => [...prev, checkpoint]);
+        setRemoteActiveCheckpoint(checkpoint);
+      });
+      
+      eventSource.addEventListener('code_update', (e) => {
+        const { code: newCode } = JSON.parse(e.data);
+        if (newCode) {
+          adapter.writeFile(newCode);
+          toast.info('Code updated from remote app');
+        }
+      });
+      
+      eventSource.addEventListener('session_end', () => {
+        console.log('[Remote Session] Session ended by remote app');
+        sessionEnded = true;
+        setRemoteConnectionStatus('disconnected');
+        toast.info('Remote session ended', {
+          description: 'The remote app disconnected. Your flowchart is preserved.'
+        });
+      });
+      
+      eventSource.onerror = () => {
+        console.warn('[Remote Session] SSE connection error');
+        eventSource.close();
+        remoteEventSourceRef.current = null;
+        
+        // Don't reconnect if session was intentionally ended
+        if (sessionEnded) {
+          setRemoteConnectionStatus('disconnected');
+          return;
+        }
+        
+        // Attempt reconnection with exponential backoff
+        if (remoteReconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+          remoteReconnectAttemptRef.current++;
+          const delay = BASE_RECONNECT_DELAY * Math.pow(2, remoteReconnectAttemptRef.current - 1);
+          console.log(`[Remote Session] Reconnecting in ${delay}ms (attempt ${remoteReconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+          setRemoteConnectionStatus('reconnecting');
+          
+          remoteReconnectTimeoutRef.current = setTimeout(() => {
+            connectSSE();
+          }, delay);
+        } else {
+          console.error('[Remote Session] Max reconnection attempts reached');
+          setRemoteConnectionStatus('disconnected');
+          toast.error('Connection lost', {
+            description: 'Unable to reconnect to remote session. Refresh the page to try again.'
+          });
+        }
+      };
+      
+      eventSource.onopen = () => {
+        console.log('[Remote Session] SSE connected');
+        setRemoteConnectionStatus('connected');
+        remoteReconnectAttemptRef.current = 0;
+      };
+    }
     
-    eventSource.onerror = () => {
-      console.warn('[Remote Session] SSE connection error');
-      setRemoteConnected(false);
-    };
-    
-    eventSource.onopen = () => {
-      console.log('[Remote Session] SSE connected');
-      setRemoteConnected(true);
-    };
+    connectSSE();
     
     // Keep session param in URL for reconnection on refresh
     // Don't clear it - allows page refresh to reconnect
     
     return () => {
-      eventSource.close();
-      remoteEventSourceRef.current = null;
-      // Clear remote state on cleanup
-      setRemoteConnected(false);
+      sessionEnded = true;
+      if (remoteReconnectTimeoutRef.current) {
+        clearTimeout(remoteReconnectTimeoutRef.current);
+        remoteReconnectTimeoutRef.current = null;
+      }
+      if (remoteEventSourceRef.current) {
+        remoteEventSourceRef.current.close();
+        remoteEventSourceRef.current = null;
+      }
+      setRemoteConnectionStatus('disconnected');
     };
   }, [isReady, adapter]);
 
@@ -1943,12 +1995,18 @@ export default function Workbench() {
           )}
           {remoteSessionId && (
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
-              remoteConnected 
+              remoteConnectionStatus === 'connected'
                 ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                : remoteConnectionStatus === 'reconnecting'
+                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                 : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
             }`}>
-              <Wifi className="w-3 h-3" />
-              {remoteConnected ? `Connected: ${remoteSessionName || 'Remote App'}` : 'Connecting...'}
+              <Wifi className={`w-3 h-3 ${remoteConnectionStatus === 'reconnecting' ? 'animate-pulse' : ''}`} />
+              {remoteConnectionStatus === 'connected' 
+                ? `Connected: ${remoteSessionName || 'Remote App'}` 
+                : remoteConnectionStatus === 'reconnecting'
+                ? 'Reconnecting...'
+                : 'Connecting...'}
             </span>
           )}
         </div>
