@@ -1012,6 +1012,9 @@ export default function RemoteMode() {
   
   // Breakpoints state
   const [breakpoints, setBreakpoints] = useState<Set<string>>(new Set());
+  
+  // Active tab state (for controlled Tabs)
+  const [activeTab, setActiveTab] = useState('flowchart');
 
   // Keyboard shortcuts for fullscreen - use functional setState to avoid stale closure
   useEffect(() => {
@@ -1286,9 +1289,14 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
 
   const handleSubmitCode = () => {
     if (codeInput.trim() && sessionInfo) {
+      console.log('[RemoteMode] Submitting code, length:', codeInput.trim().length);
       setSessionInfo({ ...sessionInfo, code: codeInput.trim() });
       setShowCodeDialog(false);
       setCodeInput('');
+      // Auto-switch to Code View tab
+      setActiveTab('codeview');
+    } else {
+      console.log('[RemoteMode] handleSubmitCode failed - codeInput:', !!codeInput.trim(), 'sessionInfo:', !!sessionInfo);
     }
   };
 
@@ -1567,7 +1575,7 @@ async function checkpoint(id, variables = {}) {
             {/* Main View - Flowchart with Playback Controls */}
             <div className="lg:col-span-3 flex flex-col gap-4">
               <Card className={`bg-gray-800 border-gray-700 flex flex-col ${isFullscreen ? 'fixed inset-4 z-50' : 'min-h-[450px]'}`}>
-                <Tabs defaultValue="flowchart" className="flex-1 flex flex-col min-h-0">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
