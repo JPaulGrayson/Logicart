@@ -6,7 +6,7 @@ This guide walks through testing LogiGo's Remote Mode features with an external 
 
 Remote Mode enables external apps to connect to LogiGo Studio for real-time flowchart visualization and debugging. This test plan covers:
 
-1. **Seeding** - Adding the bootstrap script to your app
+1. **Seeding** - Adding the Vite plugin for automatic checkpoint injection
 2. **Self-Healing Loop** - Automatic reconnection and session recovery
 3. **Visual Handshake** - Bidirectional click-to-highlight
 
@@ -15,30 +15,60 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 ## Prerequisites
 
 - LogiGo Studio running at your Replit URL
-- An external app (VisionLoop) where you can add a script tag
+- An external Vite-based app (VisionLoop) 
 - Browser with developer tools for console inspection
 
 ---
 
-## Step 1: Seed the External App
+## Step 1: Seed VisionLoop with Automatic Instrumentation
 
-### 1.1 Add the Bootstrap Script
+### 1.1 Install the Vite Plugin
 
-Add this single line to your external app's HTML:
+In your VisionLoop project, add the plugin to `vite.config.ts`:
+
+```typescript
+import { defineConfig } from 'vite';
+import { logigoPlugin } from 'logigo-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    logigoPlugin({
+      // Automatically instrument all JS/TS files
+      autoInstrument: true,
+      // Capture variables in scope at each checkpoint
+      captureVariables: true,
+      // Output manifest for pre-computed flowchart
+      manifestPath: 'logigo-manifest.json'
+    })
+  ]
+});
+```
+
+### 1.2 Add the Runtime Script
+
+The plugin auto-injects the runtime, but for Remote Mode you also need the connection script:
 
 ```html
+<!-- In your index.html -->
 <script src="https://YOUR-LOGIGO-URL/remote.js?project=VisionLoop"></script>
 ```
 
-**Options:**
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `project` | Session name shown in Studio | "Remote App" |
-| `autoOpen` | Auto-open Studio on first checkpoint | `true` |
+### 1.3 Build and Run
 
-### 1.2 Verify Connection
+```bash
+npm run build  # or npm run dev for development
+```
 
-Open your external app in a browser. Check the console for:
+The plugin will:
+- ✅ Parse all JS/TS files with Acorn
+- ✅ Inject `LogiGo.checkpoint()` at every statement, decision, loop, return
+- ✅ Capture in-scope variables automatically
+- ✅ Generate `logigo-manifest.json` with flowchart nodes/edges
+- ✅ Emit `logigo-runtime.js` with the full API
+
+### 1.4 Verify Connection
+
+Open your app in a browser. Check the console for:
 
 ```
 🔗 LogiGo Studio connected!
@@ -46,50 +76,63 @@ Open your external app in a browser. Check the console for:
 ```
 
 **Expected:**
-- ✅ A floating badge appears (bottom-right): "View in LogiGo" with green dot
+- ✅ Floating badge appears (bottom-right): "View in LogiGo" with green dot
 - ✅ Console shows connection messages
+- ✅ Checkpoints fire automatically as code executes
 
 ---
 
-## Step 2: Add Checkpoints to Your Code
+## Step 2: Automatic Checkpoints (No Manual Code Required!)
 
-### 2.1 Basic Checkpoint
+### How It Works
 
-Add checkpoint calls at key points in your code:
+The Vite plugin automatically instruments your code at build time. Your original code:
 
 ```javascript
 function processImage(image) {
-  checkpoint('image-load', { filename: image.name });
-  
+  const filename = image.name;
   const processed = applyFilters(image);
-  checkpoint('filters-applied', { filterCount: 3 });
-  
   return processed;
 }
 ```
+
+Becomes (after build):
+
+```javascript
+function processImage(image) {
+  LogiGo.checkpoint('fn_abc123', { image });
+  const filename = image.name;
+  LogiGo.checkpoint('var_def456', { image, filename });
+  const processed = applyFilters(image);
+  LogiGo.checkpoint('var_ghi789', { image, filename, processed });
+  return processed;
+  LogiGo.checkpoint('ret_jkl012', { image, filename, processed });
+}
+```
+
+### 2.1 Verify Auto-Instrumentation
+
+1. Run your app
+2. Execute a function
+3. Watch Studio - nodes should highlight as each checkpoint fires
+4. Check the Variables panel - captured variables appear automatically
 
 ### 2.2 Bind Elements (Optional - for Visual Handshake)
 
-To enable element highlighting when clicking flowchart nodes:
+For click-to-highlight between Studio and your app, bind elements to checkpoint IDs:
 
 ```javascript
+// The checkpoint ID comes from the manifest or console logs
 const uploadButton = document.getElementById('upload-btn');
-LogiGo.bindElement('image-load', uploadButton);
+LogiGo.bindElement('fn_abc123', uploadButton);
 ```
 
-### 2.3 Register Source Code (Optional)
+### 2.3 Manual Checkpoints (Optional)
 
-For full flowchart visualization:
+You can still add manual checkpoints for specific debugging:
 
 ```javascript
-LogiGo.registerCode(`
-function processImage(image) {
-  checkpoint('image-load', { filename: image.name });
-  const processed = applyFilters(image);
-  checkpoint('filters-applied', { filterCount: 3 });
-  return processed;
-}
-`);
+checkpoint('custom-step', { myVar: someValue });
 ```
 
 ---
