@@ -642,10 +642,11 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       const host = req.headers.host || 'localhost:5000';
       const baseUrl = `${protocol}://${host}`;
       const viewUrl = `${baseUrl}/remote/${sessionId}`;
+      const studioUrl = `${baseUrl}/?session=${sessionId}`;
 
       // Return the bootstrap script with session info baked in
       const script = `
-// LogiGo Remote Mode - Auto-configured (Zero-Click Experience)
+// LogiGo Studio - Auto-configured (Zero-Click Experience)
 (function() {
   var LOGIGO_URL = "${baseUrl}";
   var SESSION_ID = "${sessionId}";
@@ -654,16 +655,16 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   var hasOpenedLogigo = false;
   var checkpointCount = 0;
   
-  console.log("🔗 LogiGo Remote Mode connected!");
-  console.log("📊 View flowchart at: ${viewUrl}");
+  console.log("🔗 LogiGo Studio connected!");
+  console.log("📊 View flowchart at: ${studioUrl}");
   ${sourceCode ? 'console.log("📝 Source code loaded for visualization");' : ''}
   
-  // Auto-open LogiGo on first checkpoint
+  // Auto-open LogiGo Studio on first checkpoint
   function openLogigoIfNeeded() {
     if (AUTO_OPEN && !hasOpenedLogigo && checkpointCount === 1) {
       hasOpenedLogigo = true;
-      window.open("${viewUrl}", "_blank", "noopener,noreferrer");
-      console.log("🚀 LogiGo opened automatically!");
+      window.open("${studioUrl}", "_blank", "noopener,noreferrer");
+      console.log("🚀 LogiGo Studio opened automatically!");
     }
   }
   
@@ -705,12 +706,20 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   window.LogiGo = window.LogiGo || {};
   window.LogiGo.checkpoint = window.checkpoint;
   window.LogiGo.sessionId = SESSION_ID;
-  window.LogiGo.viewUrl = "${viewUrl}";
+  window.LogiGo.viewUrl = "${studioUrl}";
+  window.LogiGo.studioUrl = "${studioUrl}";
+  window.LogiGo.remoteUrl = "${viewUrl}"; // Legacy: Remote Mode URL if needed
   window.LogiGo.openNow = function() {
     if (!hasOpenedLogigo) {
       hasOpenedLogigo = true;
-      window.open("${viewUrl}", "_blank", "noopener,noreferrer");
+      window.open("${studioUrl}", "_blank", "noopener,noreferrer");
     }
+  };
+  window.LogiGo.openStudio = function() {
+    window.open("${studioUrl}", "_blank", "noopener,noreferrer");
+  };
+  window.LogiGo.openRemote = function() {
+    window.open("${viewUrl}", "_blank", "noopener,noreferrer");
   };
   
   window.LogiGo.registerCode = function(code) {
@@ -736,7 +745,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       if (document.getElementById("logigo-badge")) return;
       var badge = document.createElement("div");
       badge.id = "logigo-badge";
-      badge.innerHTML = '<a href="${viewUrl}" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
+      badge.innerHTML = '<a href="${studioUrl}" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
       badge.style.cssText = "position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;font-family:system-ui,-apple-system,sans-serif;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:1px solid #334155;display:flex;align-items:center;";
       badge.querySelector("button").onclick = function() { badge.remove(); };
       document.body.appendChild(badge);

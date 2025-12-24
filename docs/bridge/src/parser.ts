@@ -478,12 +478,35 @@ export function parseCodeToFlow(code: string): FlowData {
           currentParent = node.id;
         } else if (stmt.type === 'ExpressionStatement') {
           let label = 'Expression';
+          let checkpointId: string | undefined;
+          
           if (stmt.expression.type === 'AssignmentExpression') {
             label = `${stmt.expression.left.name} = ...`;
           } else if (stmt.expression.type === 'CallExpression') {
-            label = `${stmt.expression.callee.name}(...)`;
+            const calleeName = stmt.expression.callee?.name || 
+                               (stmt.expression.callee?.property?.name) || 
+                               'fn';
+            label = `${calleeName}(...)`;
+            
+            // Extract checkpoint ID from checkpoint() or LogiGo.checkpoint() calls
+            const isCheckpoint = calleeName === 'checkpoint' || 
+                                 (stmt.expression.callee?.object?.name === 'LogiGo' && 
+                                  stmt.expression.callee?.property?.name === 'checkpoint');
+            
+            if (isCheckpoint && stmt.expression.arguments?.length > 0) {
+              const firstArg = stmt.expression.arguments[0];
+              if (firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
+                checkpointId = firstArg.value;
+                label = `checkpoint('${checkpointId}', ...)`;
+              }
+            }
           }
+          
           const node = createNode(stmt, label, 'default', undefined, loc);
+          // Set checkpointId as userLabel for remote session matching
+          if (checkpointId && node.data) {
+            node.data.userLabel = checkpointId;
+          }
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
           currentParent = node.id;

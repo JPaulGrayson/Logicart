@@ -170,6 +170,14 @@ export default function Workbench() {
   });
   const [liveCheckpoints, setLiveCheckpoints] = useState<CheckpointPayload[]>([]);
   
+  // Remote session state (for ?session= URL parameter - connects to external app)
+  const [remoteSessionId, setRemoteSessionId] = useState<string | null>(null);
+  const [remoteSessionName, setRemoteSessionName] = useState<string | null>(null);
+  const [remoteConnected, setRemoteConnected] = useState(false);
+  const [remoteCheckpoints, setRemoteCheckpoints] = useState<Array<{ id: string; variables: Record<string, unknown>; timestamp: number }>>([]);
+  const [remoteActiveCheckpoint, setRemoteActiveCheckpoint] = useState<{ id: string; variables: Record<string, unknown> } | null>(null);
+  const remoteEventSourceRef = useRef<EventSource | null>(null);
+  
   // Compute active node info for Debug Panel display
   // Always use flowData.nodes for label lookup since diffNodes may not have userLabel data
   const activeNodeInfo = useMemo(() => {
@@ -220,6 +228,159 @@ export default function Workbench() {
       }
     }
   }, [isReady, adapter]);
+
+  // Connect to remote session if ?session= URL parameter is present
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
+    
+    if (!sessionId || !isReady) return;
+    
+    console.log('[Remote Session] Connecting to session:', sessionId);
+    setRemoteSessionId(sessionId);
+    
+    // Fetch session info and code
+    fetch(`/api/remote/session/${sessionId}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Session not found');
+        return res.json();
+      })
+      .then(info => {
+        console.log('[Remote Session] Session info:', info);
+        setRemoteSessionName(info.name || 'Remote App');
+        
+        // Load code into editor if provided
+        if (info.code) {
+          adapter.writeFile(info.code);
+          toast.success(`Connected to ${info.name || 'Remote App'}`, {
+            description: 'Code loaded and listening for checkpoints'
+          });
+        } else {
+          toast.info(`Connected to ${info.name || 'Remote App'}`, {
+            description: 'Listening for checkpoints. Use "Add Source Code" in the remote app to visualize the full flowchart.'
+          });
+        }
+        
+        // Load existing checkpoints
+        if (info.checkpoints && info.checkpoints.length > 0) {
+          setRemoteCheckpoints(info.checkpoints);
+          setRemoteActiveCheckpoint(info.checkpoints[info.checkpoints.length - 1]);
+        }
+      })
+      .catch(err => {
+        console.error('[Remote Session] Failed to fetch session:', err);
+        toast.error('Session not found', {
+          description: 'The remote session may have expired. Ask the app to reconnect.'
+        });
+      });
+    
+    // Connect to SSE for live checkpoint updates
+    const eventSource = new EventSource(`/api/remote/stream/${sessionId}`);
+    remoteEventSourceRef.current = eventSource;
+    
+    eventSource.addEventListener('session_info', (e) => {
+      const info = JSON.parse(e.data);
+      setRemoteSessionName(info.name || 'Remote App');
+      setRemoteConnected(true);
+      
+      // If code is updated, reload it
+      if (info.code) {
+        adapter.writeFile(info.code);
+      }
+    });
+    
+    eventSource.addEventListener('checkpoint', (e) => {
+      const checkpoint = JSON.parse(e.data);
+      console.log('[Remote Session] Checkpoint received:', checkpoint.id);
+      setRemoteCheckpoints(prev => [...prev, checkpoint]);
+      setRemoteActiveCheckpoint(checkpoint);
+    });
+    
+    eventSource.addEventListener('code_update', (e) => {
+      const { code: newCode } = JSON.parse(e.data);
+      if (newCode) {
+        adapter.writeFile(newCode);
+        toast.info('Code updated from remote app');
+      }
+    });
+    
+    eventSource.addEventListener('session_end', () => {
+      console.log('[Remote Session] Session ended by remote app');
+      setRemoteConnected(false);
+      toast.info('Remote session ended', {
+        description: 'The remote app disconnected. Your flowchart is preserved.'
+      });
+    });
+    
+    eventSource.onerror = () => {
+      console.warn('[Remote Session] SSE connection error');
+      setRemoteConnected(false);
+    };
+    
+    eventSource.onopen = () => {
+      console.log('[Remote Session] SSE connected');
+      setRemoteConnected(true);
+    };
+    
+    // Keep session param in URL for reconnection on refresh
+    // Don't clear it - allows page refresh to reconnect
+    
+    return () => {
+      eventSource.close();
+      remoteEventSourceRef.current = null;
+      // Clear remote state on cleanup
+      setRemoteConnected(false);
+    };
+  }, [isReady, adapter]);
+
+  // Highlight flowchart node when remote checkpoint arrives
+  useEffect(() => {
+    if (!remoteActiveCheckpoint || flowData.nodes.length === 0) return;
+    
+    const checkpointId = remoteActiveCheckpoint.id;
+    
+    // Try to find a matching node using deterministic matching:
+    // 1. Exact match on userLabel (highest priority - set by parser for checkpoint nodes)
+    // 2. Exact match on checkpoint ID in label (e.g., checkpoint('upload-start'))
+    const matchingNode = flowData.nodes.find(node => {
+      const label = (node.data?.label as string) || '';
+      const userLabel = (node.data?.userLabel as string) || '';
+      
+      // Priority 1: Exact match on userLabel (most reliable)
+      if (userLabel === checkpointId) {
+        return true;
+      }
+      
+      // Priority 2: Exact match with quoted checkpoint ID in label
+      // Match checkpoint('id') or checkpoint("id") patterns exactly
+      const singleQuoteMatch = label.match(/checkpoint\s*\(\s*'([^']+)'\s*[,)]/);
+      const doubleQuoteMatch = label.match(/checkpoint\s*\(\s*"([^"]+)"\s*[,)]/);
+      const extractedId = singleQuoteMatch?.[1] || doubleQuoteMatch?.[1];
+      
+      if (extractedId === checkpointId) {
+        return true;
+      }
+      
+      return false;
+    });
+    
+    if (matchingNode) {
+      console.log('[Remote Session] Highlighting node:', matchingNode.id, 'for checkpoint:', checkpointId);
+      setActiveNodeId(matchingNode.id);
+      
+      // Also update execution state to show variables in the panel
+      setExecutionState({
+        variables: remoteActiveCheckpoint.variables,
+        callStack: [],
+        currentNodeId: matchingNode.id,
+        status: 'running',
+        output: [],
+        error: undefined
+      });
+    } else {
+      console.log('[Remote Session] No matching node found for checkpoint:', checkpointId);
+    }
+  }, [remoteActiveCheckpoint, flowData.nodes]);
 
   // Clear breakpoints and variable history when code changes
   useEffect(() => {
@@ -1778,6 +1939,16 @@ export default function Workbench() {
           {features.hasFeature('ghostDiff') && (
             <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
               Premium
+            </span>
+          )}
+          {remoteSessionId && (
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
+              remoteConnected 
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+            }`}>
+              <Wifi className="w-3 h-3" />
+              {remoteConnected ? `Connected: ${remoteSessionName || 'Remote App'}` : 'Connecting...'}
             </span>
           )}
         </div>
