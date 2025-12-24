@@ -7,7 +7,9 @@ import express from "express";
 import OpenAI from "openai";
 import crypto from "crypto";
 import type { GroundingContext, GroundingNode, GroundingNodeType } from "@shared/grounding-types";
+import type { ControlMessage, StudioToRemoteMessage, RemoteToStudioMessage } from "@shared/control-types";
 import * as acorn from "acorn";
+import { WebSocketServer, WebSocket } from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,6 +27,8 @@ interface RemoteSession {
   code?: string;
   checkpoints: Checkpoint[];
   sseClients: Response[];
+  studioWsClients: Set<WebSocket>;
+  remoteWsClients: Set<WebSocket>;
   createdAt: Date;
   lastActivity: Date;
 }
@@ -421,6 +425,8 @@ Rewrite the code according to the instructions. Output only the new code, no exp
         code: code || undefined,
         checkpoints: [],
         sseClients: [],
+        studioWsClients: new Set(),
+        remoteWsClients: new Set(),
         createdAt: new Date(),
         lastActivity: new Date()
       };
@@ -633,6 +639,8 @@ Rewrite the code according to the instructions. Output only the new code, no exp
         code: sourceCode,
         checkpoints: [],
         sseClients: [],
+        studioWsClients: new Set(),
+        remoteWsClients: new Set(),
         createdAt: new Date(),
         lastActivity: new Date()
       };
@@ -833,6 +841,143 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     });
   };
   
+  // ============================================
+  // Visual Handshake - WebSocket Control Channel
+  // ============================================
+  
+  var controlWs = null;
+  var wsReconnectAttempts = 0;
+  var wsMaxRetries = 5;
+  var checkpointElements = {};
+  
+  function getWsUrl() {
+    var wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    var wsHost = LOGIGO_URL.replace(/^https?:/, wsProtocol);
+    return wsHost + "/api/remote/control/" + SESSION_ID + "?type=remote";
+  }
+  
+  function connectControlChannel() {
+    if (controlWs && controlWs.readyState === WebSocket.OPEN) return;
+    
+    try {
+      controlWs = new WebSocket(getWsUrl());
+      
+      controlWs.onopen = function() {
+        console.log("[LogiGo] Control channel connected");
+        wsReconnectAttempts = 0;
+      };
+      
+      controlWs.onmessage = function(event) {
+        try {
+          var msg = JSON.parse(event.data);
+          if (msg.type === "HIGHLIGHT_ELEMENT") {
+            highlightCheckpoint(msg.checkpointId, msg.nodeId);
+          }
+        } catch (e) {
+          console.warn("[LogiGo] Invalid control message:", e.message);
+        }
+      };
+      
+      controlWs.onclose = function() {
+        console.log("[LogiGo] Control channel disconnected");
+        if (wsReconnectAttempts < wsMaxRetries) {
+          wsReconnectAttempts++;
+          var delay = BASE_DELAY * Math.pow(2, wsReconnectAttempts - 1);
+          console.log("[LogiGo] Reconnecting control channel in " + delay + "ms...");
+          setTimeout(connectControlChannel, delay);
+        }
+      };
+      
+      controlWs.onerror = function(e) {
+        console.warn("[LogiGo] Control channel error");
+      };
+    } catch (e) {
+      console.warn("[LogiGo] Failed to create WebSocket:", e.message);
+    }
+  }
+  
+  // Highlight Overlay Manager
+  function createHighlightOverlay() {
+    var overlay = document.getElementById("logigo-highlight-overlay");
+    if (overlay) return overlay;
+    
+    overlay = document.createElement("div");
+    overlay.id = "logigo-highlight-overlay";
+    overlay.style.cssText = "position:fixed;pointer-events:none;z-index:99998;border:3px solid #3b82f6;border-radius:4px;box-shadow:0 0 20px rgba(59,130,246,0.5);transition:all 0.3s ease;opacity:0;";
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+  
+  function highlightCheckpoint(checkpointId, nodeId) {
+    var element = checkpointElements[checkpointId];
+    var overlay = createHighlightOverlay();
+    
+    if (element && element.getBoundingClientRect) {
+      var rect = element.getBoundingClientRect();
+      overlay.style.top = (rect.top - 4) + "px";
+      overlay.style.left = (rect.left - 4) + "px";
+      overlay.style.width = (rect.width + 8) + "px";
+      overlay.style.height = (rect.height + 8) + "px";
+      overlay.style.opacity = "1";
+      
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      
+      sendConfirmHighlight(checkpointId, true, getSelector(element));
+    } else {
+      showHighlightToast(checkpointId);
+      sendConfirmHighlight(checkpointId, false);
+    }
+    
+    setTimeout(function() {
+      overlay.style.opacity = "0";
+    }, 3000);
+  }
+  
+  function showHighlightToast(checkpointId) {
+    var existing = document.getElementById("logigo-toast");
+    if (existing) existing.remove();
+    
+    var toast = document.createElement("div");
+    toast.id = "logigo-toast";
+    toast.textContent = "📍 Checkpoint: " + checkpointId;
+    toast.style.cssText = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#3b82f6;color:white;padding:12px 24px;border-radius:8px;font-family:system-ui,sans-serif;font-size:14px;z-index:99999;animation:logigo-fade-in 0.3s ease;";
+    document.body.appendChild(toast);
+    
+    setTimeout(function() { toast.remove(); }, 3000);
+  }
+  
+  function getSelector(el) {
+    if (!el) return "";
+    if (el.id) return "#" + el.id;
+    if (el.className) return "." + el.className.split(" ")[0];
+    return el.tagName.toLowerCase();
+  }
+  
+  function sendConfirmHighlight(checkpointId, success, selector) {
+    if (controlWs && controlWs.readyState === WebSocket.OPEN) {
+      controlWs.send(JSON.stringify({
+        type: "CONFIRM_HIGHLIGHT",
+        checkpointId: checkpointId,
+        success: success,
+        elementSelector: selector || ""
+      }));
+    }
+  }
+  
+  // Track checkpoint element bindings
+  window.LogiGo.bindElement = function(checkpointId, element) {
+    checkpointElements[checkpointId] = element;
+  };
+  
+  // Start control channel when document is ready
+  if (typeof document !== "undefined") {
+    if (document.readyState === "complete") {
+      connectControlChannel();
+    } else {
+      window.addEventListener("load", connectControlChannel);
+    }
+  }
+  
   // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {
     function showBadge() {
@@ -863,6 +1008,91 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   });
 
   const httpServer = createServer(app);
+
+  // ============================================
+  // WebSocket Control Channel for Visual Handshake
+  // ============================================
+  
+  const wss = new WebSocketServer({ noServer: true });
+  
+  httpServer.on('upgrade', (request, socket, head) => {
+    const url = new URL(request.url || '', `http://${request.headers.host}`);
+    const pathMatch = url.pathname.match(/^\/api\/remote\/control\/([^/]+)$/);
+    
+    if (!pathMatch) {
+      socket.destroy();
+      return;
+    }
+    
+    const sessionId = pathMatch[1];
+    const clientType = url.searchParams.get('type') || 'studio';
+    const session = remoteSessions.get(sessionId);
+    
+    if (!session) {
+      socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request, sessionId, clientType, session);
+    });
+  });
+  
+  wss.on('connection', (ws: WebSocket, request: any, sessionId: string, clientType: string, session: RemoteSession) => {
+    console.log(`[WS] ${clientType} connected to session ${sessionId.slice(0, 8)}`);
+    
+    if (clientType === 'studio') {
+      session.studioWsClients.add(ws);
+    } else {
+      session.remoteWsClients.add(ws);
+    }
+    
+    session.lastActivity = new Date();
+    
+    ws.on('message', (data) => {
+      try {
+        const message: ControlMessage = JSON.parse(data.toString());
+        session.lastActivity = new Date();
+        
+        if (message.type === 'PING') {
+          ws.send(JSON.stringify({ type: 'PONG', timestamp: Date.now() }));
+          return;
+        }
+        
+        if (message.type === 'HIGHLIGHT_ELEMENT' && clientType === 'studio') {
+          session.remoteWsClients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(message));
+            }
+          });
+        }
+        
+        if ((message.type === 'CONFIRM_HIGHLIGHT' || message.type === 'REMOTE_FOCUS') && clientType === 'remote') {
+          session.studioWsClients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(message));
+            }
+          });
+        }
+      } catch (e) {
+        console.error('[WS] Invalid message:', e);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log(`[WS] ${clientType} disconnected from session ${sessionId.slice(0, 8)}`);
+      if (clientType === 'studio') {
+        session.studioWsClients.delete(ws);
+      } else {
+        session.remoteWsClients.delete(ws);
+      }
+    });
+    
+    ws.on('error', (error) => {
+      console.error(`[WS] Error in ${clientType}:`, error.message);
+    });
+  });
 
   return httpServer;
 }

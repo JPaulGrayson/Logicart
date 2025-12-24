@@ -139,6 +139,7 @@ export default function Workbench() {
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: true }));
   const executionControllerRef = useRef<ExecutionController>(new ExecutionController({ debug: false }));
+  const flowDataRef = useRef(flowData);
   
   // Test feature states
   const [testPanelOpen, setTestPanelOpen] = useState(false);
@@ -179,6 +180,8 @@ export default function Workbench() {
   const remoteEventSourceRef = useRef<EventSource | null>(null);
   const remoteReconnectAttemptRef = useRef(0);
   const remoteReconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlWsRef = useRef<WebSocket | null>(null);
+  const [handshakeNodeId, setHandshakeNodeId] = useState<string | null>(null);
   
   // Backwards compatibility
   const remoteConnected = remoteConnectionStatus === 'connected';
@@ -212,6 +215,11 @@ export default function Workbench() {
   
   // Grid edit mode for pathfinding visualizer
   const [gridEditMode, setGridEditMode] = useState<GridEditMode>(null);
+
+  // Keep flowDataRef in sync with flowData state
+  useEffect(() => {
+    flowDataRef.current = flowData;
+  }, [flowData]);
 
   // Load shared code from URL parameter on mount
   useEffect(() => {
@@ -368,6 +376,63 @@ export default function Workbench() {
     
     connectSSE();
     
+    // Connect WebSocket control channel for visual handshake
+    function connectControlChannel() {
+      if (sessionEnded) return;
+      
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/api/remote/control/${sessionId}?type=studio`;
+      
+      try {
+        const ws = new WebSocket(wsUrl);
+        controlWsRef.current = ws;
+        
+        ws.onopen = () => {
+          console.log('[Control Channel] WebSocket connected');
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            if (message.type === 'CONFIRM_HIGHLIGHT') {
+              console.log('[Control Channel] Highlight confirmed:', message.checkpointId, message.success);
+              // Clear handshake state after confirmation
+              setTimeout(() => setHandshakeNodeId(null), 500);
+            } else if (message.type === 'REMOTE_FOCUS') {
+              console.log('[Control Channel] Remote focus requested:', message.checkpointId);
+              // Remote app wants to focus on a checkpoint - highlight the node
+              // Use ref to avoid stale flowData closure
+              const matchingNode = flowDataRef.current.nodes.find(n => 
+                (n.data?.userLabel as string) === message.checkpointId
+              );
+              if (matchingNode) {
+                setActiveNodeId(matchingNode.id);
+              }
+            }
+          } catch (e) {
+            console.warn('[Control Channel] Invalid message:', e);
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('[Control Channel] WebSocket disconnected');
+          controlWsRef.current = null;
+          // Reconnect after a delay if not ended
+          if (!sessionEnded) {
+            setTimeout(connectControlChannel, 2000);
+          }
+        };
+        
+        ws.onerror = () => {
+          console.warn('[Control Channel] WebSocket error');
+        };
+      } catch (e) {
+        console.warn('[Control Channel] Failed to connect:', e);
+      }
+    }
+    
+    connectControlChannel();
+    
     // Keep session param in URL for reconnection on refresh
     // Don't clear it - allows page refresh to reconnect
     
@@ -380,6 +445,10 @@ export default function Workbench() {
       if (remoteEventSourceRef.current) {
         remoteEventSourceRef.current.close();
         remoteEventSourceRef.current = null;
+      }
+      if (controlWsRef.current) {
+        controlWsRef.current.close();
+        controlWsRef.current = null;
       }
       setRemoteConnectionStatus('disconnected');
     };
@@ -919,6 +988,20 @@ export default function Workbench() {
     if (flowNode.data?.sourceData) {
       setHighlightedLine(flowNode.data.sourceData.start.line);
       adapter.navigateToLine(flowNode.data.sourceData.start.line);
+    }
+    
+    // Visual Handshake: Send highlight command to remote app
+    if (remoteSessionId && controlWsRef.current?.readyState === WebSocket.OPEN) {
+      const checkpointId = (flowNode.data?.userLabel as string) || flowNode.id;
+      const message = {
+        type: 'HIGHLIGHT_ELEMENT',
+        checkpointId,
+        nodeId: flowNode.id,
+        line: flowNode.data?.sourceData?.start?.line
+      };
+      controlWsRef.current.send(JSON.stringify(message));
+      setHandshakeNodeId(flowNode.id);
+      console.log('[Visual Handshake] Sent highlight request:', checkpointId);
     }
   };
 
