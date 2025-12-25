@@ -5,7 +5,6 @@ import { FlowNode, FlowEdge } from '@/lib/parser';
 import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
 import LabeledNode from './LabeledNode';
-import { FixedMiniMap } from './FixedMiniMap';
 import { Button } from '@/components/ui/button';
 import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
 import type { RuntimeState } from '@shared/reporter-api';
@@ -160,15 +159,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         connectionLineType={ConnectionLineType.SmoothStep}
       >
         <Background color="var(--color-border)" gap={24} size={1} />
-        {/* Removed Controls component - zoom controls available via mouse/keyboard */}
-        <FixedMiniMap 
-          nodeColor={(n) => {
-            if (n.type === 'input') return '#3b82f6';
-            if (n.type === 'output') return '#ef4444';
-            if (n.type === 'decision') return '#eab308';
-            return '#64748b';
-          }}
-        />
+        {/* MiniMap removed - users can zoom out with mouse/keyboard for overview */}
       </ReactFlow>
       
       {/* Floating Status Pill - Top Right */}
