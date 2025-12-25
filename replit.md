@@ -156,21 +156,32 @@ Preferred communication style: Simple, everyday language.
   - `window.LogiGo.autoDiscover()`: Re-run discovery (requires prior enable)
 - **Checkpoint Behavior**: Fires `{fnName}-start`, `{fnName}-end`, or `{fnName}-error` checkpoints
 
-### Service Worker Module Instrumentation
+### Zero-Code Reverse Proxy
+- **Purpose**: TRUE zero-code instrumentation for any web app (including Vite/React/ES modules).
+- **Usage**: Visit `https://logigo-url/proxy/https://your-app-url`
+- **How It Works**:
+  1. LogiGo fetches the target app's HTML
+  2. Injects `<base>` tag to handle relative URLs
+  3. Rewrites absolute/root-relative URLs to go through the proxy
+  4. Injects remote.js for checkpoint handling
+  5. For JavaScript files, injects checkpoint calls at function entries
+  6. Returns instrumented code from LogiGo's origin (solves same-origin issues)
+- **Features**:
+  - Floating "Proxied by LogiGo" indicator
+  - Automatic Studio session creation
+  - Function instrumentation via regex
+  - Skips vendor/library files (node_modules, react, etc.)
+- **Security**: SSRF protection - only allows Replit domains (`.replit.app`, `.replit.dev`, `.repl.co`)
+- **Endpoint**: `GET /proxy/*` - Reverse proxy with instrumentation
+- **Landing Page**: `GET /proxy/` - Form to enter target URL
+
+### Service Worker Module Instrumentation (Alternative)
 - **Purpose**: Zero-code instrumentation for ES module/Vite/React apps via Service Worker interception.
-- **How It Works**: 
-  1. User calls `LogiGo.enableModuleInstrumentation()` (opt-in)
-  2. Service Worker (`/logigo-sw.js`) is registered
-  3. On page reload, SW intercepts JS module fetches
-  4. Each module is sent to `/api/runtime/instrument` for checkpoint injection
-  5. Instrumented code is cached and returned to the page
+- **Limitation**: Requires same-origin deployment (cross-origin SW registration blocked by browsers)
 - **API**:
   - `window.LogiGo.enableModuleInstrumentation()`: Register the SW (requires page reload)
   - `window.LogiGo.disableModuleInstrumentation()`: Unregister the SW
-- **Endpoints**:
-  - `GET /logigo-sw.js`: Service Worker script
-  - `POST /api/runtime/instrument`: Instrument code on-the-fly
-- **Caveats**: Cross-origin SW registration may be blocked; same-origin deployment recommended
+- **Caveats**: Cross-origin SW registration may be blocked; use the reverse proxy instead
 
 ## External Dependencies
 

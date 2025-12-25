@@ -792,6 +792,211 @@ self.addEventListener('fetch', (event) => {
   });
 
   // ============================================
+  // Reverse Proxy - Zero-Code ES Module Instrumentation
+  // ============================================
+  // Usage: Visit https://logigo-url/proxy/https://your-app-url
+  // This proxies the target app and instruments all JS on the fly
+  
+  app.get("/proxy/*", async (req, res) => {
+    try {
+      // Extract target URL from the path (Express uses params[0] for wildcards)
+      const targetUrl = (req.params as Record<string, string>)[0];
+      
+      if (!targetUrl || !targetUrl.startsWith('http')) {
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+          <head><title>LogiGo Proxy</title></head>
+          <body style="font-family: system-ui; padding: 40px; background: #0f172a; color: white;">
+            <h1>LogiGo Zero-Code Proxy</h1>
+            <p>Enter your app URL to visualize it with automatic checkpoints:</p>
+            <form onsubmit="window.location='/proxy/' + document.getElementById('url').value; return false;">
+              <input id="url" type="text" placeholder="https://your-app.replit.app" 
+                style="width: 400px; padding: 12px; font-size: 16px; border-radius: 8px; border: none;">
+              <button type="submit" style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; margin-left: 8px;">
+                Open in LogiGo
+              </button>
+            </form>
+            <p style="margin-top: 20px; color: #94a3b8;">
+              Example: <code>/proxy/https://visionloop.replit.app</code>
+            </p>
+          </body>
+          </html>
+        `);
+      }
+      
+      // Parse the target URL
+      let parsedTarget: URL;
+      try {
+        parsedTarget = new URL(targetUrl);
+      } catch (e) {
+        return res.status(400).send("Invalid target URL");
+      }
+      
+      // Security: Only allow specific domains to prevent SSRF
+      const allowedDomains = [
+        /\.replit\.app$/,
+        /\.replit\.dev$/,
+        /\.repl\.co$/,
+        /^localhost(:\d+)?$/,
+        /^127\.0\.0\.1(:\d+)?$/,
+        /^example\.com$/,  // For testing
+      ];
+      const hostname = parsedTarget.hostname;
+      const isAllowed = allowedDomains.some(pattern => pattern.test(hostname));
+      
+      if (!isAllowed) {
+        return res.status(403).send(`
+          <!DOCTYPE html>
+          <html>
+          <head><title>LogiGo Proxy - Domain Not Allowed</title></head>
+          <body style="font-family: system-ui; padding: 40px; background: #0f172a; color: white;">
+            <h1>Domain Not Allowed</h1>
+            <p>For security, LogiGo proxy only works with Replit apps.</p>
+            <p>Allowed domains: <code>.replit.app</code>, <code>.replit.dev</code>, <code>.repl.co</code></p>
+            <p>Requested: <code>${hostname}</code></p>
+            <a href="/proxy/" style="color: #3b82f6;">Try again</a>
+          </body>
+          </html>
+        `);
+      }
+      
+      // Construct the full URL with query string
+      const fullUrl = req.originalUrl.replace(/^\/proxy\//, '');
+      
+      // Fetch from target
+      const targetResponse = await fetch(fullUrl, {
+        headers: {
+          'User-Agent': req.headers['user-agent'] || 'LogiGo-Proxy/1.0',
+          'Accept': req.headers['accept'] || '*/*',
+          'Accept-Language': req.headers['accept-language'] || 'en-US,en;q=0.9',
+        },
+        redirect: 'follow'
+      });
+      
+      const contentType = targetResponse.headers.get('content-type') || '';
+      const targetOrigin = parsedTarget.origin;
+      const logigoProxyBase = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/proxy/${targetOrigin}`;
+      
+      // Handle different content types
+      if (contentType.includes('text/html')) {
+        let html = await targetResponse.text();
+        
+        // Rewrite URLs in HTML to go through proxy
+        // Handle absolute URLs
+        html = html.replace(/(href|src|action)=["'](https?:\/\/[^"']+)["']/gi, (match, attr, url) => {
+          if (url.startsWith(targetOrigin)) {
+            return `${attr}="${logigoProxyBase}${url.slice(targetOrigin.length)}"`;
+          }
+          return match;
+        });
+        
+        // Handle root-relative URLs (but NOT protocol-relative //example.com)
+        // Use negative lookahead to exclude // but allow / and /path
+        html = html.replace(/(href|src|action)=["'](\/(?!\/)[^"']*)["']/gi, (match, attr, path) => {
+          return `${attr}="${logigoProxyBase}${path}"`;
+        });
+        
+        // Handle relative URLs (./path or just path) by adding a <base> tag
+        // This ensures all relative URLs resolve correctly through the proxy
+        const targetPath = parsedTarget.pathname;
+        const basePath = targetPath.endsWith('/') ? targetPath : targetPath.substring(0, targetPath.lastIndexOf('/') + 1);
+        const baseTag = `<base href="${logigoProxyBase}${basePath}">`;
+        if (html.includes('<head>')) {
+          html = html.replace('<head>', `<head>${baseTag}`);
+        } else if (html.includes('<head ')) {
+          html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
+        }
+        
+        // Inject LogiGo remote.js script for checkpoint handling
+        const logigoScript = `<script src="${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/remote.js?project=Proxy&autoOpen=true"></script>`;
+        // Try </head> first, then <body>, then just prepend
+        if (html.includes('</head>')) {
+          html = html.replace('</head>', `${logigoScript}</head>`);
+        } else if (html.includes('<body')) {
+          html = html.replace(/<body([^>]*)>/i, `<body$1>${logigoScript}`);
+        } else {
+          html = logigoScript + html;
+        }
+        
+        // Add a floating indicator
+        const indicator = `
+          <div id="logigo-proxy-indicator" style="position:fixed;bottom:20px;left:20px;background:#3b82f6;color:white;padding:8px 16px;border-radius:8px;font-family:system-ui;font-size:14px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+            🔍 Proxied by LogiGo
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;color:white;cursor:pointer;margin-left:8px;">✕</button>
+          </div>
+        `;
+        html = html.replace('</body>', `${indicator}</body>`);
+        
+        res.type('text/html').send(html);
+        
+      } else if (contentType.includes('javascript') || /\.(js|jsx|mjs)$/.test(fullUrl)) {
+        // Instrument JavaScript files
+        let code = await targetResponse.text();
+        
+        // Skip if it's a vendor/library file
+        const skipPatterns = [/node_modules/, /vendor/, /react/, /chunk-/, /@vite/, /\.vite/];
+        const shouldSkip = skipPatterns.some(p => p.test(fullUrl));
+        
+        if (!shouldSkip && code.length < 500000) { // Skip very large files
+          // Inject checkpoints into functions
+          let fnCount = 0;
+          
+          // Async/regular function declarations
+          code = code.replace(
+            /^(\s*)(export\s+)?(async\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*\{/gm,
+            (match, indent, exp, async, name, params) => {
+              fnCount++;
+              return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}', {});`;
+            }
+          );
+          
+          // Arrow functions assigned to variables
+          code = code.replace(
+            /^(\s*)(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s*)?\(([^)]*)\)\s*=>\s*\{/gm,
+            (match, indent, exp, decl, name) => {
+              fnCount++;
+              return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}', {});`;
+            }
+          );
+          
+          if (fnCount > 0) {
+            res.set('X-LogiGo-Instrumented', String(fnCount));
+          }
+        }
+        
+        res.type('application/javascript').send(code);
+        
+      } else if (contentType.includes('typescript') || /\.(ts|tsx)$/.test(fullUrl)) {
+        // For TypeScript, we need the browser to handle it via Vite
+        // Just pass through since Vite will transform it
+        const code = await targetResponse.text();
+        res.type(contentType || 'application/javascript').send(code);
+        
+      } else {
+        // Pass through other content types
+        const buffer = await targetResponse.arrayBuffer();
+        res.type(contentType).send(Buffer.from(buffer));
+      }
+      
+    } catch (error) {
+      console.error("Proxy error:", error);
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>LogiGo Proxy Error</title></head>
+        <body style="font-family: system-ui; padding: 40px; background: #0f172a; color: white;">
+          <h1>Proxy Error</h1>
+          <p>Could not fetch the target URL. Make sure it's accessible.</p>
+          <p style="color: #f87171;">${error instanceof Error ? error.message : 'Unknown error'}</p>
+          <a href="/proxy/" style="color: #3b82f6;">Try again</a>
+        </body>
+        </html>
+      `);
+    }
+  });
+
+  // ============================================
   // One-Line Bootstrap Script
   // ============================================
   

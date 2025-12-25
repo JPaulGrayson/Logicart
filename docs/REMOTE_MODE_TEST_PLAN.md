@@ -37,20 +37,23 @@ When the page loads:
 2. **Badge appears** - Floating "View in LogiGo" badge in bottom-right
 3. **Tip shown in console** - How to enable auto-discovery
 
-### 1.3 Enable Instrumentation (Opt-In)
+### 1.3 Zero-Code Proxy (Recommended for Vite/React apps)
 
-**For Vite/React apps (ES modules)** - run this in browser console:
+The easiest way to visualize any app - just visit it through LogiGo's proxy:
 
-```javascript
-LogiGo.enableModuleInstrumentation()
+```
+https://YOUR-LOGIGO-URL/proxy/https://your-app.replit.app
 ```
 
-Then **reload the page**. This will:
-- ✅ Register a Service Worker that intercepts module requests
-- ✅ Automatically inject checkpoints into your app's functions
-- ✅ Send checkpoints to Studio as functions execute
+This will:
+- ✅ Automatically instrument all JavaScript functions
+- ✅ Inject checkpoint tracking
+- ✅ Open Studio with real-time visualization
+- ✅ **No code changes required!**
 
-**For traditional script apps** - run this instead:
+### 1.4 Alternative: Enable Auto-Discovery
+
+For traditional script apps, you can also use auto-discovery:
 
 ```javascript
 LogiGo.enableAutoDiscovery()
@@ -58,7 +61,7 @@ LogiGo.enableAutoDiscovery()
 
 This scans `<script>` tags and wraps global functions.
 
-### 1.4 Verify Connection
+### 1.5 Verify Connection
 
 Open your app in a browser. Check the console for:
 
