@@ -288,6 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve LogiGo demo files (must be before Vite middleware)
   app.use("/demo", express.static(path.join(__dirname, "..", "example")));
   app.use("/demo-src", express.static(path.join(__dirname, "..", "src")));
+  app.use("/test-app", express.static(path.join(__dirname, "..", "public", "test-app")));
   
   // Serve the test page explicitly
   app.get("/test-antigravity.html", (req, res) => {
@@ -1015,8 +1016,11 @@ self.addEventListener('fetch', (event) => {
         const skipPatterns = [/node_modules/, /vendor/, /react\./, /react-dom/, /chunk-/, /@vite/, /\.vite/, /scheduler/];
         const shouldSkip = skipPatterns.some(p => p.test(fullUrl)) || isBundled;
         
-        // For the main entry file, capture it for flowchart visualization (but don't instrument)
-        const isMainEntry = /index(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl) || /main(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl);
+        // Detect app entry files for code registration (not just index/main)
+        // Include: index.js, main.js, app.js, game.js, script.js, etc.
+        // Exclude: vendor files, minified bundles, chunks
+        const isAppCode = /\/(index|main|app|game|script|bundle)(-[a-zA-Z0-9]+)?\.js$/i.test(fullUrl) ||
+                          (/\/[a-z][a-z0-9_-]*\.js$/i.test(fullUrl) && !isBundled && code.length < 50000);
         
         if (!shouldSkip && code.length < 500000) { // Skip very large files
           // Inject checkpoints into functions
@@ -1079,9 +1083,9 @@ self.addEventListener('fetch', (event) => {
           }
         }
         
-        // For main entry files, register the code for flowchart visualization (even if not instrumented)
+        // For app code files, register the code for flowchart visualization (even if not instrumented)
         // Note: Vite bundles can be large (500KB+), so we accept up to 1MB and slice to 50KB for the flowchart
-        if (isMainEntry && originalCode.length > 500) {
+        if (isAppCode && originalCode.length > 500) {
           console.log(`[Proxy] Registering code from ${fullUrl} (${originalCode.length} bytes) for flowchart`);
           // Take a sample of the code for visualization (first 50KB)
           const codeForFlowchart = originalCode.slice(0, 50000);
@@ -1099,7 +1103,7 @@ self.addEventListener('fetch', (event) => {
   }
   setTimeout(tryRegister, 1000);
 })();`;
-        } else if (isMainEntry) {
+        } else if (isAppCode) {
           console.log(`[Proxy] Skipping code registration: ${fullUrl} (${originalCode.length} bytes) - too small`);
         }
         
