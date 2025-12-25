@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { createServer as createViteServer, createLogger } from "vite";
 
 import runApp from "./app";
+import { log } from "./app";
 
 import viteConfig from "../vite.config";
 
@@ -33,6 +34,15 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
+  // Debug middleware to log all incoming requests
+  app.use((req, res, next) => {
+    const url = req.originalUrl;
+    if (url.startsWith('/proxy') || url.startsWith('/api/') || url.startsWith('/remote')) {
+      log(`[DEBUG] Request: ${req.method} ${url}`);
+    }
+    next();
+  });
+
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
@@ -45,6 +55,7 @@ export async function setupVite(app: Express, server: Server) {
         url.startsWith('/embed') ||
         url === '/remote.js' ||
         url === '/logigo-sw.js') {
+      log(`[DEBUG] Skipping SPA for: ${url}`);
       return next();
     }
 
