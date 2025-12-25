@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Number Guessing Game (Plain JS)</title>
+  <script src="/remote.js?project=NumberGuessGame&autoOpen=false"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { 
@@ -63,6 +64,11 @@
       margin-top: 15px;
       background: #6b7280;
     }
+    .logigo-btn {
+      margin-top: 15px;
+      background: #1e293b;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -70,11 +76,22 @@
     <h1>Number Guessing Game</h1>
     <p class="message">I'm thinking of a number between 1 and 100</p>
     <p class="attempts">Attempts: <span id="attempts">0</span></p>
-    <input type="number" id="guess-input" placeholder="Enter your guess" min="1" max="100">
-    <button id="guess-btn" onclick="handleGuess()">Guess!</button>
-    <div id="feedback" class="feedback" style="display: none;"></div>
+    <input type="number" id="guess-input" placeholder="Enter your guess" min="1" max="100" data-testid="input-guess">
+    <button id="guess-btn" onclick="handleGuess()" data-testid="button-guess">Guess!</button>
+    <div id="feedback" class="feedback" style="display: none;" data-testid="text-feedback"></div>
+    <button class="logigo-btn" onclick="window.LogiGo.openStudio()" data-testid="button-open-logigo">Open LogiGo Studio</button>
   </div>
 
   <script src="game.js"></script>
+  <script>
+    fetch('/test-app/game.js')
+      .then(r => r.text())
+      .then(code => {
+        if (window.LogiGo && window.LogiGo.registerCode) {
+          window.LogiGo.registerCode(code);
+          console.log('[Test App] Code registered with LogiGo');
+        }
+      });
+  </script>
 </body>
 </html>
