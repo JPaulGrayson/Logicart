@@ -1001,15 +1001,21 @@ self.addEventListener('fetch', (event) => {
         res.type('text/html').send(html);
         
       } else if (contentType.includes('javascript') || /\.(js|jsx|mjs)$/.test(fullUrl)) {
-        // Instrument JavaScript files
+        // JavaScript files - be very careful with instrumentation
         let code = await targetResponse.text();
         const originalCode = code;
         
-        // Skip if it's a vendor/library file
-        const skipPatterns = [/node_modules/, /vendor/, /react\./, /react-dom/, /chunk-[a-zA-Z0-9]+\.js/, /@vite/, /\.vite/, /scheduler/];
-        const shouldSkip = skipPatterns.some(p => p.test(fullUrl));
+        // Skip instrumentation for bundled/minified files (they break when modified)
+        // Signs of bundled code: hash in filename, very long single lines, minified patterns
+        const isBundled = /[-_][a-zA-Z0-9]{6,}\.(js|mjs)$/.test(fullUrl) || // hash in filename
+                          code.split('\n').some(line => line.length > 1000) || // minified lines
+                          /\)\{[a-z]\(/g.test(code.slice(0, 1000)); // minified function calls
         
-        // For the main entry file (index.js or similar), capture it for flowchart
+        // Skip if it's a vendor/library file
+        const skipPatterns = [/node_modules/, /vendor/, /react\./, /react-dom/, /chunk-/, /@vite/, /\.vite/, /scheduler/];
+        const shouldSkip = skipPatterns.some(p => p.test(fullUrl)) || isBundled;
+        
+        // For the main entry file, capture it for flowchart visualization (but don't instrument)
         const isMainEntry = /index(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl) || /main(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl);
         
         if (!shouldSkip && code.length < 500000) { // Skip very large files
@@ -1070,18 +1076,31 @@ self.addEventListener('fetch', (event) => {
           if (fnCount > 0) {
             res.set('X-LogiGo-Instrumented', String(fnCount));
             console.log(`[Proxy] Instrumented ${fnCount} functions in ${fullUrl}: ${discoveredFunctions.slice(0, 5).join(', ')}${discoveredFunctions.length > 5 ? '...' : ''}`);
-            
-            // For substantial app code, inject a snippet to register the source code with Studio
-            if (isMainEntry && originalCode.length > 500 && originalCode.length < 100000) {
-              // Add code registration at the end of the file
-              code += `\n;(function(){
-  if(window.LogiGo && window.LogiGo.registerCode){
-    var appCode = ${JSON.stringify(originalCode.slice(0, 50000))};
-    setTimeout(function(){ window.LogiGo.registerCode(appCode); }, 1000);
-  }
-})();`;
-            }
           }
+        }
+        
+        // For main entry files, register the code for flowchart visualization (even if not instrumented)
+        // Note: Vite bundles can be large (500KB+), so we accept up to 1MB and slice to 50KB for the flowchart
+        if (isMainEntry && originalCode.length > 500) {
+          console.log(`[Proxy] Registering code from ${fullUrl} (${originalCode.length} bytes) for flowchart`);
+          // Take a sample of the code for visualization (first 50KB)
+          const codeForFlowchart = originalCode.slice(0, 50000);
+          code += `\n;(function(){
+  console.log('[LogiGo] Attempting to register code for flowchart...');
+  function tryRegister() {
+    if(window.LogiGo && window.LogiGo.registerCode){
+      var appCode = ${JSON.stringify(codeForFlowchart)};
+      window.LogiGo.registerCode(appCode);
+      console.log('[LogiGo] Code registered for flowchart visualization');
+    } else {
+      console.log('[LogiGo] LogiGo not ready, retrying...');
+      setTimeout(tryRegister, 500);
+    }
+  }
+  setTimeout(tryRegister, 1000);
+})();`;
+        } else if (isMainEntry) {
+          console.log(`[Proxy] Skipping code registration: ${fullUrl} (${originalCode.length} bytes) - too small`);
         }
         
         res.type('application/javascript').send(code);
