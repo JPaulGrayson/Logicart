@@ -156,6 +156,22 @@ Preferred communication style: Simple, everyday language.
   - `window.LogiGo.autoDiscover()`: Re-run discovery (requires prior enable)
 - **Checkpoint Behavior**: Fires `{fnName}-start`, `{fnName}-end`, or `{fnName}-error` checkpoints
 
+### Service Worker Module Instrumentation
+- **Purpose**: Zero-code instrumentation for ES module/Vite/React apps via Service Worker interception.
+- **How It Works**: 
+  1. User calls `LogiGo.enableModuleInstrumentation()` (opt-in)
+  2. Service Worker (`/logigo-sw.js`) is registered
+  3. On page reload, SW intercepts JS module fetches
+  4. Each module is sent to `/api/runtime/instrument` for checkpoint injection
+  5. Instrumented code is cached and returned to the page
+- **API**:
+  - `window.LogiGo.enableModuleInstrumentation()`: Register the SW (requires page reload)
+  - `window.LogiGo.disableModuleInstrumentation()`: Unregister the SW
+- **Endpoints**:
+  - `GET /logigo-sw.js`: Service Worker script
+  - `POST /api/runtime/instrument`: Instrument code on-the-fly
+- **Caveats**: Cross-origin SW registration may be blocked; same-origin deployment recommended
+
 ## External Dependencies
 
 ### Database

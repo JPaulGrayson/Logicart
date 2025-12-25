@@ -37,21 +37,26 @@ When the page loads:
 2. **Badge appears** - Floating "View in LogiGo" badge in bottom-right
 3. **Tip shown in console** - How to enable auto-discovery
 
-### 1.3 Enable Auto-Discovery (Opt-In)
+### 1.3 Enable Instrumentation (Opt-In)
 
-For traditional script apps, enable auto-discovery in your browser console:
+**For Vite/React apps (ES modules)** - run this in browser console:
+
+```javascript
+LogiGo.enableModuleInstrumentation()
+```
+
+Then **reload the page**. This will:
+- ✅ Register a Service Worker that intercepts module requests
+- ✅ Automatically inject checkpoints into your app's functions
+- ✅ Send checkpoints to Studio as functions execute
+
+**For traditional script apps** - run this instead:
 
 ```javascript
 LogiGo.enableAutoDiscovery()
 ```
 
-This will:
-- ✅ Scan all `<script>` tags (inline and external)
-- ✅ Send source to Studio for flowchart visualization
-- ✅ Wrap global functions to fire checkpoints on entry/exit
-
-> **Note:** Auto-discovery works with **traditional global scripts** only.
-> For ES module/Vite apps, use the Vite plugin (see Alternative section).
+This scans `<script>` tags and wraps global functions.
 
 ### 1.4 Verify Connection
 

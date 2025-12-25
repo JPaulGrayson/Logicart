@@ -610,6 +610,188 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   });
 
   // ============================================
+  // Runtime Instrumentation API (for Service Worker)
+  // ============================================
+  
+  // Instrument code on-the-fly for zero-code ES module support
+  app.post("/api/runtime/instrument", (req, res) => {
+    try {
+      const { code, filePath = 'module.js' } = req.body;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Code is required" });
+      }
+      
+      // Lightweight regex-based instrumentation for runtime use
+      // This injects checkpoints at function entries without full AST parsing
+      let instrumented = code;
+      let fnCount = 0;
+      
+      // Inject checkpoint at async function declarations
+      instrumented = instrumented.replace(
+        /^(\s*)(export\s+)?(async\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*\{/gm,
+        (match, indent, exp, async, name, params) => {
+          fnCount++;
+          const varsCapture = params.split(',').map((p: string) => p.trim().split(/[=:]/)[0].trim()).filter(Boolean).slice(0, 5);
+          const varsObj = varsCapture.length > 0 ? `{ ${varsCapture.join(', ')} }` : '{}';
+          return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', ${varsObj});`;
+        }
+      );
+      
+      // Inject checkpoint at arrow functions assigned to const/let/var
+      instrumented = instrumented.replace(
+        /^(\s*)(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s*)?\(([^)]*)\)\s*=>\s*\{/gm,
+        (match, indent, exp, decl, name, async, params) => {
+          fnCount++;
+          const varsCapture = params.split(',').map((p: string) => p.trim().split(/[=:]/)[0].trim()).filter(Boolean).slice(0, 5);
+          const varsObj = varsCapture.length > 0 ? `{ ${varsCapture.join(', ')} }` : '{}';
+          return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', ${varsObj});`;
+        }
+      );
+      
+      // Inject checkpoint at method definitions in classes
+      instrumented = instrumented.replace(
+        /^(\s*)(async\s+)?(\w+)\s*\(([^)]*)\)\s*\{(?!\s*window\.LogiGo)/gm,
+        (match, indent, async, name, params) => {
+          // Skip constructors and common lifecycle methods to reduce noise
+          if (['constructor', 'render', 'componentDidMount', 'componentWillUnmount', 'useEffect'].includes(name)) {
+            return match;
+          }
+          fnCount++;
+          return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', {});`;
+        }
+      );
+      
+      res.json({ 
+        code: instrumented, 
+        instrumented: fnCount > 0,
+        functionCount: fnCount,
+        filePath 
+      });
+    } catch (error) {
+      console.error("Instrumentation error:", error);
+      res.status(500).json({ error: "Failed to instrument code" });
+    }
+  });
+  
+  // Serve the Service Worker script for intercepting module requests
+  app.get("/logigo-sw.js", (req, res) => {
+    const logigoUrl = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host || 'localhost:5000'}`;
+    
+    const swScript = `
+// LogiGo Service Worker - Zero-Code ES Module Instrumentation
+// This intercepts module requests and instruments them on-the-fly
+
+const LOGIGO_URL = '${logigoUrl}';
+const CACHE_NAME = 'logigo-instrumented-v1';
+const instrumentedCache = new Map();
+
+// File extensions to instrument
+const INSTRUMENTABLE = /\\.(js|jsx|ts|tsx|mjs)$/;
+const SKIP_PATTERNS = [
+  /node_modules/,
+  /\\.vite/,
+  /@vite/,
+  /\\?v=/,  // Vite cache-busting
+  /logigo/i,
+  /react/i,
+  /chunk-/,
+  /vendor/
+];
+
+function shouldInstrument(url) {
+  if (!INSTRUMENTABLE.test(url)) return false;
+  return !SKIP_PATTERNS.some(p => p.test(url));
+}
+
+async function instrumentCode(code, filePath) {
+  try {
+    const response = await fetch(LOGIGO_URL + '/api/runtime/instrument', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, filePath })
+    });
+    if (!response.ok) {
+      console.warn('[LogiGo SW] Instrumentation failed:', response.status);
+      return code;
+    }
+    const result = await response.json();
+    if (result.instrumented) {
+      console.log('[LogiGo SW] Instrumented', filePath, '(' + result.functionCount + ' functions)');
+    }
+    return result.code;
+  } catch (e) {
+    console.warn('[LogiGo SW] Instrumentation error:', e);
+    return code;
+  }
+}
+
+self.addEventListener('install', (event) => {
+  console.log('[LogiGo SW] Installing...');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[LogiGo SW] Activated');
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+  
+  // Only intercept JS module requests
+  if (!shouldInstrument(url)) {
+    return;
+  }
+  
+  // Check cache first
+  if (instrumentedCache.has(url)) {
+    event.respondWith(
+      new Response(instrumentedCache.get(url), {
+        headers: { 'Content-Type': 'application/javascript' }
+      })
+    );
+    return;
+  }
+  
+  event.respondWith(
+    fetch(event.request)
+      .then(async (response) => {
+        if (!response.ok) return response;
+        
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('javascript') && !contentType.includes('text/plain')) {
+          return response;
+        }
+        
+        const code = await response.text();
+        const filePath = new URL(url).pathname;
+        const instrumented = await instrumentCode(code, filePath);
+        
+        // Cache the instrumented code
+        instrumentedCache.set(url, instrumented);
+        
+        return new Response(instrumented, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: {
+            'Content-Type': 'application/javascript',
+            'X-LogiGo-Instrumented': 'true'
+          }
+        });
+      })
+      .catch((e) => {
+        console.warn('[LogiGo SW] Fetch error:', e);
+        return fetch(event.request);
+      })
+  );
+});
+`;
+    
+    res.type("application/javascript").send(swScript);
+  });
+
+  // ============================================
   // One-Line Bootstrap Script
   // ============================================
   
@@ -996,6 +1178,51 @@ Rewrite the code according to the instructions. Output only the new code, no exp
     return window.LogiGo.autoDiscover();
   };
   
+  // Enable ES module instrumentation via Service Worker (for Vite/React apps)
+  window.LogiGo.enableModuleInstrumentation = function() {
+    if (!('serviceWorker' in navigator)) {
+      console.warn('[LogiGo] Service Workers not supported. Use the Vite plugin instead.');
+      return Promise.resolve({ success: false, reason: 'not_supported' });
+    }
+    
+    console.log('[LogiGo] Enabling ES module instrumentation via Service Worker...');
+    console.log('[LogiGo] ⚠️ This will intercept and instrument your app\\'s JavaScript modules.');
+    console.log('[LogiGo] ⚠️ Source code will be sent to LogiGo Studio for analysis.');
+    
+    return navigator.serviceWorker.register(LOGIGO_URL + '/logigo-sw.js', { scope: '/' })
+      .then(function(registration) {
+        console.log('✅ [LogiGo] Service Worker registered. Reload the page to start instrumentation.');
+        console.log('[LogiGo] After reload, function calls will auto-fire checkpoints!');
+        return { success: true, registration: registration };
+      })
+      .catch(function(error) {
+        console.error('[LogiGo] Service Worker registration failed:', error);
+        console.log('[LogiGo] Tip: Cross-origin service workers may be blocked. Try the Vite plugin instead.');
+        return { success: false, error: error.message };
+      });
+  };
+  
+  // Disable module instrumentation
+  window.LogiGo.disableModuleInstrumentation = function() {
+    if (!('serviceWorker' in navigator)) {
+      return Promise.resolve({ success: false });
+    }
+    
+    return navigator.serviceWorker.getRegistrations()
+      .then(function(registrations) {
+        var logigoReg = registrations.find(function(r) {
+          return r.active && r.active.scriptURL.includes('logigo-sw');
+        });
+        if (logigoReg) {
+          return logigoReg.unregister().then(function() {
+            console.log('[LogiGo] Service Worker unregistered. Reload to restore original modules.');
+            return { success: true };
+          });
+        }
+        return { success: false, reason: 'not_found' };
+      });
+  };
+  
   // Auto-discover inline and external scripts
   function discoverScripts() {
     var scripts = document.querySelectorAll('script');
@@ -1114,7 +1341,8 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   };
   
   // Show hint about auto-discovery in console
-  console.log('[LogiGo] Tip: Call LogiGo.enableAutoDiscovery() to auto-wrap global functions (works with traditional scripts, not ES modules)');
+  console.log('[LogiGo] 💡 For traditional scripts: LogiGo.enableAutoDiscovery()');
+  console.log('[LogiGo] 💡 For Vite/React apps: LogiGo.enableModuleInstrumentation() then reload');
   
   // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {
