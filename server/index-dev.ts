@@ -36,6 +36,17 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    // Skip SPA handling for API routes, proxy, and other backend endpoints
+    // These are handled by Express routes registered in registerRoutes()
+    if (url.startsWith('/api/') || 
+        url.startsWith('/proxy') || 
+        url.startsWith('/remote') ||
+        url.startsWith('/embed') ||
+        url === '/remote.js' ||
+        url === '/logigo-sw.js') {
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(
