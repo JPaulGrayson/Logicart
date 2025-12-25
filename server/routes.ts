@@ -910,57 +910,63 @@ self.addEventListener('fetch', (event) => {
         
         // Inject a script to patch location.pathname for SPA routers
         // This makes client-side routers see '/' instead of '/proxy/https://...'
+        // Instead of patching location (which doesn't work reliably),
+        // inject a script that sets up a global hook for the router to use
+        const virtualPath = parsedTarget.pathname || '/';
         const locationPatch = `<script>
 (function() {
+  // Store the real location for LogiGo's use
+  window.__logigoRealLocation = {
+    pathname: window.location.pathname,
+    href: window.location.href,
+    search: window.location.search,
+    origin: window.location.origin
+  };
+  
+  // The virtual path that SPAs should see
+  window.__logigoVirtualPath = '${virtualPath}';
+  window.__logigoTargetOrigin = '${targetOrigin}';
+  window.__logigoProxyBase = '/proxy/${targetOrigin}';
+  
+  console.log('[LogiGo] Virtual path set to:', window.__logigoVirtualPath);
+  
+  // For wouter and similar routers, we need to intercept before they read location
+  // Create a custom event that fires when our patched location is ready
+  const originalPath = window.location.pathname;
+  
+  // Use history.replaceState to immediately change the visible URL to the target path
+  // This makes the browser's location show the correct path
   try {
-    console.log('[LogiGo] Patching location, current pathname:', window.location.pathname);
-    const origPathname = Object.getOwnPropertyDescriptor(Location.prototype, 'pathname');
-    const origHref = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
-    const origSearch = Object.getOwnPropertyDescriptor(Location.prototype, 'search');
-    
-    Object.defineProperty(Location.prototype, 'pathname', {
-      get() {
-        const path = origPathname.get.call(this);
-        if (path.startsWith('/proxy/')) {
-          const cleaned = path.replace(/^\\/proxy\\/https?:\\/\\/[^\\/]+/, '');
-          return cleaned || '/';
-        }
-        return path;
-      }
-    });
-    
-    Object.defineProperty(Location.prototype, 'href', {
-      get() {
-        const href = origHref.get.call(this);
-        if (href.includes('/proxy/http')) {
-          // Extract the actual target URL
-          const match = href.match(/\\/proxy\\/(https?:\\/\\/.+)/);
-          if (match) return match[1];
-        }
-        return href;
-      }
-    });
-    
-    // Patch history.pushState and replaceState
-    const origPush = history.pushState.bind(history);
-    const origReplace = history.replaceState.bind(history);
-    
-    history.pushState = function(state, title, url) {
-      if (url && typeof url === 'string' && !url.startsWith('http') && !url.startsWith('/proxy/')) {
-        // Prefix with proxy base for internal navigation
-        url = '/proxy/${targetOrigin}' + (url.startsWith('/') ? url : '/' + url);
-      }
-      return origPush(state, title, url);
-    };
-    
-    history.replaceState = function(state, title, url) {
-      if (url && typeof url === 'string' && !url.startsWith('http') && !url.startsWith('/proxy/')) {
-        url = '/proxy/${targetOrigin}' + (url.startsWith('/') ? url : '/' + url);
-      }
+    // Replace the current history entry with the virtual path
+    history.replaceState(
+      { __logigo: true, originalPath: originalPath },
+      '',
+      '${virtualPath}${parsedTarget.search || ''}'
+    );
+    console.log('[LogiGo] History replaced! New pathname:', window.location.pathname);
+  } catch(e) {
+    console.warn('[LogiGo] History replace failed:', e);
+  }
+  
+  // Also patch pushState/replaceState for future navigation
+  const origPush = history.pushState.bind(history);
+  const origReplace = history.replaceState.bind(history);
+  
+  history.pushState = function(state, title, url) {
+    // Store original for LogiGo tracking
+    const fullUrl = window.__logigoProxyBase + (url && url.startsWith('/') ? url : '/' + (url || ''));
+    console.log('[LogiGo] pushState intercepted:', url, '-> keeping as:', url);
+    return origPush(state, title, url);
+  };
+  
+  history.replaceState = function(state, title, url) {
+    if (state && state.__logigo) {
+      // This is our own call, let it through
       return origReplace(state, title, url);
-    };
-    console.log('[LogiGo] Location patched! New pathname:', window.location.pathname);
-  } catch(e) { console.warn('[LogiGo] Location patch failed:', e); }
+    }
+    console.log('[LogiGo] replaceState intercepted:', url);
+    return origReplace(state, title, url);
+  };
 })();
 </script>`;
         
