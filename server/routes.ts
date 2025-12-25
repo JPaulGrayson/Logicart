@@ -1003,35 +1003,74 @@ self.addEventListener('fetch', (event) => {
       } else if (contentType.includes('javascript') || /\.(js|jsx|mjs)$/.test(fullUrl)) {
         // Instrument JavaScript files
         let code = await targetResponse.text();
+        const originalCode = code;
         
         // Skip if it's a vendor/library file
-        const skipPatterns = [/node_modules/, /vendor/, /react/, /chunk-/, /@vite/, /\.vite/];
+        const skipPatterns = [/node_modules/, /vendor/, /react\./, /react-dom/, /chunk-[a-zA-Z0-9]+\.js/, /@vite/, /\.vite/, /scheduler/];
         const shouldSkip = skipPatterns.some(p => p.test(fullUrl));
+        
+        // For the main entry file (index.js or similar), capture it for flowchart
+        const isMainEntry = /index(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl) || /main(-[a-zA-Z0-9]+)?\.js$/.test(fullUrl);
         
         if (!shouldSkip && code.length < 500000) { // Skip very large files
           // Inject checkpoints into functions
           let fnCount = 0;
+          const discoveredFunctions: string[] = [];
           
-          // Async/regular function declarations
+          // Named function declarations anywhere (not just line start)
           code = code.replace(
-            /^(\s*)(export\s+)?(async\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*\{/gm,
-            (match, indent, exp, async, name, params) => {
+            /((?:export\s+)?(?:async\s+)?function\s+)(\w+)(\s*\([^)]*\)\s*\{)/g,
+            (match, prefix, name, suffix) => {
+              // Skip internal React/library functions
+              if (/^_|^\$|^use[A-Z]|^React|^render|^mount|^unmount|^create[A-Z]/.test(name)) return match;
               fnCount++;
-              return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}', {});`;
+              discoveredFunctions.push(name);
+              return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
             }
           );
           
-          // Arrow functions assigned to variables
+          // Arrow functions with block body (const x = () => {)
           code = code.replace(
-            /^(\s*)(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s*)?\(([^)]*)\)\s*=>\s*\{/gm,
-            (match, indent, exp, decl, name) => {
+            /((?:export\s+)?(?:const|let|var)\s+)(\w+)(\s*=\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{)/g,
+            (match, prefix, name, suffix) => {
+              // Skip internal functions
+              if (/^_|^\$|^use[A-Z]|^set[A-Z]|^get[A-Z]/.test(name)) return match;
               fnCount++;
-              return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}', {});`;
+              discoveredFunctions.push(name);
+              return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
+            }
+          );
+          
+          // Object method shorthand: { methodName() { } }
+          code = code.replace(
+            /([,{]\s*)(\w+)(\s*\([^)]*\)\s*\{)/g,
+            (match, prefix, name, suffix) => {
+              // Skip common internal names
+              if (/^_|^\$|^get$|^set$|^render|^constructor|^use[A-Z]/.test(name)) return match;
+              // Only instrument reasonably named methods
+              if (name.length > 2 && name.length < 30) {
+                fnCount++;
+                discoveredFunctions.push(name);
+                return `${prefix}${name}${suffix}\n    window.LogiGo?.checkpoint?.('${name}', {});`;
+              }
+              return match;
             }
           );
           
           if (fnCount > 0) {
             res.set('X-LogiGo-Instrumented', String(fnCount));
+            console.log(`[Proxy] Instrumented ${fnCount} functions in ${fullUrl}: ${discoveredFunctions.slice(0, 5).join(', ')}${discoveredFunctions.length > 5 ? '...' : ''}`);
+            
+            // For substantial app code, inject a snippet to register the source code with Studio
+            if (isMainEntry && originalCode.length > 500 && originalCode.length < 100000) {
+              // Add code registration at the end of the file
+              code += `\n;(function(){
+  if(window.LogiGo && window.LogiGo.registerCode){
+    var appCode = ${JSON.stringify(originalCode.slice(0, 50000))};
+    setTimeout(function(){ window.LogiGo.registerCode(appCode); }, 1000);
+  }
+})();`;
+            }
           }
         }
         
