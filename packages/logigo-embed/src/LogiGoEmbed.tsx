@@ -30,7 +30,12 @@ const ACTIVE_NODE_STYLE = {
 
 function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
   try {
-    const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
+    let ast;
+    try {
+      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
+    } catch {
+      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+    }
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
     let nodeIdCounter = 0;

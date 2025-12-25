@@ -304,7 +304,12 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 
 export function parseCodeToFlow(code: string): FlowData {
   try {
-    const ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
+    let ast;
+    try {
+      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
+    } catch {
+      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+    }
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
     const nodeMap = new Map<string, string>();

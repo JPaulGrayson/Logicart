@@ -55,7 +55,11 @@ export class Interpreter {
     };
     
     try {
-      this.ast = acorn.parse(code, { ecmaVersion: 2020, locations: true });
+      try {
+        this.ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
+      } catch {
+        this.ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+      }
     } catch (e: any) {
       this.state.status = 'error';
       this.state.error = e.message;

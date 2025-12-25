@@ -187,11 +187,22 @@ function layoutNodesWithDagre(nodes: FlowNode[], edges: FlowEdge[]): void {
 export function parseCodeToFlow(code: string): FlowData {
   try {
     const comments: any[] = [];
-    const ast = acorn.parse(code, {
-      ecmaVersion: 2020,
-      locations: true,
-      onComment: comments
-    });
+    let ast;
+    try {
+      ast = acorn.parse(code, {
+        ecmaVersion: 2020,
+        locations: true,
+        sourceType: 'module',
+        onComment: comments
+      });
+    } catch {
+      ast = acorn.parse(code, {
+        ecmaVersion: 2020,
+        locations: true,
+        sourceType: 'script',
+        onComment: comments
+      });
+    }
 
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
