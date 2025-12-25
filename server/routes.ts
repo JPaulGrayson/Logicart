@@ -913,6 +913,7 @@ self.addEventListener('fetch', (event) => {
         const locationPatch = `<script>
 (function() {
   try {
+    console.log('[LogiGo] Patching location, current pathname:', window.location.pathname);
     const origPathname = Object.getOwnPropertyDescriptor(Location.prototype, 'pathname');
     const origHref = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
     const origSearch = Object.getOwnPropertyDescriptor(Location.prototype, 'search');
@@ -958,6 +959,7 @@ self.addEventListener('fetch', (event) => {
       }
       return origReplace(state, title, url);
     };
+    console.log('[LogiGo] Location patched! New pathname:', window.location.pathname);
   } catch(e) { console.warn('[LogiGo] Location patch failed:', e); }
 })();
 </script>`;
