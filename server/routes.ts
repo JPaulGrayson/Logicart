@@ -908,9 +908,71 @@ self.addEventListener('fetch', (event) => {
           html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
         }
         
+        // Inject a script to patch location.pathname for SPA routers
+        // This makes client-side routers see '/' instead of '/proxy/https://...'
+        const locationPatch = `<script>
+(function() {
+  try {
+    const origPathname = Object.getOwnPropertyDescriptor(Location.prototype, 'pathname');
+    const origHref = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
+    const origSearch = Object.getOwnPropertyDescriptor(Location.prototype, 'search');
+    
+    Object.defineProperty(Location.prototype, 'pathname', {
+      get() {
+        const path = origPathname.get.call(this);
+        if (path.startsWith('/proxy/')) {
+          const cleaned = path.replace(/^\\/proxy\\/https?:\\/\\/[^\\/]+/, '');
+          return cleaned || '/';
+        }
+        return path;
+      }
+    });
+    
+    Object.defineProperty(Location.prototype, 'href', {
+      get() {
+        const href = origHref.get.call(this);
+        if (href.includes('/proxy/http')) {
+          // Extract the actual target URL
+          const match = href.match(/\\/proxy\\/(https?:\\/\\/.+)/);
+          if (match) return match[1];
+        }
+        return href;
+      }
+    });
+    
+    // Patch history.pushState and replaceState
+    const origPush = history.pushState.bind(history);
+    const origReplace = history.replaceState.bind(history);
+    
+    history.pushState = function(state, title, url) {
+      if (url && typeof url === 'string' && !url.startsWith('http') && !url.startsWith('/proxy/')) {
+        // Prefix with proxy base for internal navigation
+        url = '/proxy/${targetOrigin}' + (url.startsWith('/') ? url : '/' + url);
+      }
+      return origPush(state, title, url);
+    };
+    
+    history.replaceState = function(state, title, url) {
+      if (url && typeof url === 'string' && !url.startsWith('http') && !url.startsWith('/proxy/')) {
+        url = '/proxy/${targetOrigin}' + (url.startsWith('/') ? url : '/' + url);
+      }
+      return origReplace(state, title, url);
+    };
+  } catch(e) { console.warn('[LogiGo] Location patch failed:', e); }
+})();
+</script>`;
+        
         // Inject LogiGo remote.js script for checkpoint handling
         const logigoScript = `<script src="${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/remote.js?project=Proxy&autoOpen=true"></script>`;
-        // Try </head> first, then <body>, then just prepend
+        
+        // Inject location patch FIRST (before any other scripts), then remote.js
+        if (html.includes('<head>')) {
+          html = html.replace('<head>', `<head>${locationPatch}`);
+        } else if (html.includes('<head ')) {
+          html = html.replace(/<head([^>]*)>/i, `<head$1>${locationPatch}`);
+        }
+        
+        // Then add remote.js before </head>
         if (html.includes('</head>')) {
           html = html.replace('</head>', `${logigoScript}</head>`);
         } else if (html.includes('<body')) {
