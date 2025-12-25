@@ -1017,12 +1017,28 @@ self.addEventListener('fetch', (event) => {
           let fnCount = 0;
           const discoveredFunctions: string[] = [];
           
+          // Helper to check if function name looks like user code (not minified)
+          const isUserFunction = (name: string): boolean => {
+            // Skip very short names (likely minified: a, b, Ym, gd, etc.)
+            if (name.length < 4) return false;
+            // Skip names that look minified (random mix of upper/lower with numbers)
+            if (/^[a-z][A-Z][a-z0-9]*$/.test(name) && name.length < 6) return false;
+            // Skip internal/library patterns
+            if (/^_|^\$|^use[A-Z]|^React|^render|^mount|^unmount|^create[A-Z]|^set[A-Z]|^get[A-Z]|^on[A-Z]/.test(name)) return false;
+            // Skip common minified patterns
+            if (/^[A-Z][a-z]$|^[a-z][A-Z]$|^[A-Z]{2,3}$/.test(name)) return false;
+            // Look for camelCase or snake_case with reasonable length (likely user code)
+            if (/^[a-z][a-zA-Z0-9_]{4,}$/.test(name)) return true;
+            // PascalCase components are OK if long enough
+            if (/^[A-Z][a-zA-Z0-9]{5,}$/.test(name)) return true;
+            return false;
+          };
+          
           // Named function declarations anywhere (not just line start)
           code = code.replace(
             /((?:export\s+)?(?:async\s+)?function\s+)(\w+)(\s*\([^)]*\)\s*\{)/g,
             (match, prefix, name, suffix) => {
-              // Skip internal React/library functions
-              if (/^_|^\$|^use[A-Z]|^React|^render|^mount|^unmount|^create[A-Z]/.test(name)) return match;
+              if (!isUserFunction(name)) return match;
               fnCount++;
               discoveredFunctions.push(name);
               return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
@@ -1033,8 +1049,7 @@ self.addEventListener('fetch', (event) => {
           code = code.replace(
             /((?:export\s+)?(?:const|let|var)\s+)(\w+)(\s*=\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{)/g,
             (match, prefix, name, suffix) => {
-              // Skip internal functions
-              if (/^_|^\$|^use[A-Z]|^set[A-Z]|^get[A-Z]/.test(name)) return match;
+              if (!isUserFunction(name)) return match;
               fnCount++;
               discoveredFunctions.push(name);
               return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
@@ -1045,15 +1060,10 @@ self.addEventListener('fetch', (event) => {
           code = code.replace(
             /([,{]\s*)(\w+)(\s*\([^)]*\)\s*\{)/g,
             (match, prefix, name, suffix) => {
-              // Skip common internal names
-              if (/^_|^\$|^get$|^set$|^render|^constructor|^use[A-Z]/.test(name)) return match;
-              // Only instrument reasonably named methods
-              if (name.length > 2 && name.length < 30) {
-                fnCount++;
-                discoveredFunctions.push(name);
-                return `${prefix}${name}${suffix}\n    window.LogiGo?.checkpoint?.('${name}', {});`;
-              }
-              return match;
+              if (!isUserFunction(name)) return match;
+              fnCount++;
+              discoveredFunctions.push(name);
+              return `${prefix}${name}${suffix}\n    window.LogiGo?.checkpoint?.('${name}', {});`;
             }
           );
           
