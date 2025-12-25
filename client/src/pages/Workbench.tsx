@@ -19,7 +19,6 @@ import { features } from '@/lib/features';
 import { ExecutionController } from '@/lib/executionController';
 import { exportToPNG, exportToPDF } from '@/lib/flowchartExport';
 import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
-import { RuntimeOverlay } from '@/components/ide/RuntimeOverlay';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
@@ -2555,23 +2554,6 @@ export default function Workbench() {
         onSave={handleSaveNodeEdit}
       />
 
-      {/* Runtime Overlay - Premium Feature */}
-      {features.hasFeature('overlay') && (
-        <RuntimeOverlay
-          isPlaying={isPlaying}
-          canStep={canExecute}
-          currentStep={progress.current}
-          totalSteps={progress.total}
-          speed={speed}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          onStep={handleStepForward}
-          onStepBackward={features.hasFeature('timeTravel') ? handleStepBackward : undefined}
-          onReset={handleReset}
-          onStop={handleStop}
-          onSpeedChange={handleSpeedChange}
-        />
-      )}
       
       {/* Help Dialog */}
       <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />

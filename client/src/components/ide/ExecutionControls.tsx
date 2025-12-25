@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Repeat, Square, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Repeat, Square } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -31,21 +31,15 @@ interface SpeedOption {
   premium?: boolean;
 }
 
-const BASIC_SPEED_OPTIONS: SpeedOption[] = [
+const SPEED_OPTIONS: SpeedOption[] = [
+  { value: 0.25, label: '0.25x' },
   { value: 0.5, label: '0.5x' },
   { value: 1, label: '1x' },
   { value: 2, label: '2x' },
-];
-
-const PREMIUM_SPEED_OPTIONS: SpeedOption[] = [
-  { value: 0.25, label: '0.25x', premium: true },
-  { value: 0.5, label: '0.5x' },
-  { value: 1, label: '1x' },
-  { value: 2, label: '2x' },
-  { value: 3, label: '3x', premium: true },
-  { value: 5, label: '5x', premium: true },
-  { value: 10, label: '10x', premium: true },
-  { value: 20, label: '20x ⚡', premium: true },
+  { value: 3, label: '3x' },
+  { value: 5, label: '5x' },
+  { value: 10, label: '10x' },
+  { value: 20, label: '20x' },
 ];
 
 export function ExecutionControls({
@@ -63,9 +57,8 @@ export function ExecutionControls({
   loop,
   onLoopToggle
 }: ExecutionControlsProps) {
-  const hasSpeedGovernor = features.hasFeature('executionController');
   const hasTimeTravel = features.hasFeature('timeTravel');
-  const speedOptions = hasSpeedGovernor ? PREMIUM_SPEED_OPTIONS : BASIC_SPEED_OPTIONS;
+  const speedOptions = SPEED_OPTIONS;
   const canStepBack = hasTimeTravel && progress && progress.current > 0;
   
   return (
@@ -145,9 +138,8 @@ export function ExecutionControls({
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="text-xs text-muted-foreground">
             Speed:
-            {hasSpeedGovernor && <Zap className="w-3 h-3 text-primary" />}
           </span>
           <Select
             value={speed.toString()}
