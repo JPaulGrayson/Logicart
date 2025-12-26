@@ -131,7 +131,7 @@ async function generateWithGrok(prompt: string): Promise<ModelResult> {
       apiKey: process.env.XAI_API_KEY
     });
     const response = await client.chat.completions.create({
-      model: "grok-3-latest",
+      model: "grok-4",
       messages: [
         { role: "system", content: CODE_GENERATION_SYSTEM_PROMPT },
         { role: "user", content: prompt }
@@ -140,14 +140,14 @@ async function generateWithGrok(prompt: string): Promise<ModelResult> {
     });
     const code = extractCodeFromResponse(response.choices[0]?.message?.content || "");
     return {
-      model: "grok-3",
+      model: "grok-4",
       provider: "Grok",
       code,
       latencyMs: Date.now() - start
     };
   } catch (error: any) {
     return {
-      model: "grok-3",
+      model: "grok-4",
       provider: "Grok",
       code: "",
       error: error.message || "Failed to generate",
