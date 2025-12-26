@@ -98,3 +98,112 @@ Preferred communication style: Simple, everyday language.
 
 ### Session Management
 - **connect-pg-simple**
+
+## API Reference
+
+### Code Analysis
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/agent/analyze` | POST | Programmatic code analysis |
+| `/api/rewrite-code` | POST | AI-powered code rewriting |
+
+**POST /api/agent/analyze**
+```json
+// Request
+{ "code": "function example() { ... }", "language": "javascript" }
+
+// Response
+{
+  "summary": { "nodeCount": 5, "complexityScore": 3, "entryPoint": "example" },
+  "flow": [...],
+  "nodes": 5,
+  "edges": 4,
+  "complexity": 3,
+  "language": "javascript"
+}
+```
+
+### Sharing
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/share` | POST | Create a new share |
+| `/api/share/:id` | GET | Retrieve a share by ID |
+
+**POST /api/share**
+```json
+// Request
+{ "code": "...", "title": "My Algorithm", "description": "Optional description" }
+
+// Response
+{ "id": "abc12345", "url": "/s/abc12345" }
+```
+
+### Model Arena
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/arena/generate` | POST | Generate code from 4 AI models |
+| `/api/arena/debug` | POST | Get debug advice from 4 AI models |
+| `/api/arena/verdict` | POST | Get chairman verdict on results |
+| `/api/arena/sessions` | GET/POST | List or save arena sessions |
+| `/api/arena/sessions/:id` | GET/DELETE | Get or delete a session |
+
+## Key Files
+
+### Frontend
+| File | Purpose |
+|------|---------|
+| `client/src/pages/Workbench.tsx` | Main IDE workspace with code editor and flowchart |
+| `client/src/pages/ModelArena.tsx` | AI model comparison interface |
+| `client/src/components/ide/Flowchart.tsx` | React Flow visualization with zoom controls |
+| `client/src/components/ide/ShareDialog.tsx` | Share creation dialog |
+| `client/src/lib/parser.ts` | Acorn-based JavaScript parser |
+| `client/src/lib/historyManager.ts` | Undo/redo state management |
+
+### Backend
+| File | Purpose |
+|------|---------|
+| `server/routes.ts` | Express API endpoints |
+| `server/storage.ts` | Database storage interface |
+| `shared/schema.ts` | Drizzle ORM schema definitions |
+
+### Database Tables
+| Table | Purpose |
+|-------|---------|
+| `arena_sessions` | Saved Model Arena sessions |
+| `shares` | Shared flowcharts with metadata |
+
+## V1 Feature Details
+
+### Layout Presets
+- **Location:** Sidebar → Layout section
+- **Presets:** 50/50, 30/70, 70/30, Code Only, Flow Only
+- **Storage:** localStorage key `logigo-layout-preset`
+- **Implementation:** Uses `ImperativePanelHandle.resize()` for programmatic control
+
+### Zoom Presets
+- **Location:** Flowchart toolbar
+- **Presets:** 25%, 50%, 100%, Fit
+- **Implementation:** Uses React Flow's `zoomTo()` and `fitView()` APIs
+
+### Undo/Redo
+- **Keyboard:** Ctrl+Z (undo), Ctrl+Y (redo)
+- **Debounce:** 1 second delay before saving state
+- **Location:** Sidebar → History section
+- **Implementation:** HistoryManager singleton in `client/src/lib/historyManager.ts`
+
+### Enhanced Sharing
+- **Flow:** Click Share → Enter title/description → Create → Copy URL
+- **URL Format:** `/s/{8-char-hex-id}`
+- **Tracking:** View count incremented on each access
+
+### Arena Example Selector
+- **Location:** Model Arena → Code Generation → Quick examples dropdown
+- **Examples:** Find Duplicates, Debounce, Binary Search, LRU Cache, Email Validator, Fibonacci
+
+## Development Commands
+
+```bash
+npm run dev        # Start development server
+npm run db:push    # Push schema changes to database
+npm run build      # Production build
+```
