@@ -10,11 +10,13 @@ import TestMiniMap from "@/pages/TestMiniMap";
 import EmbedDemo from "@/pages/EmbedDemo";
 import RemoteMode from "@/pages/RemoteMode";
 import ZeroClickDemo from "@/pages/ZeroClickDemo";
+import ModelArena from "@/pages/ModelArena";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Workbench} />
+      <Route path="/arena" component={ModelArena} />
       <Route path="/test" component={TestMiniMap} />
       <Route path="/embed-demo" component={EmbedDemo} />
       <Route path="/remote" component={RemoteMode} />

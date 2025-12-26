@@ -11,6 +11,7 @@ import type { ControlMessage, StudioToRemoteMessage, RemoteToStudioMessage } fro
 import * as acorn from "acorn";
 import { WebSocketServer, WebSocket } from "ws";
 import { registerAIRoutes } from "./ai";
+import { registerArenaRoutes } from "./arena";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -312,6 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register AI Code Understanding APIs
   registerAIRoutes(app);
+  
+  // Register Model Arena routes
+  registerArenaRoutes(app);
 
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {

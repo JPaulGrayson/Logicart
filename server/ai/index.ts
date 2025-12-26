@@ -2,6 +2,8 @@ import type { Express, Request, Response } from "express";
 import { parseCodeToFlowchart, extractFunctionByName, type ParseResult, type FunctionInfo } from "./acorn-parser";
 import type { GroundingContext } from "@shared/grounding-types";
 
+export { parseCodeToFlowchart, type ParseResult } from "./acorn-parser";
+
 export interface ParseRequest {
   code: string;
   functionName?: string;
@@ -356,7 +358,7 @@ export function registerAIRoutes(app: Express) {
             if (!fnCode) continue;
             
             const fnFlowchart = parseCodeToFlowchart(fnCode.code);
-            const similarity = calculateSimilarity(targetFlowchart, fnFlowchart);
+            const similarity = calculateSimilarityFromParsed(targetFlowchart, fnFlowchart);
             
             if (similarity >= threshold) {
               const differences = findDifferences(targetFlowchart, fnFlowchart);
@@ -463,7 +465,7 @@ export function registerAIRoutes(app: Express) {
   });
 }
 
-function calculateSimilarity(a: ParseResult, b: ParseResult): number {
+export function calculateSimilarityFromParsed(a: ParseResult, b: ParseResult): number {
   const typeDistA = getTypeDistribution(a);
   const typeDistB = getTypeDistribution(b);
   const typeSimilarity = compareDist(typeDistA, typeDistB);
