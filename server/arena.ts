@@ -16,6 +16,22 @@ interface ArenaRequest {
   prompt: string;
 }
 
+interface APIKeys {
+  openai?: string;
+  gemini?: string;
+  anthropic?: string;
+  xai?: string;
+}
+
+function extractAPIKeys(req: Request): APIKeys {
+  return {
+    openai: (req.headers["x-openai-key"] as string) || process.env.OPENAI_API_KEY,
+    gemini: (req.headers["x-gemini-key"] as string) || process.env.GEMINI_API_KEY,
+    anthropic: (req.headers["x-anthropic-key"] as string) || process.env.ANTHROPIC_API_KEY,
+    xai: (req.headers["x-xai-key"] as string) || process.env.XAI_API_KEY,
+  };
+}
+
 const CODE_GENERATION_SYSTEM_PROMPT = `You are a code generation assistant. Generate clean, working JavaScript code based on the user's request.
 Rules:
 1. Output ONLY the code - no explanations, no markdown, no code blocks
@@ -46,10 +62,19 @@ function extractCodeFromResponse(text: string): string {
   return text.trim();
 }
 
-async function generateWithOpenAI(prompt: string): Promise<ModelResult> {
+async function generateWithOpenAI(prompt: string, apiKey?: string): Promise<ModelResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "gpt-4o",
+      provider: "OpenAI",
+      code: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -76,10 +101,19 @@ async function generateWithOpenAI(prompt: string): Promise<ModelResult> {
   }
 }
 
-async function generateWithGemini(prompt: string): Promise<ModelResult> {
+async function generateWithGemini(prompt: string, apiKey?: string): Promise<ModelResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "gemini-3-flash",
+      provider: "Gemini",
+      code: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       config: {
@@ -105,10 +139,19 @@ async function generateWithGemini(prompt: string): Promise<ModelResult> {
   }
 }
 
-async function generateWithClaude(prompt: string): Promise<ModelResult> {
+async function generateWithClaude(prompt: string, apiKey?: string): Promise<ModelResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "claude-opus-4.5",
+      provider: "Claude",
+      code: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: "claude-opus-4-5-20251101",
       max_tokens: 2048,
@@ -134,12 +177,21 @@ async function generateWithClaude(prompt: string): Promise<ModelResult> {
   }
 }
 
-async function generateWithGrok(prompt: string): Promise<ModelResult> {
+async function generateWithGrok(prompt: string, apiKey?: string): Promise<ModelResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "grok-4",
+      provider: "Grok",
+      code: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
     const client = new OpenAI({
       baseURL: "https://api.x.ai/v1",
-      apiKey: process.env.XAI_API_KEY
+      apiKey
     });
     const response = await client.chat.completions.create({
       model: "grok-4",
@@ -175,10 +227,19 @@ interface DebugResult {
   latencyMs: number;
 }
 
-async function debugWithOpenAI(prompt: string): Promise<DebugResult> {
+async function debugWithOpenAI(prompt: string, apiKey?: string): Promise<DebugResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "gpt-4o",
+      provider: "OpenAI",
+      analysis: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -204,10 +265,19 @@ async function debugWithOpenAI(prompt: string): Promise<DebugResult> {
   }
 }
 
-async function debugWithGemini(prompt: string): Promise<DebugResult> {
+async function debugWithGemini(prompt: string, apiKey?: string): Promise<DebugResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "gemini-3-flash",
+      provider: "Gemini",
+      analysis: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       config: {
@@ -232,10 +302,19 @@ async function debugWithGemini(prompt: string): Promise<DebugResult> {
   }
 }
 
-async function debugWithClaude(prompt: string): Promise<DebugResult> {
+async function debugWithClaude(prompt: string, apiKey?: string): Promise<DebugResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "claude-opus-4.5",
+      provider: "Claude",
+      analysis: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: "claude-opus-4-5-20251101",
       max_tokens: 2048,
@@ -260,12 +339,21 @@ async function debugWithClaude(prompt: string): Promise<DebugResult> {
   }
 }
 
-async function debugWithGrok(prompt: string): Promise<DebugResult> {
+async function debugWithGrok(prompt: string, apiKey?: string): Promise<DebugResult> {
   const start = Date.now();
+  if (!apiKey) {
+    return {
+      model: "grok-4",
+      provider: "Grok",
+      analysis: "",
+      error: "No API key configured",
+      latencyMs: Date.now() - start
+    };
+  }
   try {
     const client = new OpenAI({
       baseURL: "https://api.x.ai/v1",
-      apiKey: process.env.XAI_API_KEY
+      apiKey
     });
     const response = await client.chat.completions.create({
       model: "grok-4",
@@ -295,6 +383,7 @@ async function debugWithGrok(prompt: string): Promise<DebugResult> {
 export function registerArenaRoutes(app: Express) {
   app.post("/api/arena/debug", async (req: Request, res: Response) => {
     try {
+      const keys = extractAPIKeys(req);
       const { problem, errorLogs, codeSnippet } = req.body;
       
       if (!problem || typeof problem !== "string") {
@@ -320,10 +409,10 @@ ${codeSnippet}
 Please analyze this issue and provide debugging advice.`;
 
       const results = await Promise.all([
-        debugWithOpenAI(fullPrompt),
-        debugWithGemini(fullPrompt),
-        debugWithClaude(fullPrompt),
-        debugWithGrok(fullPrompt)
+        debugWithOpenAI(fullPrompt, keys.openai),
+        debugWithGemini(fullPrompt, keys.gemini),
+        debugWithClaude(fullPrompt, keys.anthropic),
+        debugWithGrok(fullPrompt, keys.xai)
       ]);
 
       res.json({
@@ -341,6 +430,7 @@ Please analyze this issue and provide debugging advice.`;
 
   app.post("/api/arena/generate", async (req: Request, res: Response) => {
     try {
+      const keys = extractAPIKeys(req);
       const { prompt } = req.body as ArenaRequest;
       
       if (!prompt || typeof prompt !== "string") {
@@ -351,10 +441,10 @@ Please analyze this issue and provide debugging advice.`;
       }
 
       const results = await Promise.all([
-        generateWithOpenAI(prompt),
-        generateWithGemini(prompt),
-        generateWithClaude(prompt),
-        generateWithGrok(prompt)
+        generateWithOpenAI(prompt, keys.openai),
+        generateWithGemini(prompt, keys.gemini),
+        generateWithClaude(prompt, keys.anthropic),
+        generateWithGrok(prompt, keys.xai)
       ]);
 
       const validResults = results.filter(r => r.code && !r.error);

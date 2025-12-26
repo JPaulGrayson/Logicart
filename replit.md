@@ -46,6 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **Self-Healing Connection Loop**: Automatic reconnection and session renewal for remote connections.
 - **Model Arena**: Compare code generation from 4 AI models (OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, Grok 4) with side-by-side code/flowchart views and similarity analysis.
 - **Debug Arena**: Get debugging advice from 4 AI models simultaneously. Describe your problem, paste error logs and code snippets, and compare solutions from different perspectives.
+- **BYOK (Bring Your Own Key)**: User-controlled API key management for open-source distribution. Keys are stored in browser localStorage and passed via HTTP headers (x-openai-key, x-gemini-key, x-anthropic-key, x-xai-key). Server-side functions accept keys from headers with environment variable fallback for development. Settings modal at `client/src/components/arena/SettingsModal.tsx`.
 
 ## External Dependencies
 

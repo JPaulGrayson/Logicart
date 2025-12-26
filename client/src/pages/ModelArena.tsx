@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, S
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
+import SettingsModal, { getStoredAPIKeys } from "@/components/arena/SettingsModal";
 
 interface ModelResult {
   model: string;
@@ -60,6 +61,16 @@ const MODEL_COLORS: Record<string, string> = {
   "Grok": "bg-purple-500/20 text-purple-400 border-purple-500/50",
 };
 
+function getAPIKeyHeaders(): Record<string, string> {
+  const keys = getStoredAPIKeys();
+  const headers: Record<string, string> = {};
+  if (keys.openai) headers["x-openai-key"] = keys.openai;
+  if (keys.gemini) headers["x-gemini-key"] = keys.gemini;
+  if (keys.anthropic) headers["x-anthropic-key"] = keys.anthropic;
+  if (keys.xai) headers["x-xai-key"] = keys.xai;
+  return headers;
+}
+
 export default function ModelArena() {
   const [arenaMode, setArenaMode] = useState<"code" | "debug">("code");
   const [prompt, setPrompt] = useState(
@@ -73,10 +84,16 @@ export default function ModelArena() {
   const [flowcharts, setFlowcharts] = useState<Record<string, ParsedFlowchart>>({});
   const [comparison, setComparison] = useState<ArenaResponse["comparison"]>();
   const [viewMode, setViewMode] = useState<"code" | "flowchart">("code");
+  const [, forceUpdate] = useState({});
+
+  const handleKeysChange = useCallback(() => {
+    forceUpdate({});
+  }, []);
 
   const generateMutation = useMutation({
     mutationFn: async (prompt: string) => {
-      const response = await apiRequest("POST", "/api/arena/generate", { prompt });
+      const headers = getAPIKeyHeaders();
+      const response = await apiRequest("POST", "/api/arena/generate", { prompt }, headers);
       return response.json() as Promise<ArenaResponse>;
     },
     onSuccess: (data) => {
@@ -88,7 +105,8 @@ export default function ModelArena() {
 
   const debugMutation = useMutation({
     mutationFn: async (data: { problem: string; errorLogs: string; codeSnippet: string }) => {
-      const response = await apiRequest("POST", "/api/arena/debug", data);
+      const headers = getAPIKeyHeaders();
+      const response = await apiRequest("POST", "/api/arena/debug", data, headers);
       return response.json() as Promise<DebugResponse>;
     },
     onSuccess: (data) => {
@@ -142,9 +160,12 @@ export default function ModelArena() {
               Model Arena
             </h1>
           </div>
-          <Badge variant="outline" className="text-xs">
-            Compare 4 AI Models
-          </Badge>
+          <div className="flex items-center gap-3">
+            <SettingsModal onKeysChange={handleKeysChange} />
+            <Badge variant="outline" className="text-xs">
+              Compare 4 AI Models
+            </Badge>
+          </div>
         </div>
 
         <Tabs value={arenaMode} onValueChange={handleModeChange} className="mb-6">
