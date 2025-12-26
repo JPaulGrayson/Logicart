@@ -163,49 +163,39 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                   Remote Mode - For Vibe Coders (Easiest!)
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Connect any external app to LogiGo without writing code yourself. Just two steps:
+                  Connect any external app to LogiGo. Just copy this prompt into your AI agent:
                 </p>
-                <div className="space-y-4 ml-4">
-                  <div>
-                    <p className="text-sm font-medium text-foreground mb-2">Step 1: Add the script tag to your app's HTML</p>
-                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs">
-                      {'<script src="YOUR_LOGIGO_URL/remote.js?project=MyApp"></script>'}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground mb-2">Step 2: Ask your AI agent to add checkpoints</p>
-                    <p className="text-xs text-muted-foreground mb-2">Copy this prompt and paste it into your app's AI agent:</p>
-                    <div className="p-2 bg-muted/50 rounded-md font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto">
-{`Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
+                <div className="p-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-md border border-purple-500/30 font-mono text-xs whitespace-pre-wrap max-h-80 overflow-y-auto">
+{`Add LogiGo visualization to this project so I can see a flowchart of my code execution.
 
-IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
+1. Add this script tag to the HTML head (before any other scripts):
+   <script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=true"></script>
 
-After adding checkpoints, ALSO call LogiGo.registerCode() with the instrumented code so LogiGo can show a flowchart. Add this call at the end of your main component file:
-
-LogiGo.registerCode(\`
-// Paste the key function with checkpoints here
-function myFunction() {
-  checkpoint('start', {});
-  // ... code with checkpoints ...
-}
-\`);
-
-Guidelines for checkpoints:
-- Add checkpoint('step-name', { key: value }) at key points
-- Track user interactions: checkpoint('button-clicked', { action })
-- Track state changes: checkpoint('state-update', { before, after })
+2. In my JavaScript code, add checkpoint() calls at important points:
+   checkpoint('step-name', { variableName: value });
 
 Example:
-function handleSubmit(data) {
-  checkpoint('form-submit', { fields: Object.keys(data) });
-  // ... existing code ...
-}`}
-                    </div>
-                  </div>
+function addTodo(text) {
+  checkpoint('addTodo-start', { text });
+  const todo = { id: Date.now(), text, completed: false };
+  checkpoint('todo-created', { todo });
+  todos.push(todo);
+  checkpoint('addTodo-end', { count: todos.length });
+  return todo;
+}
+
+The flowchart will show each checkpoint as a step, highlighting in real-time as my code runs.`}
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  That's it! Your AI agent adds the checkpoints to your frontend code, and they appear in LogiGo automatically when triggered.
-                </p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>What happens:</strong> When remote.js loads, it creates a session with LogiGo Studio automatically. 
+                    The <code className="bg-muted px-1 py-0.5 rounded">checkpoint()</code> function becomes globally available - no imports needed.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Full documentation:</strong> See <code className="bg-muted px-1 py-0.5 rounded">docs/INTEGRATION_PROMPT.md</code> for 
+                    copy-paste prompts and <code className="bg-muted px-1 py-0.5 rounded">docs/INTEGRATION_GUIDE.md</code> for API reference.
+                  </p>
+                </div>
               </section>
 
               <section>
@@ -247,24 +237,31 @@ function processData(items) {
 
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-cyan-500">🤖</span>
-                  Install LogiGo in Your Project
+                  <span className="text-cyan-500">📋</span>
+                  Integration Options
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Add LogiGo to your own projects on any platform:
+                  Choose your integration approach:
                 </p>
-                <div className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <p><strong>Supported Platforms:</strong> Replit, VS Code, Cursor, Antigravity, Windsurf</p>
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted/50 rounded-md">
+                    <p className="text-sm font-semibold mb-1">Option 1: Remote Mode (Recommended)</p>
+                    <p className="text-xs text-muted-foreground">
+                      Add a single script tag + checkpoint() calls. Works with any AI agent on any platform 
+                      (Replit, VS Code, Cursor, Windsurf, etc). No npm install required.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-md">
+                    <p className="text-sm font-semibold mb-1">Option 2: Vite/React Apps</p>
+                    <p className="text-xs text-muted-foreground">
+                      Use <code className="bg-muted px-1 py-0.5 rounded">LogiGo.registerCode()</code> to send 
+                      source code for full flowchart generation. Works with development builds only.
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-3 p-3 bg-muted/50 rounded-md">
-                  <p className="text-xs font-semibold mb-2">Two Components:</p>
-                  <ul className="text-xs space-y-1">
-                    <li><strong>LogiGoOverlay</strong> - Visual debugging for frontend (React, Vue)</li>
-                    <li><strong>Checkpoint Helper</strong> - Execution logging for backend (Node.js, Express)</li>
-                  </ul>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Full installation guide: <code className="bg-muted px-1 py-0.5 rounded text-xs">docs/INSTALLATION_GUIDE.md</code>
+                <p className="text-xs text-muted-foreground mt-3">
+                  See <code className="bg-muted px-1 py-0.5 rounded text-xs">docs/INTEGRATION_GUIDE.md</code> for 
+                  detailed API reference and troubleshooting.
                 </p>
               </section>
 
