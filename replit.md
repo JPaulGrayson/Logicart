@@ -44,7 +44,8 @@ Preferred communication style: Simple, everyday language.
 - **Hierarchical Views**: Manages large codebases with zoom-based views (Mile-high, 1000ft, 100ft) using section grouping and collapsible container nodes.
 - **Algorithm Examples Library**: Built-in, instrumented examples for learning and testing.
 - **Self-Healing Connection Loop**: Automatic reconnection and session renewal for remote connections.
-- **Model Arena**: Compare code generation from 4 AI models (OpenAI GPT-5, Gemini, Claude, Grok) with side-by-side code/flowchart views and similarity analysis.
+- **Model Arena**: Compare code generation from 4 AI models (OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, Grok 4) with side-by-side code/flowchart views and similarity analysis.
+- **Debug Arena**: Get debugging advice from 4 AI models simultaneously. Describe your problem, paste error logs and code snippets, and compare solutions from different perspectives.
 
 ## External Dependencies
 
