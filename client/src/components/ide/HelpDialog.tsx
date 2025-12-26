@@ -76,7 +76,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     Execute Step-by-Step
                   </h3>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Use the execution controls at the bottom to run your code interactively:
+                    Use the execution controls in the sidebar to run your code interactively:
                   </p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
@@ -104,7 +104,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     Adjust Speed
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Use the speed selector to control execution speed from 0.25x (slow motion) to 20x (lightning fast). Perfect for debugging complex algorithms.
+                    Use the speed selector in the sidebar to control execution speed from 0.25x (slow motion) to 20x (lightning fast). Perfect for debugging complex algorithms or quickly scanning familiar code.
                   </p>
                 </section>
 
@@ -114,7 +114,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     Explore the Flowchart
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    The flowchart on the right shows your code's control flow. Active nodes are highlighted in real-time as execution progresses. Zoom in/out to see different levels of detail.
+                    The flowchart shows your code's control flow. Active nodes are highlighted in real-time as execution progresses. Use scroll/pinch to zoom, and drag to pan around large flowcharts.
                   </p>
                 </section>
 
@@ -460,57 +460,39 @@ while (i < 10) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-purple-400">🎛️</span>
-                  Execution Controls vs Runtime Controls
+                  Execution Controls
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  LogiGo has two types of playback controls that serve different purposes:
+                  All playback controls are located in the sidebar for a clean, focused interface:
                 </p>
                 
-                <div className="space-y-4">
-                  <div className="p-3 bg-muted/50 rounded-md">
-                    <p className="text-sm font-semibold mb-2">Execution Controls (Sidebar)</p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Located in the left sidebar, these step through your code line-by-line with flowchart highlighting:
-                    </p>
-                    <ul className="space-y-1 text-xs text-muted-foreground">
-                      <li>• <strong>Play/Pause:</strong> Auto-step through code</li>
-                      <li>• <strong>Step Forward:</strong> Move one step forward</li>
-                      <li>• <strong>Step Back:</strong> Move one step backward <span className="text-purple-400">(Premium: Time Travel)</span></li>
-                      <li>• <strong>Reset/Stop:</strong> Return to beginning or end execution</li>
-                      <li>• <strong>Loop:</strong> Toggle continuous replay</li>
-                      <li>• <strong>Speed:</strong> 0.5x, 1x, 2x (Premium: up to 20x)</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-md border border-purple-500/30">
-                    <p className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      Runtime Controls (Floating Overlay - Premium)
-                      <span className="text-[10px] text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded">PREMIUM</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      A floating purple panel at the bottom center that stays visible even when scrolling:
-                    </p>
-                    <ul className="space-y-1 text-xs text-muted-foreground">
-                      <li>• <strong>Same controls:</strong> Play, Step Back, Step Forward, Reset, Stop</li>
-                      <li>• <strong>Extended speeds:</strong> 0.25x, 0.5x, 1x, 2x, 3x, 5x, 10x, 20x⚡</li>
-                      <li>• <strong>Always visible:</strong> Floats above the canvas for quick access</li>
-                    </ul>
-                  </div>
+                <div className="p-3 bg-muted/50 rounded-md">
+                  <p className="text-sm font-semibold mb-2">Sidebar Controls</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Step through your code line-by-line with flowchart highlighting:
+                  </p>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    <li>• <strong>Play/Pause:</strong> Auto-step through code</li>
+                    <li>• <strong>Step Forward/Back:</strong> Move one step at a time</li>
+                    <li>• <strong>Reset/Stop:</strong> Return to beginning or end execution</li>
+                    <li>• <strong>Loop:</strong> Toggle continuous replay</li>
+                    <li>• <strong>Speed:</strong> Full range from 0.25x (slow-mo) to 20x (lightning fast)</li>
+                  </ul>
                 </div>
                 
                 <p className="text-xs text-muted-foreground mt-3">
-                  <strong>Key difference:</strong> Execution Controls are for debugging code logic step-by-step. 
-                  Runtime Controls provide persistent access with premium speed options for power users.
+                  <strong>Tip:</strong> Use slow speeds (0.25x-0.5x) to carefully observe complex logic, 
+                  and fast speeds (10x-20x) to quickly scan through familiar code.
                 </p>
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold mb-3">Other Premium Features</h3>
+                <h3 className="text-lg font-semibold mb-3">Premium Features</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Speed Governor:</strong> Extended speed controls from 0.25x to 20x</li>
                   <li>• <strong>Time Travel:</strong> Step backward through execution history</li>
                   <li>• <strong>Export:</strong> Save flowcharts as PNG or PDF images</li>
                   <li>• <strong>Natural Language Search:</strong> Search flowchart nodes using plain English queries</li>
+                  <li>• <strong>Ghost Diff:</strong> Visualize code changes with color-coded overlays</li>
                 </ul>
               </section>
             </TabsContent>
