@@ -1,8 +1,16 @@
 # AI Code Understanding Feature - Implementation Plan
 
 **Date:** December 26, 2025  
-**Status:** Planned  
-**Priority:** High  
+**Status:** Implemented (v1)  
+**Priority:** High
+
+### Implementation Status (v1)
+- ✅ `/api/ai/parse` - Fully implemented
+- ✅ `/api/ai/similar` - Fully implemented  
+- ✅ `/api/ai/impact` - Fully implemented
+- ⚠️ `/api/ai/trace` - Limited (simple conditions only; loops/complex conditions return HTTP 501)
+
+**Note on Trace API:** The current trace implementation uses static analysis to evaluate simple conditions (truthy checks, null comparisons, numeric comparisons). For loops or complex conditions (e.g., `a && b.length > 0`), the API returns HTTP 501 because accurate tracing requires a sandboxed interpreter. Use `/api/ai/parse` to get the full flowchart structure instead.  
 
 ---
 
