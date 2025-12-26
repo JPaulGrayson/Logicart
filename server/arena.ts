@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import { parseCodeToFlowchart, calculateSimilarityFromParsed, type ParseResult } from "./ai";
+import { storage } from "./storage";
+import { insertArenaSessionSchema } from "@shared/schema";
 
 interface ModelResult {
   model: string;
@@ -676,6 +678,79 @@ Please analyze this issue and provide debugging advice.`;
       res.status(500).json({
         success: false,
         error: error.message || "Internal server error"
+      });
+    }
+  });
+
+  app.post("/api/arena/sessions", async (req: Request, res: Response) => {
+    try {
+      const parseResult = insertArenaSessionSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid session data"
+        });
+      }
+
+      const session = await storage.createArenaSession(parseResult.data);
+      res.json({ success: true, session });
+    } catch (error: any) {
+      console.error("Save session error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to save session"
+      });
+    }
+  });
+
+  app.get("/api/arena/sessions", async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const sessions = await storage.getArenaSessions(limit);
+      res.json({ success: true, sessions });
+    } catch (error: any) {
+      console.error("Get sessions error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to fetch sessions"
+      });
+    }
+  });
+
+  app.get("/api/arena/sessions/:id", async (req: Request, res: Response) => {
+    try {
+      const session = await storage.getArenaSession(req.params.id);
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          error: "Session not found"
+        });
+      }
+      res.json({ success: true, session });
+    } catch (error: any) {
+      console.error("Get session error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to fetch session"
+      });
+    }
+  });
+
+  app.delete("/api/arena/sessions/:id", async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteArenaSession(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          error: "Session not found"
+        });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Delete session error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Failed to delete session"
       });
     }
   });

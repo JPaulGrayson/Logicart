@@ -46,6 +46,8 @@ Preferred communication style: Simple, everyday language.
 - **Self-Healing Connection Loop**: Automatic reconnection and session renewal for remote connections.
 - **Model Arena**: Compare code generation from 4 AI models (OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, Grok 4) with side-by-side code/flowchart views and similarity analysis.
 - **Debug Arena**: Get debugging advice from 4 AI models simultaneously. Describe your problem, paste error logs and code snippets, and compare solutions from different perspectives.
+- **Chairman Model**: Synthesizes all 4 AI responses into a unified verdict using a configurable "chairman" model. Specialized prompts for code generation (CHAIRMAN_CODE_VERDICT_PROMPT) and debug advice (CHAIRMAN_DEBUG_VERDICT_PROMPT). Chairman preference stored in localStorage (`logigo_arena_chairman`). Verdict endpoint at `/api/arena/verdict`.
+- **Arena Session History**: Saves arena sessions to PostgreSQL database for later review. Sessions include mode, prompt, results, verdict, and chairman selection. API endpoints: GET/POST `/api/arena/sessions`, GET/DELETE `/api/arena/sessions/:id`. History panel accessible via History button in Model Arena header.
 - **BYOK (Bring Your Own Key)**: User-controlled API key management for open-source distribution. Keys are stored in browser localStorage and passed via HTTP headers (x-openai-key, x-gemini-key, x-anthropic-key, x-xai-key). Server-side functions accept keys from headers with environment variable fallback for development. Settings modal at `client/src/components/arena/SettingsModal.tsx`.
 
 ## External Dependencies

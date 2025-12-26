@@ -1,16 +1,19 @@
 import { useState, useCallback, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles, Crown, Gavel } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles, Crown, Gavel, Save, History, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
 import SettingsModal, { getStoredAPIKeys } from "@/components/arena/SettingsModal";
+import type { ArenaSession } from "@shared/schema";
 
 type ChairmanModel = "openai" | "gemini" | "anthropic" | "xai";
 
@@ -177,6 +180,83 @@ export default function ModelArena() {
     },
   });
 
+  const queryClient = useQueryClient();
+
+  const sessionsQuery = useQuery({
+    queryKey: ["arena-sessions"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/arena/sessions");
+      const data = await response.json();
+      return data.sessions as ArenaSession[];
+    },
+  });
+
+  const saveSessionMutation = useMutation({
+    mutationFn: async (data: { mode: string; prompt: string; results: unknown; verdict?: string; chairman?: string }) => {
+      const response = await apiRequest("POST", "/api/arena/sessions", data);
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save session");
+      }
+      return result.session as ArenaSession;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["arena-sessions"] });
+    },
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/arena/sessions/${id}`);
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete session");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["arena-sessions"] });
+    },
+  });
+
+  const handleSaveSession = () => {
+    const sessionResults = arenaMode === "code" 
+      ? results.map(r => ({ provider: r.provider, model: r.model, code: r.code, error: r.error, latencyMs: r.latencyMs }))
+      : debugResults.map(r => ({ provider: r.provider, model: r.model, analysis: r.analysis, error: r.error, latencyMs: r.latencyMs }));
+    
+    saveSessionMutation.mutate({
+      mode: arenaMode,
+      prompt: arenaMode === "code" ? prompt : problem,
+      results: sessionResults,
+      verdict: verdict?.text,
+      chairman: verdict?.chairman
+    });
+  };
+
+  const handleLoadSession = (session: ArenaSession) => {
+    setArenaMode(session.mode as "code" | "debug");
+    setFlowcharts({});
+    setComparison(undefined);
+    
+    if (session.mode === "code") {
+      setPrompt(session.prompt);
+      const savedResults = session.results as ModelResult[];
+      setResults(savedResults || []);
+      setDebugResults([]);
+    } else {
+      setProblem(session.prompt);
+      const savedResults = session.results as DebugResult[];
+      setDebugResults(savedResults || []);
+      setResults([]);
+    }
+    if (session.verdict && session.chairman) {
+      setVerdict({ text: session.verdict, chairman: session.chairman, latencyMs: 0 });
+    } else {
+      setVerdict(null);
+    }
+  };
+
+  const canSave = (arenaMode === "code" && results.length > 0) || (arenaMode === "debug" && debugResults.length > 0);
+
   const handleGenerate = () => {
     if (prompt.trim()) {
       setVerdict(null);
@@ -256,6 +336,86 @@ export default function ModelArena() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="border-[#30363d]" data-testid="button-history">
+                  <History className="w-4 h-4 mr-2" />
+                  History
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="bg-[#161b22] border-[#30363d]">
+                <SheetHeader>
+                  <SheetTitle className="text-white">Session History</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-100px)] mt-4">
+                  {sessionsQuery.isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    </div>
+                  ) : sessionsQuery.data?.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      No saved sessions yet
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {sessionsQuery.data?.map((session) => (
+                        <Card 
+                          key={session.id} 
+                          className="bg-[#0d1117] border-[#30363d] cursor-pointer hover:border-blue-500/50 transition-colors"
+                          onClick={() => handleLoadSession(session)}
+                          data-testid={`card-session-${session.id}`}
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <Badge className={session.mode === "code" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"}>
+                                  {session.mode}
+                                </Badge>
+                                <p className="text-sm text-gray-300 mt-2 line-clamp-2">
+                                  {session.prompt}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(session.createdAt).toLocaleString()}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0 text-gray-500 hover:text-red-400"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteSessionMutation.mutate(session.id);
+                                }}
+                                data-testid={`button-delete-${session.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
+            {canSave && (
+              <Button 
+                onClick={handleSaveSession}
+                disabled={saveSessionMutation.isPending}
+                variant="outline" 
+                size="sm" 
+                className="border-[#30363d]"
+                data-testid="button-save-session"
+              >
+                {saveSessionMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Save
+              </Button>
+            )}
             <SettingsModal onKeysChange={handleKeysChange} />
             <Badge variant="outline" className="text-xs">
               Compare 4 AI Models
