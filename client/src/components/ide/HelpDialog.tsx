@@ -295,16 +295,96 @@ while (i < 10) {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold mb-3">Hierarchical Views</h3>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-yellow-500">✏️</span>
+                  Bidirectional Editing
+                </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  For large codebases, LogiGo organizes your code into collapsible sections:
+                  Edit code directly from the flowchart - changes sync back to your source:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Mile-high view ({'<'}70% zoom):</strong> Shows only major sections</li>
-                  <li>• <strong>1000ft view (70-130% zoom):</strong> Shows full flow logic</li>
-                  <li>• <strong>100ft detail view ({'>'}130% zoom):</strong> Maximum detail</li>
-                  <li>• Click container nodes to collapse/expand sections</li>
+                  <li>• <strong>Double-click any node:</strong> Opens an inline editor for that code block</li>
+                  <li>• <strong>Edit and save:</strong> Your changes update the source code in the editor</li>
+                  <li>• <strong>Flowchart updates:</strong> The flowchart regenerates to reflect your changes</li>
+                  <li>• <strong>Two-way sync:</strong> Edit in code or flowchart - both stay in sync</li>
                 </ul>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-gradient bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text">🤖</span>
+                  Model Arena (4-AI Comparison)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Compare code generation from 4 different AI models side-by-side:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>4 AI Models:</strong> OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, Grok 4</li>
+                  <li>• <strong>Side-by-side view:</strong> See code and flowcharts from all models at once</li>
+                  <li>• <strong>Chairman Verdict:</strong> AI synthesizes all responses into one recommendation</li>
+                  <li>• <strong>Session History:</strong> Save and review past arena sessions</li>
+                  <li>• <strong>Code Similarity:</strong> See how similar the generated solutions are</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Access via the "Model Arena" link in the header navigation.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-red-500">🔧</span>
+                  Debug Arena
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get debugging advice from 4 AI models simultaneously:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Describe your problem:</strong> Explain the bug you're encountering</li>
+                  <li>• <strong>Paste error logs:</strong> Include stack traces and error messages</li>
+                  <li>• <strong>Add code snippets:</strong> Share the relevant code</li>
+                  <li>• <strong>Compare solutions:</strong> See different debugging approaches from each AI</li>
+                  <li>• <strong>Chairman synthesis:</strong> Get a unified debugging recommendation</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Toggle between "Code" and "Debug" modes in the Model Arena.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-amber-500">🔑</span>
+                  BYOK (Bring Your Own Key)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Use your own API keys for AI features in Model Arena:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Settings button:</strong> Click the gear icon in Model Arena header</li>
+                  <li>• <strong>Add your keys:</strong> Enter API keys for OpenAI, Gemini, Anthropic, or xAI</li>
+                  <li>• <strong>Local storage:</strong> Keys are stored securely in your browser only</li>
+                  <li>• <strong>Per-request:</strong> Keys are sent via headers, never stored on server</li>
+                  <li>• <strong>Optional:</strong> LogiGo works without your keys using shared quota</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-blue-500">💻</span>
+                  VS Code Extension
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Visualize code directly in VS Code with the LogiGo extension:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Command palette:</strong> "LogiGo: Visualize Current File"</li>
+                  <li>• <strong>Auto-refresh:</strong> Flowchart updates as you type</li>
+                  <li>• <strong>Jump to line:</strong> Click flowchart nodes to navigate to source</li>
+                  <li>• <strong>Bidirectional:</strong> Edit code from the flowchart panel</li>
+                  <li>• <strong>LM Context:</strong> Provides flowchart context to GitHub Copilot</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Install from the <code className="bg-muted px-1 py-0.5 rounded text-xs">vscode-extension/</code> folder (.vsix file).
+                </p>
               </section>
 
               <section>
@@ -581,11 +661,15 @@ while (i < 10) {
                     <li>✓ Zero-friction static code analysis</li>
                     <li>✓ Real-time runtime debugging (Live Mode)</li>
                     <li>✓ Step-by-step execution with Time Travel</li>
-                    <li>✓ Hierarchical views for large codebases</li>
+                    <li>✓ Bidirectional editing (code ↔ flowchart sync)</li>
                     <li>✓ Visual Handshake (code ↔ DOM highlighting)</li>
                     <li>✓ Variable inspection and tracking</li>
                     <li>✓ Export to PNG/PDF</li>
                     <li>✓ Natural Language Search (Premium)</li>
+                    <li>✓ Model Arena (4-AI comparison)</li>
+                    <li>✓ Debug Arena (AI debugging advice)</li>
+                    <li>✓ BYOK (Bring Your Own API Keys)</li>
+                    <li>✓ VS Code Extension</li>
                   </ul>
                 </section>
 
