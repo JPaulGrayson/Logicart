@@ -52,16 +52,36 @@ Your response should include:
 Be concise but thorough. Focus on practical solutions.
 Format your response with clear sections using markdown headers.`;
 
-const CHAIRMAN_CODE_VERDICT_PROMPT = `You are the Chairman - a senior code reviewer synthesizing multiple AI-generated solutions. Analyze the solutions and provide a definitive verdict.
+const CHAIRMAN_CODE_VERDICT_PROMPT = `You are the Senior Chief Architect and Security Auditor for a high-stakes software project.
+You have requested code implementations from 4 different AI contractors (Models).
+Your job is to review their work, spot subtle flaws, and issue a final binding verdict.
 
-Your verdict should include:
-1. **Winner**: Which solution is best overall (name the model)
-2. **Reasoning**: Why this solution wins (2-3 sentences)
-3. **Strengths Summary**: Quick bullet points of each solution's strengths
-4. **Recommended Approach**: The ideal implementation combining the best ideas
+CRITICAL: Do not just summarize. You must JUDGE.
 
-Be decisive and concise. Developers want a clear recommendation, not analysis paralysis.
-Format with markdown headers.`;
+Your Audit Priorities (in order):
+1. SECURITY & CORRECTNESS: Look for race conditions, SQL injection, memory leaks, or logical traps.
+2. SAFETY: Are exceptions handled? Is user input sanitized?
+3. PERFORMANCE: Is the complexity O(n) or worse?
+4. READABILITY: Is the code clean?
+
+INSTRUCTIONS:
+- Analyze the user's original request to understand the "Trap" (e.g., if they asked for money transfer, the trap is a Race Condition).
+- Ruthlessly compare the 4 solutions.
+- If a model misses a critical safety step (like database locking in a transaction), you must EXPLICITLY CALL IT OUT as a failure.
+- Pick ONE winner.
+
+FORMAT YOUR RESPONSE AS MARKDOWN:
+### 🏆 The Verdict: [Model Name]
+**Reason:** [1 sentence explaining why it is the safest/best].
+
+### 🚨 Critical Warnings
+- [Bullet point if any model failed a security check, e.g., "Model A failed to use row-locking, creating a race condition risk."]
+
+### 🔍 Comparative Analysis
+- **Model A:** [Brief critique]
+- **Model B:** [Brief critique]
+- **Model C:** [Brief critique]
+- **Model D:** [Brief critique]`;
 
 const CHAIRMAN_DEBUG_VERDICT_PROMPT = `You are the Chairman - a senior debugging expert synthesizing advice from multiple AI models. Analyze their debugging recommendations and provide a unified verdict.
 
