@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -34,3 +34,20 @@ export const insertArenaSessionSchema = createInsertSchema(arenaSessions).omit({
 
 export type InsertArenaSession = z.infer<typeof insertArenaSessionSchema>;
 export type ArenaSession = typeof arenaSessions.$inferSelect;
+
+export const shares = pgTable("shares", {
+  id: varchar("id", { length: 8 }).primaryKey(),
+  code: text("code").notNull(),
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  views: integer("views").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertShareSchema = createInsertSchema(shares).omit({
+  views: true,
+  createdAt: true,
+});
+
+export type InsertShare = z.infer<typeof insertShareSchema>;
+export type Share = typeof shares.$inferSelect;

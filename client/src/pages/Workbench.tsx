@@ -12,6 +12,7 @@ import { parseCodeToFlow, FlowNode } from '@/lib/parser';
 import { Interpreter, ExecutionState } from '@/lib/interpreter';
 import { patchCode, extractCode } from '@/lib/codePatcher';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import { Node } from '@xyflow/react';
 import { useAdapter } from '@/contexts/AdapterContext';
 import { GhostDiff, DiffNode } from '@/lib/ghostDiff';
@@ -22,7 +23,8 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2 } from 'lucide-react';
+import { historyManager } from '@/lib/historyManager';
 import { Link } from 'wouter';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,6 +32,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
+import { ShareDialog } from '@/components/ide/ShareDialog';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
@@ -151,6 +154,9 @@ export default function Workbench() {
   // Help dialog state
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   
+  // Share dialog state
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  
   // AI Debug / Visualize Flow state
   const [showDebugPane, setShowDebugPane] = useState(false);
   const [debugSessionId, setDebugSessionId] = useState<string | null>(null);
@@ -161,6 +167,54 @@ export default function Workbench() {
   // Fullscreen mode state: null = normal, 'workspace' = with controls, 'presentation' = clean
   const [fullscreenMode, setFullscreenMode] = useState<'workspace' | 'presentation' | null>(null);
   const flowchartContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Layout presets - refs for programmatic resizing
+  const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
+  const flowchartPanelRef = useRef<ImperativePanelHandle>(null);
+  const [currentLayout, setCurrentLayout] = useState<string>('30-70');
+  
+  // Layout preset configurations (sidebar : flowchart ratios)
+  const layoutPresets = {
+    '50-50': { sidebar: 50, flowchart: 50, label: '50/50' },
+    '30-70': { sidebar: 30, flowchart: 70, label: '30/70' },
+    '70-30': { sidebar: 70, flowchart: 30, label: '70/30' },
+    'code-only': { sidebar: 100, flowchart: 0, label: 'Code Only' },
+    'flow-only': { sidebar: 0, flowchart: 100, label: 'Flow Only' },
+  };
+  
+  const applyLayoutPreset = (presetKey: keyof typeof layoutPresets) => {
+    const preset = layoutPresets[presetKey];
+    
+    // Expand both panels first to ensure they're not collapsed
+    sidebarPanelRef.current?.expand();
+    flowchartPanelRef.current?.expand();
+    
+    // Small delay to let expand complete before resizing
+    setTimeout(() => {
+      if (presetKey === 'code-only') {
+        sidebarPanelRef.current?.resize(95);
+        flowchartPanelRef.current?.resize(5);
+      } else if (presetKey === 'flow-only') {
+        sidebarPanelRef.current?.resize(5);
+        flowchartPanelRef.current?.resize(95);
+      } else {
+        sidebarPanelRef.current?.resize(preset.sidebar);
+        flowchartPanelRef.current?.resize(preset.flowchart);
+      }
+    }, 50);
+    
+    setCurrentLayout(presetKey);
+    localStorage.setItem('logigo-layout-preset', presetKey);
+  };
+  
+  // Load saved layout on mount
+  useEffect(() => {
+    const savedLayout = localStorage.getItem('logigo-layout-preset') as keyof typeof layoutPresets | null;
+    if (savedLayout && layoutPresets[savedLayout]) {
+      // Small delay to ensure panels are mounted
+      setTimeout(() => applyLayoutPreset(savedLayout), 100);
+    }
+  }, []);
   
   // Runtime Mode state (logigo-core integration)
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
@@ -1169,9 +1223,35 @@ export default function Workbench() {
   };
 
   const handleCodeChange = (newCode: string) => {
-    // Update code via adapter
+    historyManager.push(newCode);
     adapter.writeFile(newCode);
   };
+  
+  const [canUndo, setCanUndo] = useState(historyManager.canUndo());
+  const [canRedo, setCanRedo] = useState(historyManager.canRedo());
+  
+  const handleUndo = () => {
+    const previousCode = historyManager.undo();
+    if (previousCode !== null) {
+      adapter.writeFile(previousCode);
+      setCanUndo(historyManager.canUndo());
+      setCanRedo(historyManager.canRedo());
+    }
+  };
+  
+  const handleRedo = () => {
+    const nextCode = historyManager.redo();
+    if (nextCode !== null) {
+      adapter.writeFile(nextCode);
+      setCanUndo(historyManager.canUndo());
+      setCanRedo(historyManager.canRedo());
+    }
+  };
+  
+  useEffect(() => {
+    setCanUndo(historyManager.canUndo());
+    setCanRedo(historyManager.canRedo());
+  }, [code]);
 
   const handleLoadSample = () => {
     adapter.writeFile(SAMPLE_CODE);
@@ -2238,7 +2318,7 @@ export default function Workbench() {
       <div className="flex-1 overflow-hidden min-h-0">
         <ResizablePanelGroup direction="horizontal" autoSaveId="logigo-workbench-panels">
           {/* Left Sidebar - Controls (Resizable) */}
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
+          <ResizablePanel ref={sidebarPanelRef} defaultSize={30} minSize={0} maxSize={100} collapsible>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
               
               {/* Flow Tools Section - Always Visible at Top */}
@@ -2294,17 +2374,7 @@ export default function Workbench() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={async () => {
-                      try {
-                        const encoded = btoa(encodeURIComponent(code));
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('code', encoded);
-                        await navigator.clipboard.writeText(url.toString());
-                        alert('Share link copied to clipboard!');
-                      } catch {
-                        alert('Could not copy link');
-                      }
-                    }}
+                    onClick={() => setShareDialogOpen(true)}
                     disabled={!code.trim()}
                     className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-share"
@@ -2325,6 +2395,56 @@ export default function Workbench() {
                       Remote Mode
                     </Button>
                   </Link>
+                </div>
+                
+                {/* Layout Presets */}
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Layout</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {(Object.keys(layoutPresets) as Array<keyof typeof layoutPresets>).map((key) => (
+                      <Button
+                        key={key}
+                        variant={currentLayout === key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => applyLayoutPreset(key)}
+                        className="h-6 text-[10px] px-2"
+                        data-testid={`button-layout-${key}`}
+                      >
+                        {layoutPresets[key].label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Undo/Redo Controls */}
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-[10px] text-muted-foreground mb-1.5">History</p>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUndo}
+                      disabled={!canUndo}
+                      className="flex-1 h-7 text-xs gap-1"
+                      title="Undo (Ctrl+Z)"
+                      data-testid="button-undo"
+                    >
+                      <Undo2 className="w-3.5 h-3.5" />
+                      Undo
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRedo}
+                      disabled={!canRedo}
+                      className="flex-1 h-7 text-xs gap-1"
+                      title="Redo (Ctrl+Shift+Z)"
+                      data-testid="button-redo"
+                    >
+                      <Redo2 className="w-3.5 h-3.5" />
+                      Redo
+                    </Button>
+                  </div>
                 </div>
               </div>
               
@@ -2589,7 +2709,7 @@ export default function Workbench() {
           <ResizableHandle withHandle />
           
           {/* Right Panel - Flowchart Canvas (Maximized) */}
-          <ResizablePanel defaultSize={80}>
+          <ResizablePanel ref={flowchartPanelRef} defaultSize={70} minSize={0} collapsible>
             <div className="h-full w-full overflow-hidden relative">
               {isParsing ? (
                 <FlowchartSkeleton />
@@ -2738,6 +2858,9 @@ export default function Workbench() {
       
       {/* Help Dialog */}
       <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
+      
+      {/* Share Dialog */}
+      <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} code={code} />
       
       {/* AI Debug Pane - Slides in from right */}
       {showDebugPane && (

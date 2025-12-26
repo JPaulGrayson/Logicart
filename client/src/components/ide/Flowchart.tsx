@@ -6,8 +6,16 @@ import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
 import LabeledNode from './LabeledNode';
 import { Button } from '@/components/ui/button';
-import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
+import { Maximize, ZoomIn, ZoomOut, Home, ChevronRight } from 'lucide-react';
 import type { RuntimeState } from '@shared/reporter-api';
+
+// Zoom preset definitions
+const ZOOM_PRESETS = [
+  { name: '25%', zoom: 0.25, icon: '🔭' },
+  { name: '50%', zoom: 0.5, icon: '🏢' },
+  { name: '100%', zoom: 1.0, icon: '🔍' },
+  { name: 'Fit', zoom: -1, icon: '📐' },
+] as const;
 
 interface FlowchartProps {
   nodes: FlowNode[];
@@ -34,8 +42,18 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
-  const { fitView, getZoom, getNodes, zoomIn, zoomOut } = useReactFlow();
+  const { fitView, getZoom, getNodes, zoomIn, zoomOut, zoomTo } = useReactFlow();
   const [currentZoom, setCurrentZoom] = useState(1);
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string; label: string }>>([{ id: 'root', label: 'Global' }]);
+  
+  // Apply zoom preset (-1 means fitView)
+  const applyZoomPreset = useCallback((zoomLevel: number) => {
+    if (zoomLevel === -1) {
+      fitView({ padding: 0.3, duration: 300 });
+    } else {
+      zoomTo(zoomLevel, { duration: 300 });
+    }
+  }, [zoomTo, fitView]);
   
   // Auto-fit view with padding - no zoom restrictions so users can zoom freely
   const handleAutoFit = useCallback(() => {
@@ -55,14 +73,12 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
     zoomOut({ duration: 200 });
   }, [zoomOut]);
   
-  // Determine view level based on zoom
-  // Mile-high view: < 0.4 (40%) - zoomed way out, overview mode
-  // 1000ft view: 0.4 - 1.0 (40-100%) - normal viewing
-  // 100ft view: > 1.0 (100%) - zoomed in detailed view
-  const getViewLevel = useCallback((zoom: number): 'mile-high' | '1000ft' | '100ft' => {
-    if (zoom < 0.4) return 'mile-high';
-    if (zoom < 1.0) return '1000ft';
-    return '100ft';
+  // Determine current zoom level name for highlighting active preset button
+  const getActiveZoomPreset = useCallback((zoom: number): string => {
+    if (Math.abs(zoom - 0.25) < 0.1) return '25%';
+    if (Math.abs(zoom - 0.5) < 0.1) return '50%';
+    if (Math.abs(zoom - 1.0) < 0.1) return '100%';
+    return '';
   }, []);
   
   // Track zoom level using React Flow's viewport change hook for reliable updates
@@ -162,6 +178,40 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         {/* MiniMap removed - users can zoom out with mouse/keyboard for overview */}
       </ReactFlow>
       
+      {/* Breadcrumb Navigation - Top Left */}
+      <div 
+        className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-card/95 backdrop-blur border border-border rounded-md shadow-lg text-[10px] z-20"
+        data-testid="breadcrumb-nav"
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setBreadcrumbs([{ id: 'root', label: 'Global' }]);
+            handleAutoFit();
+          }}
+          className="h-5 w-5 p-0"
+          title="Go to root"
+          data-testid="button-breadcrumb-home"
+        >
+          <Home className="w-3 h-3" />
+        </Button>
+        {breadcrumbs.map((crumb, idx) => (
+          <React.Fragment key={crumb.id}>
+            {idx > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
+            <button
+              onClick={() => setBreadcrumbs(breadcrumbs.slice(0, idx + 1))}
+              className={`px-1.5 py-0.5 rounded text-[10px] hover:bg-accent transition-colors ${
+                idx === breadcrumbs.length - 1 ? 'font-semibold text-primary' : 'text-muted-foreground'
+              }`}
+              data-testid={`breadcrumb-${crumb.id}`}
+            >
+              {crumb.label}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+      
       {/* Floating Status Pill - Top Right */}
       <div 
         className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-card/95 backdrop-blur border border-border rounded-full shadow-lg text-[10px] z-20"
@@ -197,6 +247,28 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       
       {/* Zoom Controls - Bottom Right */}
       <div className="absolute bottom-3 right-3 flex items-center gap-1 z-20">
+        {/* Zoom Presets */}
+        <div className="flex items-center gap-0.5 mr-1 px-1 py-0.5 bg-card/95 backdrop-blur border border-border rounded-md shadow-md">
+          {ZOOM_PRESETS.map((preset) => (
+            <Button
+              key={preset.name}
+              variant="ghost"
+              size="sm"
+              onClick={() => applyZoomPreset(preset.zoom)}
+              className={`h-6 px-2 text-[10px] ${
+                getActiveZoomPreset(currentZoom) === preset.name 
+                  ? 'bg-primary/20 text-primary' 
+                  : ''
+              }`}
+              title={preset.zoom === -1 ? 'Fit to view' : `Zoom to ${preset.name}`}
+              data-testid={`button-zoom-preset-${preset.name.toLowerCase()}`}
+            >
+              <span className="mr-1">{preset.icon}</span>
+              {preset.name}
+            </Button>
+          ))}
+        </div>
+        
         <Button
           variant="secondary"
           size="sm"

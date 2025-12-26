@@ -453,6 +453,36 @@ export default function ModelArena() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-gray-400">Quick examples:</span>
+                <Select
+                  onValueChange={(value) => setPrompt(value)}
+                >
+                  <SelectTrigger className="w-[280px] h-8 bg-[#0d1117] border-[#30363d] text-xs" data-testid="select-example">
+                    <SelectValue placeholder="Choose an example..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#161b22] border-[#30363d]">
+                    <SelectItem value="Write a JavaScript function called 'findDuplicates' that takes an array and returns an array of duplicate values.">
+                      Find Duplicates
+                    </SelectItem>
+                    <SelectItem value="Create a debounce function in JavaScript that delays invoking a function until after a specified wait time.">
+                      Debounce Function
+                    </SelectItem>
+                    <SelectItem value="Write a binary search function that finds an element in a sorted array and returns its index.">
+                      Binary Search
+                    </SelectItem>
+                    <SelectItem value="Implement a simple LRU (Least Recently Used) cache in JavaScript with get and put methods.">
+                      LRU Cache
+                    </SelectItem>
+                    <SelectItem value="Create a function that validates an email address using regular expressions.">
+                      Email Validator
+                    </SelectItem>
+                    <SelectItem value="Write a recursive function to calculate the Fibonacci sequence with memoization for optimization.">
+                      Fibonacci with Memo
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}

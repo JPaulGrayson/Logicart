@@ -12,6 +12,9 @@ import * as acorn from "acorn";
 import { WebSocketServer, WebSocket } from "ws";
 import { registerAIRoutes } from "./ai";
 import { registerArenaRoutes } from "./arena";
+import { shares, insertShareSchema } from "@shared/schema";
+import { db } from "./db";
+import { eq, sql } from "drizzle-orm";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -316,6 +319,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Model Arena routes
   registerArenaRoutes(app);
+
+  // Share endpoints
+  app.post("/api/share", async (req, res) => {
+    try {
+      const { code, title, description } = req.body;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Code is required" });
+      }
+      
+      const id = crypto.randomBytes(4).toString('hex');
+      
+      await db.insert(shares).values({
+        id,
+        code,
+        title: title || null,
+        description: description || null,
+      });
+      
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const url = `${baseUrl}/s/${id}`;
+      
+      res.json({ id, url });
+    } catch (error) {
+      console.error("[Share] Error creating share:", error);
+      res.status(500).json({ error: "Failed to create share" });
+    }
+  });
+
+  app.get("/s/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await db.select().from(shares).where(eq(shares.id, id));
+      
+      if (result.length === 0) {
+        return res.status(404).send("Share not found");
+      }
+      
+      await db.update(shares)
+        .set({ views: sql`${shares.views} + 1` })
+        .where(eq(shares.id, id));
+      
+      const share = result[0];
+      const encoded = Buffer.from(share.code).toString('base64');
+      const titleParam = share.title ? `&title=${encodeURIComponent(share.title)}` : '';
+      
+      res.redirect(`/?code=${encodeURIComponent(encoded)}${titleParam}`);
+    } catch (error) {
+      console.error("[Share] Error fetching share:", error);
+      res.status(500).send("Error loading share");
+    }
+  });
+
+  app.get("/api/share/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(shares).where(eq(shares.id, id));
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Share not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch share" });
+    }
+  });
+
+  // Agent API - Programmatic code analysis
+  app.post("/api/agent/analyze", async (req, res) => {
+    try {
+      const { code, language } = req.body;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Code is required" });
+      }
+      
+      const grounding = parseCodeToGrounding(code);
+      
+      res.json({
+        summary: grounding.summary,
+        flow: grounding.flow,
+        nodes: grounding.flow.length,
+        edges: grounding.flow.reduce((sum, node) => sum + node.children.length, 0),
+        complexity: grounding.summary.complexityScore,
+        language: language || 'javascript'
+      });
+    } catch (error) {
+      console.error("[Agent API] Error analyzing code:", error);
+      res.status(500).json({ error: "Failed to analyze code" });
+    }
+  });
 
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
