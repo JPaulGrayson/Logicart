@@ -201,19 +201,25 @@ export default function Workbench() {
   }, [activeNodeId, flowData.nodes]);
   
   // Convert remote breakpoints (checkpointIds) to nodeIds for Flowchart display
+  // When in remote mode, only show remote breakpoints, not local ones
   const effectiveBreakpoints = useMemo(() => {
-    if (!remoteSessionId || remoteBreakpoints.size === 0) {
-      return breakpoints;
-    }
-    // Map checkpointIds to nodeIds
-    const nodeIds = new Set<string>();
-    flowData.nodes.forEach(node => {
-      const checkpointId = (node.data?.userLabel as string) || node.id;
-      if (remoteBreakpoints.has(checkpointId)) {
-        nodeIds.add(node.id);
+    // If in remote mode, use remote breakpoints (mapped to nodeIds)
+    if (remoteSessionId) {
+      if (remoteBreakpoints.size === 0) {
+        return new Set<string>(); // Empty set for remote mode with no breakpoints
       }
-    });
-    return nodeIds;
+      // Map checkpointIds to nodeIds
+      const nodeIds = new Set<string>();
+      flowData.nodes.forEach(node => {
+        const checkpointId = (node.data?.userLabel as string) || node.id;
+        if (remoteBreakpoints.has(checkpointId)) {
+          nodeIds.add(node.id);
+        }
+      });
+      return nodeIds;
+    }
+    // Otherwise use local breakpoints
+    return breakpoints;
   }, [remoteSessionId, remoteBreakpoints, breakpoints, flowData.nodes]);
   
   // Algorithm visualization state
