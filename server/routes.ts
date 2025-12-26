@@ -10,6 +10,7 @@ import type { GroundingContext, GroundingNode, GroundingNodeType } from "@shared
 import type { ControlMessage, StudioToRemoteMessage, RemoteToStudioMessage } from "@shared/control-types";
 import * as acorn from "acorn";
 import { WebSocketServer, WebSocket } from "ws";
+import { registerAIRoutes } from "./ai";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -308,6 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const assetPath = path.join(__dirname, "..", "dist", "extension", "assets", req.path);
     res.sendFile(assetPath);
   });
+
+  // Register AI Code Understanding APIs
+  registerAIRoutes(app);
 
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
