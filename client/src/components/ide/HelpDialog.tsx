@@ -510,17 +510,75 @@ while (i < 10) {
                   Shareable URLs
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Share your flowchart with others using a single link:
+                  Share your flowchart with others using database-backed short links:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Generate link:</strong> Click "Share Flowchart" in Flow Tools</li>
-                  <li>• <strong>Clipboard copy:</strong> The link is copied to your clipboard (you'll see a confirmation)</li>
-                  <li>• <strong>How it works:</strong> Your code is encoded (base64) and embedded in the URL</li>
-                  <li>• <strong>Recipient view:</strong> Anyone with the link sees the exact same flowchart</li>
+                  <li>• <strong>Create share:</strong> Click "Share Flowchart" to open the share dialog</li>
+                  <li>• <strong>Add metadata:</strong> Give your share a title and optional description</li>
+                  <li>• <strong>Short URLs:</strong> Links are short and clean (e.g., /s/abc12345)</li>
+                  <li>• <strong>View tracking:</strong> See how many times your share has been viewed</li>
                   <li>• <strong>No account needed:</strong> Sharing works without sign-up or login</li>
                 </ul>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Note: Very long code may create long URLs. Some platforms truncate long URLs.
+                  Shares are stored in the database with persistent short IDs.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-green-400">📐</span>
+                  Layout Presets (New in V1)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Quickly switch between different workspace layouts:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>50/50:</strong> Equal split between code editor and flowchart</li>
+                  <li>• <strong>30/70:</strong> More space for flowchart visualization</li>
+                  <li>• <strong>70/30:</strong> More space for code editing</li>
+                  <li>• <strong>Code Only:</strong> Maximize code editor, minimize flowchart</li>
+                  <li>• <strong>Flow Only:</strong> Maximize flowchart, minimize code editor</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Find the preset buttons in the sidebar under "Layout". Your preference is saved.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-cyan-400">🔍</span>
+                  Zoom Presets (New in V1)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Jump to standard zoom levels with one click:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>25%:</strong> Maximum zoom out for overview of large flowcharts</li>
+                  <li>• <strong>50%:</strong> Mid-range view for navigating structure</li>
+                  <li>• <strong>100%:</strong> Full size for reading node details</li>
+                  <li>• <strong>Fit:</strong> Auto-fit the entire flowchart to the viewport</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Find the zoom buttons in the flowchart toolbar.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-yellow-400">↩️</span>
+                  Undo/Redo History (New in V1)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Easily undo and redo code changes:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Undo:</strong> Press Ctrl+Z (Cmd+Z on Mac) to undo last change</li>
+                  <li>• <strong>Redo:</strong> Press Ctrl+Y (Cmd+Y on Mac) to redo undone change</li>
+                  <li>• <strong>Smart saving:</strong> Changes are recorded after 1 second of inactivity</li>
+                  <li>• <strong>Toolbar buttons:</strong> Click Undo/Redo in the sidebar History section</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  History is preserved during your session. Reset when you reload the page.
                 </p>
               </section>
 
@@ -643,6 +701,14 @@ while (i < 10) {
                 </section>
 
                 <section>
+                  <h3 className="text-lg font-semibold mb-3">History (New in V1)</h3>
+                  <div className="space-y-2">
+                    <ShortcutRow shortcut="Ctrl/Cmd + Z" description="Undo last code change" />
+                    <ShortcutRow shortcut="Ctrl/Cmd + Y" description="Redo undone change" />
+                  </div>
+                </section>
+
+                <section>
                   <h3 className="text-lg font-semibold mb-3">File Operations</h3>
                   <div className="space-y-2">
                     <ShortcutRow shortcut="Cmd/Ctrl + O" description="Import code from file" />
@@ -707,6 +773,18 @@ while (i < 10) {
                     <li>✓ Debug Arena (AI debugging advice)</li>
                     <li>✓ BYOK (Bring Your Own API Keys)</li>
                     <li>✓ VS Code Extension</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-semibold mb-2">New in V1</h3>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>✓ Layout Presets (50/50, 30/70, 70/30, Code Only, Flow Only)</li>
+                    <li>✓ Zoom Presets (25%, 50%, 100%, Fit)</li>
+                    <li>✓ Undo/Redo History (Ctrl+Z, Ctrl+Y)</li>
+                    <li>✓ Enhanced Sharing (database-backed short URLs with metadata)</li>
+                    <li>✓ Arena Example Selector (6 pre-built coding prompts)</li>
+                    <li>✓ Agent API (programmatic code analysis endpoint)</li>
                   </ul>
                 </section>
 
