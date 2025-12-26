@@ -50,6 +50,28 @@ Your response should include:
 Be concise but thorough. Focus on practical solutions.
 Format your response with clear sections using markdown headers.`;
 
+const CHAIRMAN_CODE_VERDICT_PROMPT = `You are the Chairman - a senior code reviewer synthesizing multiple AI-generated solutions. Analyze the solutions and provide a definitive verdict.
+
+Your verdict should include:
+1. **Winner**: Which solution is best overall (name the model)
+2. **Reasoning**: Why this solution wins (2-3 sentences)
+3. **Strengths Summary**: Quick bullet points of each solution's strengths
+4. **Recommended Approach**: The ideal implementation combining the best ideas
+
+Be decisive and concise. Developers want a clear recommendation, not analysis paralysis.
+Format with markdown headers.`;
+
+const CHAIRMAN_DEBUG_VERDICT_PROMPT = `You are the Chairman - a senior debugging expert synthesizing advice from multiple AI models. Analyze their debugging recommendations and provide a unified verdict.
+
+Your verdict should include:
+1. **Best Approach**: Which model's advice is most actionable (name the model)
+2. **Consensus Points**: Where all models agree
+3. **Unique Insights**: Valuable points that only one model caught
+4. **Recommended Action Plan**: A prioritized list combining the best advice
+
+Be decisive and practical. Developers need a clear path forward.
+Format with markdown headers.`;
+
 function extractCodeFromResponse(text: string): string {
   const codeBlockMatch = text.match(/```(?:javascript|js)?\n?([\s\S]*?)```/);
   if (codeBlockMatch) {
@@ -380,7 +402,142 @@ async function debugWithGrok(prompt: string, apiKey?: string): Promise<DebugResu
   }
 }
 
+type ChairmanModel = "openai" | "gemini" | "anthropic" | "xai";
+
+interface VerdictRequest {
+  mode: "code" | "debug";
+  chairman: ChairmanModel;
+  originalPrompt: string;
+  results: Array<{ provider: string; content: string }>;
+}
+
+async function generateVerdict(
+  request: VerdictRequest,
+  keys: APIKeys
+): Promise<{ verdict: string; error?: string; latencyMs: number }> {
+  const start = Date.now();
+  const systemPrompt = request.mode === "code" 
+    ? CHAIRMAN_CODE_VERDICT_PROMPT 
+    : CHAIRMAN_DEBUG_VERDICT_PROMPT;
+
+  const resultsText = request.results
+    .map(r => `## ${r.provider}'s Response:\n${r.content}`)
+    .join("\n\n---\n\n");
+
+  const userPrompt = `Original Request: ${request.originalPrompt}\n\n${resultsText}`;
+
+  const modelKeyMap: Record<ChairmanModel, string | undefined> = {
+    openai: keys.openai,
+    gemini: keys.gemini,
+    anthropic: keys.anthropic,
+    xai: keys.xai
+  };
+
+  const apiKey = modelKeyMap[request.chairman];
+  if (!apiKey) {
+    return { verdict: "", error: "No API key configured for chairman model", latencyMs: Date.now() - start };
+  }
+
+  try {
+    let verdict = "";
+
+    switch (request.chairman) {
+      case "openai": {
+        const client = new OpenAI({ apiKey });
+        const response = await client.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          max_tokens: 2048
+        });
+        verdict = response.choices[0]?.message?.content || "";
+        break;
+      }
+      case "gemini": {
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          config: { systemInstruction: systemPrompt },
+          contents: userPrompt
+        });
+        verdict = response.text || "";
+        break;
+      }
+      case "anthropic": {
+        const client = new Anthropic({ apiKey });
+        const response = await client.messages.create({
+          model: "claude-opus-4-5-20251101",
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }]
+        });
+        const textContent = response.content.find((c) => c.type === "text");
+        verdict = textContent?.text || "";
+        break;
+      }
+      case "xai": {
+        const client = new OpenAI({ baseURL: "https://api.x.ai/v1", apiKey });
+        const response = await client.chat.completions.create({
+          model: "grok-4",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          max_tokens: 2048
+        });
+        verdict = response.choices[0]?.message?.content || "";
+        break;
+      }
+    }
+
+    return { verdict, latencyMs: Date.now() - start };
+  } catch (error: any) {
+    return { verdict: "", error: error.message || "Failed to generate verdict", latencyMs: Date.now() - start };
+  }
+}
+
 export function registerArenaRoutes(app: Express) {
+  app.post("/api/arena/verdict", async (req: Request, res: Response) => {
+    try {
+      const keys = extractAPIKeys(req);
+      const { mode, chairman, originalPrompt, results } = req.body as VerdictRequest;
+
+      if (!mode || !chairman || !originalPrompt || !results) {
+        return res.status(400).json({
+          success: false,
+          error: "Missing required fields"
+        });
+      }
+
+      const validChairmen: ChairmanModel[] = ["openai", "gemini", "anthropic", "xai"];
+      if (!validChairmen.includes(chairman)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid chairman model"
+        });
+      }
+
+      const verdictResult = await generateVerdict({ mode, chairman, originalPrompt, results }, keys);
+
+      res.json({
+        success: !verdictResult.error,
+        verdict: verdictResult.verdict,
+        error: verdictResult.error,
+        latencyMs: verdictResult.latencyMs,
+        chairman
+      });
+    } catch (error: any) {
+      console.error("Verdict API error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error"
+      });
+    }
+  });
+
+
   app.post("/api/arena/debug", async (req: Request, res: Response) => {
     try {
       const keys = extractAPIKeys(req);

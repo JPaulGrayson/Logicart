@@ -1,15 +1,49 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles, Crown, Gavel } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
 import SettingsModal, { getStoredAPIKeys } from "@/components/arena/SettingsModal";
+
+type ChairmanModel = "openai" | "gemini" | "anthropic" | "xai";
+
+const CHAIRMAN_STORAGE_KEY = "logigo_arena_chairman";
+
+const CHAIRMAN_OPTIONS: { value: ChairmanModel; label: string; color: string }[] = [
+  { value: "openai", label: "GPT-4o (OpenAI)", color: "text-green-400" },
+  { value: "gemini", label: "Gemini 3 Flash", color: "text-blue-400" },
+  { value: "anthropic", label: "Claude Opus 4.5", color: "text-orange-400" },
+  { value: "xai", label: "Grok 4 (xAI)", color: "text-purple-400" },
+];
+
+function getStoredChairman(): ChairmanModel {
+  try {
+    const stored = localStorage.getItem(CHAIRMAN_STORAGE_KEY);
+    if (stored && ["openai", "gemini", "anthropic", "xai"].includes(stored)) {
+      return stored as ChairmanModel;
+    }
+  } catch {}
+  return "gemini";
+}
+
+function saveChairman(chairman: ChairmanModel): void {
+  localStorage.setItem(CHAIRMAN_STORAGE_KEY, chairman);
+}
+
+interface VerdictResponse {
+  success: boolean;
+  verdict: string;
+  error?: string;
+  latencyMs: number;
+  chairman: string;
+}
 
 interface ModelResult {
   model: string;
@@ -84,11 +118,19 @@ export default function ModelArena() {
   const [flowcharts, setFlowcharts] = useState<Record<string, ParsedFlowchart>>({});
   const [comparison, setComparison] = useState<ArenaResponse["comparison"]>();
   const [viewMode, setViewMode] = useState<"code" | "flowchart">("code");
+  const [chairman, setChairman] = useState<ChairmanModel>(getStoredChairman);
+  const [verdict, setVerdict] = useState<{ text: string; chairman: string; latencyMs: number } | null>(null);
   const [, forceUpdate] = useState({});
 
   const handleKeysChange = useCallback(() => {
     forceUpdate({});
   }, []);
+
+  const handleChairmanChange = (value: ChairmanModel) => {
+    setChairman(value);
+    saveChairman(value);
+    setVerdict(null);
+  };
 
   const generateMutation = useMutation({
     mutationFn: async (prompt: string) => {
@@ -111,18 +153,65 @@ export default function ModelArena() {
     },
     onSuccess: (data) => {
       setDebugResults(data.results);
+      setVerdict(null);
+    },
+  });
+
+  const verdictMutation = useMutation({
+    mutationFn: async (data: { 
+      mode: "code" | "debug"; 
+      chairman: ChairmanModel; 
+      originalPrompt: string; 
+      results: Array<{ provider: string; content: string }> 
+    }) => {
+      const headers = getAPIKeyHeaders();
+      const response = await apiRequest("POST", "/api/arena/verdict", data, headers);
+      const result = await response.json() as VerdictResponse;
+      if (!result.success) {
+        throw new Error(result.error || "Failed to generate verdict");
+      }
+      return result;
+    },
+    onSuccess: (data) => {
+      setVerdict({ text: data.verdict, chairman: data.chairman, latencyMs: data.latencyMs });
     },
   });
 
   const handleGenerate = () => {
     if (prompt.trim()) {
+      setVerdict(null);
       generateMutation.mutate(prompt);
     }
   };
 
   const handleDebug = () => {
     if (problem.trim()) {
+      setVerdict(null);
       debugMutation.mutate({ problem, errorLogs, codeSnippet });
+    }
+  };
+
+  const handleGetVerdict = () => {
+    if (arenaMode === "code" && results.length > 0) {
+      const validResults = results.filter(r => r.code && !r.error);
+      if (validResults.length > 0) {
+        verdictMutation.mutate({
+          mode: "code",
+          chairman,
+          originalPrompt: prompt,
+          results: validResults.map(r => ({ provider: r.provider, content: r.code }))
+        });
+      }
+    } else if (arenaMode === "debug" && debugResults.length > 0) {
+      const validResults = debugResults.filter(r => r.analysis && !r.error);
+      if (validResults.length > 0) {
+        verdictMutation.mutate({
+          mode: "debug",
+          chairman,
+          originalPrompt: problem,
+          results: validResults.map(r => ({ provider: r.provider, content: r.analysis }))
+        });
+      }
     }
   };
 
@@ -131,6 +220,7 @@ export default function ModelArena() {
     setDebugResults([]);
     setFlowcharts({});
     setComparison(undefined);
+    setVerdict(null);
     setPrompt("");
     setProblem("");
     setErrorLogs("");
@@ -142,7 +232,12 @@ export default function ModelArena() {
     handleReset();
   };
 
-  const isPending = generateMutation.isPending || debugMutation.isPending;
+  const isPending = generateMutation.isPending || debugMutation.isPending || verdictMutation.isPending;
+  
+  const hasResults = arenaMode === "code" ? results.length > 0 : debugResults.length > 0;
+  const validResultCount = arenaMode === "code" 
+    ? results.filter(r => r.code && !r.error).length 
+    : debugResults.filter(r => r.analysis && !r.error).length;
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white p-6">
@@ -411,46 +506,200 @@ export default function ModelArena() {
                 </CardContent>
               </Card>
             )}
+
+            <Card className="bg-[#161b22] border-[#30363d] border-2 border-amber-500/30 mt-6">
+              <CardHeader>
+                <CardTitle className="text-lg text-white flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  Chairman's Verdict
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-400">Select Chairman:</label>
+                    <Select value={chairman} onValueChange={(v) => handleChairmanChange(v as ChairmanModel)}>
+                      <SelectTrigger className="w-[200px] bg-[#0d1117] border-[#30363d]" data-testid="select-chairman">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#161b22] border-[#30363d]">
+                        {CHAIRMAN_OPTIONS.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value} className={opt.color}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleGetVerdict}
+                    disabled={verdictMutation.isPending || validResultCount < 2}
+                    className="bg-amber-600 hover:bg-amber-700"
+                    data-testid="button-get-verdict"
+                  >
+                    {verdictMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Deliberating...
+                      </>
+                    ) : (
+                      <>
+                        <Gavel className="w-4 h-4 mr-2" />
+                        Get Verdict
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {validResultCount < 2 && (
+                  <div className="text-sm text-gray-500">
+                    Need at least 2 valid results to generate a verdict.
+                  </div>
+                )}
+
+                {verdict && (
+                  <div className="bg-[#0d1117] border border-amber-500/30 rounded-lg p-4 mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/50">
+                        Verdict by {CHAIRMAN_OPTIONS.find(o => o.value === verdict.chairman)?.label || verdict.chairman}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {verdict.latencyMs}ms
+                      </Badge>
+                    </div>
+                    <div className="prose prose-invert prose-sm max-w-none">
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed" data-testid="text-verdict">
+                        {verdict.text}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {verdictMutation.isError && (
+                  <div className="text-red-400 text-sm p-3 bg-red-500/10 rounded border border-red-500/30">
+                    {verdictMutation.error?.message || "Failed to generate verdict"}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </>
         )}
 
         {arenaMode === "debug" && debugResults.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            {debugResults.map((result) => (
-              <Card
-                key={result.provider}
-                className="bg-[#161b22] border-[#30363d]"
-                data-testid={`card-debug-${result.provider.toLowerCase()}`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base text-white flex items-center gap-2">
-                      <Badge className={MODEL_COLORS[result.provider]}>
-                        {result.provider}
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              {debugResults.map((result) => (
+                <Card
+                  key={result.provider}
+                  className="bg-[#161b22] border-[#30363d]"
+                  data-testid={`card-debug-${result.provider.toLowerCase()}`}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base text-white flex items-center gap-2">
+                        <Badge className={MODEL_COLORS[result.provider]}>
+                          {result.provider}
+                        </Badge>
+                        <span className="text-sm text-gray-400">{result.model}</span>
+                      </CardTitle>
+                      <Badge variant="outline" className="text-xs">
+                        {result.latencyMs}ms
                       </Badge>
-                      <span className="text-sm text-gray-400">{result.model}</span>
-                    </CardTitle>
-                    <Badge variant="outline" className="text-xs">
-                      {result.latencyMs}ms
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {result.error ? (
-                    <div className="text-red-400 text-sm p-3 bg-red-500/10 rounded border border-red-500/30">
-                      {result.error}
                     </div>
-                  ) : (
-                    <div className="prose prose-invert prose-sm max-w-none max-h-[400px] overflow-y-auto">
-                      <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                        {result.analysis}
+                  </CardHeader>
+                  <CardContent>
+                    {result.error ? (
+                      <div className="text-red-400 text-sm p-3 bg-red-500/10 rounded border border-red-500/30">
+                        {result.error}
+                      </div>
+                    ) : (
+                      <div className="prose prose-invert prose-sm max-w-none max-h-[400px] overflow-y-auto">
+                        <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                          {result.analysis}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="bg-[#161b22] border-[#30363d] border-2 border-amber-500/30">
+              <CardHeader>
+                <CardTitle className="text-lg text-white flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  Chairman's Verdict
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-400">Select Chairman:</label>
+                    <Select value={chairman} onValueChange={(v) => handleChairmanChange(v as ChairmanModel)}>
+                      <SelectTrigger className="w-[200px] bg-[#0d1117] border-[#30363d]" data-testid="select-chairman-debug">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#161b22] border-[#30363d]">
+                        {CHAIRMAN_OPTIONS.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value} className={opt.color}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleGetVerdict}
+                    disabled={verdictMutation.isPending || validResultCount < 2}
+                    className="bg-amber-600 hover:bg-amber-700"
+                    data-testid="button-get-verdict-debug"
+                  >
+                    {verdictMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Deliberating...
+                      </>
+                    ) : (
+                      <>
+                        <Gavel className="w-4 h-4 mr-2" />
+                        Get Verdict
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {validResultCount < 2 && (
+                  <div className="text-sm text-gray-500">
+                    Need at least 2 valid results to generate a verdict.
+                  </div>
+                )}
+
+                {verdict && (
+                  <div className="bg-[#0d1117] border border-amber-500/30 rounded-lg p-4 mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/50">
+                        Verdict by {CHAIRMAN_OPTIONS.find(o => o.value === verdict.chairman)?.label || verdict.chairman}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {verdict.latencyMs}ms
+                      </Badge>
+                    </div>
+                    <div className="prose prose-invert prose-sm max-w-none">
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed" data-testid="text-verdict-debug">
+                        {verdict.text}
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </div>
+                )}
+
+                {verdictMutation.isError && (
+                  <div className="text-red-400 text-sm p-3 bg-red-500/10 rounded border border-red-500/30">
+                    {verdictMutation.error?.message || "Failed to generate verdict"}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
         )}
 
         {(generateMutation.isError || debugMutation.isError) && (
