@@ -16,11 +16,31 @@
 
 | Source | Status | Notes |
 |--------|--------|-------|
-| **HelpDialog.tsx** | ⚠️ CLAIMS IMPLEMENTED | Lines 298-307: "Mile-high view (<70% zoom)", "1000ft view (70-130%)", "100ft detail view (>130%)" |
-| **Improvement Report** | ❌ NOT IMPLEMENTED | Architect review confirmed: no collapsible nodes, no breadcrumb, no zoom-based views |
-| **External Docs** | ❌ Not mentioned | |
+| **HelpDialog.tsx** | ✅ DOCUMENTED | View Level indicator (Mile-High/1000ft/100ft) and collapsible containers |
+| **Flowchart.tsx** | ✅ IMPLEMENTED | `getViewLevel()` function shows view level based on zoom percentage |
+| **ContainerNode.tsx** | ✅ IMPLEMENTED | Full collapse/expand with state management, child visibility toggling |
+| **Bridge Parser** | ✅ IMPLEMENTED | `detectSections()` at lines 42-92, creates containers from `// --- NAME ---` comments |
+| **External Docs** | ⚠️ Not mentioned | |
 
-**DISCREPANCY:** Help system claims hierarchical views exist but they are not actually implemented. The `ContainerNode` is visual styling only.
+**IMPLEMENTATION EVIDENCE:**
+```typescript
+// docs/bridge/src/parser.ts line 42-92
+function detectSections(code: string, ast?: any): CodeSection[] {
+  const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
+  // Detects // --- SECTION NAME --- markers
+}
+
+// Lines 326-343: Creates container nodes for each section
+sections.forEach(section => {
+  const containerNode: FlowNode = {
+    type: 'container',
+    data: { label: section.name, children: [], collapsed: false }
+  };
+  nodes.push(containerNode);
+});
+```
+
+**STATUS:** Feature is implemented and documented. View Level indicator + collapsible containers from section markers.
 
 ---
 
@@ -116,9 +136,26 @@
 |--------|--------|-------|
 | **HelpDialog.tsx** | ✅ DOCUMENTED | Lines 269-294: Syntax and blue dot indicator |
 | **GETTING_STARTED.md** | ✅ DOCUMENTED | Example with comments |
-| **Improvement Report** | ⚠️ PARSING NOT IMPLEMENTED | Labels display but parser doesn't capture from code comments |
+| **Bridge Parser** | ✅ IMPLEMENTED | `detectUserLabels()` at line 15-40, called at line 319, applied at line 396 |
+| **algorithmExamples.ts** | ✅ USES | Lines 529-752: Extensive usage of `// @logigo:` annotations |
+| **LabeledNode.tsx** | ✅ RENDERS | `userLabel` field displayed with tooltip |
 
-**DISCREPANCY:** Documentation implies @logigo comments are fully parsed; actually relies on AST structure, not comment extraction.
+**IMPLEMENTATION EVIDENCE:**
+```typescript
+// docs/bridge/src/parser.ts line 15-40
+function detectUserLabels(code: string): Map<number, string> {
+  const labelPattern = /\/\/\s*@logigo:\s*(.+)$/i;
+  // Maps line numbers to user-defined labels
+}
+
+// Line 319: Called during parsing
+const userLabels = detectUserLabels(code);
+
+// Line 396: Applied to nodes
+userLabel = userLabels.get(stmt.loc.start.line);
+```
+
+**STATUS:** Fully implemented and documented.
 
 ---
 
@@ -286,21 +323,21 @@
 | VS Code Extension | ❌ Missing | ✅ Exists |
 | Bidirectional Editing | ❌ Missing | ❌ Missing |
 
-### Discrepancies (documentation claims features that don't fully exist)
+### Previously Identified "Discrepancies" - CORRECTED
 
-| Feature | Issue |
-|---------|-------|
-| Hierarchical Views | Help claims mile-high/1000ft/100ft views; not implemented |
-| @logigo: Labels | Help implies comment parsing; parser doesn't extract comments |
+| Feature | Previous Claim | Actual Status |
+|---------|----------------|---------------|
+| Hierarchical Views | "Not implemented" | ✅ IMPLEMENTED - View levels + collapsible containers |
+| @logigo: Labels | "Parser doesn't extract" | ✅ IMPLEMENTED - Full parsing and display |
 
 ### Recommendations
 
-1. **Add Model Arena section to HelpDialog** - Document the 4-AI comparison feature, chairman model, and history
-2. **Add BYOK documentation** - Users should know they can use their own API keys
-3. **Add VS Code Extension section** - Cross-reference the .vsix and installation
-4. **Add Bidirectional Editing documentation** - Double-click nodes to edit is a key feature
-5. **Remove or clarify Hierarchical Views** - Either implement or remove false claims
-6. **Clarify @logigo: label behavior** - Make clear this is display-only, not parsed from comments
+1. ~~Add Model Arena section to HelpDialog~~ - ✅ DONE
+2. ~~Add BYOK documentation~~ - ✅ DONE
+3. ~~Add VS Code Extension section~~ - ✅ DONE
+4. ~~Add Bidirectional Editing documentation~~ - ✅ DONE
+5. ~~Remove or clarify Hierarchical Views~~ - ✅ CORRECTED (feature exists)
+6. ~~Clarify @logigo: label behavior~~ - ✅ CORRECTED (fully implemented)
 
 ---
 

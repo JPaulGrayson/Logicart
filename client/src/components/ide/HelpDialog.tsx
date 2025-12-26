@@ -388,6 +388,40 @@ while (i < 10) {
               </section>
 
               <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-cyan-500">🔍</span>
+                  View Levels
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  LogiGo displays a view level indicator based on your current zoom level:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Mile-High ({'<'}40% zoom):</strong> Overview of your entire codebase structure</li>
+                  <li>• <strong>1000ft (40-100% zoom):</strong> Normal viewing with full flow logic visible</li>
+                  <li>• <strong>100ft ({'>'}100% zoom):</strong> Detailed view for examining specific nodes</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  The current view level is shown in the flowchart header (e.g., "View: 1000ft (50%)").
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-purple-500">📦</span>
+                  Collapsible Containers
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Organize large flowcharts with collapsible section containers:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
+                  <li>• <strong>Create sections:</strong> Use <code className="bg-muted px-1 py-0.5 rounded text-xs">// --- SECTION NAME ---</code> comments</li>
+                  <li>• <strong>Click to toggle:</strong> Click container nodes to expand or collapse</li>
+                  <li>• <strong>Visual indicators:</strong> Chevron icons show collapse state, badge shows child count</li>
+                  <li>• <strong>Hide children:</strong> Collapsed containers hide all child nodes</li>
+                </ul>
+              </section>
+
+              <section>
                 <h3 className="text-lg font-semibold mb-3">Visual Handshake</h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Connect code execution to UI elements on the page:
@@ -661,6 +695,9 @@ while (i < 10) {
                     <li>✓ Zero-friction static code analysis</li>
                     <li>✓ Real-time runtime debugging (Live Mode)</li>
                     <li>✓ Step-by-step execution with Time Travel</li>
+                    <li>✓ View Levels (Mile-High, 1000ft, 100ft zoom indicators)</li>
+                    <li>✓ Collapsible Containers (organize large flowcharts)</li>
+                    <li>✓ User Labels (@logigo: annotations with blue dot)</li>
                     <li>✓ Bidirectional editing (code ↔ flowchart sync)</li>
                     <li>✓ Visual Handshake (code ↔ DOM highlighting)</li>
                     <li>✓ Variable inspection and tracking</li>

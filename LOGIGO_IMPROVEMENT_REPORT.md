@@ -9,16 +9,18 @@
 
 **Question:** Do we have navigation levels, node hierarchy reflecting design hierarchy, or ability to move between levels?
 
-**Status:** ❌ NOT IMPLEMENTED
+**Status:** ✅ CORE FUNCTIONALITY IMPLEMENTED
 
-**Current State:** Pan/zoom and mini-map exist, but no multi-level navigation, collapsible container nodes, or zoom presets. `ContainerNode` only renders grouped visual styling without hierarchical state.
+**Implemented Features:**
+- **View Level Indicator:** ✅ Shows "Mile-High" (<40% zoom), "1000ft" (40-100%), "100ft" (>100%) in UI (Flowchart.tsx)
+- **Collapsible Containers:** ✅ Full collapse/expand with state management, child visibility toggling, chevron icons (ContainerNode.tsx)
+- **Section Detection:** ✅ Parser detects `// --- NAME ---` comments and creates containers (docs/bridge/src/parser.ts lines 42-92)
+- **Container Creation:** ✅ Creates container nodes with children arrays (docs/bridge/src/parser.ts lines 326-343)
 
-**Recommended Improvements:**
-- Mile-high view (all apps/modules as boxes)
-- 1000ft view (major components within an app)
-- 100ft view (actual flowcharts)
+**Optional Enhancements:**
 - Breadcrumb navigation between levels
-- Collapsible container nodes with expand/collapse state
+- Automatic grouping based on function relationships
+- Zoom presets buttons (jump to specific levels)
 
 ---
 
@@ -41,14 +43,20 @@
 
 **Question:** Do we support user-generated labels on nodes and breakpoints that show as comments in the code?
 
-**Status:** ❌ NOT IMPLEMENTED
+**Status:** ✅ FULLY IMPLEMENTED
 
-**Current State:** Double-click editing modifies source code (bidirectional), but no separate annotation layer or persistence for user notes.
+**Implementation Evidence:**
+- **Comment Parsing:** `detectUserLabels()` in docs/bridge/src/parser.ts (lines 15-40) extracts `// @logigo:` comments
+- **Label Application:** Line 396 applies parsed labels to nodes: `userLabel = userLabels.get(stmt.loc.start.line)`
+- **Blue dot indicator:** LabeledNode.tsx displays nodes with user labels with blue dot in top-right corner
+- **Tooltip on hover:** Shows original code when hovering over labeled nodes
+- **Debug Panel:** Step indicator shows user labels during execution
 
-**Recommended Improvements:**
-- Custom annotations/notes on nodes that persist independently
-- Breakpoints that insert `// BREAKPOINT: user note` into code
-- Visual markers reflecting code comments and vice versa
+**No additional work needed for basic functionality.**
+
+**Potential Enhancements:**
+- Inline annotation editing from flowchart
+- Breakpoint comments that sync to code
 
 ---
 
@@ -56,13 +64,15 @@
 
 **Question:** Are there any tiling options to make it easier for users to arrange screens?
 
-**Status:** ❌ NOT IMPLEMENTED (beyond drag-to-resize)
+**Status:** ⚠️ BASIC IMPLEMENTATION
 
-**Current State:** Two-panel layout with drag-to-resize divider only.
+**Current State:**
+- **ResizablePanel components:** Drag-to-resize divider between code and flowchart
+- **Code editor collapse:** `codeEditorCollapsed` state for hiding code panel
+- **Fullscreen modes:** 'workspace' and 'presentation' modes available
 
-**Recommended Improvements:**
+**What's Missing:**
 - Quick layout presets (50/50, 70/30, code-only, flowchart-only)
-- Layout templates for different workflows
 - Detachable panels for second monitor
 - Saved layout preferences per user/project
 
@@ -214,28 +224,34 @@
 
 **Question:** Could the Replit Agent write code with `// @logigo:` annotations for immediate flowchart visualization?
 
-**Status:** ❌ NOT IMPLEMENTED
+**Status:** ✅ FULLY IMPLEMENTED
 
-**Current State:** Parser does not capture code comments. System relies on AST structure and manual checkpoints.
+**Current State:**
+- **Parser captures `// @logigo:` comments:** Annotations are extracted and stored as `userLabel` on nodes
+- **Extensive usage in examples:** `algorithmExamples.ts` (lines 529-752) demonstrates full annotation patterns
+- **Static flowchart generation:** Annotations create labeled nodes before runtime
+- **Blue dot indicator:** Annotated nodes show visual marker
 
-**Recommended Improvements:**
-- Annotation parser for `// @logigo { id, label, phase }` directives
-- Static flowchart generation from annotations before runtime
-- Agent prompt template for consistent annotation emission
-- Living documentation that stays in sync with code
-
-**Proposed Annotation Schema:**
+**Example (already working):**
 ```javascript
-// @logigo { id: "checkout:init", label: "Initialize checkout", phase: "setup" }
-function initCheckout() {
-  // ...
-}
+// @logigo: Initialize todo storage
+let todos = [];
 
-// @logigo { id: "checkout:validate", label: "Validate cart items", inputs: ["cart"] }
-function validateCart(cart) {
-  // ...
+// @logigo: Add new todo function
+function addTodo(text) {
+  // @logigo: Create todo object
+  const todo = { id: Date.now(), text, completed: false };
+  // @logigo: Add to list
+  todos.push(todo);
+  // @logigo: Return new todo
+  return todo;
 }
 ```
+
+**Potential Enhancements:**
+- Agent prompt template for consistent annotation emission
+- Annotation validation/linting
+- Richer annotation schema with phases, inputs, outputs
 
 ---
 
@@ -243,16 +259,16 @@ function validateCart(cart) {
 
 | Priority | Feature | Effort | Impact |
 |----------|---------|--------|--------|
-| 🔴 High | System Design / Hierarchical Views | High | High |
-| 🔴 High | Agent-LogiGo Annotation Integration | Medium | High |
+| 🔴 High | Multi-App Interaction Mapping | High | High |
+| 🔴 High | Replit Agent Integration (API) | Medium | High |
 | 🟡 Medium | Model Arena File Selection | Medium | Medium |
-| 🟡 Medium | User Labels on Nodes | Medium | Medium |
-| 🟡 Medium | Multi-App Interaction Mapping | High | High |
-| 🟡 Medium | Replit Agent Integration (API) | Medium | High |
+| 🟡 Medium | Hierarchical Nav (Breadcrumbs/Zoom Presets) | Medium | Medium |
 | 🟢 Low | Tiling/Layout Presets | Low | Medium |
 | 🟢 Low | Undo/Redo History | Medium | Low |
 | 🟢 Low | Enhanced Sharing | Medium | Low |
 | 🟢 Low | Complete Replit Adapter | Low | Medium |
+
+**Note:** User Labels, @logigo: Annotations, Collapsible Containers, and View Levels are already fully implemented.
 
 ---
 
@@ -260,6 +276,9 @@ function validateCart(cart) {
 
 | Feature | Status |
 |---------|--------|
+| View Level Indicator | ✅ Mile-High/1000ft/100ft based on zoom |
+| Collapsible Containers | ✅ Full expand/collapse with state management |
+| User Labels (@logigo:) | ✅ Parser extracts, blue dot indicator, tooltips |
 | VS Code Extension | ✅ Complete with .vsix |
 | DOM Visual Handshake | ✅ Full bidirectional |
 | Code Templates (12+) | ✅ Pre-instrumented |
@@ -274,6 +293,8 @@ function validateCart(cart) {
 | BYOK API Keys | ✅ Per-request headers |
 | Remote Mode + Breakpoints | ✅ SSE/WebSocket |
 | Algorithm Visualizers | ✅ 7 types |
+| Bidirectional Editing | ✅ Double-click nodes to edit code |
+| Resizable Panels | ✅ Drag divider, collapse code panel |
 
 ---
 
