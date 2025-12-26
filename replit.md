@@ -49,6 +49,12 @@ Preferred communication style: Simple, everyday language.
 - **Chairman Model**: Synthesizes all 4 AI responses into a unified verdict using a configurable "chairman" model. Specialized prompts for code generation (CHAIRMAN_CODE_VERDICT_PROMPT) and debug advice (CHAIRMAN_DEBUG_VERDICT_PROMPT). Chairman preference stored in localStorage (`logigo_arena_chairman`). Verdict endpoint at `/api/arena/verdict`.
 - **Arena Session History**: Saves arena sessions to PostgreSQL database for later review. Sessions include mode, prompt, results, verdict, and chairman selection. API endpoints: GET/POST `/api/arena/sessions`, GET/DELETE `/api/arena/sessions/:id`. History panel accessible via History button in Model Arena header.
 - **BYOK (Bring Your Own Key)**: User-controlled API key management for open-source distribution. Keys are stored in browser localStorage and passed via HTTP headers (x-openai-key, x-gemini-key, x-anthropic-key, x-xai-key). Server-side functions accept keys from headers with environment variable fallback for development. Settings modal at `client/src/components/arena/SettingsModal.tsx`.
+- **Layout Presets (V1)**: 5 layout preset buttons (50/50, 30/70, 70/30, Code Only, Flow Only) for quick workspace configuration. Uses ImperativePanelHandle refs for programmatic ResizablePanel control. Persisted to localStorage.
+- **Hierarchical Navigation (V1)**: Breadcrumb navigation bar and 4 zoom preset buttons (25%, 50%, 100%, Fit) in Flowchart component for consistent navigation.
+- **Undo/Redo (V1)**: HistoryManager singleton class with debounced state tracking, Ctrl+Z/Ctrl+Y keyboard shortcuts, and toolbar buttons.
+- **Enhanced Sharing (V1)**: Database-backed sharing with `shares` table, POST/GET `/api/share/:id` endpoints, and ShareDialog component with title/description.
+- **Arena Example Selector (V1)**: Quick examples dropdown in Model Arena for selecting common coding prompts.
+- **Agent API (V1)**: REST endpoint `POST /api/agent/analyze` for programmatic code analysis returning nodes, edges, complexity, and flow structure.
 
 ## External Dependencies
 
