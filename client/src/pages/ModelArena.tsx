@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode } from "lucide-react";
+import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
@@ -14,6 +14,14 @@ interface ModelResult {
   model: string;
   provider: string;
   code: string;
+  error?: string;
+  latencyMs: number;
+}
+
+interface DebugResult {
+  model: string;
+  provider: string;
+  analysis: string;
   error?: string;
   latencyMs: number;
 }
@@ -40,6 +48,11 @@ interface ArenaResponse {
   };
 }
 
+interface DebugResponse {
+  success: boolean;
+  results: DebugResult[];
+}
+
 const MODEL_COLORS: Record<string, string> = {
   "OpenAI": "bg-green-500/20 text-green-400 border-green-500/50",
   "Gemini": "bg-blue-500/20 text-blue-400 border-blue-500/50",
@@ -48,10 +61,15 @@ const MODEL_COLORS: Record<string, string> = {
 };
 
 export default function ModelArena() {
+  const [arenaMode, setArenaMode] = useState<"code" | "debug">("code");
   const [prompt, setPrompt] = useState(
     "Write a JavaScript function called 'findDuplicates' that takes an array and returns an array of duplicate values."
   );
+  const [problem, setProblem] = useState("");
+  const [errorLogs, setErrorLogs] = useState("");
+  const [codeSnippet, setCodeSnippet] = useState("");
   const [results, setResults] = useState<ModelResult[]>([]);
+  const [debugResults, setDebugResults] = useState<DebugResult[]>([]);
   const [flowcharts, setFlowcharts] = useState<Record<string, ParsedFlowchart>>({});
   const [comparison, setComparison] = useState<ArenaResponse["comparison"]>();
   const [viewMode, setViewMode] = useState<"code" | "flowchart">("code");
@@ -68,18 +86,45 @@ export default function ModelArena() {
     },
   });
 
+  const debugMutation = useMutation({
+    mutationFn: async (data: { problem: string; errorLogs: string; codeSnippet: string }) => {
+      const response = await apiRequest("POST", "/api/arena/debug", data);
+      return response.json() as Promise<DebugResponse>;
+    },
+    onSuccess: (data) => {
+      setDebugResults(data.results);
+    },
+  });
+
   const handleGenerate = () => {
     if (prompt.trim()) {
       generateMutation.mutate(prompt);
     }
   };
 
+  const handleDebug = () => {
+    if (problem.trim()) {
+      debugMutation.mutate({ problem, errorLogs, codeSnippet });
+    }
+  };
+
   const handleReset = () => {
     setResults([]);
+    setDebugResults([]);
     setFlowcharts({});
     setComparison(undefined);
     setPrompt("");
+    setProblem("");
+    setErrorLogs("");
+    setCodeSnippet("");
   };
+
+  const handleModeChange = (mode: string) => {
+    setArenaMode(mode as "code" | "debug");
+    handleReset();
+  };
+
+  const isPending = generateMutation.isPending || debugMutation.isPending;
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white p-6">
@@ -102,51 +147,147 @@ export default function ModelArena() {
           </Badge>
         </div>
 
-        <Card className="bg-[#161b22] border-[#30363d] mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg text-white">Coding Prompt</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the code you want each AI model to generate..."
-              className="min-h-[120px] bg-[#0d1117] border-[#30363d] text-white resize-none"
-              data-testid="input-prompt"
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={handleGenerate}
-                disabled={generateMutation.isPending || !prompt.trim()}
-                className="bg-blue-600 hover:bg-blue-700"
-                data-testid="button-generate"
-              >
-                {generateMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating from 4 models...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Generate & Compare
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleReset}
-                variant="outline"
-                className="border-[#30363d]"
-                data-testid="button-reset"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs value={arenaMode} onValueChange={handleModeChange} className="mb-6">
+          <TabsList className="bg-[#161b22] border border-[#30363d]">
+            <TabsTrigger 
+              value="code" 
+              className="data-[state=active]:bg-blue-600 gap-2"
+              data-testid="tab-mode-code"
+            >
+              <Sparkles className="w-4 h-4" />
+              Code Generation
+            </TabsTrigger>
+            <TabsTrigger 
+              value="debug" 
+              className="data-[state=active]:bg-orange-600 gap-2"
+              data-testid="tab-mode-debug"
+            >
+              <Bug className="w-4 h-4" />
+              Debug Advisor
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        {results.length > 0 && (
+        {arenaMode === "code" ? (
+          <Card className="bg-[#161b22] border-[#30363d] mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-400" />
+                Coding Prompt
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe the code you want each AI model to generate..."
+                className="min-h-[120px] bg-[#0d1117] border-[#30363d] text-white resize-none"
+                data-testid="input-prompt"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isPending || !prompt.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-generate"
+                >
+                  {generateMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating from 4 models...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Generate & Compare
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="border-[#30363d]"
+                  data-testid="button-reset"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-[#161b22] border-[#30363d] mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg text-white flex items-center gap-2">
+                <Bug className="w-5 h-5 text-orange-400" />
+                Describe Your Problem
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 mb-2 block">Problem Description *</label>
+                <Textarea
+                  value={problem}
+                  onChange={(e) => setProblem(e.target.value)}
+                  placeholder="Describe the issue you're facing. What are you trying to do? What's happening instead?"
+                  className="min-h-[100px] bg-[#0d1117] border-[#30363d] text-white resize-none"
+                  data-testid="input-problem"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-2 block">Error Logs (optional)</label>
+                <Textarea
+                  value={errorLogs}
+                  onChange={(e) => setErrorLogs(e.target.value)}
+                  placeholder="Paste any error messages or stack traces here..."
+                  className="min-h-[80px] bg-[#0d1117] border-[#30363d] text-white font-mono text-sm resize-none"
+                  data-testid="input-error-logs"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-2 block">Relevant Code (optional)</label>
+                <Textarea
+                  value={codeSnippet}
+                  onChange={(e) => setCodeSnippet(e.target.value)}
+                  placeholder="Paste the relevant code snippet..."
+                  className="min-h-[80px] bg-[#0d1117] border-[#30363d] text-white font-mono text-sm resize-none"
+                  data-testid="input-code-snippet"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleDebug}
+                  disabled={isPending || !problem.trim()}
+                  className="bg-orange-600 hover:bg-orange-700"
+                  data-testid="button-debug"
+                >
+                  {debugMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Getting advice from 4 models...
+                    </>
+                  ) : (
+                    <>
+                      <Bug className="w-4 h-4 mr-2" />
+                      Get Debug Advice
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="border-[#30363d]"
+                  data-testid="button-reset-debug"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {arenaMode === "code" && results.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-4">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "code" | "flowchart")}>
@@ -252,11 +393,50 @@ export default function ModelArena() {
           </>
         )}
 
-        {generateMutation.isError && (
+        {arenaMode === "debug" && debugResults.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {debugResults.map((result) => (
+              <Card
+                key={result.provider}
+                className="bg-[#161b22] border-[#30363d]"
+                data-testid={`card-debug-${result.provider.toLowerCase()}`}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base text-white flex items-center gap-2">
+                      <Badge className={MODEL_COLORS[result.provider]}>
+                        {result.provider}
+                      </Badge>
+                      <span className="text-sm text-gray-400">{result.model}</span>
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {result.latencyMs}ms
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {result.error ? (
+                    <div className="text-red-400 text-sm p-3 bg-red-500/10 rounded border border-red-500/30">
+                      {result.error}
+                    </div>
+                  ) : (
+                    <div className="prose prose-invert prose-sm max-w-none max-h-[400px] overflow-y-auto">
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        {result.analysis}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {(generateMutation.isError || debugMutation.isError) && (
           <Card className="bg-red-500/10 border-red-500/30">
             <CardContent className="p-4">
               <div className="text-red-400">
-                Error: {generateMutation.error?.message || "Failed to generate code"}
+                Error: {generateMutation.error?.message || debugMutation.error?.message || "Failed to process request"}
               </div>
             </CardContent>
           </Card>

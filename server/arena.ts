@@ -23,6 +23,17 @@ Rules:
 3. Include comments for complex logic
 4. Make the code production-ready`;
 
+const DEBUG_ANALYSIS_SYSTEM_PROMPT = `You are an expert debugging advisor. Analyze the problem described and provide clear, actionable debugging advice.
+
+Your response should include:
+1. **Root Cause Analysis**: What's likely causing this issue
+2. **Key Investigation Points**: What to check first
+3. **Suggested Fixes**: Concrete steps to resolve the problem
+4. **Prevention Tips**: How to avoid this in the future
+
+Be concise but thorough. Focus on practical solutions.
+Format your response with clear sections using markdown headers.`;
+
 function extractCodeFromResponse(text: string): string {
   const codeBlockMatch = text.match(/```(?:javascript|js)?\n?([\s\S]*?)```/);
   if (codeBlockMatch) {
@@ -156,7 +167,178 @@ async function generateWithGrok(prompt: string): Promise<ModelResult> {
   }
 }
 
+interface DebugResult {
+  model: string;
+  provider: string;
+  analysis: string;
+  error?: string;
+  latencyMs: number;
+}
+
+async function debugWithOpenAI(prompt: string): Promise<DebugResult> {
+  const start = Date.now();
+  try {
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: DEBUG_ANALYSIS_SYSTEM_PROMPT },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 2048
+    });
+    return {
+      model: "gpt-4o",
+      provider: "OpenAI",
+      analysis: response.choices[0]?.message?.content || "",
+      latencyMs: Date.now() - start
+    };
+  } catch (error: any) {
+    return {
+      model: "gpt-4o",
+      provider: "OpenAI",
+      analysis: "",
+      error: error.message || "Failed to analyze",
+      latencyMs: Date.now() - start
+    };
+  }
+}
+
+async function debugWithGemini(prompt: string): Promise<DebugResult> {
+  const start = Date.now();
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      config: {
+        systemInstruction: DEBUG_ANALYSIS_SYSTEM_PROMPT
+      },
+      contents: prompt
+    });
+    return {
+      model: "gemini-3-flash",
+      provider: "Gemini",
+      analysis: response.text || "",
+      latencyMs: Date.now() - start
+    };
+  } catch (error: any) {
+    return {
+      model: "gemini-3-flash",
+      provider: "Gemini",
+      analysis: "",
+      error: error.message || "Failed to analyze",
+      latencyMs: Date.now() - start
+    };
+  }
+}
+
+async function debugWithClaude(prompt: string): Promise<DebugResult> {
+  const start = Date.now();
+  try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const response = await client.messages.create({
+      model: "claude-opus-4-5-20251101",
+      max_tokens: 2048,
+      system: DEBUG_ANALYSIS_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: prompt }]
+    });
+    const textContent = response.content.find((c) => c.type === "text");
+    return {
+      model: "claude-opus-4.5",
+      provider: "Claude",
+      analysis: textContent?.text || "",
+      latencyMs: Date.now() - start
+    };
+  } catch (error: any) {
+    return {
+      model: "claude-opus-4.5",
+      provider: "Claude",
+      analysis: "",
+      error: error.message || "Failed to analyze",
+      latencyMs: Date.now() - start
+    };
+  }
+}
+
+async function debugWithGrok(prompt: string): Promise<DebugResult> {
+  const start = Date.now();
+  try {
+    const client = new OpenAI({
+      baseURL: "https://api.x.ai/v1",
+      apiKey: process.env.XAI_API_KEY
+    });
+    const response = await client.chat.completions.create({
+      model: "grok-4",
+      messages: [
+        { role: "system", content: DEBUG_ANALYSIS_SYSTEM_PROMPT },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 2048
+    });
+    return {
+      model: "grok-4",
+      provider: "Grok",
+      analysis: response.choices[0]?.message?.content || "",
+      latencyMs: Date.now() - start
+    };
+  } catch (error: any) {
+    return {
+      model: "grok-4",
+      provider: "Grok",
+      analysis: "",
+      error: error.message || "Failed to analyze",
+      latencyMs: Date.now() - start
+    };
+  }
+}
+
 export function registerArenaRoutes(app: Express) {
+  app.post("/api/arena/debug", async (req: Request, res: Response) => {
+    try {
+      const { problem, errorLogs, codeSnippet } = req.body;
+      
+      if (!problem || typeof problem !== "string") {
+        return res.status(400).json({
+          success: false,
+          error: "Missing problem description"
+        });
+      }
+
+      const fullPrompt = `## Problem Description
+${problem}
+
+${errorLogs ? `## Error Logs
+\`\`\`
+${errorLogs}
+\`\`\`` : ""}
+
+${codeSnippet ? `## Relevant Code
+\`\`\`javascript
+${codeSnippet}
+\`\`\`` : ""}
+
+Please analyze this issue and provide debugging advice.`;
+
+      const results = await Promise.all([
+        debugWithOpenAI(fullPrompt),
+        debugWithGemini(fullPrompt),
+        debugWithClaude(fullPrompt),
+        debugWithGrok(fullPrompt)
+      ]);
+
+      res.json({
+        success: true,
+        results
+      });
+    } catch (error: any) {
+      console.error("Debug Arena API error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error"
+      });
+    }
+  });
+
   app.post("/api/arena/generate", async (req: Request, res: Response) => {
     try {
       const { prompt } = req.body as ArenaRequest;
