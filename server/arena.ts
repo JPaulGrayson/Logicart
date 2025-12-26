@@ -70,7 +70,7 @@ async function generateWithGemini(prompt: string): Promise<ModelResult> {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       config: {
         systemInstruction: CODE_GENERATION_SYSTEM_PROMPT
       },
@@ -78,14 +78,14 @@ async function generateWithGemini(prompt: string): Promise<ModelResult> {
     });
     const code = extractCodeFromResponse(response.text || "");
     return {
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash",
       provider: "Gemini",
       code,
       latencyMs: Date.now() - start
     };
   } catch (error: any) {
     return {
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash",
       provider: "Gemini",
       code: "",
       error: error.message || "Failed to generate",
@@ -99,7 +99,7 @@ async function generateWithClaude(prompt: string): Promise<ModelResult> {
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-opus-4-5-20251101",
       max_tokens: 2048,
       system: CODE_GENERATION_SYSTEM_PROMPT,
       messages: [{ role: "user", content: prompt }]
@@ -107,14 +107,14 @@ async function generateWithClaude(prompt: string): Promise<ModelResult> {
     const textContent = response.content.find((c) => c.type === "text");
     const code = extractCodeFromResponse(textContent?.text || "");
     return {
-      model: "claude-sonnet-4",
+      model: "claude-opus-4.5",
       provider: "Claude",
       code,
       latencyMs: Date.now() - start
     };
   } catch (error: any) {
     return {
-      model: "claude-sonnet-4",
+      model: "claude-opus-4.5",
       provider: "Claude",
       code: "",
       error: error.message || "Failed to generate",
