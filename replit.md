@@ -28,7 +28,13 @@ Preferred communication style: Simple, everyday language.
     - **Static Mode**: Instant flowchart from pasted code via Acorn parsing.
     - **Live Mode (Premium)**: Runtime overlay showing live execution data from instrumented code using `LogiGo.checkpoint()`.
     - **Blueprint Schema (Future)**: AI-generated JSON blueprints.
-- **Cross-Replit Communication (Remote Mode)**: Enables external Replit apps to send checkpoint data to LogiGo for real-time visualization via SSE and a control WebSocket channel for bidirectional highlighting (Visual Handshake).
+- **Cross-Replit Communication (Remote Mode)**: Enables external Replit apps to send checkpoint data to LogiGo for real-time visualization via SSE and a control WebSocket channel for bidirectional debugging.
+- **Bidirectional Control Protocol**: Full debugging capabilities via WebSocket control channel:
+    - **Remote Breakpoints**: Set/remove/clear breakpoints from Studio UI, synced to remote app
+    - **Pause/Resume/Step**: Control remote code execution from Studio sidebar
+    - **Visual Handshake**: Click flowchart nodes to highlight corresponding elements in remote app
+    - **Async Checkpoints**: Remote app's `checkpoint()` function pauses at breakpoints and waits for resume
+    - Control message types defined in `shared/control-types.ts`
 - **LogiGo Embed**: Embeddable React component (`logigo-embed`) for static (runtime parsing) and live (build-time manifest integration) visualization.
 - **LogiGo Vite Plugin**: Build-time instrumentation for Live Mode, injecting `LogiGo.checkpoint()` calls and generating manifest files.
 - **logigo-core NPM Package**: Standalone runtime library for manual checkpoint instrumentation and core execution control.
