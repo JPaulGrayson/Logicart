@@ -1305,8 +1305,56 @@ self.addEventListener('fetch', (event) => {
     }
   }
   
-  // Create the checkpoint function with retry logic
-  window.checkpoint = function(id, variables, options) {
+  // Create the checkpoint function with retry logic and breakpoint support
+  window.checkpoint = async function(id, variables, options) {
+    variables = variables || {};
+    options = options || {};
+    checkpointCount++;
+    
+    openLogigoIfNeeded();
+    
+    var data = {
+      sessionId: SESSION_ID,
+      checkpoint: {
+        id: id,
+        variables: variables,
+        line: options.line,
+        timestamp: Date.now()
+      }
+    };
+    
+    var payload = JSON.stringify(data);
+    
+    try {
+      await fetchWithRetry(LOGIGO_URL + "/api/remote/checkpoint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        mode: "cors"
+      });
+    } catch(e) {
+      console.warn("[LogiGo] Checkpoint failed after retries:", e.message);
+    }
+    
+    // Check if we should pause at this checkpoint
+    var shouldPause = breakpoints.has(id) || isPaused || stepMode;
+    
+    if (shouldPause) {
+      isPaused = true;
+      stepMode = false;
+      console.log("[LogiGo] ⏸️ Paused at checkpoint:", id);
+      showBreakpointToast("Paused at: " + id, "#8b5cf6");
+      
+      // Notify Studio we're paused
+      sendMessage({ type: "PAUSED_AT", checkpointId: id, variables: variables });
+      
+      // Wait for resume command from Studio
+      await waitForResume();
+    }
+  };
+  
+  // Sync version for backwards compatibility
+  window.checkpointSync = function(id, variables, options) {
     variables = variables || {};
     options = options || {};
     checkpointCount++;
@@ -1371,13 +1419,21 @@ self.addEventListener('fetch', (event) => {
   };
   
   // ============================================
-  // Visual Handshake - WebSocket Control Channel
+  // Bidirectional Control Channel (WebSocket)
+  // - Visual Handshake (highlight elements)
+  // - Remote Breakpoints (pause/resume execution)
   // ============================================
   
   var controlWs = null;
   var wsReconnectAttempts = 0;
   var wsMaxRetries = 5;
   var checkpointElements = {};
+  
+  // Breakpoint state management
+  var breakpoints = new Set();
+  var isPaused = false;
+  var pauseResolver = null;
+  var stepMode = false;
   
   function getWsUrl() {
     var wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -1392,16 +1448,16 @@ self.addEventListener('fetch', (event) => {
       controlWs = new WebSocket(getWsUrl());
       
       controlWs.onopen = function() {
-        console.log("[LogiGo] Control channel connected");
+        console.log("[LogiGo] Control channel connected (bidirectional)");
         wsReconnectAttempts = 0;
+        // Notify Studio of current breakpoints
+        sendMessage({ type: "BREAKPOINTS_UPDATED", breakpoints: Array.from(breakpoints) });
       };
       
       controlWs.onmessage = function(event) {
         try {
           var msg = JSON.parse(event.data);
-          if (msg.type === "HIGHLIGHT_ELEMENT") {
-            highlightCheckpoint(msg.checkpointId, msg.nodeId);
-          }
+          handleControlMessage(msg);
         } catch (e) {
           console.warn("[LogiGo] Invalid control message:", e.message);
         }
@@ -1424,6 +1480,98 @@ self.addEventListener('fetch', (event) => {
       console.warn("[LogiGo] Failed to create WebSocket:", e.message);
     }
   }
+  
+  function sendMessage(msg) {
+    if (controlWs && controlWs.readyState === WebSocket.OPEN) {
+      controlWs.send(JSON.stringify(msg));
+    }
+  }
+  
+  function handleControlMessage(msg) {
+    switch (msg.type) {
+      case "HIGHLIGHT_ELEMENT":
+        highlightCheckpoint(msg.checkpointId, msg.nodeId);
+        break;
+        
+      case "SET_BREAKPOINT":
+        breakpoints.add(msg.checkpointId);
+        console.log("[LogiGo] Breakpoint set:", msg.checkpointId);
+        showBreakpointToast("Breakpoint set: " + msg.checkpointId, "#8b5cf6");
+        sendMessage({ type: "BREAKPOINTS_UPDATED", breakpoints: Array.from(breakpoints) });
+        break;
+        
+      case "REMOVE_BREAKPOINT":
+        breakpoints.delete(msg.checkpointId);
+        console.log("[LogiGo] Breakpoint removed:", msg.checkpointId);
+        sendMessage({ type: "BREAKPOINTS_UPDATED", breakpoints: Array.from(breakpoints) });
+        break;
+        
+      case "CLEAR_BREAKPOINTS":
+        breakpoints.clear();
+        console.log("[LogiGo] All breakpoints cleared");
+        sendMessage({ type: "BREAKPOINTS_UPDATED", breakpoints: [] });
+        break;
+        
+      case "PAUSE":
+        isPaused = true;
+        console.log("[LogiGo] Execution paused by Studio");
+        showBreakpointToast("Execution paused", "#ef4444");
+        break;
+        
+      case "RESUME":
+        stepMode = false;
+        resumeExecution();
+        break;
+        
+      case "STEP":
+        stepMode = true;
+        resumeExecution();
+        break;
+        
+      case "PING":
+        sendMessage({ type: "PONG", timestamp: Date.now() });
+        break;
+    }
+  }
+  
+  function resumeExecution() {
+    if (pauseResolver) {
+      console.log("[LogiGo] Resuming execution...");
+      isPaused = false;
+      var resolver = pauseResolver;
+      pauseResolver = null;
+      resolver();
+      sendMessage({ type: "RESUMED" });
+      hideBreakpointOverlay();
+    }
+  }
+  
+  function waitForResume() {
+    return new Promise(function(resolve) {
+      pauseResolver = resolve;
+    });
+  }
+  
+  function showBreakpointToast(message, color) {
+    var existing = document.getElementById("logigo-breakpoint-toast");
+    if (existing) existing.remove();
+    
+    var toast = document.createElement("div");
+    toast.id = "logigo-breakpoint-toast";
+    toast.innerHTML = "⏸️ " + message;
+    toast.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:" + color + ";color:white;padding:16px 32px;border-radius:12px;font-family:system-ui,sans-serif;font-size:16px;font-weight:600;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.3);";
+    document.body.appendChild(toast);
+  }
+  
+  function hideBreakpointOverlay() {
+    var toast = document.getElementById("logigo-breakpoint-toast");
+    if (toast) toast.remove();
+  }
+  
+  // Expose breakpoint controls
+  window.LogiGo.breakpoints = breakpoints;
+  window.LogiGo.isPaused = function() { return isPaused; };
+  window.LogiGo.resume = resumeExecution;
   
   // Highlight Overlay Manager
   function createHighlightOverlay() {

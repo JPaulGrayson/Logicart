@@ -182,6 +182,10 @@ export default function Workbench() {
   const controlWsRef = useRef<WebSocket | null>(null);
   const [handshakeNodeId, setHandshakeNodeId] = useState<string | null>(null);
   
+  // Remote breakpoint/pause state
+  const [remotePausedAt, setRemotePausedAt] = useState<string | null>(null);
+  const [remoteBreakpoints, setRemoteBreakpoints] = useState<Set<string>>(new Set());
+  
   // Backwards compatibility
   const remoteConnected = remoteConnectionStatus === 'connected';
   
@@ -195,6 +199,22 @@ export default function Workbench() {
       userLabel: activeNode?.data?.userLabel as string | undefined
     };
   }, [activeNodeId, flowData.nodes]);
+  
+  // Convert remote breakpoints (checkpointIds) to nodeIds for Flowchart display
+  const effectiveBreakpoints = useMemo(() => {
+    if (!remoteSessionId || remoteBreakpoints.size === 0) {
+      return breakpoints;
+    }
+    // Map checkpointIds to nodeIds
+    const nodeIds = new Set<string>();
+    flowData.nodes.forEach(node => {
+      const checkpointId = (node.data?.userLabel as string) || node.id;
+      if (remoteBreakpoints.has(checkpointId)) {
+        nodeIds.add(node.id);
+      }
+    });
+    return nodeIds;
+  }, [remoteSessionId, remoteBreakpoints, breakpoints, flowData.nodes]);
   
   // Algorithm visualization state
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(null);
@@ -407,6 +427,25 @@ export default function Workbench() {
               if (matchingNode) {
                 setActiveNodeId(matchingNode.id);
               }
+            } else if (message.type === 'PAUSED_AT') {
+              console.log('[Control Channel] Remote paused at:', message.checkpointId);
+              setRemotePausedAt(message.checkpointId);
+              // Find and highlight the paused node
+              const pausedNode = flowDataRef.current.nodes.find(n => 
+                (n.data?.userLabel as string) === message.checkpointId
+              );
+              if (pausedNode) {
+                setActiveNodeId(pausedNode.id);
+              }
+              toast.info('Remote Paused', {
+                description: `Execution paused at: ${message.checkpointId}`
+              });
+            } else if (message.type === 'RESUMED') {
+              console.log('[Control Channel] Remote resumed execution');
+              setRemotePausedAt(null);
+            } else if (message.type === 'BREAKPOINTS_UPDATED') {
+              console.log('[Control Channel] Remote breakpoints:', message.breakpoints);
+              setRemoteBreakpoints(new Set(message.breakpoints || []));
             }
           } catch (e) {
             console.warn('[Control Channel] Invalid message:', e);
@@ -923,6 +962,22 @@ export default function Workbench() {
   };
 
   const handleBreakpointToggle = (nodeId: string) => {
+    // For remote sessions, send breakpoint commands to the remote app
+    if (remoteSessionId && controlWsRef.current?.readyState === WebSocket.OPEN) {
+      // Find the node to get its checkpoint ID (userLabel)
+      const node = flowData.nodes.find(n => n.id === nodeId);
+      const checkpointId = (node?.data?.userLabel as string) || nodeId;
+      
+      // Toggle on the remote side
+      if (remoteBreakpoints.has(checkpointId)) {
+        handleRemoteRemoveBreakpoint(checkpointId);
+      } else {
+        handleRemoteSetBreakpoint(checkpointId);
+      }
+      return;
+    }
+    
+    // Local breakpoints (non-remote mode)
     setBreakpoints(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
@@ -979,6 +1034,52 @@ export default function Workbench() {
     if (!newLoop && restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
+    }
+  };
+
+  // Remote Control Functions (Bidirectional Protocol)
+  const sendRemoteCommand = (message: Record<string, unknown>) => {
+    if (controlWsRef.current?.readyState === WebSocket.OPEN) {
+      controlWsRef.current.send(JSON.stringify(message));
+      return true;
+    }
+    return false;
+  };
+
+  const handleRemoteSetBreakpoint = (checkpointId: string) => {
+    if (sendRemoteCommand({ type: 'SET_BREAKPOINT', checkpointId })) {
+      console.log('[Remote Control] Set breakpoint:', checkpointId);
+    }
+  };
+
+  const handleRemoteRemoveBreakpoint = (checkpointId: string) => {
+    if (sendRemoteCommand({ type: 'REMOVE_BREAKPOINT', checkpointId })) {
+      console.log('[Remote Control] Removed breakpoint:', checkpointId);
+    }
+  };
+
+  const handleRemoteClearBreakpoints = () => {
+    if (sendRemoteCommand({ type: 'CLEAR_BREAKPOINTS' })) {
+      console.log('[Remote Control] Cleared all breakpoints');
+    }
+  };
+
+  const handleRemotePause = () => {
+    if (sendRemoteCommand({ type: 'PAUSE' })) {
+      console.log('[Remote Control] Sent pause command');
+    }
+  };
+
+  const handleRemoteResume = () => {
+    if (sendRemoteCommand({ type: 'RESUME' })) {
+      console.log('[Remote Control] Sent resume command');
+      setRemotePausedAt(null);
+    }
+  };
+
+  const handleRemoteStep = () => {
+    if (sendRemoteCommand({ type: 'STEP' })) {
+      console.log('[Remote Control] Sent step command');
     }
   };
 
@@ -2287,6 +2388,80 @@ export default function Workbench() {
                 </div>
               </div>
               
+              {/* Remote Control Section - Only when connected to remote session */}
+              {remoteSessionId && (
+                <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
+                  <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
+                    <Wifi className="w-3 h-3" />
+                    Remote Control
+                  </h3>
+                  <div className="space-y-1">
+                    {/* Pause/Resume Button */}
+                    {remotePausedAt ? (
+                      <div className="space-y-1">
+                        <div className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1.5 rounded border border-orange-500/20">
+                          ⏸️ Paused at: {remotePausedAt}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleRemoteResume}
+                            className="flex-1 justify-center gap-2 h-7 text-xs bg-green-600 hover:bg-green-700"
+                            data-testid="button-remote-resume"
+                          >
+                            <Play className="w-3 h-3" />
+                            Resume
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemoteStep}
+                            className="flex-1 justify-center gap-2 h-7 text-xs"
+                            data-testid="button-remote-step"
+                          >
+                            <StepForward className="w-3 h-3" />
+                            Step
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemotePause}
+                        className="w-full justify-start gap-2 h-7 text-xs"
+                        data-testid="button-remote-pause"
+                      >
+                        <Pause className="w-3 h-3" />
+                        Pause Remote
+                      </Button>
+                    )}
+                    
+                    {/* Breakpoints Summary */}
+                    {remoteBreakpoints.size > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <div className="text-xs text-purple-400 flex items-center justify-between">
+                          <span>Active Breakpoints: {remoteBreakpoints.size}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoteClearBreakpoints}
+                            className="h-5 px-1.5 text-xs text-red-400 hover:text-red-300"
+                            data-testid="button-clear-breakpoints"
+                          >
+                            Clear All
+                          </Button>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Click nodes to set/remove breakpoints
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               {/* Examples Section */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
                 <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
@@ -2423,7 +2598,7 @@ export default function Workbench() {
                   onBreakpointToggle={handleBreakpointToggle}
                   activeNodeId={activeNodeId}
                   highlightedNodes={highlightedNodes}
-                  breakpoints={breakpoints}
+                  breakpoints={effectiveBreakpoints}
                   runtimeState={runtimeState}
                 />
               )}
