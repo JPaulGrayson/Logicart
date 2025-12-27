@@ -2397,9 +2397,9 @@ export default function Workbench() {
                   </Link>
                 </div>
                 
-                {/* Compact Layout & History Row */}
+                {/* Compact Layout, Views & History Row */}
                 <div className="pt-2 border-t border-border/50 flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">Layout</span>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">View</span>
                   <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
                     <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-layout">
                       <SelectValue placeholder="Layout" />
@@ -2412,6 +2412,16 @@ export default function Workbench() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button
+                    variant={showFloatingVariables ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowFloatingVariables(!showFloatingVariables)}
+                    className="h-7 w-7 p-0"
+                    title="Toggle Variables Panel"
+                    data-testid="button-toggle-variables"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </Button>
                   <div className="flex gap-0.5">
                     <Button
                       variant="ghost"
@@ -2484,25 +2494,6 @@ export default function Workbench() {
                   loop={loop}
                   onLoopToggle={handleLoopToggle}
                 />
-              </div>
-              
-              {/* View Controls Section */}
-              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
-                  <Eye className="w-3 h-3" />
-                  Views
-                </h3>
-                <div className="space-y-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowFloatingVariables(!showFloatingVariables)}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-toggle-variables"
-                  >
-                    Variables {showFloatingVariables ? '✓' : ''}
-                  </Button>
-                </div>
               </div>
               
               {/* Remote Control Section - Only when connected to remote session */}
