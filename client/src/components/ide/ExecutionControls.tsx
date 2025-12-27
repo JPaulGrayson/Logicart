@@ -142,12 +142,12 @@ export function ExecutionControls({
         </button>
 
         <div className="flex items-center gap-1">
-          <span className="text-[10px] text-muted-foreground">Speed:</span>
+          <span className="text-sm text-foreground">Speed:</span>
           <Select
             value={speed.toString()}
             onValueChange={(value) => onSpeedChange(parseFloat(value))}
           >
-            <SelectTrigger className="w-[70px] h-7 text-[10px]" data-testid="select-speed">
+            <SelectTrigger className="w-[70px] h-7 text-sm text-foreground" data-testid="select-speed">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
