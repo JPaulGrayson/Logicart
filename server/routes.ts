@@ -12,6 +12,7 @@ import * as acorn from "acorn";
 import { WebSocketServer, WebSocket } from "ws";
 import { registerAIRoutes } from "./ai";
 import { registerArenaRoutes } from "./arena";
+import { handleMCPSSE, handleMCPMessage } from "./mcp";
 import { shares, insertShareSchema } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -319,6 +320,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Model Arena routes
   registerArenaRoutes(app);
+
+  // MCP (Model Context Protocol) endpoints for agent integration
+  app.get("/api/mcp/sse", async (req, res) => {
+    try {
+      await handleMCPSSE(req, res);
+    } catch (error) {
+      console.error("[MCP] SSE error:", error);
+      res.status(500).json({ error: "MCP connection failed" });
+    }
+  });
+
+  app.post("/api/mcp/messages", async (req, res) => {
+    try {
+      await handleMCPMessage(req, res);
+    } catch (error) {
+      console.error("[MCP] Message error:", error);
+      res.status(500).json({ error: "MCP message handling failed" });
+    }
+  });
 
   // Share endpoints
   app.post("/api/share", async (req, res) => {

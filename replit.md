@@ -55,6 +55,7 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Sharing (V1)**: Database-backed sharing with `shares` table, POST/GET `/api/share/:id` endpoints, and ShareDialog component with title/description.
 - **Arena Example Selector (V1)**: Quick examples dropdown in Model Arena for selecting common coding prompts.
 - **Agent API (V1)**: REST endpoint `POST /api/agent/analyze` for programmatic code analysis returning nodes, edges, complexity, and flow structure.
+- **MCP Server (Model Context Protocol)**: Exposes LogiGo's code analysis capabilities to AI agents (Replit Agent, Claude, etc.) via the MCP standard. Tools include `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`. SSE transport at `/api/mcp/sse`.
 
 ## External Dependencies
 
@@ -147,6 +148,33 @@ Preferred communication style: Simple, everyday language.
 | `/api/arena/sessions` | GET/POST | List or save arena sessions |
 | `/api/arena/sessions/:id` | GET/DELETE | Get or delete a session |
 
+### MCP Server (Model Context Protocol)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/mcp/sse` | GET | SSE connection for MCP transport |
+| `/api/mcp/messages` | POST | Handle MCP tool calls |
+
+**Available MCP Tools:**
+| Tool | Description |
+|------|-------------|
+| `analyze_code` | Parse code and return flowchart structure with nodes, edges, and complexity |
+| `get_complexity` | Get complexity score with explanation and refactoring recommendations |
+| `explain_flow` | Natural language description of code control flow |
+| `find_branches` | List all conditional branches with their conditions |
+| `count_paths` | Count unique execution paths for test coverage planning |
+
+**MCP Configuration:**
+```json
+{
+  "mcpServers": {
+    "logigo": {
+      "url": "https://your-logigo-instance/api/mcp/sse",
+      "transport": "sse"
+    }
+  }
+}
+```
+
 ## Key Files
 
 ### Frontend
@@ -164,6 +192,7 @@ Preferred communication style: Simple, everyday language.
 |------|---------|
 | `server/routes.ts` | Express API endpoints |
 | `server/storage.ts` | Database storage interface |
+| `server/mcp.ts` | MCP server for agent integration |
 | `shared/schema.ts` | Drizzle ORM schema definitions |
 
 ### Database Tables
