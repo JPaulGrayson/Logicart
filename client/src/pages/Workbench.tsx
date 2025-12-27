@@ -23,7 +23,7 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2 } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink } from 'lucide-react';
 import { historyManager } from '@/lib/historyManager';
 import { Link } from 'wouter';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
@@ -299,6 +299,8 @@ export default function Workbench() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedCode = urlParams.get('code');
+    const isPopup = urlParams.get('popup') === 'true';
+    
     if (encodedCode && isReady) {
       try {
         // Decode: first atob (base64 decode), then decodeURIComponent
@@ -308,7 +310,13 @@ export default function Workbench() {
           // Clear the URL parameter to avoid reloading on refresh
           const url = new URL(window.location.href);
           url.searchParams.delete('code');
+          url.searchParams.delete('popup');
           window.history.replaceState({}, '', url.toString());
+          
+          // If popup mode, auto-apply Flow Only layout
+          if (isPopup) {
+            setTimeout(() => applyLayoutPreset('flow-only'), 200);
+          }
         }
       } catch (e) {
         console.warn('Failed to decode shared code:', e);
@@ -2416,6 +2424,25 @@ export default function Workbench() {
                     data-testid="button-toggle-variables"
                   >
                     <Eye className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const popupWidth = Math.min(1920, window.screen.availWidth);
+                      const popupHeight = Math.min(1080, window.screen.availHeight);
+                      const encodedCode = btoa(encodeURIComponent(code));
+                      window.open(
+                        `/?code=${encodedCode}&popup=true`,
+                        'logigo-flowchart',
+                        `width=${popupWidth},height=${popupHeight},menubar=no,toolbar=no,location=no,status=no`
+                      );
+                    }}
+                    className="h-7 w-7 p-0"
+                    title="Pop Out Flowchart (Dual Screen)"
+                    data-testid="button-popout"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </Button>
                   <div className="flex gap-0.5">
                     <Button

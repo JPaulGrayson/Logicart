@@ -62,22 +62,28 @@ export function ExecutionControls({
   const canStepBack = hasTimeTravel && progress && progress.current > 0;
   
   return (
-    <div className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-6 justify-between">
-      <div className="flex items-center gap-4">
+    <div className="border-b border-border bg-card/50 backdrop-blur p-3 space-y-2">
+      <div className="flex items-center justify-between">
         <h2 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Execution</h2>
-        
-        <div className="flex items-center gap-1 bg-muted/50 rounded p-1">
+        {progress && progress.total > 0 && (
+          <span className="text-[10px] text-muted-foreground font-mono">
+            {progress.current}/{progress.total}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-0.5 bg-muted/50 rounded p-0.5">
           <button
             onClick={isPlaying ? onPause : onPlay}
             disabled={!canStep}
-            className="p-2 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid={isPlaying ? "button-pause" : "button-play"}
             title={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4" />
+              <Pause className="w-3.5 h-3.5" />
             ) : (
-              <Play className="w-4 h-4" />
+              <Play className="w-3.5 h-3.5" />
             )}
           </button>
           
@@ -85,67 +91,63 @@ export function ExecutionControls({
             <button
               onClick={onStepBackward}
               disabled={!canStepBack || isPlaying}
-              className="p-2 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-step-backward"
               title="Step Backward (Time Travel)"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
           )}
           
           <button
             onClick={onStepForward}
             disabled={!canStep || isPlaying}
-            className="p-2 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-step"
             title="Step Forward"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
           
           <button
             onClick={onReset}
-            className="p-2 rounded hover:bg-accent transition-colors"
+            className="p-1.5 rounded hover:bg-accent transition-colors"
             data-testid="button-reset"
             title="Reset"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
           
           <button
             onClick={onStop}
-            className="p-2 rounded hover:bg-accent transition-colors"
+            className="p-1.5 rounded hover:bg-accent transition-colors"
             data-testid="button-stop"
             title="Stop"
           >
-            <Square className="w-4 h-4" />
+            <Square className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="h-6 w-px bg-border" />
-        
         <button
           onClick={onLoopToggle}
-          className={`p-2 rounded transition-colors ${
+          className={`p-1.5 rounded transition-colors ${
             loop 
               ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-              : 'hover:bg-accent'
+              : 'hover:bg-accent bg-muted/50'
           }`}
           data-testid="button-loop"
           title={loop ? "Loop enabled" : "Loop disabled"}
         >
-          <Repeat className="w-4 h-4" />
+          <Repeat className="w-3.5 h-3.5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            Speed:
-          </span>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-muted-foreground">Speed:</span>
           <Select
             value={speed.toString()}
             onValueChange={(value) => onSpeedChange(parseFloat(value))}
           >
-            <SelectTrigger className="w-[90px] h-8 text-xs" data-testid="select-speed">
+            <SelectTrigger className="w-[70px] h-7 text-[10px]" data-testid="select-speed">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -163,20 +165,6 @@ export function ExecutionControls({
           </Select>
         </div>
       </div>
-      
-      {progress && progress.total > 0 && (
-        <div className="flex items-center gap-4">
-          <div className="text-xs text-muted-foreground font-mono">
-            Step {progress.current} / {progress.total}
-          </div>
-          <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary transition-all duration-200"
-              style={{ width: `${(progress.current / progress.total) * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
