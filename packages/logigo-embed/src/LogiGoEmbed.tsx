@@ -378,33 +378,40 @@ export function LogiGoEmbed({
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.source !== 'LOGIGO_CORE') return;
       
+      // 1. Handle New Session (Page Reload / HMR)
       if (event.data.type === 'LOGIGO_MANIFEST_READY') {
-        const { manifestUrl: url, manifestHash: hash, sessionId } = event.data.payload;
-        console.log(`[LogiGo] Session started: ${sessionId}`);
-        setSessionHash(hash);
+        const { manifestUrl: url, manifestHash: newHash, sessionId } = event.data.payload;
         
-        if (!manifest && url) {
+        // If hash changed (HMR), fetch new manifest immediately to sync UI
+        if (manifest && manifest.hash !== newHash) {
+          console.log('[LogiGo] Code changed (HMR). Refreshing manifest...');
           fetch(url)
             .then(res => res.json())
             .then((data: LogiGoManifest) => {
               setManifest(data);
+              setSessionHash(newHash);
               const { nodes, edges } = convertManifestToFlowData(data);
               setManifestNodes(nodes);
               setManifestEdges(edges);
               setIsLiveMode(true);
-              onManifestLoad?.(data);
+              // Reset history so we don't show stale state
+              setState(prev => ({ ...prev, checkpointHistory: [], activeNodeId: null }));
             })
-            .catch(err => console.error('[LogiGo] Failed to load manifest:', err));
+            .catch(err => console.error('[LogiGo] Failed to refresh manifest:', err));
+        } else {
+           // First load or same hash
+           setSessionHash(newHash);
         }
       }
       
+      // 2. Handle Checkpoints
       if (event.data.type === 'LOGIGO_CHECKPOINT') {
         const payload = event.data.payload as CheckpointPayload;
         const { id, variables, timestamp, manifestVersion } = payload;
         
+        // Safety: Ignore checkpoints from old code versions
         if (sessionHash && manifestVersion && manifestVersion !== sessionHash) {
-          console.warn('[LogiGo] Checkpoint from different session, ignoring');
-          return;
+           return; 
         }
         
         setState(prev => ({
@@ -420,7 +427,7 @@ export function LogiGoEmbed({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [manifest, sessionHash, onCheckpoint, onManifestLoad]);
+  }, [manifest, sessionHash, onCheckpoint]);
 
   useEffect(() => {
     if (nodes.length > 0) {

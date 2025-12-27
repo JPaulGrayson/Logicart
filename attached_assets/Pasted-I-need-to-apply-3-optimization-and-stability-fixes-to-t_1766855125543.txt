@@ -1,0 +1,62 @@
+I need to apply 3 optimization and stability fixes to the codebase. Please update the files as follows:
+
+### 1. Fix "Ghost UI" (Session Sync) in `LogiGoEmbed.tsx`
+**File:** `packages/logigo-embed/src/LogiGoEmbed.tsx`
+**Action:** Replace the main `handleMessage` `useEffect` with this version that auto-refreshes the manifest when Hot Module Replacement (HMR) occurs.
+
+```typescript
+  // Inside LogiGoEmbed component...
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.source !== 'LOGIGO_CORE') return;
+      
+      // 1. Handle New Session (Page Reload / HMR)
+      if (event.data.type === 'LOGIGO_MANIFEST_READY') {
+        const { manifestUrl: url, manifestHash: newHash, sessionId } = event.data.payload;
+        
+        // If hash changed (HMR), fetch new manifest immediately to sync UI
+        if (manifest && manifest.hash !== newHash) {
+          console.log('[LogiGo] Code changed (HMR). Refreshing manifest...');
+          fetch(url)
+            .then(res => res.json())
+            .then((data: LogiGoManifest) => {
+              setManifest(data);
+              setSessionHash(newHash);
+              const { nodes, edges } = convertManifestToFlowData(data);
+              setManifestNodes(nodes);
+              setManifestEdges(edges);
+              setIsLiveMode(true);
+              // Reset history so we don't show stale state
+              setState(prev => ({ ...prev, checkpointHistory: [], activeNodeId: null }));
+            })
+            .catch(err => console.error('[LogiGo] Failed to refresh manifest:', err));
+        } else {
+           // First load or same hash
+           setSessionHash(newHash);
+        }
+      }
+      
+      // 2. Handle Checkpoints
+      if (event.data.type === 'LOGIGO_CHECKPOINT') {
+        const payload = event.data.payload as CheckpointPayload;
+        const { id, variables, timestamp, manifestVersion } = payload;
+        
+        // Safety: Ignore checkpoints from old code versions
+        if (sessionHash && manifestVersion && manifestVersion !== sessionHash) {
+           return; 
+        }
+        
+        setState(prev => ({
+          ...prev,
+          activeNodeId: id,
+          variables: variables || {},
+          checkpointHistory: [...prev.checkpointHistory, { id, timestamp, variables: variables || {} }]
+        }));
+        
+        onCheckpoint?.(payload);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [manifest, sessionHash, onCheckpoint]);
