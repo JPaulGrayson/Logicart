@@ -54,6 +54,8 @@ export interface CheckpointMetadata {
   type: 'statement' | 'decision' | 'loop' | 'function' | 'return';
   parentFunction: string;
   capturedVariables: string[];
+  isArrowImplicitReturn?: boolean;
+  arrowBodyEnd?: number;
 }
 
 export interface LogiGoPluginOptions {

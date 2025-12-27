@@ -1,12 +1,13 @@
 import * as acorn from 'acorn';
 import MagicString from 'magic-string';
-import { generateNodeId, generateFileChecksum } from './hash';
+import { StructuralIdGenerator, generateFileChecksum } from './hash';
 import { computeLayout } from './layout';
 import type { FlowNode, FlowEdge, CheckpointMetadata, InstrumentResult } from './types';
 
 interface ScopeFrame {
   variables: Set<string>;
   type: 'global' | 'function' | 'block';
+  name: string;
 }
 
 interface VisitorState {
@@ -20,6 +21,7 @@ interface VisitorState {
   pendingConnections: Array<{ from: string; to: string; label?: string }>;
   lastNodeId: string | null;
   scopeStack: ScopeFrame[];
+  idGenerator: StructuralIdGenerator;
 }
 
 function getCurrentScopeVariables(state: VisitorState): string[] {
@@ -32,8 +34,12 @@ function getCurrentScopeVariables(state: VisitorState): string[] {
   return Array.from(allVars).slice(0, 10);
 }
 
-function pushScope(state: VisitorState, type: ScopeFrame['type']): void {
-  state.scopeStack.push({ variables: new Set(), type });
+function pushScope(state: VisitorState, type: ScopeFrame['type'], name: string = ''): void {
+  state.scopeStack.push({ variables: new Set(), type, name });
+}
+
+function getScopePath(state: VisitorState): string {
+  return state.scopeStack.map(f => f.name || f.type).join('/');
 }
 
 function popScope(state: VisitorState): void {
@@ -132,6 +138,7 @@ function addEdge(state: VisitorState, source: string, target: string, label?: st
 }
 
 export function instrumentFile(code: string, filePath: string): InstrumentResult {
+  const idGenerator = new StructuralIdGenerator(filePath);
   const state: VisitorState = {
     filePath,
     nodes: [],
@@ -142,7 +149,8 @@ export function instrumentFile(code: string, filePath: string): InstrumentResult
     edgeCounter: 0,
     pendingConnections: [],
     lastNodeId: null,
-    scopeStack: [{ variables: new Set(), type: 'global' }]
+    scopeStack: [{ variables: new Set(), type: 'global', name: 'global' }],
+    idGenerator
   };
   
   let ast: acorn.Node;
@@ -157,7 +165,7 @@ export function instrumentFile(code: string, filePath: string): InstrumentResult
     return { code, nodes: [], edges: [], checkpoints: {}, functions: [] };
   }
   
-  const startNodeId = 'start_' + generateNodeId('Program', filePath, 1, 0);
+  const startNodeId = 'start_' + state.idGenerator.generateNodeId('Program', getScopePath(state));
   state.nodes.push({
     id: startNodeId,
     type: 'input',
@@ -177,10 +185,16 @@ export function instrumentFile(code: string, filePath: string): InstrumentResult
   const layoutedNodes = computeLayout(state.nodes, state.edges);
   
   const s = new MagicString(code);
-  const injections = generateCheckpointInjections(state.checkpoints, code);
+  const { injections, arrowRewrites } = generateCheckpointInjections(state.checkpoints, code);
+  
+  arrowRewrites.sort((a, b) => b.bodyStart - a.bodyStart);
+  arrowRewrites.forEach(({ bodyStart, bodyEnd, checkpoint }) => {
+    const originalBody = code.slice(bodyStart, bodyEnd);
+    const rewritten = `{ ${checkpoint}; return ${originalBody}; }`;
+    s.overwrite(bodyStart, bodyEnd, rewritten);
+  });
   
   injections.sort((a, b) => b.position - a.position);
-  
   injections.forEach(({ position, injection }) => {
     s.appendLeft(position, injection);
   });
@@ -252,7 +266,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     case 'FunctionExpression':
     case 'ArrowFunctionExpression': {
       const fnName = node.id?.name || 'anonymous';
-      const nodeId = generateNodeId(node.type, state.filePath, node.loc.start.line, node.loc.start.column, fnName);
+      const nodeId = state.idGenerator.generateNodeId(node.type, getScopePath(state), fnName);
       
       if (node.type === 'FunctionDeclaration') {
         state.functions.push(fnName);
@@ -282,13 +296,38 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
       state.currentFunction = fnName;
       state.lastNodeId = nodeId;
       
-      pushScope(state, 'function');
+      pushScope(state, 'function', fnName);
       (node.params || []).forEach((p: any) => {
         if (p.name) addToCurrentScope(state, p.name);
       });
       
       if (node.body) {
-        processNode(node.body as AcornNode, state, code);
+        const body = node.body as AcornNode;
+        if (node.type === 'ArrowFunctionExpression' && body.type !== 'BlockStatement') {
+          const returnNodeId = state.idGenerator.generateNodeId('ReturnStatement', getScopePath(state));
+          const label = 'return ...';
+          
+          state.nodes.push(createFlowNode(returnNodeId, 'output', 'return', label, state.filePath, body.loc!));
+          
+          state.checkpoints[returnNodeId] = {
+            file: state.filePath,
+            line: body.loc!.start.line,
+            column: body.loc!.start.column,
+            label,
+            type: 'return',
+            parentFunction: state.currentFunction || 'global',
+            capturedVariables: getCurrentScopeVariables(state),
+            isArrowImplicitReturn: true,
+            arrowBodyEnd: (body as any).end
+          };
+          
+          if (state.lastNodeId) {
+            addEdge(state, state.lastNodeId, returnNodeId);
+          }
+          state.lastNodeId = returnNodeId;
+        } else {
+          processNode(body, state, code);
+        }
       }
       
       popScope(state);
@@ -299,7 +338,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     }
     
     case 'IfStatement': {
-      const nodeId = generateNodeId('IfStatement', state.filePath, node.loc.start.line, node.loc.start.column);
+      const nodeId = state.idGenerator.generateNodeId('IfStatement', getScopePath(state));
       const condition = extractTestCondition(node.test, code);
       const label = `if (${condition})`;
       
@@ -341,7 +380,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     case 'DoWhileStatement':
     case 'ForOfStatement':
     case 'ForInStatement': {
-      const nodeId = generateNodeId(node.type, state.filePath, node.loc.start.line, node.loc.start.column);
+      const nodeId = state.idGenerator.generateNodeId(node.type, getScopePath(state));
       const condition = extractTestCondition(node.test, code);
       const loopType = node.type.replace('Statement', '').toLowerCase();
       const label = `${loopType} (${condition})`;
@@ -372,7 +411,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     }
     
     case 'ReturnStatement': {
-      const nodeId = generateNodeId('ReturnStatement', state.filePath, node.loc.start.line, node.loc.start.column);
+      const nodeId = state.idGenerator.generateNodeId('ReturnStatement', getScopePath(state));
       const hasArg = !!node.argument;
       const label = hasArg ? 'return ...' : 'return';
       
@@ -393,7 +432,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     }
     
     case 'VariableDeclaration': {
-      const nodeId = generateNodeId('VariableDeclaration', state.filePath, node.loc.start.line, node.loc.start.column);
+      const nodeId = state.idGenerator.generateNodeId('VariableDeclaration', getScopePath(state));
       const varNames = (node.declarations || []).map((d: any) => d.id?.name || 'var');
       const label = `${(node as any).kind || 'let'} ${varNames.join(', ')}`;
       
@@ -418,7 +457,7 @@ function processNode(node: AcornNode, state: VisitorState, code: string): string
     }
     
     case 'ExpressionStatement': {
-      const nodeId = generateNodeId('ExpressionStatement', state.filePath, node.loc.start.line, node.loc.start.column);
+      const nodeId = state.idGenerator.generateNodeId('ExpressionStatement', getScopePath(state));
       const label = getNodeLabel(node, code);
       
       state.nodes.push(createFlowNode(nodeId, 'default', 'statement', label, state.filePath, node.loc));
@@ -447,10 +486,16 @@ interface CheckpointInjection {
   injection: string;
 }
 
+interface ArrowRewrite {
+  bodyStart: number;
+  bodyEnd: number;
+  checkpoint: string;
+}
+
 function generateCheckpointInjections(
   checkpoints: Record<string, CheckpointMetadata>,
   code: string
-): CheckpointInjection[] {
+): { injections: CheckpointInjection[]; arrowRewrites: ArrowRewrite[] } {
   const lines = code.split('\n');
   const lineOffsets: number[] = [];
   let offset = 0;
@@ -461,6 +506,7 @@ function generateCheckpointInjections(
   }
   
   const injections: CheckpointInjection[] = [];
+  const arrowRewrites: ArrowRewrite[] = [];
   
   for (const [nodeId, meta] of Object.entries(checkpoints)) {
     const lineIndex = meta.line - 1;
@@ -472,10 +518,19 @@ function generateCheckpointInjections(
         .map(v => `${v}: typeof ${v} !== 'undefined' ? ${v} : undefined`)
         .join(', ');
       
-      const injection = `LogiGo.checkpoint('${nodeId}', { ${varsCapture} }); `;
-      injections.push({ position, injection });
+      const checkpoint = `LogiGo.checkpoint('${nodeId}', { ${varsCapture} })`;
+      
+      if (meta.isArrowImplicitReturn && meta.arrowBodyEnd !== undefined) {
+        arrowRewrites.push({
+          bodyStart: position,
+          bodyEnd: meta.arrowBodyEnd,
+          checkpoint
+        });
+      } else {
+        injections.push({ position, injection: checkpoint + '; ' });
+      }
     }
   }
   
-  return injections;
+  return { injections, arrowRewrites };
 }

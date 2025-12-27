@@ -1,5 +1,7 @@
 import type { CheckpointData, RuntimeOptions, Breakpoint, LogiGoMessage } from './types';
 
+const MAX_QUEUE_SIZE = 5000;
+
 export class LogiGoRuntime {
   private queue: CheckpointData[] = [];
   private flushScheduled = false;
@@ -9,6 +11,7 @@ export class LogiGoRuntime {
   private resumeCallback: (() => void) | null = null;
   private sessionId: string;
   private started = false;
+  private queueOverflowWarned = false;
 
   constructor(options: RuntimeOptions = {}) {
     this.manifestHash = options.manifestHash || '';
@@ -57,6 +60,14 @@ export class LogiGoRuntime {
   checkpoint(id: string, variables?: Record<string, any>): void {
     if (!this.started) {
       this.start();
+    }
+
+    if (this.queue.length >= MAX_QUEUE_SIZE) {
+      if (!this.queueOverflowWarned) {
+        console.warn(`[LogiGo] Checkpoint queue overflow (${MAX_QUEUE_SIZE} items). Dropping checkpoints to prevent browser crash. This may indicate an infinite loop.`);
+        this.queueOverflowWarned = true;
+      }
+      return;
     }
 
     const data: CheckpointData = {
@@ -127,6 +138,7 @@ export class LogiGoRuntime {
   private flush(): void {
     const batch = this.queue.splice(0);
     this.flushScheduled = false;
+    this.queueOverflowWarned = false;
 
     batch.forEach(data => {
       this.postMessage({
