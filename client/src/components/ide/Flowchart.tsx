@@ -27,6 +27,7 @@ interface FlowchartProps {
   highlightedNodes?: Set<string>;
   breakpoints?: Set<string>;
   runtimeState?: RuntimeState;
+  handshakeNodeId?: string | null;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -38,7 +39,7 @@ const nodeTypes = {
   output: LabeledNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, activeNodeId, highlightedNodes, breakpoints, runtimeState }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -104,12 +105,15 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       const isActive = node.id === activeNodeId;
       const isHighlighted = highlightedNodes && highlightedNodes.has(node.id);
       const hasBreakpoint = breakpoints && breakpoints.has(node.id);
+      const isHandshaking = node.id === handshakeNodeId;
       
       // Preserve existing className (including diff styling) and add state classes
       let className = node.className || '';
       
       if (isActive) {
         className += ' active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
+      } else if (isHandshaking) {
+        className += ' handshake-node ring-4 ring-amber-400 ring-offset-2 ring-offset-background animate-pulse';
       } else if (isHighlighted) {
         className += ' highlighted-node ring-2 ring-purple-500 ring-offset-1 ring-offset-background';
       }
@@ -142,7 +146,7 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
     });
     setNodes(updatedNodes);
     setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, breakpoints, setNodes, setEdges, getNodes]);
+  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, breakpoints, handshakeNodeId, setNodes, setEdges, getNodes]);
   
   // Fit view and center when graph topology changes
   useEffect(() => {

@@ -2692,6 +2692,7 @@ export default function Workbench() {
                   highlightedNodes={highlightedNodes}
                   breakpoints={effectiveBreakpoints}
                   runtimeState={runtimeState}
+                  handshakeNodeId={handshakeNodeId}
                 />
               )}
               
@@ -2994,6 +2995,7 @@ ${code}
                 activeNodeId={activeNodeId}
                 highlightedNodes={highlightedNodes}
                 runtimeState={runtimeState}
+                handshakeNodeId={handshakeNodeId}
               />
             )}
           </div>
