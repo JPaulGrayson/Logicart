@@ -527,7 +527,7 @@ while (i < 10) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-green-400">📐</span>
-                  Layout Presets (New in V1)
+                  Layout Presets
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Quickly switch between different workspace layouts:
@@ -547,7 +547,7 @@ while (i < 10) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-cyan-400">🔍</span>
-                  Zoom Presets (New in V1)
+                  Zoom Presets
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Jump to standard zoom levels with one click:
@@ -566,7 +566,7 @@ while (i < 10) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-yellow-400">↩️</span>
-                  Undo/Redo History (New in V1)
+                  Undo/Redo History
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Easily undo and redo code changes:
