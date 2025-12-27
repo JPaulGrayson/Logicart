@@ -437,7 +437,7 @@ while (i < 10) {
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-sm">👻</span>
-                  Ghost Diff (Premium)
+                  Ghost Diff
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Visualize code changes directly on the flowchart. When you edit your code, Ghost Diff compares the previous version with your current version and highlights the differences:
