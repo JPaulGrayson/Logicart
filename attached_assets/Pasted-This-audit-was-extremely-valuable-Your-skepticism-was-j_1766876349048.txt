@@ -1,112 +1,41 @@
-import type { Plugin, ResolvedConfig } from 'vite';
-import { instrumentFile } from './instrumenter';
-import { generateFileChecksum, generateManifestHash } from './hash';
-import type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata } from './types';
+This audit was extremely valuable. Your skepticism was justified.
 
-export type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata };
+I found a **Critical "Split-Brain" Bug** that would have made our optimizations fail in production, plus a missing build file.
 
-interface FileData {
-  checksum: string;
-  functions: string[];
-  nodes: FlowNode[];
-  edges: FlowEdge[];
-  checkpoints: Record<string, CheckpointMetadata>;
-}
+### 🚨 The Audit Report
 
-export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
-  const {
-    include = ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
-    exclude = ['**/node_modules/**', '**/*.test.*', '**/*.spec.*'],
-    manifestPath = 'logigo-manifest.json',
-    autoInstrument = true,
-    captureVariables = true
-  } = options;
-  
-  const fileDataMap = new Map<string, FileData>();
-  let config: ResolvedConfig;
-  let manifestHash = '';
-  
-  function shouldInstrument(id: string): boolean {
-    if (exclude.some(pattern => minimatch(id, pattern))) {
-      return false;
-    }
-    return include.some(pattern => minimatch(id, pattern));
-  }
-  
-  return {
-    name: 'logigo-vite-plugin',
-    
-    configResolved(resolvedConfig) {
-      config = resolvedConfig;
-    },
-    
-    transform(code: string, id: string) {
-      if (!autoInstrument) return null;
-      if (!shouldInstrument(id)) return null;
-      if (id.includes('logigo-')) return null;
-      
-      const relativePath = id.replace(config.root + '/', '');
-      
-      try {
-        const result = instrumentFile(code, relativePath);
-        
-        if (result.nodes.length > 0) {
-          fileDataMap.set(relativePath, {
-            checksum: generateFileChecksum(code),
-            functions: result.functions,
-            nodes: result.nodes,
-            edges: result.edges,
-            checkpoints: result.checkpoints
-          });
-        }
-        
-        return {
-          code: result.code,
-          map: null
-        };
-      } catch (error) {
-        console.warn(`[LogiGo] Failed to instrument ${relativePath}:`, error);
-        return null;
-      }
-    },
-    
-    generateBundle() {
-      const allNodes: FlowNode[] = [];
-      const allEdges: FlowEdge[] = [];
-      const allCheckpoints: Record<string, CheckpointMetadata> = {};
-      const files: Record<string, { checksum: string; functions: string[] }> = {};
-      const checksums: string[] = [];
-      
-      for (const [path, data] of fileDataMap) {
-        files[path] = {
-          checksum: data.checksum,
-          functions: data.functions
-        };
-        checksums.push(data.checksum);
-        
-        allNodes.push(...data.nodes);
-        allEdges.push(...data.edges);
-        Object.assign(allCheckpoints, data.checkpoints);
-      }
-      
-      manifestHash = generateManifestHash(checksums);
-      
-      const manifest: LogiGoManifest = {
-        version: '1.0',
-        hash: manifestHash,
-        generatedAt: Date.now(),
-        files,
-        nodes: allNodes,
-        edges: allEdges,
-        checkpoints: allCheckpoints
-      };
-      
-      this.emitFile({
-        type: 'asset',
-        fileName: manifestPath,
-        source: JSON.stringify(manifest, null, 2)
-      });
-      
+**1. The "Split-Brain" Runtime Bug (Critical)**
+
+* **The Problem:** We fixed `packages/logigo-core/src/runtime.ts` to use Deferred Serialization and Throttling. **However**, the Vite Plugin (`packages/logigo-vite-plugin/src/index.ts`) injects a **hardcoded string** version of the runtime into the browser.
+* **The Result:** The code running in the browser is the *old, slow, unoptimized* version. It performs heavy serialization synchronously and lacks infinite loop protection, ignoring the fixes we just applied to the Core package.
+
+**2. Missing Build Configuration**
+
+* **The Problem:** `packages/logigo-embed/rollup.config.js` is explicitly marked **MISSING**.
+* **The Result:** You cannot build the Embed package. `npm run build` will fail.
+
+**3. The Good News**
+
+* The `instrumenter.ts` (Stable IDs, Arrow Functions) is perfect.
+* The `LogiGoEmbed.tsx` (UI, Ghost Fixes) is perfect.
+
+---
+
+### 🛠️ The Fix: Sync Runtime & Add Rollup
+
+Here is the **Master Prompt** to fix the Vite Plugin injection string and create the missing Rollup config.
+
+**Copy and paste this block into Replit:**
+
+```markdown
+I have audited the code and found two critical issues. Please apply the following fixes.
+
+### 1. Fix "Split-Brain" Runtime in Vite Plugin
+**File:** `packages/logigo-vite-plugin/src/index.ts`
+**Goal:** The `runtimeInit` string inside this file is outdated. It needs to match the optimized logic we wrote for `logigo-core` (Deferred Serialization + Throttling).
+**Action:** Replace the `runtimeInit` string definition with this updated version:
+
+```typescript
       const runtimeInit = `
 ;(function() {
   var MANIFEST_HASH = '${manifestHash}';
@@ -202,7 +131,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
       
       this._queue.push({
         id: id,
-        rawVariables: rawVariables,
+        rawVariables: rawVariables, // Store raw
         timestamp: Date.now(),
         manifestVersion: this._manifestHash
       });
@@ -284,49 +213,59 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
   });
 })();
 `;
-      
-      this.emitFile({
-        type: 'asset',
-        fileName: 'logigo-runtime.js',
-        source: runtimeInit
-      });
-      
-      console.log(`[LogiGo] Generated manifest with ${allNodes.length} nodes from ${fileDataMap.size} files`);
-    },
-    
-    transformIndexHtml(html) {
-      return {
-        html,
-        tags: [
-          {
-            tag: 'script',
-            attrs: { src: '/logigo-runtime.js' },
-            injectTo: 'head'
-          }
-        ]
-      };
-    }
-  };
-}
 
-function minimatch(path: string, pattern: string): boolean {
-  if (pattern.startsWith('**/')) {
-    const suffix = pattern.slice(3);
-    if (suffix.startsWith('*.')) {
-      const ext = suffix.slice(1);
-      return path.endsWith(ext);
-    }
-    return path.includes(suffix.replace('**/', ''));
-  }
-  
-  if (pattern.includes('*')) {
-    const regex = new RegExp(
-      '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$'
-    );
-    return regex.test(path);
-  }
-  
-  return path === pattern || path.endsWith(pattern);
-}
+```
 
-export default logigoPlugin;
+### 2. Create Missing Rollup Config
+
+**File:** `packages/logigo-embed/rollup.config.js`
+**Goal:** Enable building the embed package.
+**Action:** Create the file with this content:
+
+```javascript
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
+import postcss from 'rollup-plugin-postcss';
+
+import pkg from './package.json' assert { type: "json" };
+
+export default [
+  {
+    input: 'src/index.ts',
+    output: [
+      {
+        file: pkg.main,
+        format: 'cjs',
+        sourcemap: true,
+      },
+      {
+        file: pkg.module,
+        format: 'esm',
+        sourcemap: true,
+      },
+    ],
+    plugins: [
+      peerDepsExternal(),
+      resolve(),
+      commonjs(),
+      typescript({ tsconfig: './tsconfig.json' }),
+      postcss({
+        extensions: ['.css'],
+        minimize: true,
+        inject: true
+      })
+    ],
+    external: ['react', 'react-dom', '@xyflow/react']
+  }
+];
+
+```
+
+```
+
+### Next Steps
+Once you apply this, the runtime inside the browser will finally match the optimizations we designed, and the build system will actually function.
+
+```
