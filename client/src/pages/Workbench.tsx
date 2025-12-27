@@ -2444,34 +2444,6 @@ export default function Workbench() {
                 </div>
               </div>
               
-              {/* Code Editor Section - Fully Collapsible */}
-              {showCodeEditor && !codeEditorCollapsed && (
-                <div className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
-                  <div className="h-full">
-                    <CodeEditor 
-                      code={code} 
-                      onChange={handleCodeChange} 
-                      highlightedLine={highlightedLine}
-                    />
-                  </div>
-                </div>
-              )}
-              {showCodeEditor && (
-                <div className="border-b border-border flex-shrink-0">
-                  <button
-                    onClick={() => setCodeEditorCollapsed(!codeEditorCollapsed)}
-                    className="w-full px-3 py-1.5 flex items-center justify-between hover:bg-accent/50 transition-colors text-xs font-medium"
-                    data-testid="button-toggle-code-editor"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Code2 className="w-3 h-3" />
-                      {codeEditorCollapsed ? 'Show Code' : 'Hide Code'}
-                    </div>
-                    {codeEditorCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-                  </button>
-                </div>
-              )}
-              
               {/* Execution Controls Section */}
               <div className="flex-shrink-0">
                 <ExecutionControls
@@ -2565,59 +2537,8 @@ export default function Workbench() {
                 </div>
               )}
               
-              {/* Examples Section */}
-              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
-                  <Library className="w-3 h-3" />
-                  Examples
-                </h3>
-                <Select onValueChange={handleLoadExample}>
-                  <SelectTrigger className="w-full h-8 text-xs" data-testid="select-example">
-                    <SelectValue placeholder="Load an algorithm..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
-                    {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
-                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                        <div className="flex flex-col items-start">
-                          <span>{example.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Pathfinding</div>
-                    {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
-                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                        <div className="flex flex-col items-start">
-                          <span>{example.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Games & Logic</div>
-                    {algorithmExamples.filter(e => e.category === 'other').map(example => (
-                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                        <div className="flex flex-col items-start">
-                          <span>{example.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                    <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70 border-t border-border mt-1 pt-2">Integration Guides</div>
-                    {algorithmExamples.filter(e => e.category === 'integration').map(example => (
-                      <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                        <div className="flex flex-col items-start">
-                          <span>{example.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[10px] text-foreground/60">
-                  Load sample algorithms with LogiGo checkpoints
-                </p>
-              </div>
-              
-              {/* Code Import/Export Section */}
-              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Code</h3>
+              {/* Compact Code & Export Row */}
+              <div className="border-b border-border p-3 flex-shrink-0">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -2626,59 +2547,102 @@ export default function Workbench() {
                   className="hidden"
                   data-testid="input-import-file"
                 />
-                <div className="space-y-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleImportCode}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-import-code"
-                  >
-                    <Upload className="w-3 h-3" />
-                    Import Code
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportCode}
-                    disabled={!code.trim()}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-export-code"
-                  >
-                    <FileCode className="w-3 h-3" />
-                    Export Code
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">Code</span>
+                  <Select onValueChange={handleLoadExample}>
+                    <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-example">
+                      <SelectValue placeholder="Examples..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
+                      {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
+                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                          {example.name}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Pathfinding</div>
+                      {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
+                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                          {example.name}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Games & Logic</div>
+                      {algorithmExamples.filter(e => e.category === 'other').map(example => (
+                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                          {example.name}
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70 border-t border-border mt-1 pt-2">Integration</div>
+                      {algorithmExamples.filter(e => e.category === 'integration').map(example => (
+                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                          {example.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleImportCode}
+                      className="h-7 w-7 p-0"
+                      title="Import Code (Ctrl+O)"
+                      data-testid="button-import-code"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportCode}
+                      disabled={!code.trim()}
+                      className="h-7 w-7 p-0"
+                      title="Export Code (Ctrl+S)"
+                      data-testid="button-export-code"
+                    >
+                      <FileCode className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportPNG}
+                      className="h-7 w-7 p-0"
+                      title="Export as PNG"
+                      data-testid="button-export-png"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
               
-              {/* Export Section */}
-              <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Export</h3>
-                <div className="space-y-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportPNG}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-export-png"
-                  >
-                    <Download className="w-3 h-3" />
-                    PNG
-                  </Button>
-                  {features.hasFeature('ghostDiff') && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportPDF}
-                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                      data-testid="button-export-pdf"
-                    >
-                      <FileText className="w-3 h-3" />
-                      PDF
-                    </Button>
-                  )}
+              {/* Code Editor Section - At Bottom */}
+              {showCodeEditor && !codeEditorCollapsed && (
+                <div className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
+                  <div className="h-full">
+                    <CodeEditor 
+                      code={code} 
+                      onChange={handleCodeChange} 
+                      highlightedLine={highlightedLine}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
+              {showCodeEditor && (
+                <div className="border-b border-border flex-shrink-0">
+                  <button
+                    onClick={() => setCodeEditorCollapsed(!codeEditorCollapsed)}
+                    className="w-full px-3 py-1.5 flex items-center justify-between hover:bg-accent/50 transition-colors text-xs font-medium"
+                    data-testid="button-toggle-code-editor"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Code2 className="w-3 h-3" />
+                      {codeEditorCollapsed ? 'Show Code' : 'Hide Code'}
+                    </div>
+                    {codeEditorCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                  </button>
+                </div>
+              )}
               
             </div>
           </ResizablePanel>
