@@ -70,14 +70,18 @@ export class LogiGoRuntime {
       return;
     }
 
-    const data: CheckpointData = {
+    // FAST PATH: Shallow capture only.
+    // We capture top-level values immediately. Nested object mutations
+    // before the next microtask will reflect the *future* state,
+    // but this trade-off is necessary for performance in tight loops.
+    const rawVariables = variables ? { ...variables } : {};
+
+    this.queue.push({
       id,
-      variables: variables ? this.safeSerialize(variables) : {},
+      rawVariables,
       timestamp: Date.now(),
       manifestVersion: this.manifestHash
-    };
-
-    this.queue.push(data);
+    });
 
     if (!this.flushScheduled) {
       this.flushScheduled = true;
@@ -141,10 +145,18 @@ export class LogiGoRuntime {
     this.queueOverflowWarned = false;
 
     batch.forEach(data => {
+      // HEAVY PATH: Serialize now, while user code is paused/done
+      const serializedVariables = this.safeSerialize(data.rawVariables);
+
       this.postMessage({
         source: 'LOGIGO_CORE',
         type: 'LOGIGO_CHECKPOINT',
-        payload: data
+        payload: {
+          id: data.id,
+          timestamp: data.timestamp,
+          manifestVersion: data.manifestVersion,
+          variables: serializedVariables
+        }
       });
     });
   }

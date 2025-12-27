@@ -1,8 +1,9 @@
 export interface CheckpointData {
   id: string;
-  variables: Record<string, any>;
+  rawVariables: Record<string, any>;
+  variables?: Record<string, any>;
   timestamp: number;
-  manifestVersion?: string;
+  manifestVersion: string;
 }
 
 export interface RuntimeOptions {

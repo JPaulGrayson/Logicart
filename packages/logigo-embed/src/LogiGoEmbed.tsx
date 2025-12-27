@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import * as acorn from 'acorn';
-import dagre from 'dagre';
 import { LogiGoEmbedProps, EmbedState, LogiGoManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
 
 interface FlowNode {
@@ -169,7 +168,6 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
       processBlock((ast as any).body, startNode.id);
     }
 
-    applyLayout(nodes, edges);
     return { nodes, edges };
   } catch (error) {
     console.error('[LogiGo] Parse error:', error);
@@ -178,33 +176,6 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
       edges: []
     };
   }
-}
-
-function applyLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
-  const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70 });
-  g.setDefaultEdgeLabel(() => ({}));
-
-  nodes.forEach(node => {
-    const isDecision = node.type === 'decision';
-    g.setNode(node.id, { width: isDecision ? 100 : 150, height: isDecision ? 100 : 50 });
-  });
-
-  edges.forEach(edge => {
-    g.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(g);
-
-  nodes.forEach(node => {
-    const pos = g.node(node.id);
-    if (pos) {
-      const isDecision = node.type === 'decision';
-      const width = isDecision ? 100 : 150;
-      const height = isDecision ? 100 : 50;
-      node.position = { x: pos.x - width / 2, y: pos.y - height / 2 };
-    }
-  });
 }
 
 function convertManifestToFlowData(manifest: LogiGoManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
@@ -323,19 +294,50 @@ export function LogiGoEmbed({
   const [manifest, setManifest] = useState<LogiGoManifest | null>(null);
   const [manifestNodes, setManifestNodes] = useState<FlowNode[]>([]);
   const [manifestEdges, setManifestEdges] = useState<FlowEdge[]>([]);
+  const [parsedNodes, setParsedNodes] = useState<FlowNode[]>([]);
+  const [parsedEdges, setParsedEdges] = useState<FlowEdge[]>([]);
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [sessionHash, setSessionHash] = useState<string | null>(null);
 
-  const { nodes: parsedNodes, edges: parsedEdges } = useMemo(() => {
+  // Lazy load dagre only for raw code mode (Static Mode)
+  useEffect(() => {
     if (code && !manifestUrl) {
-      try {
-        return parseCode(code);
-      } catch (error) {
-        onError?.(error as Error);
-        return { nodes: [], edges: [] };
-      }
+      import('dagre').then((dagreModule) => {
+        const dagre = dagreModule.default || dagreModule;
+        
+        try {
+          const { nodes, edges } = parseCode(code);
+          
+          // Apply layout using dynamically loaded dagre
+          const g = new dagre.graphlib.Graph();
+          g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70 });
+          g.setDefaultEdgeLabel(() => ({}));
+          
+          nodes.forEach(node => {
+            const isDecision = node.type === 'decision';
+            g.setNode(node.id, { width: isDecision ? 100 : 150, height: isDecision ? 100 : 50 });
+          });
+          edges.forEach(edge => g.setEdge(edge.source, edge.target));
+          dagre.layout(g);
+          
+          const layoutedNodes = nodes.map(node => {
+            const pos = g.node(node.id);
+            return { 
+              ...node, 
+              position: { 
+                x: pos.x - (node.type === 'decision' ? 50 : 75), 
+                y: pos.y - (node.type === 'decision' ? 50 : 25) 
+              } 
+            };
+          });
+
+          setParsedNodes(layoutedNodes);
+          setParsedEdges(edges);
+        } catch (err) {
+          onError?.(err as Error);
+        }
+      });
     }
-    return { nodes: [], edges: [] };
   }, [code, manifestUrl, onError]);
 
   const nodes = isLiveMode ? manifestNodes : parsedNodes;
