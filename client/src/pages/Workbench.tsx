@@ -2382,8 +2382,7 @@ export default function Workbench() {
                     className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     data-testid="button-share"
                   >
-                    <Share2 className="w-3 h-3" />
-                    Share Flowchart
+                    <span className="text-sm">🔗</span> Share Flowchart
                   </Button>
                   
                   {/* Remote Mode */}
@@ -2394,8 +2393,7 @@ export default function Workbench() {
                       className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
                       data-testid="button-remote-mode"
                     >
-                      <Wifi className="w-3 h-3" />
-                      Remote Mode
+                      <span className="text-sm">📡</span> Remote Mode
                     </Button>
                   </Link>
                 </div>
@@ -2577,8 +2575,8 @@ export default function Workbench() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">Code</span>
                   <Select onValueChange={handleLoadExample}>
-                    <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-example">
-                      <SelectValue placeholder="Examples..." />
+                    <SelectTrigger className="h-7 text-sm flex-1" data-testid="select-example">
+                      <SelectValue placeholder="📚 Examples..." />
                     </SelectTrigger>
                     <SelectContent>
                       <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
