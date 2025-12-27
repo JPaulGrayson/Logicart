@@ -27,20 +27,25 @@
 | **MCP Server** | ✅ Working | `server/mcp.ts` | 5 tools for AI agent integration |
 | **Agent API** | ✅ Working | `/api/agent/analyze` | REST endpoint for programmatic analysis |
 
+### Fully Implemented (Previously Mislabeled) ✅
+
+| Feature | Status | Location | Notes |
+|---------|--------|----------|-------|
+| **Ghost Diff** | ✅ Working | `client/src/lib/ghostDiff.ts` | AST-aware comparison, CSS classes (`diff-added`, `diff-removed`, `diff-modified`), UI toggle in Workbench |
+| **Natural Language Search** | ✅ Working | `client/src/lib/naturalLanguageSearch.ts`, `client/src/components/ide/NaturalLanguageSearch.tsx` | Pattern matching for "show conditionals", "find loops", etc. Premium feature. |
+| **Grounding Context** | ✅ Working | `packages/logigo-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
+
 ### Partially Implemented Features ⚠️
 
 | Feature | Status | Location | What Works | What's Missing |
 |---------|--------|----------|------------|----------------|
-| **Ghost Diff** | ⚠️ Core only | `client/src/lib/ghostDiff.ts` | AST-aware comparison logic | UI only shows summaries, no visual playback in flowchart |
-| **Grounding Context** | ⚠️ Core only | `client/src/lib/groundingContext.ts` | `generateGroundingContext()` function exists | No export UX, no end-to-end workflow |
 | **Zero-Code Reverse Proxy** | ⚠️ Basic | `server/routes.ts` | Proxy route exists | Full ES module/Vite app instrumentation incomplete |
 
 ### Planned/Unimplemented Features ❌
 
 | Feature | Status | Location | Notes |
 |---------|--------|----------|-------|
-| **Visual Handshake** | ❌ Demo only | `example/visual_handshake.html` | Prototype exists, not wired into Workbench |
-| **Natural Language Search** | ❌ Placeholder | `client/src/lib/featureManager.ts` | Listed as premium, no implementation |
+| **Visual Handshake** | ❌ Demo only | `example/visual_handshake.html` | Has git merge conflicts, NOT wired into Workbench |
 | **Export to Documentation** | ❌ Placeholder | Listed in replit.md | No implementation |
 | **Blueprint Schema** | ❌ Future | Documented only | AI-generated JSON blueprints concept |
 
@@ -160,10 +165,10 @@ The embed component:
 |--------|---------------|-----|
 | **AST Comparison** | ✅ Real AST diff | None |
 | **Diff Detection** | ✅ Identifies changes | None |
-| **UI Display** | ⚠️ Summary only | No node-level highlighting in flowchart |
-| **Visual Playback** | ❌ Not implemented | Animate changes frame-by-frame |
+| **UI Display** | ✅ CSS classes applied | `diff-added`, `diff-removed`, `diff-modified` classes |
+| **Toggle in UI** | ✅ Working | `showDiff` state in Workbench |
 
-**Recommendation:** Wire ghostDiff.ts output to Flowchart with visual highlights
+**Status:** FULLY IMPLEMENTED - Ghost Diff works end-to-end with visual highlighting
 
 ### Visual Handshake
 
@@ -176,19 +181,28 @@ The embed component:
 
 **Recommendation:** Create WS message type for element highlighting, integrate into Flowchart click handlers
 
-### Grounding Layer (NEW)
+### Natural Language Search
 
 | Aspect | Current State | Gap |
 |--------|---------------|-----|
-| **Context Generation** | ⚠️ Function exists | Not exposed in UI |
-| **JSON Export** | ❌ Not implemented | Need export button/API |
-| **AI Agent Integration** | ✅ MCP Server works | MCP tools can return grounding data |
-| **Persistence** | ❌ Not implemented | Save grounding contexts to DB |
+| **Pattern Matching** | ✅ Working | Matches "conditionals", "loops", "returns", etc. |
+| **Component** | ✅ Built | `client/src/components/ide/NaturalLanguageSearch.tsx` |
+| **Library** | ✅ Full | `client/src/lib/naturalLanguageSearch.ts` |
+| **Premium Feature** | ✅ Configured | Gated in `features.ts` |
 
-**Recommendation:** 
-1. Add "Export Grounding Context" button in UI
-2. Create `/api/grounding/export` endpoint
-3. Wire MCP `analyze_code` output as grounding source
+**Status:** FULLY IMPLEMENTED - Works end-to-end
+
+### Grounding Layer
+
+| Aspect | Current State | Gap |
+|--------|---------------|-----|
+| **Context Generation** | ✅ Full implementation | `generateGroundingContext()` in `packages/logigo-core/src/grounding.ts` |
+| **Types** | ✅ Defined | `shared/grounding-types.ts` with `GroundingNode`, `GroundingContext` |
+| **Tests** | ✅ Has tests | `packages/logigo-core/src/grounding.test.ts` |
+| **AI Agent Integration** | ✅ MCP Server works | MCP tools can return grounding data |
+| **UI Export Button** | ⚠️ Not exposed | Could add "Export Context" button |
+
+**Status:** FULLY IMPLEMENTED - Core grounding works, UI export button could be added
 
 ### MCP Server (Just Added)
 
@@ -239,25 +253,21 @@ The embed component:
 
 ---
 
-## 5. Recommended Next Steps for Grounding Features
+## 5. Recommended Next Steps
 
-### Priority 1: Complete Grounding Layer
+### Priority 1: Implement Visual Handshake (The Only Missing Core Feature)
+1. Fix git merge conflicts in `example/visual_handshake.html`
+2. Add WS message type: `HIGHLIGHT_ELEMENT` to `shared/control-types.ts`
+3. Create CSS injection for remote app highlighting
+4. Add click handler in Flowchart → send highlight command to remote
+5. Wire into Workbench sidebar controls
+
+### Priority 2: Add UI Export for Grounding Context (Enhancement)
 1. Add "Export Context" button to Workbench toolbar
-2. Create `/api/grounding/export` endpoint
-3. Define grounding JSON schema in `shared/`
-4. Save grounding sessions to database
+2. Create `/api/grounding/export` endpoint using existing `generateGroundingContext()`
+3. Save grounding sessions to database (optional)
 
-### Priority 2: Productize Ghost Diff
-1. Wire diff output to Flowchart component
-2. Add node-level highlighting for changed nodes
-3. Create diff history viewer
-
-### Priority 3: Implement Visual Handshake
-1. Add WS message type: `HIGHLIGHT_ELEMENT`
-2. Create CSS injection for remote app
-3. Add click handler in Flowchart → send highlight command
-
-### Priority 4: Harden Speed Governor
+### Priority 3: Harden Speed Governor (Stability)
 1. Add max step limit (configurable)
 2. Add timeout indicator in UI
 3. Implement async pause hooks for interpreter
