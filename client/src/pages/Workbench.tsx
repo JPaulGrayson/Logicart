@@ -2397,52 +2397,42 @@ export default function Workbench() {
                   </Link>
                 </div>
                 
-                {/* Layout Presets */}
-                <div className="pt-2 border-t border-border/50">
-                  <p className="text-[10px] text-muted-foreground mb-1.5">Layout</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {(Object.keys(layoutPresets) as Array<keyof typeof layoutPresets>).map((key) => (
-                      <Button
-                        key={key}
-                        variant={currentLayout === key ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => applyLayoutPreset(key)}
-                        className="h-6 text-[10px] px-2"
-                        data-testid={`button-layout-${key}`}
-                      >
-                        {layoutPresets[key].label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Undo/Redo Controls */}
-                <div className="pt-2 border-t border-border/50">
-                  <p className="text-[10px] text-muted-foreground mb-1.5">History</p>
-                  <div className="flex gap-1">
+                {/* Compact Layout & History Row */}
+                <div className="pt-2 border-t border-border/50 flex items-center gap-2">
+                  <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
+                    <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-layout">
+                      <SelectValue placeholder="Layout" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(layoutPresets) as Array<keyof typeof layoutPresets>).map((key) => (
+                        <SelectItem key={key} value={key} className="text-xs" data-testid={`layout-option-${key}`}>
+                          {layoutPresets[key].label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-0.5">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={handleUndo}
                       disabled={!canUndo}
-                      className="flex-1 h-7 text-xs gap-1"
+                      className="h-7 w-7 p-0"
                       title="Undo (Ctrl+Z)"
                       data-testid="button-undo"
                     >
                       <Undo2 className="w-3.5 h-3.5" />
-                      Undo
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={handleRedo}
                       disabled={!canRedo}
-                      className="flex-1 h-7 text-xs gap-1"
-                      title="Redo (Ctrl+Shift+Z)"
+                      className="h-7 w-7 p-0"
+                      title="Redo (Ctrl+Y)"
                       data-testid="button-redo"
                     >
                       <Redo2 className="w-3.5 h-3.5" />
-                      Redo
                     </Button>
                   </div>
                 </div>
