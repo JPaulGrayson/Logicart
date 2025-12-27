@@ -2402,7 +2402,7 @@ export default function Workbench() {
                 <div className="pt-2 border-t border-border/50 flex items-center gap-2">
                   <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">View</span>
                   <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
-                    <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-layout">
+                    <SelectTrigger className="h-7 text-sm flex-1" data-testid="select-layout">
                       <SelectValue placeholder="Layout" />
                     </SelectTrigger>
                     <SelectContent>
