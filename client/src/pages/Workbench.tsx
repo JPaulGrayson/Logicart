@@ -177,8 +177,6 @@ export default function Workbench() {
   const layoutPresets = {
     '50-50': { sidebar: 50, flowchart: 50, label: '50/50' },
     '30-70': { sidebar: 30, flowchart: 70, label: '30/70' },
-    '70-30': { sidebar: 70, flowchart: 30, label: '70/30' },
-    'code-only': { sidebar: 100, flowchart: 0, label: 'Code Only' },
     'flow-only': { sidebar: 0, flowchart: 100, label: 'Flow Only' },
   };
   
@@ -191,10 +189,7 @@ export default function Workbench() {
     
     // Small delay to let expand complete before resizing
     setTimeout(() => {
-      if (presetKey === 'code-only') {
-        sidebarPanelRef.current?.resize(95);
-        flowchartPanelRef.current?.resize(5);
-      } else if (presetKey === 'flow-only') {
+      if (presetKey === 'flow-only') {
         sidebarPanelRef.current?.resize(5);
         flowchartPanelRef.current?.resize(95);
       } else {
