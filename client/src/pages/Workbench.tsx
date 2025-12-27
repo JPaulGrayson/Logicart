@@ -2657,14 +2657,14 @@ export default function Workbench() {
                 <div className="border-b border-border flex-shrink-0">
                   <button
                     onClick={() => setCodeEditorCollapsed(!codeEditorCollapsed)}
-                    className="w-full px-3 py-1.5 flex items-center justify-between hover:bg-accent/50 transition-colors text-xs font-medium"
+                    className="w-full px-3 py-1.5 flex items-center justify-between hover:bg-accent/50 transition-colors text-sm text-foreground font-medium"
                     data-testid="button-toggle-code-editor"
                   >
                     <div className="flex items-center gap-2">
-                      <Code2 className="w-3 h-3" />
+                      <Code2 className="w-3.5 h-3.5" />
                       {codeEditorCollapsed ? 'Show Code' : 'Hide Code'}
                     </div>
-                    {codeEditorCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                    {codeEditorCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               )}
