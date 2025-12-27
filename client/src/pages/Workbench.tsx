@@ -2399,6 +2399,7 @@ export default function Workbench() {
                 
                 {/* Compact Layout & History Row */}
                 <div className="pt-2 border-t border-border/50 flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">Layout</span>
                   <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
                     <SelectTrigger className="h-7 text-[10px] flex-1" data-testid="select-layout">
                       <SelectValue placeholder="Layout" />
