@@ -552,6 +552,7 @@ export default function Workbench() {
         controlWsRef.current = null;
       }
       setRemoteConnectionStatus('disconnected');
+      setHandshakeNodeId(null); // Clear handshake state on disconnect
     };
   }, [isReady, adapter]);
 
@@ -1165,6 +1166,11 @@ export default function Workbench() {
       controlWsRef.current.send(JSON.stringify(message));
       setHandshakeNodeId(flowNode.id);
       console.log('[Visual Handshake] Sent highlight request:', checkpointId);
+      
+      // Fallback timeout: Clear handshake if no confirmation within 3 seconds
+      setTimeout(() => {
+        setHandshakeNodeId((current) => current === flowNode.id ? null : current);
+      }, 3000);
     }
   };
 

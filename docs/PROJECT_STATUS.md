@@ -27,13 +27,14 @@
 | **MCP Server** | ✅ Working | `server/mcp.ts` | 5 tools for AI agent integration |
 | **Agent API** | ✅ Working | `/api/agent/analyze` | REST endpoint for programmatic analysis |
 
-### Fully Implemented (Previously Mislabeled) ✅
+### Fully Implemented (Verified & Enhanced) ✅
 
 | Feature | Status | Location | Notes |
 |---------|--------|----------|-------|
 | **Ghost Diff** | ✅ Working | `client/src/lib/ghostDiff.ts` | AST-aware comparison, CSS classes (`diff-added`, `diff-removed`, `diff-modified`), UI toggle in Workbench |
 | **Natural Language Search** | ✅ Working | `client/src/lib/naturalLanguageSearch.ts`, `client/src/components/ide/NaturalLanguageSearch.tsx` | Pattern matching for "show conditionals", "find loops", etc. Premium feature. |
 | **Grounding Context** | ✅ Working | `packages/logigo-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
+| **Visual Handshake** | ✅ Working | `shared/control-types.ts`, `client/src/pages/Workbench.tsx` | Click flowchart node → highlight DOM in remote app. Amber ring feedback in Studio. 3s fallback timeout. |
 
 ### Partially Implemented Features ⚠️
 
@@ -45,7 +46,6 @@
 
 | Feature | Status | Location | Notes |
 |---------|--------|----------|-------|
-| **Visual Handshake** | ❌ Demo only | `example/visual_handshake.html` | Has git merge conflicts, NOT wired into Workbench |
 | **Export to Documentation** | ❌ Placeholder | Listed in replit.md | No implementation |
 | **Blueprint Schema** | ❌ Future | Documented only | AI-generated JSON blueprints concept |
 
@@ -175,11 +175,14 @@ The embed component:
 | Aspect | Current State | Gap |
 |--------|---------------|-----|
 | **Concept** | ✅ Documented | None |
-| **Demo Prototype** | ✅ HTML example exists | None |
-| **Workbench Integration** | ❌ Not connected | Click node → highlight remote DOM |
-| **DOM Highlighting** | ❌ Not implemented | CSS injection for remote elements |
+| **Demo Prototype** | ✅ Working | Clean HTML demo with highlight animation |
+| **WebSocket Messages** | ✅ Implemented | `HIGHLIGHT_ELEMENT`, `CONFIRM_HIGHLIGHT` in control-types.ts |
+| **Workbench Integration** | ✅ Implemented | Click node → sends highlight command via WS control channel |
+| **Visual Feedback in Studio** | ✅ Implemented | Amber ring with pulse animation on handshake nodes |
+| **Fallback Timeout** | ✅ Implemented | 3-second auto-clear if no confirmation |
+| **Session Cleanup** | ✅ Implemented | Clears handshake state on disconnect |
 
-**Recommendation:** Create WS message type for element highlighting, integrate into Flowchart click handlers
+**Status:** FULLY IMPLEMENTED - Visual Handshake works end-to-end with bidirectional feedback
 
 ### Natural Language Search
 
@@ -255,22 +258,19 @@ The embed component:
 
 ## 5. Recommended Next Steps
 
-### Priority 1: Implement Visual Handshake (The Only Missing Core Feature)
-1. Fix git merge conflicts in `example/visual_handshake.html`
-2. Add WS message type: `HIGHLIGHT_ELEMENT` to `shared/control-types.ts`
-3. Create CSS injection for remote app highlighting
-4. Add click handler in Flowchart → send highlight command to remote
-5. Wire into Workbench sidebar controls
-
-### Priority 2: Add UI Export for Grounding Context (Enhancement)
+### Priority 1: Add UI Export for Grounding Context (Enhancement)
 1. Add "Export Context" button to Workbench toolbar
 2. Create `/api/grounding/export` endpoint using existing `generateGroundingContext()`
 3. Save grounding sessions to database (optional)
 
-### Priority 3: Harden Speed Governor (Stability)
+### Priority 2: Harden Speed Governor (Stability)
 1. Add max step limit (configurable)
 2. Add timeout indicator in UI
 3. Implement async pause hooks for interpreter
+
+### Priority 3: Complete Zero-Code Reverse Proxy
+1. Handle ES module/Vite app instrumentation
+2. Add source map support for accurate line mapping
 
 ---
 
