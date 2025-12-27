@@ -12,8 +12,8 @@ interface CodeEditorProps {
 export function CodeEditor({ code, onChange, highlightedLine }: CodeEditorProps) {
   return (
     <div className="h-full w-full bg-sidebar border-r border-border flex flex-col">
-      <div className="h-10 border-b border-border flex items-center px-4 bg-sidebar/50 backdrop-blur text-xs font-mono text-foreground/80 uppercase tracking-wider">
-        Editor
+      <div className="h-8 border-b border-border flex items-center px-3 bg-sidebar/50 backdrop-blur">
+        <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Editor</span>
       </div>
       <div className="flex-1 overflow-auto font-mono text-sm relative">
         <Editor

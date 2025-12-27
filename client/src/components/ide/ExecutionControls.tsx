@@ -64,7 +64,7 @@ export function ExecutionControls({
   return (
     <div className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-6 justify-between">
       <div className="flex items-center gap-4">
-        <h2 className="text-sm font-semibold text-foreground">Execution Controls</h2>
+        <h2 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Execution</h2>
         
         <div className="flex items-center gap-1 bg-muted/50 rounded p-1">
           <button
