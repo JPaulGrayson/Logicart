@@ -1,8 +1,8 @@
 import * as acorn from 'acorn';
 import MagicString from 'magic-string';
-import { StructuralIdGenerator, generateFileChecksum } from './hash';
-import { computeLayout } from './layout';
-import type { FlowNode, FlowEdge, CheckpointMetadata, InstrumentResult } from './types';
+import { StructuralIdGenerator, generateFileChecksum } from './hash.js';
+import { computeLayout } from './layout.js';
+import type { FlowNode, FlowEdge, CheckpointMetadata, InstrumentResult } from './types.js';
 
 interface ScopeFrame {
   variables: Set<string>;

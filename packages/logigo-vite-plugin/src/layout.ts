@@ -1,5 +1,5 @@
 import dagre from 'dagre';
-import type { FlowNode, FlowEdge } from './types';
+import type { FlowNode, FlowEdge } from './types.js';
 
 export function computeLayout(nodes: FlowNode[], edges: FlowEdge[]): FlowNode[] {
   if (nodes.length === 0) return nodes;

@@ -1,7 +1,7 @@
 import type { Plugin, ResolvedConfig } from 'vite';
-import { instrumentFile } from './instrumenter';
-import { generateFileChecksum, generateManifestHash } from './hash';
-import type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata } from './types';
+import { instrumentFile } from './instrumenter.js';
+import { generateFileChecksum, generateManifestHash } from './hash.js';
+import type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata } from './types.js';
 
 export type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata };
 
