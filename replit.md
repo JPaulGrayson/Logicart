@@ -236,3 +236,25 @@ npm run dev        # Start development server
 npm run db:push    # Push schema changes to database
 npm run build      # Production build
 ```
+
+## NPM Packages
+
+LogiGo includes three standalone npm packages in the `packages/` directory:
+
+| Package | Description | Build Command |
+|---------|-------------|---------------|
+| `logigo-core` | Runtime library with checkpoint, breakpoint, and grounding support | `cd packages/logigo-core && npm run build` |
+| `logigo-embed` | Embeddable React flowchart visualization component | `cd packages/logigo-embed && npm run build` |
+| `logigo-vite-plugin` | Vite plugin for build-time code instrumentation | `cd packages/logigo-vite-plugin && npm run build` |
+
+### Package Testing
+
+All packages verified working (December 28, 2025):
+- ✅ All builds pass with correct ES module exports
+- ✅ Split-brain runtime bug fixed (deferred serialization, queue overflow protection)
+- ✅ E2E test confirms flowchart rendering with 10 nodes, 2 decision nodes
+- ✅ Interpreter executes with variable tracking (`arr`, `i`, `j` visible in Debug Panel)
+
+### Publishing to npm
+
+Each package has complete metadata (author, repository, homepage) and README documentation ready for `npm publish`.
