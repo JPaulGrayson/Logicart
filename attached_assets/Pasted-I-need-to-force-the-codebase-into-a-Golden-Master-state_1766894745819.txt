@@ -1,0 +1,193 @@
+I need to force the codebase into a "Golden Master" state to resolve all architectural issues and update documentation.
+
+Please **overwrite** the following 5 files with the exact content provided below. Do not modify the logic; use this exact code.
+
+### 1. FILE: `packages/logigo-embed/src/LogiGoEmbed.tsx`
+**Changes:** Fixes Ghost UI (HMR support), removes heavy Dagre import (lazy load), adds session syncing.
+
+```typescript
+import React, { useState, useEffect, useMemo } from 'react';
+import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import * as acorn from 'acorn';
+import { LogiGoEmbedProps, EmbedState, LogiGoManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
+
+// ... (Keep existing Helper Types & Functions: parseCode, convertManifestToFlowData, DecisionNode) ...
+// NOTE TO REPLIT: Keep the helper functions 'parseCode', 'convertManifestToFlowData', 'DecisionNode', 'nodeTypes' and 'FlowchartPanel' as they were. 
+// Only replace the main LogiGoEmbed component logic below.
+
+export function LogiGoEmbed({
+  code,
+  manifestUrl,
+  manifestHash,
+  position = 'bottom-right',
+  defaultOpen = true,
+  defaultSize = { width: 400, height: 300 },
+  showVariables = true,
+  showHistory = false,
+  theme = 'dark',
+  onNodeClick,
+  onCheckpoint,
+  onManifestLoad,
+  onReady,
+  onError
+}: LogiGoEmbedProps) {
+  const [state, setState] = useState<EmbedState>({
+    isOpen: defaultOpen,
+    size: defaultSize,
+    activeNodeId: null,
+    variables: {},
+    checkpointHistory: []
+  });
+  
+  const [manifest, setManifest] = useState<LogiGoManifest | null>(null);
+  const [manifestNodes, setManifestNodes] = useState<any[]>([]);
+  const [manifestEdges, setManifestEdges] = useState<any[]>([]);
+  const [parsedNodes, setParsedNodes] = useState<any[]>([]);
+  const [parsedEdges, setParsedEdges] = useState<any[]>([]);
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [sessionHash, setSessionHash] = useState<string | null>(null);
+
+  // 1. Lazy Load Dagre (Static Mode Only)
+  useEffect(() => {
+    if (code && !manifestUrl) {
+      import('dagre').then((dagreModule) => {
+        const dagre = dagreModule.default || dagreModule;
+        try {
+          // Assuming parseCode is defined above
+          const { nodes, edges } = parseCode(code);
+          
+          const g = new dagre.graphlib.Graph();
+          g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70 });
+          g.setDefaultEdgeLabel(() => ({}));
+          
+          nodes.forEach(node => {
+            const isDecision = node.type === 'decision';
+            g.setNode(node.id, { width: isDecision ? 100 : 150, height: isDecision ? 100 : 50 });
+          });
+          edges.forEach(edge => g.setEdge(edge.source, edge.target));
+          dagre.layout(g);
+          
+          const layoutedNodes = nodes.map(node => {
+            const pos = g.node(node.id);
+            return { 
+              ...node, 
+              position: { 
+                x: pos.x - (node.type === 'decision' ? 50 : 75), 
+                y: pos.y - (node.type === 'decision' ? 50 : 25) 
+              } 
+            };
+          });
+
+          setParsedNodes(layoutedNodes);
+          setParsedEdges(edges);
+        } catch (err) {
+          onError?.(err as Error);
+        }
+      });
+    }
+  }, [code, manifestUrl, onError]);
+
+  const nodes = isLiveMode ? manifestNodes : parsedNodes;
+  const edges = isLiveMode ? manifestEdges : parsedEdges;
+
+  // 2. Fetch Manifest
+  useEffect(() => {
+    if (!manifestUrl) return;
+
+    async function fetchManifest() {
+      try {
+        const response = await fetch(manifestUrl!);
+        if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
+        
+        const data: LogiGoManifest = await response.json();
+        
+        if (manifestHash && data.hash !== manifestHash) {
+          console.warn('[LogiGo] Manifest hash mismatch, may be stale');
+        }
+        
+        setManifest(data);
+        setSessionHash(data.hash);
+        
+        // Assuming convertManifestToFlowData is defined above
+        const { nodes, edges } = convertManifestToFlowData(data);
+        setManifestNodes(nodes);
+        setManifestEdges(edges);
+        setIsLiveMode(true);
+        
+        onManifestLoad?.(data);
+        console.log(`[LogiGo] Loaded manifest with ${nodes.length} nodes`);
+      } catch (error) {
+        console.error('[LogiGo] Failed to load manifest:', error);
+        onError?.(error as Error);
+      }
+    }
+
+    fetchManifest();
+  }, [manifestUrl, manifestHash, onManifestLoad, onError]);
+
+  // 3. Handle Runtime Messages (HMR & Checkpoints)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.source !== 'LOGIGO_CORE') return;
+      
+      // A. Handle Session Start / HMR Refresh
+      if (event.data.type === 'LOGIGO_MANIFEST_READY') {
+        const { manifestUrl: url, manifestHash: newHash, sessionId } = event.data.payload;
+        
+        if (manifest && manifest.hash !== newHash) {
+          console.log('[LogiGo] Code changed (HMR). Refreshing manifest...');
+          fetch(url)
+            .then(res => res.json())
+            .then((data: LogiGoManifest) => {
+              setManifest(data);
+              setSessionHash(newHash);
+              const { nodes, edges } = convertManifestToFlowData(data);
+              setManifestNodes(nodes);
+              setManifestEdges(edges);
+              setIsLiveMode(true);
+              // Reset history on code change
+              setState(prev => ({ ...prev, checkpointHistory: [], activeNodeId: null }));
+            })
+            .catch(err => console.error('[LogiGo] Failed to refresh manifest:', err));
+        } else {
+           setSessionHash(newHash);
+        }
+      }
+      
+      // B. Handle Checkpoints
+      if (event.data.type === 'LOGIGO_CHECKPOINT') {
+        const payload = event.data.payload as CheckpointPayload;
+        const { id, variables, timestamp, manifestVersion } = payload;
+        
+        // Ignore checkpoints from old versions
+        if (sessionHash && manifestVersion && manifestVersion !== sessionHash) {
+           return; 
+        }
+        
+        setState(prev => ({
+          ...prev,
+          activeNodeId: id,
+          variables: variables || {},
+          checkpointHistory: [...prev.checkpointHistory, { id, timestamp, variables: variables || {} }]
+        }));
+        
+        onCheckpoint?.(payload);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [manifest, sessionHash, onCheckpoint]);
+
+  useEffect(() => {
+    if (nodes.length > 0) {
+      onReady?.();
+    }
+  }, [nodes, onReady]);
+
+  // ... (Keep render logic: positionStyles, return JSX, etc.) ...
+  // NOTE TO REPLIT: Keep the JSX render block exactly as it was.
+}
+
+export default LogiGoEmbed;
