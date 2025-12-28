@@ -1,6 +1,7 @@
 {
   "name": "logigo-embed",
   "version": "0.1.0",
+  "type": "module",
   "description": "Embeddable code-to-flowchart visualization for JavaScript",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
