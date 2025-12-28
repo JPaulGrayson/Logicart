@@ -1,92 +1,237 @@
-# Manual Setup Instructions for Extension Repl
+# LogiGo Manual Setup Instructions
 
-## Step 1: Download the Extension Bundle
-
-1. In **this current Repl** (Cartographer), open the Preview/Webview
-2. Navigate to: `/cartographer-extension.zip`
-3. **Download the ZIP file** to your computer (should be ~253KB)
-
-Or use this direct link from your browser:
-```
-https://cartographer.jpaulgraygrayson.repl.co/cartographer-extension.zip
-```
-
-## Step 2: Upload to Extension Repl
-
-1. Switch to your **"Cartographer Extension v2"** Repl
-2. In the Files panel, create a folder called `public`
-3. **Drag and drop** the `cartographer-extension.zip` file into the `public` folder
-4. Right-click the ZIP file → **Extract here** (or use Shell: `cd public && unzip cartographer-extension.zip`)
-
-## Step 3: Copy extension.json to Root
-
-1. In the Files panel, find `public/extension.json`
-2. **Copy it**
-3. **Paste it** at the root level (same level as `.replit`)
-4. You should now have `extension.json` in TWO places:
-   - `/extension.json` (root)
-   - `/public/extension.json`
-
-## Step 4: Create .replit File
-
-1. In the Extension Repl, create or edit the `.replit` file
-2. **Replace all contents** with this:
-
-```toml
-run = "python3 -m http.server 8080 --directory public"
-
-[nix]
-channel = "stable-24_05"
-
-[deployment]
-publicDir = "public"
-
-[[ports]]
-localPort = 8080
-externalPort = 80
-```
-
-3. **Save the file**
-
-## Step 5: Test the Extension
-
-1. Open **Tools menu** → **Extensions Devtools**
-2. Click **"Load Locally"**
-3. Wait for Python server to start
-4. Click **"Preview"** next to Cartographer tool
-5. **Extension should load!**
+Step-by-step guide for adding LogiGo visualization to your JavaScript projects.
 
 ---
 
-## Quick Checklist
+## Option 1: Static Mode (No Installation)
 
-- ✅ Downloaded `cartographer-extension.zip` from original Repl
-- ✅ Created `public/` folder in Extension Repl
-- ✅ Extracted ZIP contents to `public/`
-- ✅ Copied `extension.json` to root directory
-- ✅ Created `.replit` with correct configuration
-- ✅ Opened Extensions Devtools
-- ✅ Clicked "Load Locally"
-- ✅ Previewed Cartographer tool
+Use LogiGo Studio directly without installing anything:
 
----
+1. Open LogiGo Studio
+2. Paste your JavaScript function into the code editor
+3. The flowchart renders automatically
+4. Use controls to step through execution
 
-## File Structure Should Look Like:
-
-```
-Cartographer Extension v2/
-├── extension.json          ← ROOT LEVEL (copy from public/)
-├── .replit                 ← Configuration file
-└── public/
-    ├── extension.json      ← Also here
-    ├── extension.html
-    ├── icon.svg
-    ├── favicon.png
-    └── assets/
-        ├── main-BU2VD84Z.js
-        └── main-Bgj7Vesx.css
-```
+**Best for:** Quick visualization, code reviews, learning algorithms
 
 ---
 
-Total time: ~5 minutes with manual file operations
+## Option 2: Embed Component (React Apps)
+
+Add the LogiGo flowchart component to your React application.
+
+### Step 1: Install the Package
+
+```bash
+npm install logigo-embed
+```
+
+### Step 2: Add Required CSS
+
+```jsx
+import '@xyflow/react/dist/style.css';
+```
+
+### Step 3: Use the Component
+
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function CodeViewer() {
+  const code = `
+    function factorial(n) {
+      if (n <= 1) return 1;
+      return n * factorial(n - 1);
+    }
+  `;
+
+  return (
+    <LogiGoEmbed
+      code={code}
+      theme="dark"
+      position="bottom-right"
+      defaultOpen={true}
+    />
+  );
+}
+```
+
+### Verification Checklist
+
+- [ ] `logigo-embed` appears in package.json
+- [ ] CSS import is present
+- [ ] Component renders without errors
+- [ ] Flowchart displays nodes for your code
+
+---
+
+## Option 3: Live Mode (Vite Projects)
+
+For real-time variable tracking during code execution.
+
+### Step 1: Install Packages
+
+```bash
+npm install logigo-vite-plugin --save-dev
+npm install logigo-embed
+```
+
+### Step 2: Configure Vite
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import logigoPlugin from 'logigo-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    logigoPlugin({
+      include: ['src/**/*.tsx', 'src/**/*.ts'],
+      exclude: ['**/node_modules/**', '**/*.test.*'],
+      manifestPath: 'logigo-manifest.json'
+    })
+  ]
+});
+```
+
+### Step 3: Add Embed Component
+
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function App() {
+  return (
+    <LogiGoEmbed
+      manifestUrl="/logigo-manifest.json"
+      showVariables={true}
+      showHistory={true}
+      theme="dark"
+    />
+  );
+}
+```
+
+### Step 4: Build and Run
+
+```bash
+npm run dev
+```
+
+The plugin will:
+1. Parse your source files
+2. Inject checkpoint calls automatically
+3. Generate `logigo-manifest.json`
+4. Inject the runtime into your HTML
+
+### Verification Checklist
+
+- [ ] `logigo-vite-plugin` in devDependencies
+- [ ] `logigo-embed` in dependencies
+- [ ] vite.config.js includes logigoPlugin()
+- [ ] Build completes without errors
+- [ ] `logigo-manifest.json` is generated
+- [ ] Flowchart shows with variable tracking
+
+---
+
+## Option 4: Manual Checkpoints (Any JavaScript)
+
+Add checkpoint calls directly to your code for fine-grained control.
+
+### Step 1: Install Core Library
+
+```bash
+npm install logigo-core
+```
+
+### Step 2: Add Checkpoints
+
+```javascript
+import { checkpoint } from 'logigo-core';
+
+function processOrder(order) {
+  checkpoint('order_start', { orderId: order.id });
+  
+  if (!order.valid) {
+    checkpoint('order_invalid', { reason: 'Validation failed' });
+    return null;
+  }
+  
+  checkpoint('order_processing', { items: order.items.length });
+  
+  const result = calculateTotal(order);
+  
+  checkpoint('order_complete', { total: result.total });
+  return result;
+}
+```
+
+### Step 3: Connect to LogiGo Studio
+
+Checkpoints send data via `postMessage`. Open LogiGo Studio in the same browser window to see the execution flow.
+
+---
+
+## Troubleshooting
+
+### "Module not found: logigo-embed"
+
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Flowchart shows "Syntax Error"
+
+- LogiGo uses Acorn parser (ECMAScript 2020)
+- TypeScript-specific syntax may cause errors
+- Ensure code is valid JavaScript
+
+### No variable tracking in Live Mode
+
+- Verify the Vite plugin is configured correctly
+- Check that `captureVariables: true` (default)
+- Ensure the manifest file is being generated
+
+### CSS not loading
+
+```jsx
+// Make sure this import is present
+import '@xyflow/react/dist/style.css';
+```
+
+---
+
+## File Structure
+
+After setup, your project should look like:
+
+```
+my-project/
+├── package.json
+├── vite.config.js          # With logigoPlugin()
+├── src/
+│   ├── App.tsx             # With LogiGoEmbed
+│   └── ...
+└── dist/
+    └── logigo-manifest.json  # Generated by plugin
+```
+
+The plugin also injects a runtime script tag into your HTML during the build process.
+
+---
+
+## Next Steps
+
+- Add `// @logigo:` comments for custom node labels
+- Use the Debug Panel to set breakpoints
+- Try the Model Arena for AI-assisted code generation
+- Share flowcharts with the Share button
+
+See [GETTING_STARTED.md](./docs/GETTING_STARTED.md) for detailed usage instructions.

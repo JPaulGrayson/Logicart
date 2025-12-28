@@ -1,165 +1,259 @@
-# LogiGo - Runtime Code Visualizer for Vibe Coders
+# LogiGo Studio - Code-to-Flowchart Visualization
 
-A lightweight, injectable JavaScript library that visualizes code execution flow in real-time. Perfect for debugging AI-generated code and understanding complex logic.
+Transform JavaScript code into interactive, step-by-step flowcharts. Built for visual learners and "Vibe Coders" who want to understand code execution at a glance.
 
-## 🚀 Quick Start
+## What is LogiGo?
 
-### Option 1: Direct Script Tag
-```html
-<script src="https://unpkg.com/logigo/dist/logigo.min.js"></script>
-<script>
-  new LogiGoOverlay({ speed: 1.0, debug: true }).init();
-</script>
-```
+LogiGo Studio is a bidirectional code-to-flowchart visualization tool that:
 
-### Option 2: NPM Install
+- **Parses JavaScript** into flowchart nodes using AST analysis
+- **Visualizes execution** with step-by-step highlighting
+- **Tracks variables** showing values at each step
+- **Supports breakpoints** for debugging complex logic
+
+## Quick Start
+
+### Option 1: Use LogiGo Studio (No Installation)
+
+1. Open LogiGo Studio at your deployed URL
+2. Paste any JavaScript function into the code editor
+3. The flowchart appears automatically
+4. Use keyboard shortcuts to step through:
+   - `Space` or `K` - Play/Pause
+   - `S` - Step Forward
+   - `R` - Reset
+
+### Option 2: Embed in Your React App
+
 ```bash
-npm install logigo-core
+npm install logigo-embed
 ```
 
-```javascript
-import LogiGoOverlay from 'logigo-core';
-new LogiGoOverlay({ speed: 1.0 }).init();
-```
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
 
-## 📖 Usage
+function App() {
+  const code = `
+    function bubbleSort(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+          if (arr[j] > arr[j + 1]) {
+            [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          }
+        }
+      }
+      return arr;
+    }
+  `;
 
-### Basic Example
-```javascript
-async function myFunction() {
-  await LogiGo.checkpoint('step1');
-  console.log('Step 1');
-  
-  await LogiGo.checkpoint('step2');
-  console.log('Step 2');
+  return <LogiGoEmbed code={code} theme="dark" />;
 }
 ```
 
-### With DOM Highlighting
-```html
-<button id="login_button">Login</button>
+### Option 3: Build-Time Instrumentation (Live Mode)
 
-<script>
-  async function handleLogin() {
-    await LogiGo.checkpoint('login_button'); // Highlights the button!
-    // Login logic here
-  }
-</script>
+For real-time variable tracking during execution:
+
+```bash
+npm install logigo-vite-plugin --save-dev
+npm install logigo-embed
 ```
 
-## 🎮 Controls
-
-The LogiGo overlay provides:
-- **Play/Pause**: Control execution flow
-- **Step**: Execute one checkpoint at a time
-- **Speed Slider**: Adjust execution speed (0.1x to 20.0x)
-- **Reset**: Start over from the beginning
-
-## 🎨 Features
-
-### ✅ Phase 1: Core Overlay (COMPLETE)
-- [x] Floating toolbar injection
-- [x] Play/Pause/Step/Reset controls
-- [x] Speed governor (0.1x - 20.0x)
-- [x] **Visual Handshake** (DOM element highlighting)
-- [x] Checkpoint API
-
-### ✅ Phase 2: Speed Governor & Reporter (COMPLETE)
-- [x] Execution controller class
-- [x] Promise-based checkpoint system
-- [x] **Reporter API** for Browser Agent integration
-- [x] Real-time event subscription
-
-### ✅ Phase 3: Ghost Diff (COMPLETE)
-- [x] AST diffing engine
-- [x] Visual diff rendering (Red/Green/Ghost)
-- [x] Side-by-side comparison
-
-## 🛠️ API Reference
-
-### LogiGoOverlay
-
 ```javascript
-const overlay = new LogiGoOverlay(options);
-overlay.init();
-```
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import logigoPlugin from 'logigo-vite-plugin';
 
-**Options:**
-- `speed` (number): Initial execution speed (default: 1.0)
-- `debug` (boolean): Enable debug logging (default: false)
-- `position` (string): Overlay position - 'bottom-right', 'bottom-left', 'top-right', 'top-left' (default: 'bottom-right')
-
-### Visual Handshake (DOM Highlighting)
-
-Highlight UI elements as your code executes:
-
-```javascript
-await LogiGo.checkpoint('step_1', {
-  domElement: '#my-button',  // Selector or HTMLElement
-  color: 'gold',             // Highlight color (default: gold)
-  duration: 2000,            // Duration in ms (default: 2000)
-  intensity: 'medium'        // low | medium | high
+export default defineConfig({
+  plugins: [
+    react(),
+    logigoPlugin({
+      include: ['src/**/*.tsx', 'src/**/*.ts'],
+      manifestPath: 'logigo-manifest.json'
+    })
+  ]
 });
 ```
 
-### Reporter API (Browser Agent Integration)
+Then add the embed component to your app:
 
-Subscribe to checkpoint events for AI analysis or automated testing:
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
 
-```javascript
-// Get the reporter instance
-const reporter = LogiGo.reporter;
-
-// Subscribe to events
-reporter.onCheckpoint((entry) => {
-  console.log('Checkpoint hit:', entry.id);
-  console.log('DOM Element:', entry.domElement);
-  console.log('Variables:', entry.variables);
-});
-
-// Export full report
-const report = reporter.exportReport();
+function App() {
+  return (
+    <LogiGoEmbed
+      manifestUrl="/logigo-manifest.json"
+      showVariables={true}
+      theme="dark"
+    />
+  );
+}
 ```
 
-## 🧪 Running the Demos
+## NPM Packages
 
-1. Clone this repository
-2. Open the examples in your browser:
+| Package | Description | Install |
+|---------|-------------|---------|
+| [logigo-core](./packages/logigo-core) | Runtime library for checkpoint-based debugging | `npm install logigo-core` |
+| [logigo-embed](./packages/logigo-embed) | React component for flowchart visualization | `npm install logigo-embed` |
+| [logigo-vite-plugin](./packages/logigo-vite-plugin) | Vite plugin for build-time instrumentation | `npm install logigo-vite-plugin --save-dev` |
 
-### 📚 Library of Logic (New!)
-- **[Pathfinding (A*)](example/library/pathfinding.html)** - Interactive A* search with grid visualization.
-- **[Sorting Algorithms](example/library/sorting.html)** - Bubble, Quick, and Merge sort visualizers.
+## Features
 
-### Core Demos
-- `example/complete_demo.html` - Full integration demo
-- `example/visual_handshake.html` - **Visual Handshake Demo**
-- `example/reporter_demo.html` - **Reporter API Demo**
-- `example/ghost_diff.html` - Ghost Diff Demo
+### Static Mode
+- Paste code, see flowchart instantly
+- No installation required
+- Works with any JavaScript function
 
-## 📚 Documentation
+### Live Mode (with Vite Plugin)
+- Real-time variable tracking
+- Checkpoint-based execution visualization
+- HMR-aware session sync
+- Queue overflow protection (5000 limit)
+- Deferred serialization for performance
 
-- [Technical Specification](./SPEC.md)
-- [Integration Guide](./LOGIGO_INTEGRATION.md)
+### Debug Panel
+- Current step indicator
+- Variable inspector with live values
+- Call stack visualization
+- Checkpoint history navigation
 
-## 🤝 Contributing
+### Model Arena
+- Compare code generation from 4 AI models (GPT-4o, Gemini, Claude, Grok)
+- Debug advice from multiple perspectives
+- Chairman verdict synthesis
 
-LogiGo is in active development. Contributions are welcome!
+### Sharing
+- Generate shareable URLs
+- Database-backed with view counts
+- Include title and description
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+## API Reference
 
-## 📄 License
+### logigo-core
 
-MIT License - See LICENSE file for details
+```javascript
+import { checkpoint, checkpointAsync, LogiGoRuntime } from 'logigo-core';
 
-## 🙏 Credits
+// Synchronous checkpoint
+checkpoint('step_1', { myVar: value });
 
-- **Concept**: Gemini AI
-- **Development**: Antigravity (Google DeepMind)
-- **Prototype**: Replit AI
+// Async checkpoint (supports breakpoints)
+await checkpointAsync('step_2', { data });
+
+// Full runtime control
+const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+runtime.setBreakpoint('critical_point', true);
+runtime.resume();
+```
+
+### logigo-embed
+
+```jsx
+<LogiGoEmbed
+  code={jsCode}              // Static mode
+  manifestUrl="/manifest.json" // OR Live mode
+  theme="dark"
+  showVariables={true}
+  showHistory={false}
+  position="bottom-right"
+  onNodeClick={(id) => console.log(id)}
+/>
+```
+
+### logigo-vite-plugin
+
+```javascript
+logigoPlugin({
+  include: ['src/**/*.tsx'],
+  exclude: ['**/*.test.*'],
+  manifestPath: 'logigo-manifest.json',
+  autoInstrument: true,
+  captureVariables: true
+})
+```
+
+## User Labels
+
+Add human-readable labels to flowchart nodes with `// @logigo:` comments:
+
+```javascript
+// @logigo: Initialize counter
+let count = 0;
+
+// @logigo: Check if empty
+if (items.length === 0) {
+  // @logigo: Return early
+  return null;
+}
+
+// @logigo: Process each item
+for (const item of items) {
+  count++;
+}
+```
+
+Labeled nodes show a blue indicator dot. Hover to see original code.
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Space` / `K` | Play/Pause |
+| `S` | Step Forward |
+| `B` | Step Backward (Premium) |
+| `R` | Reset |
+| `F` | Fullscreen |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+
+## Documentation
+
+- [Getting Started](./docs/GETTING_STARTED.md) - Quick start guide
+- [Installation Guide](./docs/INSTALLATION_GUIDE.md) - Multi-platform setup (VS Code, Cursor, Replit, etc.)
+- [Integration Guide](./docs/INTEGRATION_GUIDE.md) - Remote mode and cross-app debugging
+
+## Development
+
+```bash
+npm run dev        # Start development server
+npm run build      # Production build
+npm run db:push    # Push schema changes
+
+# Build packages
+cd packages/logigo-core && npm run build
+cd packages/logigo-embed && npm run build
+cd packages/logigo-vite-plugin && npm run build
+```
+
+## Architecture
+
+```
+LogiGo Studio
+├── client/                 # React frontend
+│   ├── src/pages/         # Workbench, Model Arena
+│   ├── src/components/    # IDE, Flowchart, Debug Panel
+│   └── src/lib/           # Parser, History Manager
+├── server/                 # Express backend
+│   ├── routes.ts          # API endpoints
+│   ├── storage.ts         # Database interface
+│   └── mcp.ts             # MCP server for AI agents
+├── packages/
+│   ├── logigo-core/       # Runtime library
+│   ├── logigo-embed/      # React component
+│   └── logigo-vite-plugin/# Vite build plugin
+└── shared/
+    └── schema.ts          # Drizzle ORM schema
+```
+
+## License
+
+MIT License
 
 ---
 
-**Made with ❤️ for Vibe Coders everywhere**
+**Made for Vibe Coders who learn by seeing**

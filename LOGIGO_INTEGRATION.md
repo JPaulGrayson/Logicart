@@ -1,216 +1,393 @@
 # LogiGo Integration Guide
 
-## How to use LogiGo in a Replit app
-
-LogiGo is a tiny runtime visualizer that gives you:
-
-* a floating **Overlay** toolbar (play / pause / step / speed)
-* a **Speed Governor** – `await LogiGo.checkpoint(id)` lets you slow down execution
-* a **Ghost‑Diff** engine that shows added / removed / changed code nodes
-
-You can add it to any Replit web project – static HTML, Vite, Next.js, etc.
+How to integrate LogiGo visualization into your projects.
 
 ---
 
-### 1️⃣ Install the library (local dev version)
+## Integration Methods
+
+| Method | Use Case | Installation |
+|--------|----------|--------------|
+| **Static Mode** | Quick visualization | None (paste into Studio) |
+| **Embed Component** | React apps | `npm install logigo-embed` |
+| **Vite Plugin** | Build-time instrumentation | `npm install logigo-vite-plugin` |
+| **Remote Mode** | Cross-app debugging | Script tag injection |
+| **Manual Checkpoints** | Fine-grained control | `npm install logigo-core` |
+
+---
+
+## 1. Embed Component (Recommended for React)
+
+Add flowchart visualization directly into your React app.
+
+### Installation
 
 ```bash
-# From the root of your Replit workspace
-# If you already have the LogiGo repo cloned next to your app:
-npm install ./LogiGo          # installs the local copy
-# OR, once we publish to npm you could do:
-# npm install logigo-core
+npm install logigo-embed
+```
+
+### Static Mode (Parse at Runtime)
+
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function CodeViewer({ code }) {
+  return (
+    <LogiGoEmbed
+      code={code}
+      theme="dark"
+      position="bottom-right"
+      defaultOpen={true}
+      showVariables={true}
+    />
+  );
+}
+```
+
+### Live Mode (With Manifest)
+
+```jsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function App() {
+  return (
+    <LogiGoEmbed
+      manifestUrl="/logigo-manifest.json"
+      manifestHash="abc123"
+      showVariables={true}
+      showHistory={true}
+      theme="dark"
+    />
+  );
+}
 ```
 
 ---
 
-### 2️⃣ Choose the integration style
+## 2. Vite Plugin (Build-Time Instrumentation)
 
-#### A. Plain HTML (no bundler)
+Automatically instrument your code at build time.
 
-1. Copy `LogiGo/dist/logigo.min.js` into your Replit folder (e.g. `public/dist/`).
-2. Add the script tag and initialise the overlay:
+### Installation
+
+```bash
+npm install logigo-vite-plugin --save-dev
+```
+
+### Configuration
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import logigoPlugin from 'logigo-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    logigoPlugin({
+      include: ['src/**/*.tsx', 'src/**/*.ts'],
+      exclude: ['**/node_modules/**', '**/*.test.*'],
+      manifestPath: 'logigo-manifest.json',
+      autoInstrument: true,
+      captureVariables: true
+    })
+  ]
+});
+```
+
+### What It Does
+
+1. **Parses** your source files using Acorn
+2. **Injects** `LogiGo.checkpoint()` calls at key points
+3. **Generates** `logigo-manifest.json` with flowchart data
+4. **Injects** runtime script into your HTML
+
+### Output Files
+
+```
+dist/
+├── logigo-manifest.json   # Flowchart nodes, edges, checkpoint metadata
+└── logigo-runtime.js      # Browser runtime for checkpoint handling
+```
+
+---
+
+## 3. Remote Mode (Cross-App Debugging)
+
+Connect external apps to LogiGo Studio for real-time visualization.
+
+### Add Script Tag
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>My Replit App + LogiGo</title>
-</head>
-<body>
-  <button id="runBtn">Run Demo</button>
+<script src="https://your-logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
+```
 
-  <!-- Load LogiGo -->
-  <script src="./dist/logigo.min.js"></script>
+The `remote.js` script automatically provides a global `checkpoint` function. No import needed.
 
-  <!-- Initialise the overlay -->
-  <script>
-    const logigo = new LogiGoOverlay({
-      speed: 1.0,
-      debug: true,
-      position: 'bottom-right'
-    }).init();
-  </script>
+### Add Checkpoints
 
-  <!-- Example code with checkpoints -->
-  <script>
-    async function demo() {
-      const items = [1,2,3,4,5];
-      let sum = 0;
-      for (let i = 0; i < items.length; i++) {
-        await LogiGo.checkpoint(`loop-${i}`);   // <-- pause here
-        sum += items[i];
+```javascript
+// checkpoint() is available globally after remote.js loads
+function processOrder(order) {
+  checkpoint('order_start', { orderId: order.id });
+  
+  if (!order.valid) {
+    checkpoint('order_invalid', { reason: 'Validation failed' });
+    return null;
+  }
+  
+  checkpoint('order_complete', { total: order.total });
+  return order;
+}
+```
+
+### Register Source Code (Optional)
+
+For flowchart generation, register your source:
+
+```html
+<script>
+  fetch('/app.js')
+    .then(r => r.text())
+    .then(code => window.LogiGo.registerCode(code));
+</script>
+```
+
+### Open Studio
+
+```javascript
+window.LogiGo.openStudio();
+```
+
+### Query Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `project` | "Remote App" | Name shown in Studio |
+| `autoOpen` | true | Auto-open Studio on first checkpoint |
+
+---
+
+## 4. Manual Checkpoints (Fine-Grained Control)
+
+Use the core library for precise checkpoint placement.
+
+### Installation
+
+```bash
+npm install logigo-core
+```
+
+### Synchronous Checkpoints
+
+```javascript
+import { checkpoint } from 'logigo-core';
+
+function bubbleSort(arr) {
+  checkpoint('sort_start', { arr: [...arr] });
+  
+  for (let i = 0; i < arr.length; i++) {
+    checkpoint('outer_loop', { i });
+    
+    for (let j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        checkpoint('swap', { i, j, arr: [...arr] });
       }
-      console.log('Result:', sum);
     }
-
-    document.getElementById('runBtn').addEventListener('click', demo);
-  </script>
-</body>
-</html>
-```
-
-Open the page (Replit “Run” → preview). The LogiGo toolbar appears in the bottom‑right. Use it to play, pause, step, or change speed.
-
----
-
-#### B. Project that already uses a bundler (Vite, Webpack, etc.)
-
-1. Install the package as shown in step 1.
-2. Import the ES‑module build:
-
-```js
-// src/main.js (or wherever your entry point lives)
-import LogiGoOverlay from 'logigo-core/dist/logogo.esm.js';   // default export
-import ExecutionController from 'logigo-core/src/runtime.js';
-import LogiGoParser from 'logigo-core/src/parser.js';
-import LogiGoDiffer from 'logigo-core/src/differ.js';
-
-// Initialise the overlay (you can also expose it globally if you like)
-const overlay = new LogiGoOverlay({
-  speed: 1.0,
-  debug: false,
-  position: 'bottom-right'
-}).init();
-
-window.LogiGo = overlay; // optional – lets you call LogiGo.checkpoint anywhere
-```
-
-3. Add checkpoints in any async function:
-
-```js
-async function fetchData() {
-  await LogiGo.checkpoint('fetch-start');
-  const resp = await fetch('/api/data');
-  const data = await resp.json();
-  await LogiGo.checkpoint('fetch-done');
-  console.log(data);
+  }
+  
+  checkpoint('sort_end', { arr });
+  return arr;
 }
 ```
 
-4. Run the Replit (`npm run dev` or the default “Run” button). The toolbar will be injected automatically.
+### Async Checkpoints (With Breakpoints)
 
----
+```javascript
+import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
 
-#### C. Quick local copy (no npm publish needed)
+const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+runtime.setBreakpoint('critical_point', true);
 
-If you just want to experiment, you can **copy the `src/` folder** into your Replit project and import directly:
-
-```js
-import LogiGoOverlay from './src/overlay.js';
-import ExecutionController from './src/runtime.js';
-import LogiGoParser from './src/parser.js';
-import LogiGoDiffer from './src/differ.js';
-```
-
-No extra build step is required – the files are plain ES‑modules.
-
----
-
-### 3️⃣ Using the Ghost‑Diff engine (optional)
-
-```js
-const oldCode = `function add(a,b){return a+b;}`;
-const newCode = `function add(a,b){return Number(a)+Number(b);}`;
-
-const oldTree = LogiGoParser.parse(oldCode);
-const newTree = LogiGoParser.parse(newCode);
-const diff = LogiGoDiffer.diffTrees(oldTree, newTree);
-
-console.log(diff.stats); // {added:0, removed:0, modified:1, unchanged:1}
-console.log(diff.nodes); // each node has diffStatus & className for UI rendering
-```
-
-You can render `diff.nodes` however you like (list, flow‑chart, etc.). The demo `example/ghost_diff.html` already shows a simple visualisation – copy that markup into your own component if you want.
-
----
-
-### 4️⃣ Checkpoint Data Format (Reporter API)
-
-When using the Reporter API, checkpoint events follow this structure:
-
-```json
-{
-  "id": "checkpoint_id",
-  "timestamp": 1732560000000,
-  "timeSinceStart": 150,
-  "domElement": "#element-id",
-  "variables": { "x": 10, "y": 20 },
-  "metadata": {}
+async function processData(data) {
+  await checkpointAsync('critical_point', { data });
+  // Execution pauses here until runtime.resume() is called
+  
+  await checkpointAsync('process_complete', { result: data.processed });
 }
 ```
 
-### 5️⃣ TL;DR Checklist (copy‑paste into a Replit comment)
+### Runtime API
+
+```javascript
+const runtime = new LogiGoRuntime();
+
+runtime.start();                           // Begin session
+runtime.checkpoint('id', { vars });        // Record checkpoint
+runtime.setBreakpoint('id', true);         // Enable breakpoint
+runtime.removeBreakpoint('id');            // Remove breakpoint
+runtime.clearBreakpoints();                // Clear all
+runtime.resume();                          // Continue from breakpoint
+runtime.end();                             // End session
+```
+
+---
+
+## 5. Backend Logging (Node.js)
+
+For server-side code where `logigo-core` cannot be used (no browser), add this logging helper directly to your code:
+
+```typescript
+// Add this helper at the top of your server file
+const LogiGo = {
+  checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
+    const vars = options.variables || {};
+    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+  }
+};
+
+// Usage in your routes
+app.post('/api/order', async (req, res) => {
+  LogiGo.checkpoint('api:order:start', { variables: { body: req.body } });
+  
+  const order = await processOrder(req.body);
+  
+  LogiGo.checkpoint('api:order:complete', { variables: { orderId: order.id } });
+  res.json(order);
+});
+```
+
+This logs checkpoints to the console. To see the flowchart, paste your server code into LogiGo Studio.
+
+**Note:** This is a standalone helper, not an import from `logigo-core`. The core package is designed for browser environments with `postMessage` support.
+
+---
+
+## API Reference
+
+### checkpoint(id, variables)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Unique checkpoint identifier |
+| `variables` | object | Variables to capture at this point |
+
+### LogiGoEmbed Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | string | - | JavaScript code (Static Mode) |
+| `manifestUrl` | string | - | Manifest URL (Live Mode) |
+| `theme` | 'dark' \| 'light' | 'dark' | Color theme |
+| `position` | string | 'bottom-right' | Panel position |
+| `showVariables` | boolean | true | Show variable inspector |
+| `showHistory` | boolean | false | Show checkpoint history |
+
+### logigoPlugin Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `include` | string[] | ['**/*.js', ...] | Files to instrument |
+| `exclude` | string[] | ['**/node_modules/**'] | Files to skip |
+| `manifestPath` | string | 'logigo-manifest.json' | Output path |
+| `autoInstrument` | boolean | true | Auto-inject checkpoints |
+| `captureVariables` | boolean | true | Capture local variables |
+
+---
+
+## Checkpoint ID Conventions
+
+Use hierarchical names for organized debugging:
+
+```javascript
+// Format: section:action:detail
+checkpoint('auth:login:start');
+checkpoint('auth:login:validate');
+checkpoint('auth:login:success');
+
+checkpoint('api:users:fetch');
+checkpoint('api:users:response');
+
+checkpoint('loop:iteration', { i: currentIndex });
+```
+
+---
+
+## User Labels
+
+Add readable labels to flowchart nodes:
+
+```javascript
+// @logigo: Initialize counter
+let count = 0;
+
+// @logigo: Check if empty
+if (items.length === 0) {
+  // @logigo: Return early
+  return null;
+}
+```
+
+Labeled nodes show a blue indicator. Hover to see original code.
+
+---
+
+## Architecture
 
 ```
-1️⃣ npm install ./LogiGo   # or npm i logigo-core after publishing
-2️⃣ Choose integration style:
-   • Plain HTML → <script src="dist/logigo.min.js"></script>
-   • Bundler → import LogiGoOverlay from 'logigo-core/dist/logogo.esm.js';
-3️⃣ Initialise:
-   const logigo = new LogiGoOverlay({speed:1, position:'bottom-right'}).init();
-4️⃣ Add checkpoints:
-   await LogiGo.checkpoint('my-node-id');
-5️⃣ (Optional) Diff two code strings with LogiGoDiffer.
-6️⃣ Run → use the toolbar to play/pause/step/speed.
+┌─────────────────┐     HTTP POST      ┌─────────────────┐
+│   Your App      │ ─────────────────> │   LogiGo        │
+│                 │   /api/remote/     │   Server        │
+│  checkpoint()   │   checkpoint       │                 │
+│  registerCode() │                    │  Stores data    │
+└─────────────────┘                    └────────┬────────┘
+                                                │
+                                                │ SSE Stream
+                                                ▼
+                                       ┌─────────────────┐
+                                       │   LogiGo        │
+                                       │   Studio        │
+                                       │                 │
+                                       │  Displays:      │
+                                       │  - Flowchart    │
+                                       │  - Variables    │
+                                       │  - Checkpoints  │
+                                       └─────────────────┘
 ```
 
 ---
 
-## 📚 How this relates to the LogiGo Replit prototype you already have
+## Troubleshooting
 
-| What you built in Replit (prototype) | What you have now (core library) | How they connect |
-|--------------------------------------|----------------------------------|------------------|
-| **Full UI** with React Flow, custom parser, UI panels, AI‑generated code editor. | **Three independent modules** (`overlay.js`, `runtime.js`, `differ.js`) that can be dropped into *any* web page. | The prototype used the same underlying concepts (overlay, checkpoints, diff). We extracted those concepts into a **stand‑alone library** that you can import instead of copying the whole prototype. |
-| **Demo page** (`example/index.html`) that you ran inside the Replit preview. | **`example/complete_demo.html`** that shows the same three features together, but now built from the library. | The demo is a lightweight wrapper around the library – you can keep it as a reference or delete it once you embed LogiGo in your own app. |
-| **Custom code** you wrote in the prototype’s React components. | **Your own app’s code** – you just add `await LogiGo.checkpoint(...)` wherever you want to visualise execution. | No need to keep the whole prototype; you only need the overlay + checkpoint calls. |
-| **GitHub repo** where you pushed the prototype. | **GitHub repo** now contains the **core library** (`src/` + `dist/`) plus the demo files. | You can clone this repo into any Replit workspace, install it locally (`npm install ./LogiGo`), and use it as a dependency. |
+### Checkpoints not appearing
 
-In short:
-- The original Replit project was a *showcase* of the idea.
-- The current repository is the *engine* you can reuse anywhere, including in new Replit apps.
-- You can keep the prototype as a reference, but for production or any new Replit project you only need to **install the library** and **add a few lines of code** (as shown above).
+1. Verify LogiGo runtime is loaded
+2. Check browser console for errors
+3. Ensure checkpoint code is actually executing
 
----
+### Variables not showing
 
-## 🙋‍♂️ Need help from Replit’s AI?
+1. Check `captureVariables: true` in plugin config
+2. Verify manifest is being generated
+3. Check LogiGoEmbed has `showVariables={true}`
 
-1. Paste the `LOGIGO_INTEGRATION.md` content into a new file or a comment block.
-2. Ask Replit’s AI:
-   *“How do I import LogiGoOverlay in a Vite project?”*
-   *“Why does `import LogiGoOverlay from 'logigo-core/dist/logogo.esm.js'` give me a ‘module not found’ error?”*
-   *“Can you show me a minimal HTML page that uses LogiGo checkpoints?”*
+### TypeScript errors
 
-The AI will read the markdown you just added and give you step‑by‑step answers, suggestions, or even auto‑generate the missing code for you.
+Use typed checkpoint helper:
+
+```typescript
+import { checkpoint } from 'logigo-core';
+// Types are included in the package
+```
 
 ---
 
-### 🎉 You’re ready!
+## Next Steps
 
-- **Copy** the markdown block into your Replit workspace.
-- **Run** the `npm install` command.
-- **Add** the overlay initialisation and a few `await LogiGo.checkpoint(...)` calls.
-- **Open** the preview – you’ll see the LogiGo toolbar and can start playing with speed, pause, step, and diff.
-
-If anything feels fuzzy (path issues, bundler config, etc.), just drop the exact error message here and I’ll walk you through the fix. Happy visualising!
+- [Getting Started Guide](./docs/GETTING_STARTED.md)
+- [Installation Guide](./docs/INSTALLATION_GUIDE.md)
+- [Package Documentation](./packages/)
