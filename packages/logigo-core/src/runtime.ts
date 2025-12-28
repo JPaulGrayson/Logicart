@@ -1,4 +1,4 @@
-import type { CheckpointData, RuntimeOptions, Breakpoint, LogiGoMessage } from './types';
+import type { CheckpointData, RuntimeOptions, Breakpoint, LogiGoMessage } from './types.js';
 
 const MAX_QUEUE_SIZE = 5000;
 

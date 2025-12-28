@@ -1,6 +1,45 @@
 # LogiGo External Audit - Complete Package Files
 
 Generated: December 27, 2025
+**Updated: December 28, 2025**
+
+---
+
+## Audit Fixes Applied
+
+### 1. Critical "Split-Brain" Runtime Bug - FIXED ✅
+**File:** `packages/logigo-vite-plugin/src/index.ts`
+
+The injected runtime string now matches the optimized `logigo-core` runtime:
+- ✅ `MAX_QUEUE_SIZE: 5000` - Queue overflow protection
+- ✅ `_queueOverflowWarned` flag - Single warning on overflow  
+- ✅ **Deferred Serialization** - `rawVariables` shallow copy in `checkpoint()`, heavy `safeSerialize()` in `_flush()`
+
+### 2. ES Module Resolution - FIXED ✅
+**Files:** All `.ts` files in packages
+
+Added `.js` extensions to all relative imports for proper ES module resolution:
+- `packages/logigo-vite-plugin/src/index.ts`
+- `packages/logigo-vite-plugin/src/instrumenter.ts`
+- `packages/logigo-vite-plugin/src/layout.ts`
+- `packages/logigo-core/src/index.ts`
+- `packages/logigo-core/src/runtime.ts`
+
+### 3. Rollup Config - FIXED ✅
+**File:** `packages/logigo-embed/rollup.config.js`
+
+- ✅ Added `cssStub()` plugin to handle CSS imports from @xyflow/react
+- ✅ Added `inlineDynamicImports: true` for lazy-loaded dagre
+- ✅ Added `@xyflow/react` to externals
+- ✅ Added `"type": "module"` to package.json
+
+### 4. Build Status - ALL PASSING ✅
+
+| Package | Build | Exports |
+|---------|-------|---------|
+| `logigo-core` | ✅ | `LogiGoRuntime`, `checkpoint`, `checkpointAsync`, `createRuntime`, `generateGroundingContext` |
+| `logigo-embed` | ✅ | `LogiGoEmbed`, `default` |
+| `logigo-vite-plugin` | ✅ | `logigoPlugin`, `default` |
 
 ---
 

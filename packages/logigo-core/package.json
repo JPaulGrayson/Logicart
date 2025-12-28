@@ -1,8 +1,14 @@
 {
   "name": "logigo-core",
   "version": "1.0.0",
-  "description": "LogiGo runtime library for checkpoint-based debugging",
+  "description": "LogiGo runtime library for checkpoint-based debugging and live code visualization",
   "type": "module",
+  "author": "LogiGo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/logigo/logigo-core"
+  },
+  "homepage": "https://github.com/logigo/logigo-core#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

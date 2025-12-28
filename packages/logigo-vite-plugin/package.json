@@ -1,8 +1,14 @@
 {
   "name": "logigo-vite-plugin",
   "version": "1.0.0",
-  "description": "Vite plugin for LogiGo build-time instrumentation",
+  "description": "Vite plugin for LogiGo build-time code instrumentation and flowchart generation",
   "type": "module",
+  "author": "LogiGo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/logigo/logigo-vite-plugin"
+  },
+  "homepage": "https://github.com/logigo/logigo-vite-plugin#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

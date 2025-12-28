@@ -1,8 +1,8 @@
-export { LogiGoRuntime, createRuntime, checkpoint, checkpointAsync } from './runtime';
-export type { CheckpointData, RuntimeOptions, Breakpoint } from './types';
+export { LogiGoRuntime, createRuntime, checkpoint, checkpointAsync } from './runtime.js';
+export type { CheckpointData, RuntimeOptions, Breakpoint } from './types.js';
 
 // Grounding Layer exports
-export { generateGroundingContext } from './grounding';
+export { generateGroundingContext } from './grounding.js';
 export type { 
   GroundingContext, 
   GroundingNode, 
@@ -10,4 +10,4 @@ export type {
   GroundingSummary,
   FlowNodeInput,
   FlowEdgeInput
-} from './grounding';
+} from './grounding.js';
