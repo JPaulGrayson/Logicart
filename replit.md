@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 - **Technology Stack**: React 18+ with TypeScript, Vite, React Router (wouter), TanStack Query, Tailwind CSS v4.
 - **UI/UX Decisions**: Workbench-style IDE with a 2-panel, flowchart-first layout. "Technical, Clean, Blueprint-like" aesthetic with dark mode, blue accent, JetBrains Mono font for code, and Inter for UI.
 - **Key Libraries**: `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, shadcn/ui.
-- **Design Patterns**: Resizable panel layout, custom React Flow nodes (e.g., `DecisionNode`), pluggable `IDEAdapter` for multi-IDE integration (e.g., `ReplitAdapter`), `FeatureManager` for premium features.
+- **Design Patterns**: Resizable panel layout, custom React Flow nodes (e.g., `DecisionNode`), pluggable `IDEAdapter` for multi-IDE integration (e.g., `ReplitAdapter`), `FeatureManager` for feature flags (future Voyai integration).
 - **Data Flow**: Code is parsed by Acorn, converted to FlowNodes/FlowEdges, rendered by React Flow. An interpreter highlights execution steps and displays variable states. Double-clicking nodes enables inline editing and source code patching.
 
 ### Parser & Interpreter
@@ -26,7 +26,7 @@ Preferred communication style: Simple, everyday language.
 ### Core Features & Architecture Patterns
 - **Three-tier Hybrid Model**:
     - **Static Mode**: Instant flowchart from pasted code via Acorn parsing.
-    - **Live Mode (Premium)**: Runtime overlay showing live execution data from instrumented code using `LogiGo.checkpoint()`.
+    - **Live Mode**: Runtime overlay showing live execution data from instrumented code using `LogiGo.checkpoint()`.
     - **Blueprint Schema (Future)**: AI-generated JSON blueprints.
 - **Cross-Replit Communication (Remote Mode)**: Enables external Replit apps to send checkpoint data to LogiGo for real-time visualization via SSE and a control WebSocket channel for bidirectional debugging.
 - **Bidirectional Control Protocol**: Full debugging capabilities via WebSocket control channel:
@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **logigo-core NPM Package**: Standalone runtime library for manual checkpoint instrumentation and core execution control.
 - **Zero-Code Auto-Discovery**: Opt-in feature to automatically scan, extract, and instrument global functions from `<script>` tags for flowchart visualization.
 - **Zero-Code Reverse Proxy**: Proxies and instruments any web application (including ES module/Vite/React apps) by injecting `remote.js` and checkpoint calls for true zero-code integration.
-- **Premium Features**: Ghost Diff (visualizes code changes in flowcharts), Speed Governor, Export to Documentation, Runtime Overlay, Natural Language Search, controlled by a `FeatureManager`.
+- **Advanced Features**: Ghost Diff (visualizes code changes in flowcharts), Speed Governor, Export to Documentation, Runtime Overlay, Natural Language Search, controlled by `FeatureManager` (future Voyai licensing integration).
 - **Hierarchical Views**: Manages large codebases with zoom-based views (Mile-high, 1000ft, 100ft) using section grouping and collapsible container nodes.
 - **Algorithm Examples Library**: Built-in, instrumented examples for learning and testing.
 - **Self-Healing Connection Loop**: Automatic reconnection and session renewal for remote connections.

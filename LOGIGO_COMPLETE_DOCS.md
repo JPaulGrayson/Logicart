@@ -211,7 +211,7 @@ Labeled nodes show a blue indicator dot. Hover to see original code.
 |-----|--------|
 | `Space` / `K` | Play/Pause |
 | `S` | Step Forward |
-| `B` | Step Backward (Premium) |
+| `B` | Step Backward |
 | `R` | Reset |
 | `F` | Fullscreen |
 | `Ctrl+Z` | Undo |

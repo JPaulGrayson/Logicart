@@ -173,7 +173,7 @@ When this checkpoint fires, LogiGo highlights both the flowchart node AND the DO
 |-----|--------|
 | `Space` or `K` | Play/Pause execution |
 | `S` | Step forward |
-| `B` | Step backward (Premium) |
+| `B` | Step backward |
 | `R` | Reset to beginning |
 | `F` | Toggle fullscreen |
 | `Escape` | Exit fullscreen |
