@@ -1263,14 +1263,20 @@ export default function Workbench() {
   }, [code]);
 
   const handleLoadSample = () => {
+    historyManager.push(SAMPLE_CODE, 'Load sample', true);
     adapter.writeFile(SAMPLE_CODE);
+    setCanUndo(historyManager.canUndo());
+    setCanRedo(historyManager.canRedo());
   };
 
   const handleLoadExample = (exampleId: string) => {
     const example = algorithmExamples.find(e => e.id === exampleId);
     if (example) {
+      historyManager.push(example.code, `Load ${example.name}`, true);
       adapter.writeFile(example.code);
       setCurrentAlgorithm(exampleId);
+      setCanUndo(historyManager.canUndo());
+      setCanRedo(historyManager.canRedo());
       
       // Stop any running animation and reset edit mode
       if (animationIntervalRef.current) {
