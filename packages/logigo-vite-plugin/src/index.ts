@@ -21,35 +21,35 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     autoInstrument = true,
     captureVariables = true
   } = options;
-  
+
   const fileDataMap = new Map<string, FileData>();
   let config: ResolvedConfig;
   let manifestHash = '';
-  
+
   function shouldInstrument(id: string): boolean {
     if (exclude.some(pattern => minimatch(id, pattern))) {
       return false;
     }
     return include.some(pattern => minimatch(id, pattern));
   }
-  
+
   return {
     name: 'logigo-vite-plugin',
-    
-    configResolved(resolvedConfig) {
+
+    configResolved(resolvedConfig: ResolvedConfig) {
       config = resolvedConfig;
     },
-    
+
     transform(code: string, id: string) {
       if (!autoInstrument) return null;
       if (!shouldInstrument(id)) return null;
       if (id.includes('logigo-')) return null;
-      
+
       const relativePath = id.replace(config.root + '/', '');
-      
+
       try {
         const result = instrumentFile(code, relativePath);
-        
+
         if (result.nodes.length > 0) {
           fileDataMap.set(relativePath, {
             checksum: generateFileChecksum(code),
@@ -59,7 +59,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
             checkpoints: result.checkpoints
           });
         }
-        
+
         return {
           code: result.code,
           map: null
@@ -69,28 +69,28 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
         return null;
       }
     },
-    
+
     generateBundle() {
       const allNodes: FlowNode[] = [];
       const allEdges: FlowEdge[] = [];
       const allCheckpoints: Record<string, CheckpointMetadata> = {};
       const files: Record<string, { checksum: string; functions: string[] }> = {};
       const checksums: string[] = [];
-      
+
       for (const [path, data] of fileDataMap) {
         files[path] = {
           checksum: data.checksum,
           functions: data.functions
         };
         checksums.push(data.checksum);
-        
+
         allNodes.push(...data.nodes);
         allEdges.push(...data.edges);
         Object.assign(allCheckpoints, data.checkpoints);
       }
-      
+
       manifestHash = generateManifestHash(checksums);
-      
+
       const manifest: LogiGoManifest = {
         version: '1.0',
         hash: manifestHash,
@@ -100,13 +100,13 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
         edges: allEdges,
         checkpoints: allCheckpoints
       };
-      
+
       this.emitFile({
         type: 'asset',
         fileName: manifestPath,
         source: JSON.stringify(manifest, null, 2)
       });
-      
+
       const runtimeInit = `
 ;(function() {
   var MANIFEST_HASH = '${manifestHash}';
@@ -284,17 +284,17 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
   });
 })();
 `;
-      
+
       this.emitFile({
         type: 'asset',
         fileName: 'logigo-runtime.js',
         source: runtimeInit
       });
-      
+
       console.log(`[LogiGo] Generated manifest with ${allNodes.length} nodes from ${fileDataMap.size} files`);
     },
-    
-    transformIndexHtml(html) {
+
+    transformIndexHtml(html: string) {
       return {
         html,
         tags: [
@@ -318,14 +318,14 @@ function minimatch(path: string, pattern: string): boolean {
     }
     return path.includes(suffix.replace('**/', ''));
   }
-  
+
   if (pattern.includes('*')) {
     const regex = new RegExp(
       '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$'
     );
     return regex.test(path);
   }
-  
+
   return path === pattern || path.endsWith(pattern);
 }
 
