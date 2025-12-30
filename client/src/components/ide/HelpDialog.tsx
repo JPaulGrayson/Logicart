@@ -698,7 +698,7 @@ while (i < 10) {
               </section>
 
               <section>
-                <h3 className="text-lg font-semibold mb-3">Premium Features</h3>
+                <h3 className="text-lg font-semibold mb-3">Advanced Features</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
                   <li>• <strong>Time Travel:</strong> Step backward through execution history</li>
                   <li>• <strong>Export:</strong> Save flowcharts as PNG or PDF images</li>
@@ -810,7 +810,7 @@ while (i < 10) {
                     <li>✓ Visual Handshake (code ↔ DOM highlighting)</li>
                     <li>✓ Variable inspection and tracking</li>
                     <li>✓ Export to PNG/PDF</li>
-                    <li>✓ Natural Language Search (Premium)</li>
+                    <li>✓ Natural Language Search</li>
                     <li>✓ Model Arena (4-AI comparison)</li>
                     <li>✓ Debug Arena (AI debugging advice)</li>
                     <li>✓ BYOK (Bring Your Own API Keys)</li>
