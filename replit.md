@@ -124,6 +124,15 @@ Preferred communication style: Simple, everyday language.
 }
 ```
 
+### Documentation
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/docs` | GET | List all available documentation files |
+| `/api/docs/:file` | GET | Get documentation file content as JSON |
+| `/docs/:slug` | GET | View documentation as styled HTML page |
+
+**Available documentation slugs:** `getting-started`, `installation`, `api-reference`, `common-pitfalls`, `quick-reference`, `integration`, `vibe-coder-guide`
+
 ### Sharing
 | Endpoint | Method | Description |
 |----------|--------|-------------|
