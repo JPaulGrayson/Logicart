@@ -37,9 +37,11 @@ This test plan divides testing responsibilities among three parties to maximize 
 # 🤖 Part 1: Antigravity AI Testing
 
 **Responsibility:** Code analysis, static verification, package testing  
-**Environment:** Local macOS development environment  
+**Environment:** Local macOS development environment + Browser  
 **Duration:** 4-6 hours  
-**Tools:** Terminal, code analysis, build tools
+**Tools:** Terminal, code analysis, build tools, **browser with recording**
+
+**📹 Browser Testing:** Antigravity will use browser automation to test runtime features and create video recordings (WebP format) for review. See `BROWSER_TESTING_PLAN.md` for details.
 
 ---
 
@@ -344,9 +346,11 @@ ls dist/*.map
 # 🤖 Part 2: Replit Agent Testing
 
 **Responsibility:** Runtime testing, feature verification, UI/UX  
-**Environment:** Replit LogiGo Studio (live application)  
+**Environment:** Replit LogiGo Studio (live application) + Browser  
 **Duration:** 6-8 hours  
-**Tools:** Browser, Replit IDE, manual testing
+**Tools:** Browser, Replit IDE, manual testing, **browser recording**
+
+**📹 Browser Testing:** Replit will test all features in the browser and create video recordings (WebP format) of each test for review. See `BROWSER_TESTING_PLAN.md` for details.
 
 ---
 
