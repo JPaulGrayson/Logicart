@@ -1,56 +1,98 @@
 # LogiGo Getting Started Guide
 
-This guide walks you through integrating LogiGo into your JavaScript projects for visual code debugging.
-
-## Two Integration Modes
-
-LogiGo supports two modes of operation:
-
-### Static Mode (Recommended Start)
-Copy-paste your JavaScript code into LogiGo Studio to instantly see a flowchart. No installation required.
-
-**Best for:**
-- Quick code visualization
-- Learning algorithm logic
-- Code reviews and documentation
-
-### Live Mode (Advanced)
-Install `logigo-core` to get real-time execution visualization with variable tracking.
-
-**Best for:**
-- Debugging complex logic
-- Understanding code execution flow
-- Interactive algorithm demonstrations
+**Learn to visualize and debug JavaScript code in 5 minutes**
 
 ---
 
-## Quick Start: Static Mode
+## 🎯 What You'll Learn
 
-1. Open LogiGo Studio
-2. Paste your JavaScript function into the code editor
-3. The flowchart appears automatically
-4. Use the execution controls to step through:
-   - Press `Space` or `K` to play/pause
-   - Press `S` to step forward
-   - Press `R` to reset
+By the end of this guide, you'll know how to:
+- ✅ Visualize any JavaScript function as a flowchart
+- ✅ Step through code execution line by line
+- ✅ Track variable values in real-time
+- ✅ Set breakpoints for debugging
+- ✅ Share flowcharts with your team
 
-### Adding Human-Readable Labels
+---
 
-Use `// @logigo:` comments to add custom labels that appear in the flowchart instead of code:
+## 🚀 Quick Start (2 Minutes)
+
+### Step 1: Open LogiGo Studio
+
+Navigate to [LogiGo Studio](https://logigo.studio) *(or your deployed URL)*
+
+### Step 2: Paste Code
+
+Copy this example and paste it into the code editor:
 
 ```javascript
-// @logigo: Initialize total
+function findMax(numbers) {
+  let max = numbers[0];
+  
+  for (let i = 1; i < numbers.length; i++) {
+    if (numbers[i] > max) {
+      max = numbers[i];
+    }
+  }
+  
+  return max;
+}
+```
+
+### Step 3: See the Flowchart
+
+The flowchart appears automatically in the right panel.
+
+**✅ Expected Result:**
+- Nodes for each statement (initialization, loop, comparison, return)
+- Edges showing control flow
+- Container nodes for the loop structure
+
+### Step 4: Step Through Execution
+
+Use keyboard shortcuts to control execution:
+
+| Key | Action | What Happens |
+|-----|--------|--------------|
+| `Space` or `K` | Play/Pause | Auto-steps through code |
+| `S` | Step Forward | Advances one node |
+| `B` | Step Backward | Goes back one node |
+| `R` | Reset | Returns to start |
+
+**Try it:** Press `Space` to watch the flowchart highlight each step!
+
+---
+
+## 🎨 Adding Human-Readable Labels
+
+Make your flowcharts easier to understand with custom labels.
+
+### Without Labels (Default)
+
+```javascript
+let total = 0;
+if (items.length === 0) {
+  return 0;
+}
+```
+
+**Flowchart shows:** `let total = 0;`, `if (items.length === 0)`, `return 0;`
+
+### With Labels (Better!)
+
+```javascript
+// @logigo: Initialize running total
 let total = 0;
 
-// @logigo: Check if empty
+// @logigo: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return early with zero
+  // @logigo: Return zero for empty array
   return 0;
 }
 
-// @logigo: Sum all items
+// @logigo: Calculate sum of all items
 for (let i = 0; i < items.length; i++) {
-  // @logigo: Add current item
+  // @logigo: Add current item to total
   total += items[i];
 }
 
@@ -58,167 +100,478 @@ for (let i = 0; i < items.length; i++) {
 return total;
 ```
 
-Nodes with user labels show a blue dot indicator. Hover over them to see the original code.
+**Flowchart shows:** "Initialize running total", "Check if array is empty", etc.
+
+**Visual Indicator:** Labeled nodes have a **blue dot** in the corner. Hover to see original code.
 
 ---
 
-## Live Mode Integration
+## 🔍 Understanding the Interface
 
-### Step 1: Install logigo-core
+### Main Components
 
-```bash
-npm install logigo-core
+```
+┌─────────────────────────────────────────────────────────┐
+│  LogiGo Studio                                          │
+├──────────────────┬──────────────────────────────────────┤
+│                  │                                      │
+│  Code Editor     │  Flowchart Visualization            │
+│                  │                                      │
+│  - Monaco Editor │  - Interactive nodes                │
+│  - Syntax        │  - Step highlighting                │
+│    highlighting  │  - Zoom/pan controls                │
+│  - Line numbers  │                                      │
+│                  │                                      │
+├──────────────────┴──────────────────────────────────────┤
+│  Debug Panel (Floating)                                 │
+│  - Current step indicator                               │
+│  - Variable values                                      │
+│  - Call stack                                           │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Step 2: Add Checkpoints to Your Code
+### Debug Panel Features
 
-Import and use `LogiGo.checkpoint()` to mark execution points:
+The floating Debug Panel shows real-time execution state:
+
+**Current Step Tab:**
+- Step number (e.g., "Step 5/12")
+- Active node label
+- Current function name
+
+**Variables Tab:**
+- All tracked variables
+- Current values
+- Type information
+
+**Call Stack Tab:**
+- Function call hierarchy
+- Current execution context
+
+**History Tab:**
+- Variable changes over time
+- Timeline of execution
+
+---
+
+## ⌨️ Keyboard Shortcuts (Learn These!)
+
+### Essential Shortcuts
+
+| Key | Action | When to Use |
+|-----|--------|-------------|
+| `Space` or `K` | Play/Pause | Auto-step through code |
+| `S` | Step Forward | Advance one node manually |
+| `B` | Step Backward | Review previous steps |
+| `R` | Reset | Start from beginning |
+
+### Advanced Shortcuts
+
+| Key | Action | When to Use |
+|-----|--------|-------------|
+| `F` | Fullscreen | Focus on flowchart |
+| `Escape` | Exit Fullscreen | Return to normal view |
+| `Ctrl/Cmd + Z` | Undo | Revert code changes |
+| `Ctrl/Cmd + Y` | Redo | Reapply code changes |
+| `Ctrl/Cmd + O` | Import File | Load code from file |
+| `Ctrl/Cmd + S` | Export File | Save code to file |
+
+**💡 Pro Tip:** Press `?` in LogiGo Studio to see the full shortcut reference.
+
+---
+
+## 🐛 Debugging with Breakpoints
+
+### Setting Breakpoints
+
+**Method 1: Right-click a node**
+1. Right-click any flowchart node
+2. Select "Set Breakpoint"
+3. Node border turns red
+
+**Method 2: Click the node border**
+1. Click the left edge of a node
+2. Red indicator appears
+
+### Using Breakpoints
+
+1. Set breakpoints on critical nodes (e.g., before a complex calculation)
+2. Press `Space` to start execution
+3. Execution **pauses automatically** when reaching a breakpoint
+4. Inspect variables in the Debug Panel
+5. Press `Space` again to continue
+
+**Use Case Example:**
+```javascript
+function processOrder(order) {
+  // Set breakpoint here to inspect order data
+  const total = calculateTotal(order.items);
+  
+  // Set breakpoint here to verify total before payment
+  const payment = processPayment(total);
+  
+  return payment;
+}
+```
+
+---
+
+## 📊 Variable Tracking
+
+### Automatic Tracking (Static Mode)
+
+LogiGo automatically tracks variables in your code:
 
 ```javascript
-import LogiGo from 'logigo-core';
-
-function bubbleSort(arr) {
-  LogiGo.checkpoint('sort:init', { arr: [...arr] });
+function fibonacci(n) {
+  let a = 0;  // Tracked
+  let b = 1;  // Tracked
   
+  for (let i = 2; i <= n; i++) {  // i is tracked
+    let temp = a + b;  // temp is tracked
+    a = b;
+    b = temp;
+  }
+  
+  return b;
+}
+```
+
+**Debug Panel shows:**
+```
+Variables:
+  n: 5
+  a: 3
+  b: 5
+  i: 5
+  temp: 5
+```
+
+### Manual Tracking (Live Mode)
+
+For advanced tracking with `logigo-core`:
+
+```javascript
+import { checkpoint } from 'logigo-core';
+
+function processData(data) {
+  checkpoint('process:start', { data });
+  
+  const result = transform(data);
+  
+  checkpoint('process:complete', { result });
+  return result;
+}
+```
+
+---
+
+## 🎓 Try These Examples
+
+LogiGo Studio includes built-in examples. Click the **EXAMPLES** dropdown to try:
+
+### 1. Bubble Sort
+**What it teaches:** Nested loops, array manipulation, swapping
+
+```javascript
+function bubbleSort(arr) {
   for (let i = 0; i < arr.length; i++) {
     for (let j = 0; j < arr.length - i - 1; j++) {
-      LogiGo.checkpoint(`sort:compare:${j}`, {
-        comparing: [j, j + 1],
-        values: [arr[j], arr[j + 1]]
-      });
-      
       if (arr[j] > arr[j + 1]) {
         [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        
-        LogiGo.checkpoint(`sort:swap:${j}`, {
-          swapped: [j, j + 1],
-          arr: [...arr]
-        });
       }
     }
   }
-  
-  LogiGo.checkpoint('sort:complete', { arr: [...arr] });
   return arr;
 }
 ```
 
-### Step 3: Connect to LogiGo Studio
+**Try:** Watch how the inner loop shrinks each iteration
 
-1. Open LogiGo Studio
-2. Run your application
-3. LogiGo Studio automatically connects and shows live execution
-
----
-
-## Checkpoint API Reference
+### 2. Fibonacci (Recursive)
+**What it teaches:** Recursion, base cases, call stack
 
 ```javascript
-LogiGo.checkpoint(id, payload);
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | string | Unique identifier for this checkpoint (e.g., `'loop:compare:5'`) |
-| `payload` | object | Optional data to capture at this point |
+**Try:** Set a breakpoint on the recursive call and watch the call stack
 
-### Checkpoint ID Conventions
-
-Use hierarchical IDs for organized debugging:
+### 3. Tic-Tac-Toe Winner Check
+**What it teaches:** Complex conditionals, game logic
 
 ```javascript
-// Format: section:action:identifier
-LogiGo.checkpoint('auth:validate:token');
-LogiGo.checkpoint('sort:compare:3');
-LogiGo.checkpoint('fetch:response:success');
+function checkWinner(board) {
+  // Check rows
+  for (let i = 0; i < 3; i++) {
+    if (board[i][0] === board[i][1] && 
+        board[i][1] === board[i][2] && 
+        board[i][0] !== null) {
+      return board[i][0];
+    }
+  }
+  // ... more checks
+}
 ```
 
-### Payload Best Practices
+**Try:** Step through to understand the win condition logic
 
+---
+
+## 🔗 Sharing Flowcharts
+
+### Create a Shareable Link
+
+1. Click the **Share** button (top-right)
+2. Add optional title: "Bubble Sort Algorithm"
+3. Add optional description: "Demonstrates nested loop optimization"
+4. Click **Generate Link**
+5. Copy the URL
+
+### What Recipients See
+
+When someone opens your shared link, they get:
+- ✅ Complete source code (read-only)
+- ✅ Interactive flowchart
+- ✅ Step-through controls
+- ✅ Variable tracking
+- ✅ Your title and description
+
+**Use Cases:**
+- Code reviews
+- Teaching algorithms
+- Documentation
+- Bug reports
+
+---
+
+## 🤖 AI Model Arena
+
+Get code generation help from 4 AI models simultaneously.
+
+### How to Use
+
+1. Click **Model Arena** in the navigation
+2. Enter a prompt: *"Generate a binary search algorithm with edge case handling"*
+3. Click **Submit**
+4. See responses from:
+   - **GPT-4o** (OpenAI)
+   - **Gemini** (Google)
+   - **Claude** (Anthropic)
+   - **Grok** (xAI)
+5. Read the **Chairman Verdict** for a synthesized recommendation
+
+### Example Prompts
+
+**Algorithm Generation:**
+```
+Generate a merge sort algorithm with detailed comments
+```
+
+**Debugging Help:**
+```
+Why does this function return undefined for empty arrays?
+[paste your code]
+```
+
+**Optimization:**
+```
+How can I optimize this nested loop for better performance?
+[paste your code]
+```
+
+**Code Explanation:**
+```
+Explain this recursive function step by step
+[paste your code]
+```
+
+---
+
+## 📱 Layout Presets
+
+Customize your workspace with layout presets.
+
+### Available Presets
+
+| Preset | Layout | Best For |
+|--------|--------|----------|
+| **Default** | 50/50 split | Balanced view |
+| **Code Focus** | 70% code, 30% flowchart | Writing code |
+| **Flowchart Focus** | 30% code, 70% flowchart | Debugging |
+| **Presentation** | Fullscreen flowchart | Demos, teaching |
+
+**Access:** Click the layout icon (top-right) and select a preset
+
+---
+
+## 🎯 Common Workflows
+
+### Workflow 1: Understanding New Code
+
+1. Paste code into LogiGo Studio
+2. Add `// @logigo:` labels for clarity
+3. Press `Space` to auto-step through
+4. Watch variable values in Debug Panel
+5. Set breakpoints on confusing sections
+6. Step through manually to understand
+
+### Workflow 2: Debugging a Bug
+
+1. Paste buggy code into LogiGo Studio
+2. Set breakpoints before the suspected bug
+3. Press `Space` to run to breakpoint
+4. Inspect variable values
+5. Step forward with `S` to find where values go wrong
+6. Fix code and re-test
+
+### Workflow 3: Teaching an Algorithm
+
+1. Write algorithm with clear `// @logigo:` labels
+2. Click **Share** to generate link
+3. Send link to students
+4. Students can step through at their own pace
+5. They see variable changes in real-time
+
+### Workflow 4: Code Review
+
+1. Paste code to review
+2. Add `// @logigo:` labels explaining intent
+3. Step through to verify logic
+4. Share link with team for discussion
+5. Use Debug Panel to verify edge cases
+
+---
+
+## 🚀 Next Steps
+
+### For Beginners
+- ✅ Try all built-in examples
+- ✅ Practice adding `// @logigo:` labels
+- ✅ Learn keyboard shortcuts
+- ✅ Share a flowchart with a friend
+
+### For Developers
+- ✅ Read the [Installation Guide](INSTALLATION_GUIDE.md) to add LogiGo to your projects
+- ✅ Try the `logigo-embed` React component
+- ✅ Explore the [API Reference](API_REFERENCE.md)
+
+### For Teams
+- ✅ Use shared flowcharts for code reviews
+- ✅ Create a library of algorithm visualizations
+- ✅ Use Model Arena for collaborative problem-solving
+
+---
+
+## 🐛 Troubleshooting
+
+### Flowchart shows "Syntax Error"
+
+**Cause:** Your code has a JavaScript syntax error
+
+**Fix:**
+1. Check the code editor for red underlines
+2. Ensure all brackets/parentheses are balanced
+3. Remove TypeScript-specific syntax (e.g., type annotations)
+
+### Variables not showing in Debug Panel
+
+**Cause:** Variables might be out of scope or not yet initialized
+
+**Fix:**
+1. Step forward to where variables are declared
+2. Check that you're viewing the correct execution step
+3. Ensure the variable is in the current function scope
+
+### Flowchart nodes are too small
+
+**Fix:**
+1. Use the zoom controls (bottom-right of flowchart)
+2. Click the "Fit View" button to auto-zoom
+3. Try the "Flowchart Focus" layout preset
+
+### Can't find a keyboard shortcut
+
+**Fix:**
+- Press `?` in LogiGo Studio to see all shortcuts
+- Check the Help dialog (click `?` icon in top-right)
+
+---
+
+## 💡 Pro Tips
+
+### Tip 1: Use Descriptive Checkpoint IDs
 ```javascript
-// Capture relevant state
-LogiGo.checkpoint('loop:iteration', {
-  i: currentIndex,
-  current: items[currentIndex],
-  remaining: items.length - currentIndex
-});
+// ❌ Bad
+checkpoint('cp1', { data });
+checkpoint('cp2', { result });
 
-// Use spread to capture array snapshots (avoid reference issues)
-LogiGo.checkpoint('array:modified', {
-  arr: [...myArray]  // Snapshot, not reference
-});
+// ✅ Good
+checkpoint('validation:start', { data });
+checkpoint('validation:complete', { result });
 ```
 
----
-
-## Visual Handshake (Optional)
-
-Connect checkpoints to DOM elements for visual highlighting:
-
+### Tip 2: Snapshot Arrays
 ```javascript
-LogiGo.checkpoint('sort:compare:5', {
-  comparing: [5, 6]
-}, {
-  domElement: '#bar-5'  // CSS selector for DOM element
-});
+// ❌ Bad (reference, not snapshot)
+checkpoint('sort:step', { arr });
+
+// ✅ Good (snapshot with spread)
+checkpoint('sort:step', { arr: [...arr] });
 ```
 
-When this checkpoint fires, LogiGo highlights both the flowchart node AND the DOM element.
+### Tip 3: Use Breakpoints Strategically
+Set breakpoints:
+- Before complex calculations
+- At loop boundaries
+- Before/after API calls
+- At error handling points
+
+### Tip 4: Combine Labels and Checkpoints
+```javascript
+// @logigo: Validate user input
+if (!isValid(input)) {
+  checkpoint('validation:failed', { input, errors });
+  return null;
+}
+```
 
 ---
 
-## Keyboard Shortcuts
+## 📚 Additional Resources
 
-| Key | Action |
-|-----|--------|
-| `Space` or `K` | Play/Pause execution |
-| `S` | Step forward |
-| `B` | Step backward |
-| `R` | Reset to beginning |
-| `F` | Toggle fullscreen |
-| `Escape` | Exit fullscreen |
-| `Ctrl/Cmd + O` | Import code file |
-| `Ctrl/Cmd + S` | Export code to file |
+- **[Installation Guide](INSTALLATION_GUIDE.md)** - Add LogiGo to your projects
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code and issues
+- **Help Dialog** - Press `?` in LogiGo Studio
 
 ---
 
-## Debug Panel
+## 🎓 Learning Path
 
-The floating Debug Panel shows:
-- **Current Step**: Step number and active node label
-- **Variables**: Current values of all tracked variables
-- **Call Stack**: Function call hierarchy
-- **History**: Variable changes over time (History tab)
+### Week 1: Basics
+- [ ] Complete this Getting Started guide
+- [ ] Try all built-in examples
+- [ ] Master keyboard shortcuts
+- [ ] Share your first flowchart
 
-### Breakpoints
+### Week 2: Integration
+- [ ] Read the Installation Guide
+- [ ] Add LogiGo to a personal project
+- [ ] Create custom checkpoints
+- [ ] Use breakpoints for debugging
 
-Right-click any flowchart node to set a breakpoint. Execution automatically pauses when reaching breakpoints.
-
----
-
-## Sharing Flowcharts
-
-Click "Share Flowchart" to generate a URL that includes your code. Recipients see the same flowchart when they open the link.
-
----
-
-## Install LogiGo in Your Projects
-
-Add LogiGo to your own projects on any platform (Replit, VS Code, Cursor, Antigravity, Windsurf).
-
-**See the full installation guide: [INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md)**
-
-The guide covers:
-- **LogiGoOverlay** - Visual debugging for frontend apps
-- **Checkpoint Helper** - Execution logging for backend apps
-- Platform-specific installation for all supported IDEs
-- Verification checklists and troubleshooting
+### Week 3: Advanced
+- [ ] Read the API Reference
+- [ ] Try the Vite plugin
+- [ ] Use Model Arena for code generation
+- [ ] Create a library of reusable visualizations
 
 ---
 
-## Next Steps
+**Made with ❤️ for Vibe Coders who learn by seeing**
 
-- Explore the built-in algorithm examples (Examples dropdown)
-- Try the Ghost Diff feature to visualize code changes
-- Check the Help dialog (`?` button) for more shortcuts and features
-- Use the [Installation Guide](./INSTALLATION_GUIDE.md) to add LogiGo to your projects
+**Questions?** Check the [Installation Guide](INSTALLATION_GUIDE.md) or [open an issue](https://github.com/JPaulGrayson/LogiGo/issues).

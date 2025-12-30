@@ -1,163 +1,411 @@
 # LogiGo Installation Guide
 
-Add LogiGo visualization to your JavaScript projects to see your code as interactive flowcharts.
-
-## What is LogiGo?
-
-LogiGo transforms your JavaScript code into step-by-step flowchart visualizations. It helps you:
-
-- Understand complex control flow at a glance
-- Debug by watching execution step-by-step
-- Learn algorithms visually
-- Share code explanations with others
-
-## Understanding LogiGo's Two Components
-
-LogiGo has **two distinct use cases**:
-
-| Component | Use Case | Environment | What It Does |
-|-----------|----------|-------------|--------------|
-| **LogiGoOverlay** | Visual debugging | Browser/Frontend | Displays interactive overlay with play/pause controls |
-| **Checkpoint Helper** | Execution logging | Server/Backend | Logs checkpoint events to console for debugging |
-
-Choose the right one based on where your code runs:
-- **Frontend apps (React, Vue, etc.)**: Use `LogiGoOverlay` from `logigo-core`
-- **Backend apps (Node.js, Express, etc.)**: Use the Checkpoint Helper (no npm package needed)
-- **Both**: Use both - overlay in frontend, helper in backend
+**Add LogiGo visualization to your JavaScript projects**
 
 ---
 
-## Visualization Modes Explained
+## 🎯 Which Integration Method Should I Use?
 
-LogiGo offers three ways to visualize your code:
+Use this decision tree to find the right approach:
 
-### 1. Static Mode (Paste into Studio)
-**Best for**: Quick visualization, learning, code reviews
+```
+START HERE: What do you want to do?
+│
+├─ 📖 Just visualize code to understand it
+│  │
+│  └─ ✅ STATIC MODE (No Installation)
+│     • Open LogiGo Studio
+│     • Paste your code
+│     • See flowchart instantly
+│     └─ Best for: Learning, code reviews, quick visualization
+│
+├─ 🔧 Add flowcharts to my React app
+│  │
+│  └─ ✅ EMBED COMPONENT
+│     • npm install logigo-embed
+│     • Import <LogiGoEmbed /> component
+│     • Pass code as prop
+│     └─ Best for: Documentation, demos, educational apps
+│
+├─ 🏗️ Auto-instrument my Vite project
+│  │
+│  └─ ✅ VITE PLUGIN
+│     • npm install logigo-vite-plugin
+│     • Add to vite.config.js
+│     • Automatic checkpoint injection
+│     └─ Best for: Build-time instrumentation, minimal code changes
+│
+├─ 🐛 Debug my Node.js/Express server
+│  │
+│  └─ ✅ BACKEND LOGGING
+│     • Copy checkpoint helper (no npm package)
+│     • Add to server file
+│     • Logs to console
+│     └─ Best for: Server-side debugging, API logic
+│
+└─ 🎯 Fine-grained control over checkpoints
+   │
+   └─ ✅ MANUAL CHECKPOINTS
+      • npm install logigo-core
+      • Add checkpoint() calls manually
+      • Full control over tracking
+      └─ Best for: Complex debugging, precise instrumentation
+```
 
-Simply paste your JavaScript code into LogiGo Studio. The flowchart appears instantly.
-- ✅ No installation required
-- ✅ Works with any JavaScript code
-- ❌ No real-time execution tracking
+---
 
-### 2. Frontend Live Mode (Overlay in Your App)
-**Best for**: Debugging React/Vue apps, interactive demos
+## 📦 Installation Methods
 
-Install `logigo-core` and add the overlay to your frontend. See execution in real-time within your own app.
-- ✅ Real-time visualization
-- ✅ DOM element highlighting
+Jump to your chosen method:
+
+- [Static Mode (No Installation)](#static-mode-no-installation)
+- [Embed Component (React)](#embed-component-react)
+- [Vite Plugin (Build-Time)](#vite-plugin-build-time)
+- [Backend Logging (Node.js)](#backend-logging-nodejs)
+- [Manual Checkpoints (Advanced)](#manual-checkpoints-advanced)
+- [IDE Extensions](#ide-extensions)
+
+---
+
+## Static Mode (No Installation)
+
+**Best for:** Quick visualization, learning, code reviews
+
+### What You Get
+- ✅ Instant flowchart visualization
+- ✅ Step-through execution
 - ✅ Variable tracking
-- ❌ Only works with frontend apps
+- ❌ No real-time execution in your app
 
-### 3. Backend Logging Mode (Console Checkpoints)
-**Best for**: Debugging Node.js/Express servers, API logic
+### How to Use
 
-Add the checkpoint helper to your server code. Execution flow is logged to the console.
+1. **Open** [LogiGo Studio](https://logigo.studio)
+2. **Paste** your JavaScript code into the editor
+3. **Watch** the flowchart appear automatically
+4. **Press** `Space` to step through
+
+### Example
+
+```javascript
+function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1);
+}
+```
+
+**That's it!** No installation, no configuration.
+
+### When to Use Static Mode
+
+✅ **Good for:**
+- Understanding algorithm logic
+- Code reviews and documentation
+- Teaching programming concepts
+- Quick debugging of isolated functions
+
+❌ **Not ideal for:**
+- Real-time execution tracking
+- Debugging running applications
+- Integration with your codebase
+
+---
+
+## Embed Component (React)
+
+**Best for:** Adding flowcharts to React apps, documentation sites, educational tools
+
+### Installation
+
+```bash
+npm install logigo-embed
+```
+
+### Required CSS
+
+```javascript
+import '@xyflow/react/dist/style.css';
+```
+
+### Basic Usage
+
+```javascript
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function CodeViewer() {
+  const code = `
+    function bubbleSort(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+          if (arr[j] > arr[j + 1]) {
+            [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          }
+        }
+      }
+      return arr;
+    }
+  `;
+  
+  return (
+    <LogiGoEmbed
+      code={code}
+      theme="dark"
+      position="bottom-right"
+      defaultOpen={true}
+      showVariables={true}
+    />
+  );
+}
+```
+
+### Component Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | string | - | JavaScript code to visualize (Static Mode) |
+| `manifestUrl` | string | - | Manifest URL for Live Mode |
+| `theme` | `'dark'` \| `'light'` | `'dark'` | Color theme |
+| `position` | string | `'bottom-right'` | Panel position |
+| `showVariables` | boolean | `true` | Show variable inspector |
+| `showHistory` | boolean | `false` | Show checkpoint history |
+| `defaultOpen` | boolean | `false` | Open panel by default |
+| `onNodeClick` | function | - | Callback when node is clicked |
+
+### Advanced Example
+
+```javascript
+import { LogiGoEmbed } from 'logigo-embed';
+import { useState } from 'react';
+
+function AlgorithmDemo() {
+  const [selectedAlgo, setSelectedAlgo] = useState('bubble');
+  
+  const algorithms = {
+    bubble: `function bubbleSort(arr) { /* ... */ }`,
+    quick: `function quickSort(arr) { /* ... */ }`,
+    merge: `function mergeSort(arr) { /* ... */ }`
+  };
+  
+  return (
+    <div>
+      <select onChange={(e) => setSelectedAlgo(e.target.value)}>
+        <option value="bubble">Bubble Sort</option>
+        <option value="quick">Quick Sort</option>
+        <option value="merge">Merge Sort</option>
+      </select>
+      
+      <LogiGoEmbed
+        code={algorithms[selectedAlgo]}
+        theme="dark"
+        showVariables={true}
+        onNodeClick={(nodeId) => console.log('Clicked:', nodeId)}
+      />
+    </div>
+  );
+}
+```
+
+### Verification Checklist
+
+- [ ] `logigo-embed` appears in `package.json`
+- [ ] CSS import is present: `import '@xyflow/react/dist/style.css';`
+- [ ] Component renders without errors
+- [ ] Flowchart displays nodes for your code
+- [ ] Step controls work (Space, S, R)
+
+### Troubleshooting
+
+**"Module not found: logigo-embed"**
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**CSS not loading**
+```javascript
+// Make sure this is at the top of your file
+import '@xyflow/react/dist/style.css';
+```
+
+**Flowchart not appearing**
+- Check browser console for errors
+- Verify `code` prop is a valid string
+- Ensure React version is 16+
+
+---
+
+## Vite Plugin (Build-Time)
+
+**Best for:** Automatic instrumentation, minimal code changes, Vite projects
+
+### Installation
+
+```bash
+npm install logigo-vite-plugin --save-dev
+npm install logigo-embed
+```
+
+### Configuration
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import logigoPlugin from 'logigo-vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    logigoPlugin({
+      include: ['src/**/*.tsx', 'src/**/*.ts'],
+      exclude: ['**/node_modules/**', '**/*.test.*'],
+      manifestPath: 'logigo-manifest.json',
+      autoInstrument: true,
+      captureVariables: true
+    })
+  ]
+});
+```
+
+### Plugin Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `include` | string[] | `['**/*.js', '**/*.ts']` | Files to instrument |
+| `exclude` | string[] | `['/node_modules/']` | Files to skip |
+| `manifestPath` | string | `'logigo-manifest.json'` | Output path for manifest |
+| `autoInstrument` | boolean | `true` | Auto-inject checkpoints |
+| `captureVariables` | boolean | `true` | Capture local variables |
+
+### Add Embed Component
+
+```javascript
+// src/App.tsx
+import { LogiGoEmbed } from 'logigo-embed';
+import '@xyflow/react/dist/style.css';
+
+function App() {
+  return (
+    <div>
+      {/* Your app content */}
+      
+      <LogiGoEmbed
+        manifestUrl="/logigo-manifest.json"
+        showVariables={true}
+        showHistory={true}
+        theme="dark"
+      />
+    </div>
+  );
+}
+```
+
+### Build and Run
+
+```bash
+npm run dev
+```
+
+### What the Plugin Does
+
+1. **Parses** your source files using Acorn
+2. **Injects** `LogiGo.checkpoint()` calls at key points
+3. **Generates** `logigo-manifest.json` with flowchart data
+4. **Injects** runtime script into your HTML
+
+### Output Files
+
+```
+dist/
+├── logigo-manifest.json   # Flowchart nodes, edges, checkpoint metadata
+└── logigo-runtime.js      # Browser runtime for checkpoint handling
+```
+
+### Verification Checklist
+
+- [ ] `logigo-vite-plugin` in `devDependencies`
+- [ ] `logigo-embed` in `dependencies`
+- [ ] `vite.config.js` includes `logigoPlugin()`
+- [ ] Build completes without errors
+- [ ] `logigo-manifest.json` is generated in `dist/`
+- [ ] Flowchart shows with variable tracking
+
+### Troubleshooting
+
+**Manifest not generated**
+- Check `include` patterns match your files
+- Verify build completes successfully
+- Look for errors in terminal output
+
+**No variable tracking**
+- Ensure `captureVariables: true` (default)
+- Check that instrumented code is executing
+- Verify `showVariables={true}` in `LogiGoEmbed`
+
+---
+
+## Backend Logging (Node.js)
+
+**Best for:** Server-side debugging, API logic, Node.js/Express apps
+
+### What You Get
+- ✅ Execution logging to console
+- ✅ Variable tracking
 - ✅ Works with any Node.js code
-- ✅ Track variables and execution order
-- ❌ Console logs only (no visual flowchart)
-- 💡 **Tip**: Paste your server code into LogiGo Studio to see the flowchart structure
+- ❌ Console logs only (no visual flowchart in real-time)
 
-> **Important**: Backend checkpoints log to the console only. For visual debugging of backend code, paste the code into LogiGo Studio to see the flowchart, then read the console logs alongside it.
+### Installation
 
-### Cross-App Debugging (Coming Soon)
-Currently, LogiGo cannot visualize one app's execution in a different app (e.g., VisionLoop checkpoints appearing in LogiGo Studio). This is because `postMessage` only works within the same browser window.
+**No npm package needed!** Just add the helper function.
 
-**Future enhancement**: WebSocket bridge for cross-app debugging is planned.
+### Step 1: Add Checkpoint Helper
 
----
-
-## Choose Your Platform
-
-- [Replit](#replit) - Full integration with Replit Agent
-- [VS Code](#vs-code) - Extension for Visual Studio Code
-- [Cursor](#cursor) - Extension for Cursor IDE
-- [Antigravity](#antigravity) - Extension for Antigravity IDE
-- [Windsurf](#windsurf) - Extension for Windsurf IDE
-
----
-
-## Replit
-
-### Quick Install (Replit Agent)
-
-The easiest way to add LogiGo to your Replit project is to ask your Replit Agent. Copy and paste the following into your Agent chat:
-
-```
-Install LogiGo to visualize my code execution. Follow these steps:
-
-For BACKEND/SERVER code (Node.js, Express, etc.):
-Add this checkpoint helper to my main server file:
-
-const LogiGo = {
-  async checkpoint(nodeId, options = {}) {
-    const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
-    return Promise.resolve();
-  }
-};
-
-For FRONTEND code (React, Vue, etc.):
-1. Run: npm install logigo-core
-2. Add this to my main App component:
-
-import LogiGoOverlay from 'logigo-core';
-import { useEffect } from 'react';
-
-useEffect(() => {
-  const overlay = new LogiGoOverlay({ speed: 1.0, debug: true });
-  overlay.init();
-  return () => overlay.destroy();
-}, []);
-
-Then add checkpoints to key functions like this:
-await LogiGo.checkpoint('function:start', { variables: { data } });
-```
-
-### Manual Install - Backend/Server (Node.js)
-
-For server-side code, you don't need the npm package. Just add the checkpoint helper:
-
-**Step 1: Add the Checkpoint Helper**
-
-Add this code near the top of your main server file (e.g., `routes.ts`, `index.ts`, or `server.ts`):
+Add this to your main server file (e.g., `server.ts`, `routes.ts`, `index.ts`):
 
 ```typescript
 // LogiGo checkpoint helper for execution visualization
 const LogiGo = {
-  async checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
+  checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
     console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
-    return Promise.resolve();
   }
 };
 ```
 
-**Step 2: Add Checkpoints to Your Code**
+**JavaScript version:**
+```javascript
+const LogiGo = {
+  checkpoint(nodeId, options = {}) {
+    const vars = options.variables || {};
+    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+  }
+};
+```
 
-Insert `LogiGo.checkpoint()` calls at key points in your code:
+### Step 2: Add Checkpoints
 
 ```typescript
-async function processOrder(order) {
-  await LogiGo.checkpoint('order:start', {
+async function processOrder(order: Order) {
+  LogiGo.checkpoint('order:start', {
     variables: { orderId: order.id, items: order.items.length }
   });
 
   const isValid = validateOrder(order);
   
   if (!isValid) {
-    await LogiGo.checkpoint('order:invalid', {
+    LogiGo.checkpoint('order:invalid', {
       variables: { error: 'Validation failed' }
     });
     return { success: false };
   }
 
-  await LogiGo.checkpoint('order:payment', {
+  LogiGo.checkpoint('order:payment', {
     variables: { amount: order.total }
   });
   
   const payment = await processPayment(order);
 
-  await LogiGo.checkpoint('order:complete', {
+  LogiGo.checkpoint('order:complete', {
     variables: { success: true, transactionId: payment.id }
   });
   
@@ -165,162 +413,294 @@ async function processOrder(order) {
 }
 ```
 
-**Step 3: Run and Watch**
+### Step 3: Run and Watch
 
-Start your application. You'll see checkpoint logs in the console:
+Start your server and watch the console:
 
-```
-[LogiGo] order:start { "orderId": "abc123", "items": 3 }
-[LogiGo] order:payment { "amount": 99.99 }
-[LogiGo] order:complete { "success": true, "transactionId": "txn_456" }
+```bash
+npm run dev
 ```
 
-### Manual Install - Frontend (React/Browser)
+**Console output:**
+```
+[LogiGo] order:start {
+  "orderId": "abc123",
+  "items": 3
+}
+[LogiGo] order:payment {
+  "amount": 99.99
+}
+[LogiGo] order:complete {
+  "success": true,
+  "transactionId": "txn_456"
+}
+```
 
-For browser-based visualization with the interactive overlay:
+### Visualizing Backend Code
 
-**Step 1: Install the Package**
+**💡 Pro Tip:** To see the flowchart structure:
+
+1. Copy your server code
+2. Paste into LogiGo Studio
+3. See the flowchart visualization
+4. Correlate flowchart nodes with console logs
+
+**Example workflow:**
+```
+1. Paste server code into LogiGo Studio → See flowchart
+2. Run server → See console logs
+3. Match log IDs to flowchart nodes
+4. Understand execution flow visually
+```
+
+### Checkpoint Naming Convention
+
+Use hierarchical names for organized logging:
+
+```javascript
+// Format: section:action:detail
+LogiGo.checkpoint('auth:login:start');
+LogiGo.checkpoint('auth:login:validate');
+LogiGo.checkpoint('auth:login:success');
+
+LogiGo.checkpoint('api:users:fetch');
+LogiGo.checkpoint('api:users:response');
+
+LogiGo.checkpoint('db:query:start', { variables: { sql } });
+LogiGo.checkpoint('db:query:complete', { variables: { rows: result.length } });
+```
+
+### Verification Checklist
+
+- [ ] Checkpoint helper is added to server file
+- [ ] At least one `LogiGo.checkpoint()` call exists
+- [ ] Console shows `[LogiGo]` logs when code runs
+- [ ] Logs include checkpoint ID and variables
+
+### Troubleshooting
+
+**No logs appearing**
+- Verify checkpoint helper is defined
+- Check that instrumented code is executing
+- Look for JavaScript errors preventing execution
+
+**TypeScript errors**
+- Use the TypeScript version of the helper (with type annotations)
+- Ensure `Record<string, any>` type is available
+
+---
+
+## Manual Checkpoints (Advanced)
+
+**Best for:** Fine-grained control, complex debugging, precise instrumentation
+
+### Installation
 
 ```bash
 npm install logigo-core
 ```
 
-**Step 2: Initialize the Overlay**
+### Synchronous Checkpoints
 
 ```javascript
-import LogiGoOverlay from 'logigo-core';
-import { useEffect } from 'react';
+import { checkpoint } from 'logigo-core';
 
-function App() {
-  useEffect(() => {
-    const overlay = new LogiGoOverlay({ 
-      speed: 1.0,
-      debug: true,
-      position: 'bottom-right'
-    });
-    overlay.init();
+function bubbleSort(arr) {
+  checkpoint('sort:start', { arr: [...arr] });
+  
+  for (let i = 0; i < arr.length; i++) {
+    checkpoint('sort:outer', { i });
     
-    return () => overlay.destroy();
-  }, []);
-
-  // ... rest of your app
+    for (let j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        checkpoint('sort:swap', { i, j, arr: [...arr] });
+      }
+    }
+  }
+  
+  checkpoint('sort:end', { arr });
+  return arr;
 }
 ```
 
-**Step 3: Add Checkpoints**
-
-The `LogiGo` global is automatically available after initialization:
+### Async Checkpoints (With Breakpoints)
 
 ```javascript
-async function handleSubmit() {
-  await LogiGo.checkpoint('form:submit', {
-    domElement: '#submit-button',  // Highlights the button!
-    variables: { formData }
+import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+
+const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+runtime.setBreakpoint('critical_point', true);
+
+async function processData(data) {
+  await checkpointAsync('process:start', { data });
+  
+  // Execution pauses here if breakpoint is set
+  await checkpointAsync('critical_point', { data });
+  
+  const result = await transform(data);
+  
+  await checkpointAsync('process:complete', { result });
+  return result;
+}
+
+// Resume execution from breakpoint
+runtime.resume();
+```
+
+### Runtime API
+
+```javascript
+const runtime = new LogiGoRuntime();
+
+// Session control
+runtime.start();                           // Begin session
+runtime.end();                             // End session
+
+// Checkpoints
+runtime.checkpoint('id', { vars });        // Record checkpoint
+
+// Breakpoints
+runtime.setBreakpoint('id', true);         // Enable breakpoint
+runtime.removeBreakpoint('id');            // Remove breakpoint
+runtime.clearBreakpoints();                // Clear all
+
+// Execution control
+runtime.resume();                          // Continue from breakpoint
+```
+
+### Best Practices
+
+**1. Use Descriptive IDs**
+```javascript
+// ❌ Bad
+checkpoint('cp1', { data });
+checkpoint('cp2', { result });
+
+// ✅ Good
+checkpoint('validation:start', { data });
+checkpoint('validation:complete', { result });
+```
+
+**2. Snapshot Arrays**
+```javascript
+// ❌ Bad (reference)
+checkpoint('sort:step', { arr });
+
+// ✅ Good (snapshot)
+checkpoint('sort:step', { arr: [...arr] });
+```
+
+**3. Track Progress in Loops**
+```javascript
+for (let i = 0; i < items.length; i++) {
+  checkpoint('batch:item', {
+    index: i,
+    itemId: items[i].id,
+    progress: `${i + 1}/${items.length}`
   });
   
-  // ... form handling logic
+  await processItem(items[i]);
 }
 ```
 
-### Verification Checklist (Replit)
+### Verification Checklist
 
-- [ ] Checkpoint helper is added to server file (for backend)
-- [ ] `logigo-core` appears in package.json (for frontend)
-- [ ] At least one `LogiGo.checkpoint()` call exists in your code
-- [ ] Console shows `[LogiGo]` logs when the instrumented code runs
-- [ ] Logs include the checkpoint ID and variables
+- [ ] `logigo-core` in `package.json`
+- [ ] Checkpoints are being called
+- [ ] LogiGo Studio receives checkpoint data
+- [ ] Variables are tracked correctly
 
 ---
 
-## VS Code
+## IDE Extensions
 
-### Prerequisites
+Add LogiGo visualization directly to your IDE.
 
-- Visual Studio Code 1.85.0 or later
-- A JavaScript or TypeScript project
+### Supported IDEs
 
-### Installation Steps
+- [VS Code](#vs-code-extension)
+- [Cursor](#cursor-extension)
+- [Antigravity](#antigravity-extension)
+- [Windsurf](#windsurf-extension)
 
-**Option 1: Install from VSIX (Recommended)**
+---
+
+### VS Code Extension
+
+**Prerequisites:**
+- Visual Studio Code 1.85.0+
+- JavaScript or TypeScript project
+
+**Installation:**
+
+**Option 1: Install from VSIX**
 
 1. Download `logigo-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogiGo/releases)
 2. Open VS Code
 3. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
 4. Type: `Extensions: Install from VSIX`
-5. Navigate to and select the downloaded `.vsix` file
+5. Select the downloaded `.vsix` file
 6. Click **Install**
-7. Press `Cmd+Shift+P` → type `Reload Window` → press Enter
+7. Reload window: `Cmd+Shift+P` → `Reload Window`
 
 **Option 2: Manual Installation**
 
-If the VSIX install doesn't work, manually extract to the extensions folder:
-
 ```bash
-# Find your VS Code extensions folder
-# Mac: ~/.vscode/extensions/
-# Windows: %USERPROFILE%\.vscode\extensions\
-# Linux: ~/.vscode/extensions/
+# Mac
+mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
+unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
+cd ~/.vscode/extensions/logigo.logigo-1.0.0
+mv extension/* . && rm -rf extension
 
-# Create the extension folder and extract
+# Windows
+mkdir %USERPROFILE%\.vscode\extensions\logigo.logigo-1.0.0
+# Extract VSIX to this folder
+
+# Linux
 mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
 unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
 cd ~/.vscode/extensions/logigo.logigo-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
-Then reload VS Code.
-
-### Usage
+**Usage:**
 
 1. Open any `.js` or `.ts` file
-2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
-3. Type: `LogiGo: Visualize Current File`
-4. The flowchart panel appears beside your code
-5. Use the **EXAMPLES** dropdown to load sample algorithms
-6. Click nodes to jump to that line in your code
+2. Press `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+3. Flowchart panel appears beside your code
+4. Click nodes to jump to that line
 
-### Verification Checklist
+**Verification:**
 
 - [ ] `LogiGo: Visualize Current File` appears in Command Palette
-- [ ] Flowchart panel opens when command is run
-- [ ] Nodes appear for your code's control flow
-- [ ] Clicking a node jumps to the corresponding line
-- [ ] Selecting a different example updates the flowchart
+- [ ] Flowchart panel opens
+- [ ] Nodes appear for code's control flow
+- [ ] Clicking nodes jumps to corresponding line
+- [ ] Example selector updates flowchart
 
-### Troubleshooting
+**Troubleshooting:**
 
-**"No matching commands" when typing LogiGo:**
-- The extension isn't installed or activated
-- Reload the window: `Cmd+Shift+P` → `Reload Window`
-- Check that you have a `.js` or `.ts` file open (extension activates on these languages)
+**"No matching commands"**
+- Extension isn't installed or activated
+- Reload window: `Cmd+Shift+P` → `Reload Window`
+- Ensure you have a `.js` or `.ts` file open
 
-**Flowchart shows "Syntax Error":**
-- Your code has a JavaScript syntax error
-- LogiGo uses Acorn parser which only supports JavaScript (not TypeScript syntax)
-- For TypeScript files, the parser tries to handle common patterns but complex TS may fail
+**"Syntax Error" in flowchart**
+- Code has JavaScript syntax error
+- TypeScript-specific syntax may fail (Acorn parser)
 
 ---
 
-## Cursor
+### Cursor Extension
 
-### Prerequisites
-
+**Prerequisites:**
 - Cursor IDE (latest version)
-- A JavaScript or TypeScript project
+- JavaScript or TypeScript project
 
-### Installation Steps
+**Installation:**
 
-Cursor is a VS Code fork, so the installation is similar:
-
-**Option 1: Install from VSIX**
-
-1. Download `logigo-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogiGo/releases)
-2. Open Cursor
-3. Press `Cmd+Shift+P` → `Extensions: Install from VSIX`
-4. Select the `.vsix` file
-5. Reload window
-
-**Option 2: Manual Installation**
+Same as VS Code (Cursor is a VS Code fork):
 
 ```bash
 # Cursor extensions folder
@@ -330,40 +710,25 @@ cd ~/.cursor/extensions/logigo.logigo-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
-Reload Cursor.
-
-### Usage
+**Usage:**
 
 Same as VS Code:
-1. Open a `.js` or `.ts` file
+1. Open `.js` or `.ts` file
 2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
-
-### Verification Checklist
-
-- [ ] LogiGo command appears in Command Palette
-- [ ] Flowchart panel opens
-- [ ] Example algorithms can be loaded from dropdown
-
-### Troubleshooting
-
-Same as VS Code troubleshooting above.
 
 ---
 
-## Antigravity
+### Antigravity Extension
 
-### Prerequisites
-
+**Prerequisites:**
 - Antigravity IDE (latest version)
-- A JavaScript or TypeScript project
+- JavaScript or TypeScript project
 
-### Installation Steps
-
-Antigravity is a VS Code fork with its own extensions folder:
+**Installation:**
 
 **Manual Installation (Required)**
 
-The standard VSIX installer in Antigravity may not work correctly. Use manual installation:
+The standard VSIX installer may not work in Antigravity. Use manual installation:
 
 ```bash
 # Antigravity extensions folder
@@ -373,56 +738,44 @@ cd ~/.antigravity/extensions/logigo.logigo-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
-Then reload Antigravity: `Cmd+Shift+P` → `Reload Window`
+Reload Antigravity: `Cmd+Shift+P` → `Reload Window`
 
-### Usage
+**Usage:**
 
-1. Open a `.js` or `.ts` file
+1. Open `.js` or `.ts` file
 2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
-3. The flowchart panel appears beside your code
+3. Click nodes to jump to source code
 
-### Click-to-Source Navigation
-
-When viewing a flowchart:
-- **Click any node** to jump to that line in your source code
-- The editor will scroll to and highlight the corresponding line
-
-### Verification Checklist
+**Verification:**
 
 - [ ] Extension folder exists at `~/.antigravity/extensions/logigo.logigo-1.0.0/`
-- [ ] LogiGo command appears in Command Palette after reload
+- [ ] LogiGo command appears after reload
 - [ ] Flowchart displays when command is run
-- [ ] Clicking nodes jumps to source code
+- [ ] Clicking nodes jumps to source
 
-### Troubleshooting
+**Troubleshooting:**
 
-**Extension not appearing after installation:**
-- Verify the folder structure: `ls ~/.antigravity/extensions/logigo.logigo-1.0.0/`
-- Should contain: `package.json`, `dist/`, `icon.png`, etc.
-- If you see an `extension/` subfolder, the extraction wasn't done correctly
-
-**"Syntax Error" in flowchart:**
-- Ensure your file is valid JavaScript
-- TypeScript-specific syntax may cause parsing errors
+**Extension not appearing**
+- Verify folder structure: `ls ~/.antigravity/extensions/logigo.logigo-1.0.0/`
+- Should contain: `package.json`, `dist/`, `icon.png`
+- If you see `extension/` subfolder, extraction failed
 
 ---
 
-## Windsurf
+### Windsurf Extension
 
-### Prerequisites
-
+**Prerequisites:**
 - Windsurf IDE by Codeium (latest version)
-- A JavaScript or TypeScript project
+- JavaScript or TypeScript project
 
-### Installation Steps
-
-Windsurf is a VS Code fork:
+**Installation:**
 
 **Option 1: Import from Cursor**
 
-If you have Cursor installed with LogiGo:
-1. When first launching Windsurf, select "Import from Cursor"
-2. LogiGo will be automatically imported
+If you have Cursor with LogiGo installed:
+1. Launch Windsurf
+2. Select "Import from Cursor"
+3. LogiGo is automatically imported
 
 **Option 2: Manual Installation**
 
@@ -434,136 +787,82 @@ cd ~/.windsurf/extensions/logigo.logigo-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
-Reload Windsurf.
+---
 
-### Verification Checklist
+## 🎯 Comparison Table
 
-- [ ] LogiGo command appears in Command Palette
-- [ ] Flowchart panel opens when visualizing a file
+| Method | Installation | Real-Time | Variable Tracking | Use Case |
+|--------|--------------|-----------|-------------------|----------|
+| **Static Mode** | None | ❌ | ✅ (simulated) | Quick visualization |
+| **Embed Component** | `npm install` | ❌ | ✅ (simulated) | React apps, docs |
+| **Vite Plugin** | `npm install` | ✅ | ✅ | Build-time instrumentation |
+| **Backend Logging** | Copy helper | ✅ | ✅ | Server-side debugging |
+| **Manual Checkpoints** | `npm install` | ✅ | ✅ | Fine-grained control |
+| **IDE Extensions** | VSIX install | ❌ | ✅ (simulated) | In-editor visualization |
 
 ---
 
-## Checkpoint Best Practices
-
-### Naming Convention
-
-Use hierarchical names for organized debugging:
-
-```javascript
-// Format: section:action or section:action:detail
-await LogiGo.checkpoint('auth:login:start');
-await LogiGo.checkpoint('auth:login:validate');
-await LogiGo.checkpoint('auth:login:success');
-
-await LogiGo.checkpoint('api:request:users');
-await LogiGo.checkpoint('api:response:success');
-
-await LogiGo.checkpoint('loop:iteration', { variables: { i: currentIndex } });
-```
-
-### What to Track
-
-Include useful debugging information:
-
-```javascript
-await LogiGo.checkpoint('process:item', {
-  variables: {
-    index: i,                    // Current position
-    itemId: item.id,             // Identifier
-    status: 'processing',        // Current state
-    remaining: total - i,        // Progress info
-    elapsedMs: Date.now() - start // Timing
-  }
-});
-```
-
-### Loop Instrumentation
-
-```javascript
-async function processItems(items) {
-  await LogiGo.checkpoint('batch:start', {
-    variables: { totalItems: items.length }
-  });
-
-  for (let i = 0; i < items.length; i++) {
-    await LogiGo.checkpoint('batch:item', {
-      variables: { 
-        index: i, 
-        itemId: items[i].id,
-        progress: `${i + 1}/${items.length}`
-      }
-    });
-    
-    await processItem(items[i]);
-  }
-
-  await LogiGo.checkpoint('batch:complete', {
-    variables: { processedCount: items.length }
-  });
-}
-```
-
----
-
-## Troubleshooting (General)
+## 🐛 General Troubleshooting
 
 ### Package Not Found
 
-If `npm install logigo-core` fails:
-
-1. Check your internet connection
-2. Try `npm cache clean --force` then reinstall
-3. Verify you're in the correct project directory
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+```
 
 ### Checkpoints Not Logging
 
-If you don't see `[LogiGo]` in the console:
-
-1. Verify the checkpoint helper code is added
-2. Check that your instrumented code is actually being executed
-3. Look for JavaScript errors that might be preventing execution
+1. Verify checkpoint helper/import is present
+2. Check that instrumented code is executing
+3. Look for JavaScript errors in console
 
 ### TypeScript Errors
 
-If you get type errors with the checkpoint helper, use the typed version:
+Use typed checkpoint helper:
 
 ```typescript
 const LogiGo = {
-  async checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
+  checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
     console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
-    return Promise.resolve();
   }
 };
 ```
 
 ### Extension Installation Failed
 
-For VS Code forks (Cursor, Antigravity, Windsurf):
-
-1. Use manual installation method (unzip to extensions folder)
-2. Verify folder structure has `package.json` at root level
-3. Reload the IDE after installation
-
----
-
-## Getting Help
-
-- **LogiGo Studio**: Paste your code into LogiGo Studio to see the flowchart visualization
-- **Documentation**: See the in-app Help dialog for keyboard shortcuts and features
-- **Examples**: Try the built-in algorithm examples to learn LogiGo patterns
-- **GitHub**: [https://github.com/JPaulGrayson/LogiGo](https://github.com/JPaulGrayson/LogiGo)
+For VS Code forks:
+1. Use manual installation (unzip to extensions folder)
+2. Verify `package.json` is at root level (not in `extension/` subfolder)
+3. Reload IDE after installation
 
 ---
 
-## Next Steps
+## 📚 Next Steps
 
-Once installed, you can:
+### After Installation
 
-1. Add checkpoints to your key functions
-2. Run your code and watch the logs
-3. Paste instrumented code into LogiGo Studio for flowchart visualization
-4. Use the step-through controls to debug visually
+1. ✅ Add checkpoints to key functions
+2. ✅ Run your code and watch logs/flowcharts
+3. ✅ Use step-through controls to debug
+4. ✅ Share flowcharts with your team
+
+### Learn More
+
+- **[Getting Started Guide](GETTING_STARTED.md)** - Tutorials and workflows
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code
+
+---
+
+## 🆘 Getting Help
+
+- **Documentation**: See in-app Help dialog (`?` button)
+- **Examples**: Try built-in algorithm examples
+- **GitHub Issues**: [Report bugs or request features](https://github.com/JPaulGrayson/LogiGo/issues)
 
 ---
 
