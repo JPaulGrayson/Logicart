@@ -321,6 +321,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Model Arena routes
   registerArenaRoutes(app);
 
+  // Documentation API - serve markdown files from docs/
+  const ALLOWED_DOCS = [
+    'GETTING_STARTED.md',
+    'INSTALLATION_GUIDE.md',
+    'API_REFERENCE.md',
+    'COMMON_PITFALLS.md',
+    'QUICK_REFERENCE.md',
+    'INTEGRATION_GUIDE.md',
+    'VIBE_CODER_GUIDE.md'
+  ];
+
+  app.get("/api/docs", (req, res) => {
+    res.json({
+      docs: ALLOWED_DOCS.map(file => ({
+        id: file.replace('.md', '').toLowerCase().replace(/_/g, '-'),
+        name: file.replace('.md', '').replace(/_/g, ' '),
+        file
+      }))
+    });
+  });
+
+  app.get("/api/docs/:file", async (req, res) => {
+    try {
+      const { file } = req.params;
+      const filename = file.endsWith('.md') ? file : `${file}.md`;
+      
+      // Security: Only allow whitelisted files
+      if (!ALLOWED_DOCS.includes(filename)) {
+        return res.status(404).json({ error: "Documentation not found" });
+      }
+      
+      const docPath = path.join(__dirname, "..", "docs", filename);
+      const fs = await import('fs/promises');
+      const content = await fs.readFile(docPath, 'utf-8');
+      
+      res.json({ 
+        file: filename, 
+        content,
+        title: filename.replace('.md', '').replace(/_/g, ' ')
+      });
+    } catch (error) {
+      console.error("[Docs] Error reading doc:", error);
+      res.status(404).json({ error: "Documentation not found" });
+    }
+  });
+
+  // Map URL slugs to documentation files
+  const DOC_SLUGS: Record<string, string> = {
+    'getting-started': 'GETTING_STARTED.md',
+    'installation': 'INSTALLATION_GUIDE.md',
+    'api-reference': 'API_REFERENCE.md',
+    'common-pitfalls': 'COMMON_PITFALLS.md',
+    'quick-reference': 'QUICK_REFERENCE.md',
+    'integration': 'INTEGRATION_GUIDE.md',
+    'vibe-coder-guide': 'VIBE_CODER_GUIDE.md'
+  };
+
+  // Serve documentation pages as styled HTML
+  app.get("/docs/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const filename = DOC_SLUGS[slug];
+      
+      if (!filename) {
+        return res.status(404).send("Documentation not found");
+      }
+      
+      const docPath = path.join(__dirname, "..", "docs", filename);
+      const fs = await import('fs/promises');
+      const markdown = await fs.readFile(docPath, 'utf-8');
+      const title = filename.replace('.md', '').replace(/_/g, ' ');
+      
+      // Convert markdown to simple HTML (basic conversion)
+      const htmlContent = markdown
+        .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-6 mb-2">$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-3 border-b pb-2">$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold mb-4">$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded text-sm">$1</code>')
+        .replace(/^- (.+)$/gm, '<li class="ml-4">• $1</li>')
+        .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4">$1. $2</li>')
+        .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto my-4"><code>$2</code></pre>')
+        .replace(/\n\n/g, '</p><p class="my-3 text-gray-300">')
+        .replace(/^\| .+$/gm, match => `<div class="font-mono text-sm bg-gray-800 p-2 rounded my-1">${match}</div>`);
+      
+      const html = `<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - LogiGo Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0a0a0a; color: #e5e5e5; }
+    a { color: #60a5fa; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+  <div class="max-w-4xl mx-auto">
+    <nav class="mb-8 flex items-center gap-4">
+      <a href="/" class="text-blue-400 hover:underline">← Back to LogiGo</a>
+      <span class="text-gray-600">|</span>
+      <span class="text-gray-400">Documentation</span>
+    </nav>
+    <article class="prose prose-invert max-w-none">
+      <p class="my-3 text-gray-300">${htmlContent}</p>
+    </article>
+    <footer class="mt-12 pt-8 border-t border-gray-800 text-sm text-gray-500">
+      <p>LogiGo Studio - Code-to-Flowchart Visualization</p>
+    </footer>
+  </div>
+</body>
+</html>`;
+      
+      res.type('html').send(html);
+    } catch (error) {
+      console.error("[Docs] Error serving doc page:", error);
+      res.status(404).send("Documentation not found");
+    }
+  });
+
   // MCP (Model Context Protocol) endpoints for agent integration
   app.get("/api/mcp/sse", async (req, res) => {
     try {

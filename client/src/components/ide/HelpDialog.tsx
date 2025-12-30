@@ -141,6 +141,48 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 
             {/* Documentation Tab */}
             <TabsContent value="documentation" className="space-y-6 pr-4">
+              <section className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-blue-500">📖</span>
+                  Full Documentation
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Access detailed guides and references:
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <a href="/docs/getting-started" target="_blank" rel="noopener" 
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-getting-started">
+                    <span className="text-green-500">🚀</span>
+                    Getting Started
+                  </a>
+                  <a href="/docs/quick-reference" target="_blank" rel="noopener"
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-quick-reference">
+                    <span className="text-yellow-500">⚡</span>
+                    Quick Reference
+                  </a>
+                  <a href="/docs/installation" target="_blank" rel="noopener"
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-installation">
+                    <span className="text-blue-500">📦</span>
+                    Installation Guide
+                  </a>
+                  <a href="/docs/api-reference" target="_blank" rel="noopener"
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-api">
+                    <span className="text-purple-500">🔧</span>
+                    API Reference
+                  </a>
+                  <a href="/docs/common-pitfalls" target="_blank" rel="noopener"
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-pitfalls">
+                    <span className="text-red-500">⚠️</span>
+                    Common Pitfalls
+                  </a>
+                  <a href="/docs/vibe-coder-guide" target="_blank" rel="noopener"
+                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-vibe-coder">
+                    <span className="text-pink-500">✨</span>
+                    Vibe Coder Guide
+                  </a>
+                </div>
+              </section>
+
               <section>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <span className="text-blue-500">●</span>
