@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { parseCodeToFlowchart, calculateSimilarityFromParsed, type ParseResult } from "./ai";
 import { storage } from "./storage";
 import { insertArenaSessionSchema } from "@shared/schema";
+import { requireFounderTier } from "./middleware";
 
 interface ModelResult {
   model: string;
@@ -702,7 +703,7 @@ Please analyze this issue and provide debugging advice.`;
     }
   });
 
-  app.post("/api/arena/sessions", async (req: Request, res: Response) => {
+  app.post("/api/arena/sessions", requireFounderTier, async (req: Request, res: Response) => {
     try {
       const parseResult = insertArenaSessionSchema.safeParse(req.body);
       if (!parseResult.success) {
@@ -723,7 +724,7 @@ Please analyze this issue and provide debugging advice.`;
     }
   });
 
-  app.get("/api/arena/sessions", async (req: Request, res: Response) => {
+  app.get("/api/arena/sessions", requireFounderTier, async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
       const sessions = await storage.getArenaSessions(limit);
