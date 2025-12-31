@@ -33,6 +33,7 @@ import type { RuntimeState, CheckpointPayload } from '@shared/reporter-api';
 import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-api';
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { ShareDialog } from '@/components/ide/ShareDialog';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
@@ -2317,6 +2318,7 @@ export default function Workbench() {
             <Bug className="w-3.5 h-3.5" />
             Debug with AI
           </Button>
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="sm"
