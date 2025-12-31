@@ -1,0 +1,1 @@
+{"code": "function agentCreated() { console.log(\"Hello from Agent!\"); }", "nodes": [], "edges": []}

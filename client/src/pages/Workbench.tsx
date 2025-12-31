@@ -1241,6 +1241,8 @@ export default function Workbench() {
       
       // Write to file via adapter
       await adapter.writeFile(patchedCode);
+      // Also save to file for external sync
+      await saveToFile({ code: patchedCode, nodes: flowData.nodes, edges: flowData.edges });
       
       return { success: true };
     } catch (err) {
@@ -1265,6 +1267,7 @@ export default function Workbench() {
     const previousCode = historyManager.undo();
     if (previousCode !== null) {
       adapter.writeFile(previousCode);
+      saveToFile({ code: previousCode, nodes: flowData.nodes, edges: flowData.edges });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
@@ -1274,6 +1277,7 @@ export default function Workbench() {
     const nextCode = historyManager.redo();
     if (nextCode !== null) {
       adapter.writeFile(nextCode);
+      saveToFile({ code: nextCode, nodes: flowData.nodes, edges: flowData.edges });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
@@ -1287,6 +1291,7 @@ export default function Workbench() {
   const handleLoadSample = () => {
     historyManager.push(SAMPLE_CODE, 'Load sample', true);
     adapter.writeFile(SAMPLE_CODE);
+    saveToFile({ code: SAMPLE_CODE, nodes: [], edges: [] });
     setCanUndo(historyManager.canUndo());
     setCanRedo(historyManager.canRedo());
   };
@@ -1296,6 +1301,7 @@ export default function Workbench() {
     if (example) {
       historyManager.push(example.code, `Load ${example.name}`, true);
       adapter.writeFile(example.code);
+      saveToFile({ code: example.code, nodes: [], edges: [] });
       setCurrentAlgorithm(exampleId);
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
