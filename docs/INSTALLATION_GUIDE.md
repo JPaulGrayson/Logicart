@@ -6,6 +6,18 @@
 
 ## 🎯 Which Integration Method Should I Use?
 
+### Quick Reference Table
+
+| Your Goal | Best Method | Installation | Best For |
+|-----------|-------------|--------------|----------|
+| 📖 Just visualize code to understand it | **Static Mode** | None | Learning, code reviews, quick visualization |
+| 🔧 Add flowcharts to my React app | **Embed Component** | `npm install logigo-embed` | Documentation, demos, educational apps |
+| 🏗️ Auto-instrument my Vite project | **Vite Plugin** | `npm install logigo-vite-plugin` | Build-time instrumentation, minimal code changes |
+| 🐛 Debug my Node.js/Express server | **Backend Logging** | Copy helper function | Server-side debugging, API logic |
+| 🎯 Fine-grained control over checkpoints | **Manual Checkpoints** | `npm install logigo-core` | Complex debugging, precise instrumentation |
+
+### Detailed Decision Tree
+
 Use this decision tree to find the right approach:
 
 ```
@@ -728,7 +740,7 @@ Same as VS Code:
 
 **Manual Installation (Required)**
 
-The standard VSIX installer may not work in Antigravity. Use manual installation:
+The standard VSIX installer may not work in Antigravity due to differences in the extension system architecture. Antigravity uses a custom extension loading mechanism that requires manual installation for compatibility. Use the following steps:
 
 ```bash
 # Antigravity extensions folder

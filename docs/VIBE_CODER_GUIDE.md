@@ -12,13 +12,25 @@ Add this single line to your app's `index.html` file, inside the `<head>` sectio
 
 Replace `YOUR_LOGIGO_URL` with your LogiGo app's URL (you can find this in the browser address bar when viewing LogiGo).
 
-**Example:**
+**Example:** Complete HTML file
 ```html
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- other head content -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My App</title>
+  
+  <!-- Add LogiGo Remote Mode Script -->
   <script src="https://your-logigo-app.replit.dev/remote.js?project=MyApp"></script>
 </head>
+<body>
+  <div id="app"></div>
+  
+  <!-- Your app's main script -->
+  <script src="./main.js"></script>
+</body>
+</html>
 ```
 
 When your app loads, you'll see a **"View in LogiGo"** badge in the bottom-right corner. Click it to open your flowchart!
