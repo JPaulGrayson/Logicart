@@ -2300,9 +2300,9 @@ export default function Workbench() {
           </div>
           <h1 className="font-semibold tracking-tight text-sm">LogiGo</h1>
           <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">Beta</span>
-          {features.hasFeature('ghostDiff') && (
+          {isAuthenticated && user?.tier && user.tier !== 'free' && (
             <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
-              Premium
+              {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
             </span>
           )}
           {remoteSessionId && (

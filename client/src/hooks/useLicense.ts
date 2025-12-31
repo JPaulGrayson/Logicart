@@ -57,7 +57,9 @@ export function useLicense() {
     const storedToken = localStorage.getItem(STORAGE_KEY);
     if (storedToken) {
       const payload = decodeJWT(storedToken);
-      if (payload && !isTokenExpired(payload) && payload.appId === 'logigo') {
+      // Accept token if appId is 'logigo' or if it's a valid Voyai token with email
+      if (payload && !isTokenExpired(payload) && (payload.appId === 'logigo' || payload.email)) {
+        console.log('[Voyai] Restored session for:', payload.email);
         setState({
           isAuthenticated: true,
           isLoading: false,
@@ -65,6 +67,7 @@ export function useLicense() {
           token: storedToken,
         });
       } else {
+        console.log('[Voyai] Clearing invalid stored token');
         localStorage.removeItem(STORAGE_KEY);
         setState({
           isAuthenticated: false,
@@ -85,15 +88,25 @@ export function useLicense() {
 
   const setToken = useCallback((token: string) => {
     const payload = decodeJWT(token);
-    if (payload && !isTokenExpired(payload) && payload.appId === 'logigo') {
-      localStorage.setItem(STORAGE_KEY, token);
-      setState({
-        isAuthenticated: true,
-        isLoading: false,
-        user: payload,
-        token,
-      });
-      return true;
+    console.log('[Voyai] Token payload:', payload);
+    if (payload && !isTokenExpired(payload)) {
+      // Accept token if appId is 'logigo' or if it's a valid Voyai token
+      if (payload.appId === 'logigo' || payload.email) {
+        localStorage.setItem(STORAGE_KEY, token);
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: payload,
+          token,
+        });
+        console.log('[Voyai] Token accepted, user:', payload.email);
+        return true;
+      }
+      console.log('[Voyai] Token rejected: appId mismatch', payload.appId);
+    } else if (payload) {
+      console.log('[Voyai] Token expired');
+    } else {
+      console.log('[Voyai] Failed to decode token');
     }
     return false;
   }, []);
