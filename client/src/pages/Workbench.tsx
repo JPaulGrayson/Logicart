@@ -34,6 +34,9 @@ import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { ShareDialog } from '@/components/ide/ShareDialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useLicense } from '@/hooks/useLicense';
+import { User, LogIn, LogOut } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 
@@ -113,6 +116,7 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading } = useLicense();
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
@@ -2319,6 +2323,49 @@ export default function Workbench() {
             Debug with AI
           </Button>
           <ThemeToggle />
+          
+          {!licenseLoading && (
+            isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 gap-1.5"
+                    data-testid="button-user-menu"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-xs max-w-20 truncate">{user?.email?.split('@')[0]}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
+                    {user?.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
+                    Tier: {user?.tier}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} data-testid="button-logout">
+                    <LogOut className="w-3.5 h-3.5 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={login}
+                className="h-7 gap-1.5 text-xs border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                data-testid="button-login"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </Button>
+            )
+          )}
+          
           <Button
             variant="ghost"
             size="sm"

@@ -1,4 +1,5 @@
 import { Switch, Route } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
@@ -12,6 +13,7 @@ import EmbedDemo from "@/pages/EmbedDemo";
 import RemoteMode from "@/pages/RemoteMode";
 import ZeroClickDemo from "@/pages/ZeroClickDemo";
 import ModelArena from "@/pages/ModelArena";
+import { useLicense } from "@/hooks/useLicense";
 
 function Router() {
   return (
@@ -28,12 +30,32 @@ function Router() {
   );
 }
 
+function TokenHandler() {
+  const { setToken } = useLicense();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      const success = setToken(token);
+      if (success) {
+        params.delete('token');
+        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [setToken]);
+
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AdapterProvider>
+            <TokenHandler />
             <Toaster />
             <Router />
           </AdapterProvider>
