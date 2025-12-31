@@ -1,3 +1,3 @@
 {
-  "code": "function testFromAPI() { return 42; }"
+  "code": "function complexSync() { if (true) { return 42; } }"
 }
