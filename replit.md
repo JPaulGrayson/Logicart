@@ -29,12 +29,14 @@ The application features Zero-Code Auto-Discovery for automatic scanning and ins
 Advanced features include Ghost Diff for visualizing code changes, Hierarchical Views for managing large codebases, and an Algorithm Examples Library.
 
 ### Feature Specifications
-- **Model Arena**: Compares code generation and debugging advice from OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, and Grok 4, with side-by-side code/flowchart views and similarity analysis. A "Chairman Model" synthesizes AI responses into a unified verdict. Arena sessions are saved to PostgreSQL.
+- **Model Arena**: Compares code generation and debugging advice from OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, and Grok 4, with side-by-side code/flowchart views and similarity analysis. A "Chairman Model" synthesizes AI responses into a unified verdict. Arena sessions are saved to PostgreSQL (founder-tier required).
 - **BYOK (Bring Your Own Key)**: User-controlled API key management for AI models, stored in localStorage.
 - **Undo/Redo**: HistoryManager singleton with keyboard shortcuts (Ctrl+Z/Ctrl+Y) and toolbar buttons.
 - **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
 - **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
 - **MCP Server (Model Context Protocol)**: Exposes LogiGo's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
+- **Voyai Authentication**: JWT-based authentication via Voyai (voyai.app). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence.
+- **Headless Council CLI**: Command-line interface for AI model consultations. Usage: `npx tsx scripts/ask-council.ts --mode code --prompt "Your question"` or `npx tsx scripts/ask-council.ts -i` for interactive mode. Requires API keys via environment variables.
 
 ## External Dependencies
 
@@ -71,3 +73,6 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 
 ### Session Management
 - connect-pg-simple
+
+### Authentication
+- jsonwebtoken (JWT verification for Voyai integration)
