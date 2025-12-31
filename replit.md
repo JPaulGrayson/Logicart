@@ -35,7 +35,7 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 - **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
 - **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
 - **MCP Server (Model Context Protocol)**: Exposes LogiGo's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
-- **Voyai Authentication**: JWT-based authentication via Voyai (voyai.app). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence.
+- **Voyai Authentication**: JWT-based authentication via Voyai (voyai.org). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence.
 - **Headless Council CLI**: Command-line interface for AI model consultations. Usage: `npx tsx scripts/ask-council.ts --mode code --prompt "Your question"` or `npx tsx scripts/ask-council.ts -i` for interactive mode. Requires API keys via environment variables.
 - **File Sync (Replit Agent Integration)**: Bi-directional sync system for Replit Agent collaboration. The system stores flowchart data in `data/flowchart.json`. API endpoints: `GET /api/file/status` (returns lastModified timestamp), `GET /api/file/load`, `POST /api/file/save`. The frontend `useWatchFile` hook polls for changes every 2 seconds and auto-updates when external edits are detected. User code changes (typing, undo/redo, samples, node edits) are automatically persisted to the file.
 
