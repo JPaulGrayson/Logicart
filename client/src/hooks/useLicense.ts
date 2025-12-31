@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY = 'voyai_token';
-const VOYAI_LOGIN_URL = 'https://voyai.org/auth/login?app=logigo&redirect=';
+const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&redirect=';
 
 interface VoyaiTokenPayload {
   userId: string;
