@@ -35,6 +35,7 @@ import { HelpDialog } from '@/components/ide/HelpDialog';
 import { ShareDialog } from '@/components/ide/ShareDialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useLicense } from '@/hooks/useLicense';
+import { useWatchFile } from '@/hooks/useWatchFile';
 import { User, LogIn, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
@@ -294,6 +295,20 @@ export default function Workbench() {
   
   // Grid edit mode for pathfinding visualizer
   const [gridEditMode, setGridEditMode] = useState<GridEditMode>(null);
+
+  // File sync watch mode - detect external file changes (e.g., from Replit Agent)
+  const [watchModeEnabled, setWatchModeEnabled] = useState(true);
+  const { isWatching, lastSyncTime, saveToFile } = useWatchFile({
+    enabled: watchModeEnabled,
+    pollInterval: 2000,
+    onExternalChange: (data) => {
+      if (data.code && data.code !== code) {
+        console.log('[Watch Mode] Applying external code change');
+        adapter.writeFile(data.code);
+        toast.success('Code updated from file sync');
+      }
+    }
+  });
 
   // Keep flowDataRef in sync with flowData state
   useEffect(() => {
@@ -1239,6 +1254,8 @@ export default function Workbench() {
   const handleCodeChange = (newCode: string) => {
     historyManager.push(newCode);
     adapter.writeFile(newCode);
+    // Also save to file for external sync (e.g., Replit Agent)
+    saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
   };
   
   const [canUndo, setCanUndo] = useState(historyManager.canUndo());
