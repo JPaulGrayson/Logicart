@@ -43,6 +43,10 @@ export function requireFounderTier(req: Request, res: Response, next: NextFuncti
       return res.status(403).json({ error: 'Invalid app ID' });
     }
     
+    if (payload.tier !== 'founder') {
+      return res.status(403).json({ error: 'Founder tier required' });
+    }
+    
     (req as any).user = payload;
     next();
   } catch (error) {
