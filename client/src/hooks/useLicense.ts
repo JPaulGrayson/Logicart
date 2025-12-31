@@ -6,6 +6,7 @@ const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
 interface VoyaiTokenPayload {
   userId: string;
   email: string;
+  name?: string;
   appId: string;
   tier: string;
   features: {

@@ -2358,15 +2358,20 @@ export default function Workbench() {
                     data-testid="button-user-menu"
                   >
                     <User className="w-4 h-4" />
-                    <span className="text-xs max-w-20 truncate">{user?.email?.split('@')[0]}</span>
+                    <span className="text-xs max-w-24 truncate">{user?.name || user?.email?.split('@')[0]}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {user?.name && (
+                    <DropdownMenuItem className="text-xs font-medium" disabled>
+                      {user.name}
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
                     {user?.email}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
-                    Tier: {user?.tier}
+                    Tier: {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} data-testid="button-logout">
