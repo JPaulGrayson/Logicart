@@ -1,1 +1,5 @@
-{"code": "function agentCreated() { console.log(\"Hello from Agent!\"); }", "nodes": [], "edges": []}
+{
+  "code": "function externalEdit() { return 'Agent Modified'; }",
+  "nodes": [],
+  "edges": []
+}
