@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import express from "express";
 import OpenAI from "openai";
 import crypto from "crypto";
+import fs from "fs";
 import type { GroundingContext, GroundingNode, GroundingNodeType } from "@shared/grounding-types";
 import type { ControlMessage, StudioToRemoteMessage, RemoteToStudioMessage } from "@shared/control-types";
 import * as acorn from "acorn";
@@ -320,6 +321,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Model Arena routes
   registerArenaRoutes(app);
+
+  // File Sync API - for bi-directional sync with Replit Agent
+  const FLOWCHART_FILE_PATH = path.join(__dirname, "..", "data", "flowchart.json");
+  const DATA_DIR = path.join(__dirname, "..", "data");
+
+  // Ensure data directory exists on startup
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
+  // Get file modification status
+  app.get("/api/file/status", (req, res) => {
+    try {
+      if (!fs.existsSync(FLOWCHART_FILE_PATH)) {
+        return res.json({ lastModified: 0, exists: false });
+      }
+      const stats = fs.statSync(FLOWCHART_FILE_PATH);
+      res.json({ lastModified: stats.mtimeMs, exists: true });
+    } catch (error) {
+      console.error("[File Sync] Status error:", error);
+      res.status(500).json({ error: "Failed to get file status" });
+    }
+  });
+
+  // Load flowchart from file
+  app.get("/api/file/load", (req, res) => {
+    try {
+      if (!fs.existsSync(FLOWCHART_FILE_PATH)) {
+        return res.json({ success: true, data: { nodes: [], edges: [], code: "" } });
+      }
+      const content = fs.readFileSync(FLOWCHART_FILE_PATH, "utf-8");
+      const data = JSON.parse(content);
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("[File Sync] Load error:", error);
+      res.status(500).json({ error: "Failed to load flowchart" });
+    }
+  });
+
+  // Save flowchart to file
+  app.post("/api/file/save", express.json(), (req, res) => {
+    try {
+      const data = req.body;
+      fs.writeFileSync(FLOWCHART_FILE_PATH, JSON.stringify(data, null, 2));
+      res.json({ success: true, lastModified: Date.now() });
+    } catch (error) {
+      console.error("[File Sync] Save error:", error);
+      res.status(500).json({ error: "Failed to save flowchart" });
+    }
+  });
 
   // Documentation API - serve markdown files from docs/
   const ALLOWED_DOCS = [
