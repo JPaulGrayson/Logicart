@@ -1351,8 +1351,8 @@ export default function Workbench() {
     adapter.writeFile(newCode);
     // Mark as saved immediately to prevent file watcher from treating this as external
     markAsSaved();
-    // Also save to file for external sync (e.g., Replit Agent)
-    saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
+    // Only save code - parser will regenerate nodes from the code
+    saveToFile({ code: newCode });
   };
   
   const [canUndo, setCanUndo] = useState(historyManager.canUndo());
@@ -1364,12 +1364,12 @@ export default function Workbench() {
       // Mark as saved FIRST to prevent file watcher interference
       markAsSaved();
       adapter.writeFile(previousCode);
-      // Await the save to ensure lastKnownTime is updated before watcher polls
-      await saveToFile({ code: previousCode, nodes: flowData.nodes, edges: flowData.edges });
+      // Only save code - parser will regenerate nodes from the code
+      await saveToFile({ code: previousCode });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
-  }, [adapter, flowData.nodes, flowData.edges, markAsSaved, saveToFile]);
+  }, [adapter, markAsSaved, saveToFile]);
   
   const handleRedo = useCallback(async () => {
     const nextCode = historyManager.redo();
@@ -1377,12 +1377,12 @@ export default function Workbench() {
       // Mark as saved FIRST to prevent file watcher interference
       markAsSaved();
       adapter.writeFile(nextCode);
-      // Await the save to ensure lastKnownTime is updated before watcher polls
-      await saveToFile({ code: nextCode, nodes: flowData.nodes, edges: flowData.edges });
+      // Only save code - parser will regenerate nodes from the code
+      await saveToFile({ code: nextCode });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
-  }, [adapter, flowData.nodes, flowData.edges, markAsSaved, saveToFile]);
+  }, [adapter, markAsSaved, saveToFile]);
   
   useEffect(() => {
     setCanUndo(historyManager.canUndo());
