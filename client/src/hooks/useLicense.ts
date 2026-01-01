@@ -137,6 +137,10 @@ export function useLicense() {
     return state.user?.tier === 'founder';
   }, [state.user]);
 
+  const hasHistory = state.user?.features?.history_database ?? false;
+  const hasRescue = state.user?.features?.rabbit_hole_rescue ?? false;
+  const hasGitSync = state.user?.features?.github_sync ?? false;
+
   return {
     ...state,
     setToken,
@@ -144,6 +148,9 @@ export function useLicense() {
     login,
     hasFeature,
     isFounder,
+    hasHistory,
+    hasRescue,
+    hasGitSync,
   };
 }
 

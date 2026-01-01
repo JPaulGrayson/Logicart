@@ -8,11 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles, Crown, Gavel, Save, History, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, Sparkles, Crown, Gavel, Save, History, Trash2, Lock } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
 import SettingsModal, { getStoredAPIKeys } from "@/components/arena/SettingsModal";
+import { useLicense } from "@/hooks/useLicense";
 import type { ArenaSession } from "@shared/schema";
 
 type ChairmanModel = "openai" | "gemini" | "anthropic" | "xai";
@@ -109,6 +111,7 @@ function getAPIKeyHeaders(): Record<string, string> {
 }
 
 export default function ModelArena() {
+  const { hasHistory, login, isAuthenticated, token } = useLicense();
   const [arenaMode, setArenaMode] = useState<"code" | "debug">("code");
   const [prompt, setPrompt] = useState(
     "Write a JavaScript function called 'findDuplicates' that takes an array and returns an array of duplicate values."
@@ -124,6 +127,7 @@ export default function ModelArena() {
   const [chairman, setChairman] = useState<ChairmanModel>(getStoredChairman);
   const [verdict, setVerdict] = useState<{ text: string; chairman: string; latencyMs: number } | null>(null);
   const [, forceUpdate] = useState({});
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const handleKeysChange = useCallback(() => {
     forceUpdate({});
@@ -185,15 +189,20 @@ export default function ModelArena() {
   const sessionsQuery = useQuery({
     queryKey: ["arena-sessions"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/arena/sessions");
+      if (!token) return [];
+      const headers = { Authorization: `Bearer ${token}` };
+      const response = await apiRequest("GET", "/api/arena/sessions", undefined, headers);
       const data = await response.json();
       return data.sessions as ArenaSession[];
     },
+    enabled: hasHistory && isAuthenticated,
   });
 
   const saveSessionMutation = useMutation({
     mutationFn: async (data: { mode: string; prompt: string; results: unknown; verdict?: string; chairman?: string }) => {
-      const response = await apiRequest("POST", "/api/arena/sessions", data);
+      if (!token) throw new Error("Not authenticated");
+      const headers = { Authorization: `Bearer ${token}` };
+      const response = await apiRequest("POST", "/api/arena/sessions", data, headers);
       const result = await response.json();
       if (!result.success) {
         throw new Error(result.error || "Failed to save session");
@@ -219,6 +228,11 @@ export default function ModelArena() {
   });
 
   const handleSaveSession = () => {
+    if (!hasHistory) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     const sessionResults = arenaMode === "code" 
       ? results.map(r => ({ provider: r.provider, model: r.model, code: r.code, error: r.error, latencyMs: r.latencyMs }))
       : debugResults.map(r => ({ provider: r.provider, model: r.model, analysis: r.analysis, error: r.error, latencyMs: r.latencyMs }));
@@ -321,6 +335,54 @@ export default function ModelArena() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white p-6">
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="bg-[#161b22] border-[#30363d]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Lock className="w-5 h-5 text-yellow-500" />
+              Pro Feature Required
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Saving arena sessions requires the History Database feature, available with a Pro subscription.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-300 mb-4">
+              Upgrade to Pro to unlock:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                Save and load arena sessions
+              </li>
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                GitHub sync for flowcharts
+              </li>
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                Rabbit Hole Rescue assistance
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUpgradeModal(false)} className="border-[#30363d]">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowUpgradeModal(false);
+                window.open('https://voyai.org/upgrade?app=logigo', '_blank');
+              }}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Pro
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">

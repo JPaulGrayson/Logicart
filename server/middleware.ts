@@ -25,6 +25,30 @@ export interface VoyaiTokenPayload {
   exp: number;
 }
 
+function verifyToken(req: Request): VoyaiTokenPayload | null {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  
+  const token = authHeader.substring(7);
+  
+  try {
+    const payload = jwt.verify(token, VOYAI_PUBLIC_KEY, { 
+      algorithms: ['RS256'] 
+    }) as VoyaiTokenPayload;
+    
+    if (payload.appId !== 'logigo') {
+      return null;
+    }
+    
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 export function requireFounderTier(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   
@@ -58,4 +82,19 @@ export function requireFounderTier(req: Request, res: Response, next: NextFuncti
     }
     return res.status(500).json({ error: 'Authentication error' });
   }
+}
+
+export function requireHistoryFeature(req: Request, res: Response, next: NextFunction) {
+  const payload = verifyToken(req);
+  
+  if (!payload) {
+    return res.status(401).json({ error: 'Authorization required' });
+  }
+  
+  if (!payload.features?.history_database) {
+    return res.status(403).json({ error: 'Pro feature required: History Database' });
+  }
+  
+  (req as any).user = payload;
+  next();
 }

@@ -24,7 +24,9 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { historyManager } from '@/lib/historyManager';
 import { Link } from 'wouter';
 import { algorithmExamples, type AlgorithmExample } from '@/lib/algorithmExamples';
@@ -118,7 +120,7 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
-  const { isAuthenticated, user, login, logout, isLoading: licenseLoading } = useLicense();
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync } = useLicense();
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
@@ -165,6 +167,7 @@ export default function Workbench() {
   
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   // AI Debug / Visualize Flow state
   const [showDebugPane, setShowDebugPane] = useState(false);
@@ -2432,6 +2435,56 @@ export default function Workbench() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col">
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-yellow-500" />
+              Pro Feature Required
+            </DialogTitle>
+            <DialogDescription>
+              This feature requires a Pro subscription to unlock full functionality.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Upgrade to Pro to unlock:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                GitHub sync for flowcharts
+              </li>
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                Save and load arena sessions
+              </li>
+              <li className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-yellow-500" />
+                Rabbit Hole Rescue assistance
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUpgradeModal(false)} data-testid="button-upgrade-cancel">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowUpgradeModal(false);
+                window.open('https://voyai.org/upgrade?app=logigo', '_blank');
+              }}
+              className="bg-yellow-600 hover:bg-yellow-700"
+              data-testid="button-upgrade-confirm"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Pro
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Minimal Header - Just Branding */}
       <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
         <div className="flex items-center gap-3">
@@ -2485,6 +2538,28 @@ export default function Workbench() {
             <Bug className="w-3.5 h-3.5" />
             Debug with AI
           </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => hasRescue ? toast.info('Rabbit Hole Rescue coming soon!') : setShowUpgradeModal(true)}
+                  className={`h-7 gap-1.5 text-xs ${hasRescue ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10' : 'opacity-50 border-muted text-muted-foreground hover:bg-muted/20'}`}
+                  data-testid="button-rescue"
+                >
+                  <Anchor className="w-3.5 h-3.5" />
+                  Rescue
+                  {!hasRescue && <Lock className="w-3 h-3 ml-0.5" />}
+                </Button>
+              </TooltipTrigger>
+              {!hasRescue && (
+                <TooltipContent>
+                  <p>Pro Feature. Upgrade to unlock AI rescue assistance.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <ThemeToggle />
           
           {!licenseLoading && (
@@ -2866,6 +2941,27 @@ export default function Workbench() {
                     >
                       <Download className="w-3.5 h-3.5" />
                     </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => hasGitSync ? toast.info('GitHub sync coming soon!') : setShowUpgradeModal(true)}
+                            className={`h-7 w-7 p-0 ${!hasGitSync ? 'opacity-50' : ''}`}
+                            title={hasGitSync ? "Sync to GitHub" : "Pro Feature"}
+                            data-testid="button-git-sync"
+                          >
+                            <Github className="w-3.5 h-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        {!hasGitSync && (
+                          <TooltipContent>
+                            <p>Pro Feature. Upgrade to sync.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               </div>
