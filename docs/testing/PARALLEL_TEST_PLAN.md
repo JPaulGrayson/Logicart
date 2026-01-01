@@ -110,4 +110,32 @@
 - **GET /api/file/load:** Returns code, nodes, edges
 - **POST /api/file/save:** Saves flowchart data to data/flowchart.json
 - **POST /api/agent/analyze:** Returns nodes, edges, complexity for code analysis
+- **Remote Mode:** Creates session, shows "Connected" status, live sync works
 - **Test Result:** ✅ PASS - All APIs functional
+
+### Group 9 - VS Code Extension (January 1, 2026)
+- **Status:** Skipped - requires separate VS Code environment
+- **Note:** Cannot be tested via Playwright browser automation
+
+---
+
+## Testing Session - January 1, 2026 (Today)
+
+### Groups Verified Today
+| Group | Features | Test Method | Result |
+|-------|----------|-------------|--------|
+| 5 | Ghost Diff, Undo/Redo | Playwright e2e | ✅ PASS |
+| 6 | Debug with AI, NL Search | Playwright e2e | ✅ PASS |
+| 7 | Share URLs, Export/Import | Playwright e2e | ✅ PASS |
+| 8 | File Sync APIs, Remote Mode | API + Browser | ✅ PASS |
+| 9 | VS Code Extension | N/A | ⏸️ Skipped |
+
+### Bug Fixes Applied
+- **Undo/Redo Race Condition:** Fixed `handleUndo` and `handleRedo` to only save code, not stale nodes/edges. Parser regenerates flowchart from code.
+
+### Key Observations
+- NL Search found 2 matches for "show all if statements"
+- Remote Mode creates sessions and shows "Connected" status
+- Ghost Diff shows added/removed counts (12 added, 2 removed on example change)
+- Share URLs format: /s/{unique-id}
+- Export downloads: logigo-code.js, logigo-flowchart.png
