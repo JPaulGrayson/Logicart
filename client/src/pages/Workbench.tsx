@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as acorn from 'acorn';
 import { toast } from 'sonner';
 import { CodeEditor } from '@/components/ide/CodeEditor';
@@ -298,7 +298,7 @@ export default function Workbench() {
 
   // File sync watch mode - detect external file changes (e.g., from Replit Agent)
   const [watchModeEnabled, setWatchModeEnabled] = useState(true);
-  const { isWatching, lastSyncTime, saveToFile } = useWatchFile({
+  const { isWatching, lastSyncTime, saveToFile, markAsSaved } = useWatchFile({
     enabled: watchModeEnabled,
     pollInterval: 2000,
     onExternalChange: (data) => {
@@ -1266,6 +1266,8 @@ export default function Workbench() {
   const handleCodeChange = (newCode: string) => {
     historyManager.push(newCode);
     adapter.writeFile(newCode);
+    // Mark as saved immediately to prevent file watcher from treating this as external
+    markAsSaved();
     // Also save to file for external sync (e.g., Replit Agent)
     saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
   };
@@ -1273,30 +1275,75 @@ export default function Workbench() {
   const [canUndo, setCanUndo] = useState(historyManager.canUndo());
   const [canRedo, setCanRedo] = useState(historyManager.canRedo());
   
-  const handleUndo = () => {
+  const handleUndo = useCallback(async () => {
     const previousCode = historyManager.undo();
     if (previousCode !== null) {
+      // Mark as saved FIRST to prevent file watcher interference
+      markAsSaved();
       adapter.writeFile(previousCode);
-      saveToFile({ code: previousCode, nodes: flowData.nodes, edges: flowData.edges });
+      // Await the save to ensure lastKnownTime is updated before watcher polls
+      await saveToFile({ code: previousCode, nodes: flowData.nodes, edges: flowData.edges });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
-  };
+  }, [adapter, flowData.nodes, flowData.edges, markAsSaved, saveToFile]);
   
-  const handleRedo = () => {
+  const handleRedo = useCallback(async () => {
     const nextCode = historyManager.redo();
     if (nextCode !== null) {
+      // Mark as saved FIRST to prevent file watcher interference
+      markAsSaved();
       adapter.writeFile(nextCode);
-      saveToFile({ code: nextCode, nodes: flowData.nodes, edges: flowData.edges });
+      // Await the save to ensure lastKnownTime is updated before watcher polls
+      await saveToFile({ code: nextCode, nodes: flowData.nodes, edges: flowData.edges });
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
     }
-  };
+  }, [adapter, flowData.nodes, flowData.edges, markAsSaved, saveToFile]);
   
   useEffect(() => {
     setCanUndo(historyManager.canUndo());
     setCanRedo(historyManager.canRedo());
   }, [code]);
+
+  // Track whether we've pushed the initial code to history
+  const initialHistoryPushed = useRef(false);
+  
+  // Push initial code to history on mount (so there's something to undo to)
+  useEffect(() => {
+    if (code && isReady && !initialHistoryPushed.current) {
+      // Clear any stale history from previous sessions and push fresh initial state
+      historyManager.clear();
+      historyManager.push(code, 'Initial', true);
+      initialHistoryPushed.current = true;
+      setCanUndo(historyManager.canUndo());
+      setCanRedo(historyManager.canRedo());
+    }
+  }, [code, isReady]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle when not in input fields (except our code editor)
+      const target = e.target as HTMLElement;
+      const isInEditor = target.closest('[data-testid="code-editor"]');
+      const isInInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      
+      // Allow shortcuts in code editor but not in other inputs
+      if (isInInput && !isInEditor) return;
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   const handleLoadSample = () => {
     historyManager.push(SAMPLE_CODE, 'Load sample', true);

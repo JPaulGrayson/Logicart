@@ -79,8 +79,10 @@ export function useWatchFile(options: UseWatchFileOptions = {}) {
           return;
         }
 
+        // Skip if we recently saved - prevents detecting our own saves as "external"
+        // Increased from 3s to 5s to give async save operations time to complete
         const timeSinceLastSave = Date.now() - lastSaveTimeRef.current;
-        if (timeSinceLastSave < 3000) {
+        if (timeSinceLastSave < 5000) {
           return;
         }
 

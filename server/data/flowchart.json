@@ -1,1 +1,80 @@
-{"code": ""}
+{
+  "code": "function final() { return 123; }",
+  "nodes": [
+    {
+      "id": "container-0",
+      "type": "container",
+      "data": {
+        "label": "final",
+        "children": [
+          "node-2"
+        ],
+        "collapsed": false
+      },
+      "position": {
+        "x": 40,
+        "y": 40
+      },
+      "style": {
+        "width": 200,
+        "height": 80
+      }
+    },
+    {
+      "id": "node-1",
+      "type": "input",
+      "data": {
+        "label": "Start"
+      },
+      "position": {
+        "x": 300,
+        "y": 55
+      },
+      "className": "bg-primary text-primary-foreground border-none",
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-2",
+      "type": "output",
+      "data": {
+        "label": "return ...",
+        "sourceSnippet": "function final() { return 123; }",
+        "sourceData": {
+          "start": {
+            "line": 1,
+            "column": 19
+          },
+          "end": {
+            "line": 1,
+            "column": 30
+          }
+        }
+      },
+      "position": {
+        "x": 300,
+        "y": 200
+      },
+      "className": "bg-destructive/20 border-destructive/50",
+      "parentNode": "container-0",
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-node-1-node-2",
+      "source": "node-1",
+      "target": "node-2",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    }
+  ]
+}
