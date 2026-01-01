@@ -6,7 +6,8 @@ import DecisionNode from './DecisionNode';
 import ContainerNode from './ContainerNode';
 import LabeledNode from './LabeledNode';
 import { Button } from '@/components/ui/button';
-import { Maximize, ZoomIn, ZoomOut, Home, ChevronRight } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Maximize, ZoomIn, ZoomOut, Home, ChevronRight, ChevronDown } from 'lucide-react';
 import type { RuntimeState } from '@shared/reporter-api';
 
 // Zoom preset definitions
@@ -15,6 +16,13 @@ const ZOOM_PRESETS = [
   { name: '50%', zoom: 0.5, icon: '🏢' },
   { name: '100%', zoom: 1.0, icon: '🔍' },
   { name: 'Fit', zoom: -1, icon: '📐' },
+] as const;
+
+// View level definitions - semantic zoom levels
+const VIEW_LEVELS = [
+  { name: 'Mile-High', zoom: 0.25, description: 'Bird\'s eye overview' },
+  { name: '1000ft', zoom: 0.5, description: 'Function-level view' },
+  { name: '100ft', zoom: 1.0, description: 'Statement-level detail' },
 ] as const;
 
 interface FlowchartProps {
@@ -221,15 +229,43 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-card/95 backdrop-blur border border-border rounded-full shadow-lg text-[10px] z-20"
         data-testid="status-pill"
       >
-        <span>
-          <span className="text-muted-foreground">View:</span>{' '}
-          <span className="text-primary font-semibold">
-            {currentZoom < 0.4 ? 'Mile-High' : currentZoom < 1.0 ? '1000ft' : '100ft'}
-          </span>
-          <span className="ml-1 text-muted-foreground">
-            ({Math.round(currentZoom * 100)}%)
-          </span>
-        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button 
+              className="flex items-center gap-1 hover:bg-accent/50 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+              data-testid="view-level-selector"
+            >
+              <span className="text-muted-foreground">View:</span>{' '}
+              <span className="text-primary font-semibold">
+                {currentZoom < 0.4 ? 'Mile-High' : currentZoom < 1.0 ? '1000ft' : '100ft'}
+              </span>
+              <span className="ml-1 text-muted-foreground">
+                ({Math.round(currentZoom * 100)}%)
+              </span>
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[160px]">
+            {VIEW_LEVELS.map((level) => (
+              <DropdownMenuItem
+                key={level.name}
+                onClick={() => applyZoomPreset(level.zoom)}
+                className="flex flex-col items-start gap-0.5 cursor-pointer"
+                data-testid={`view-level-${level.name.toLowerCase()}`}
+              >
+                <span className={`font-medium ${
+                  (currentZoom < 0.4 && level.name === 'Mile-High') ||
+                  (currentZoom >= 0.4 && currentZoom < 1.0 && level.name === '1000ft') ||
+                  (currentZoom >= 1.0 && level.name === '100ft')
+                    ? 'text-primary' : ''
+                }`}>
+                  {level.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{level.description}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <span className="w-px h-3 bg-border" />
         <span className="flex items-center gap-1">
           {runtimeState?.mode === 'live' ? (
