@@ -1,3 +1,1 @@
-{
-  "code": "function complexSync() { if (true) { return 42; } }"
-}
+{"code": ""}
