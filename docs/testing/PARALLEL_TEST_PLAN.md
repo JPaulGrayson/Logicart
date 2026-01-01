@@ -11,7 +11,7 @@
 |-------|----------|--------|-------|
 | **Group 1** | Layout Presets, Zoom Presets, View levels | ✅ Complete | UI viewport controls |
 | **Group 2** | Collapsible containers, Add labels | ✅ Complete | Right-click context menu for labels |
-| **Group 3** | Algorithmic Examples, Bidirectional editing | ⏳ In Progress | Load examples, test editing |
+| **Group 3** | Algorithmic Examples, Bidirectional editing | ✅ Complete | Examples load, code↔flowchart sync works |
 | **Group 4** | Execution Controls, Breakpoints, Variable History, Time Travel | ⏳ Pending | Debugging flow features |
 | **Group 5** | Ghost Diff, Undo/Redo History | ⏳ Pending | Code change tracking |
 | **Group 6** | Model Arena, Arena prompts, Debug Arena, NL search | ⏳ Pending | AI-powered features |
@@ -32,9 +32,9 @@
 - Collapsible containers (expand/collapse nested structures)
 - Add labels (right-click context menu → Add/Edit/Remove Label → `// @logigo:` comments)
 
-### Group 3: Code Examples & Editing ⏳
-- Algorithmic Examples (Bubble Sort, Fibonacci, Pathfinding, etc.)
-- Bidirectional editing (code changes update flowchart, flowchart changes update code)
+### Group 3: Code Examples & Editing ✅
+- Algorithmic Examples (Bubble Sort, Fibonacci, Pathfinding, etc.) - ✅ Quick Sort loads correctly
+- Bidirectional editing (code changes update flowchart, flowchart changes update code) - ✅ Both directions work
 
 ### Group 4: Execution & Debugging
 - Execution Controls (Play/Pause, Step Forward, Step Backward, Reset)
@@ -73,3 +73,8 @@
 - **Solution:** Added right-click context menu with Add/Edit/Remove Label options
 - **Implementation:** NodeContextMenu.tsx, NodeLabelDialog.tsx
 - **Test Result:** ✅ PASS - Browser test confirmed full flow works
+
+### Group 3 - Examples & Bidirectional Editing (January 1, 2026)
+- **Algorithmic Examples:** Quick Sort example loads correctly, code appears in editor, flowchart renders
+- **Bidirectional Editing:** Code→Flowchart updates work, clicking nodes highlights corresponding code
+- **Test Result:** ✅ PASS - Both features working as expected
