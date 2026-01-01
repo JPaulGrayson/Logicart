@@ -1117,7 +1117,8 @@ export default function Workbench() {
         historyManager.push(newCode);
         adapter.writeFile(newCode);
         markAsSaved();
-        await saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
+        // Only save code - parser will regenerate nodes from the new code
+        await saveToFile({ code: newCode });
       }
     }
   };
@@ -1155,7 +1156,10 @@ export default function Workbench() {
       historyManager.push(newCode);
       adapter.writeFile(newCode);
       markAsSaved();
-      await saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
+      // Only save code - parser will regenerate nodes from the new code
+      await saveToFile({ code: newCode });
+      // Clear labeling state
+      setLabelingNode(null);
       return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Failed to save label' };
