@@ -1,10 +1,10 @@
 import type { Express } from 'express';
 import { createServer, type Server } from 'http';
-import { fileSyncRouter } from './routes/file-sync';
-import { shareRouter, handleShareView } from './routes/share';
-import { remoteRouter } from './routes/remote';
-import { registerAIRoutes } from './ai';
-import { registerArenaRoutes } from './arena';
+import { fileSyncRouter } from './file-sync';
+import { shareRouter, handleShareView } from './share';
+import { remoteRouter } from './remote';
+import { registerAIRoutes } from '../ai';
+import { registerArenaRoutes } from '../arena';
 
 /**
  * Register all application routes

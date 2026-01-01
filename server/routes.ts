@@ -17,46 +17,13 @@ import { handleMCPSSE, handleMCPMessage } from "./mcp";
 import { shares, insertShareSchema } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
+// Modular routes
+import { fileSyncRouter } from "./routes/file-sync";
+import { shareRouter, handleShareView } from "./routes/share";
+import { remoteRouter } from "./routes/remote";
+import { sessionManager } from "./services/session-manager";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-interface Checkpoint {
-  id: string;
-  label?: string;
-  variables: Record<string, any>;
-  line?: number;
-  timestamp: number;
-}
-
-interface RemoteSession {
-  id: string;
-  name?: string;
-  code?: string;
-  checkpoints: Checkpoint[];
-  sseClients: Response[];
-  studioWsClients: Set<WebSocket>;
-  remoteWsClients: Set<WebSocket>;
-  createdAt: Date;
-  lastActivity: Date;
-}
-
-const remoteSessions = new Map<string, RemoteSession>();
-
-const SESSION_TIMEOUT_MS = 60 * 60 * 1000;
-const MAX_SESSIONS = 100;
-const MAX_QUEUE_DEPTH = 1000;
-
-function cleanupExpiredSessions() {
-  const now = Date.now();
-  for (const [id, session] of remoteSessions) {
-    if (now - session.lastActivity.getTime() > SESSION_TIMEOUT_MS) {
-      session.sseClients.forEach(client => client.end());
-      remoteSessions.delete(id);
-    }
-  }
-}
-
-setInterval(cleanupExpiredSessions, 60 * 1000);
 
 // Helper: Parse JavaScript code to GroundingContext (server-side)
 function parseCodeToGrounding(code: string): GroundingContext {
@@ -67,30 +34,30 @@ function parseCodeToGrounding(code: string): GroundingContext {
     snippet: string;
     line: number;
   }
-  
+
   interface SimpleEdge {
     source: string;
     target: string;
     condition?: string;
   }
-  
+
   const nodes: SimpleNode[] = [];
   const edges: SimpleEdge[] = [];
   let nodeCounter = 0;
   let complexityScore = 0;
-  
+
   const createNodeId = () => `n${nodeCounter++}`;
-  
+
   try {
     const ast = acorn.parse(code, {
       ecmaVersion: 2020,
       sourceType: 'module',
       locations: true
     });
-    
+
     function processNode(node: any, parentId: string | null): string | null {
       if (!node) return null;
-      
+
       switch (node.type) {
         case 'FunctionDeclaration':
         case 'FunctionExpression':
@@ -105,7 +72,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
             line: node.loc?.start?.line || 0
           });
           if (parentId) edges.push({ source: parentId, target: id });
-          
+
           if (node.body) {
             const bodyStatements = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
             let lastId = id;
@@ -116,7 +83,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           }
           return id;
         }
-        
+
         case 'IfStatement': {
           complexityScore++;
           const id = createNodeId();
@@ -129,7 +96,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
             line: node.loc?.start?.line || 0
           });
           if (parentId) edges.push({ source: parentId, target: id });
-          
+
           // Process consequent (true branch) with decision as parent
           // Then update the edge to add condition
           const edgeCountBefore = edges.length;
@@ -141,7 +108,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
               lastEdge.condition = 'true';
             }
           }
-          
+
           // Process alternate (false branch)
           if (node.alternate) {
             const edgeCountBeforeAlt = edges.length;
@@ -156,7 +123,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           }
           return id;
         }
-        
+
         case 'ForStatement':
         case 'WhileStatement':
         case 'ForOfStatement':
@@ -172,11 +139,11 @@ function parseCodeToGrounding(code: string): GroundingContext {
             line: node.loc?.start?.line || 0
           });
           if (parentId) edges.push({ source: parentId, target: id });
-          
+
           if (node.body) processNode(node.body, id);
           return id;
         }
-        
+
         case 'SwitchStatement': {
           complexityScore++;
           const id = createNodeId();
@@ -191,7 +158,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           if (parentId) edges.push({ source: parentId, target: id });
           return id;
         }
-        
+
         case 'ReturnStatement': {
           const id = createNodeId();
           const retValue = node.argument ? code.slice(node.argument.start, node.argument.end) : 'void';
@@ -205,7 +172,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           if (parentId) edges.push({ source: parentId, target: id });
           return id;
         }
-        
+
         case 'ExpressionStatement': {
           const id = createNodeId();
           const exprCode = code.slice(node.expression.start, node.expression.end);
@@ -219,7 +186,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           if (parentId) edges.push({ source: parentId, target: id });
           return id;
         }
-        
+
         case 'VariableDeclaration': {
           const id = createNodeId();
           const declCode = code.slice(node.start, node.end);
@@ -233,7 +200,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
           if (parentId) edges.push({ source: parentId, target: id });
           return id;
         }
-        
+
         case 'BlockStatement': {
           let lastId = parentId;
           for (const stmt of node.body) {
@@ -242,12 +209,12 @@ function parseCodeToGrounding(code: string): GroundingContext {
           }
           return lastId;
         }
-        
+
         default:
           return parentId;
       }
     }
-    
+
     // Process all top-level statements
     const body = (ast as any).body;
     let lastId: string | null = null;
@@ -255,23 +222,23 @@ function parseCodeToGrounding(code: string): GroundingContext {
       const nodeId = processNode(node, lastId);
       if (nodeId) lastId = nodeId;
     }
-    
+
   } catch (error) {
     console.error("Acorn parse error:", error);
   }
-  
+
   // Build parent/children maps
   const parentMap = new Map<string, string[]>();
   const childrenMap = new Map<string, Array<{ targetId: string; condition?: string }>>();
-  
+
   edges.forEach(edge => {
     if (!parentMap.has(edge.target)) parentMap.set(edge.target, []);
     parentMap.get(edge.target)!.push(edge.source);
-    
+
     if (!childrenMap.has(edge.source)) childrenMap.set(edge.source, []);
     childrenMap.get(edge.source)!.push({ targetId: edge.target, condition: edge.condition });
   });
-  
+
   const groundingNodes: GroundingNode[] = nodes.map(n => ({
     id: n.id,
     type: n.type,
@@ -280,7 +247,7 @@ function parseCodeToGrounding(code: string): GroundingContext {
     parents: parentMap.get(n.id) || [],
     children: childrenMap.get(n.id) || []
   }));
-  
+
   return {
     summary: {
       entryPoint: nodes[0]?.id || 'unknown',
@@ -296,12 +263,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/demo", express.static(path.join(__dirname, "..", "example")));
   app.use("/demo-src", express.static(path.join(__dirname, "..", "src")));
   app.use("/test-app", express.static(path.join(__dirname, "..", "public", "test-app")));
-  
+
   // Serve the test page explicitly
   app.get("/test-antigravity.html", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "example", "test-antigravity.html"));
   });
-  
+
   // Serve the extension files
   app.get("/extension.html", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "dist", "extension", "extension.html"));
@@ -318,59 +285,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register AI Code Understanding APIs
   registerAIRoutes(app);
-  
+
   // Register Model Arena routes
   registerArenaRoutes(app);
 
-  // File Sync API - for bi-directional sync with Replit Agent
-  const FLOWCHART_FILE_PATH = path.join(__dirname, "..", "data", "flowchart.json");
-  const DATA_DIR = path.join(__dirname, "..", "data");
-
-  // Ensure data directory exists on startup
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-
-  // Get file modification status
-  app.get("/api/file/status", (req, res) => {
-    try {
-      if (!fs.existsSync(FLOWCHART_FILE_PATH)) {
-        return res.json({ lastModified: 0, exists: false });
-      }
-      const stats = fs.statSync(FLOWCHART_FILE_PATH);
-      res.json({ lastModified: stats.mtimeMs, exists: true });
-    } catch (error) {
-      console.error("[File Sync] Status error:", error);
-      res.status(500).json({ error: "Failed to get file status" });
-    }
-  });
-
-  // Load flowchart from file
-  app.get("/api/file/load", (req, res) => {
-    try {
-      if (!fs.existsSync(FLOWCHART_FILE_PATH)) {
-        return res.json({ success: true, data: { nodes: [], edges: [], code: "" } });
-      }
-      const content = fs.readFileSync(FLOWCHART_FILE_PATH, "utf-8");
-      const data = JSON.parse(content);
-      res.json({ success: true, data });
-    } catch (error) {
-      console.error("[File Sync] Load error:", error);
-      res.status(500).json({ error: "Failed to load flowchart" });
-    }
-  });
-
-  // Save flowchart to file
-  app.post("/api/file/save", express.json(), (req, res) => {
-    try {
-      const data = req.body;
-      fs.writeFileSync(FLOWCHART_FILE_PATH, JSON.stringify(data, null, 2));
-      res.json({ success: true, lastModified: Date.now() });
-    } catch (error) {
-      console.error("[File Sync] Save error:", error);
-      res.status(500).json({ error: "Failed to save flowchart" });
-    }
-  });
+  // Register modular routes
+  app.use('/api/file', fileSyncRouter);
 
   // Documentation API - serve markdown files from docs/
   const ALLOWED_DOCS = [
@@ -397,18 +317,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { file } = req.params;
       const filename = file.endsWith('.md') ? file : `${file}.md`;
-      
+
       // Security: Only allow whitelisted files
       if (!ALLOWED_DOCS.includes(filename)) {
         return res.status(404).json({ error: "Documentation not found" });
       }
-      
+
       const docPath = path.join(__dirname, "..", "docs", filename);
       const fs = await import('fs/promises');
       const content = await fs.readFile(docPath, 'utf-8');
-      
-      res.json({ 
-        file: filename, 
+
+      res.json({
+        file: filename,
         content,
         title: filename.replace('.md', '').replace(/_/g, ' ')
       });
@@ -434,16 +354,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { slug } = req.params;
       const filename = DOC_SLUGS[slug];
-      
+
       if (!filename) {
         return res.status(404).send("Documentation not found");
       }
-      
+
       const docPath = path.join(__dirname, "..", "docs", filename);
       const fs = await import('fs/promises');
       const markdown = await fs.readFile(docPath, 'utf-8');
       const title = filename.replace('.md', '').replace(/_/g, ' ');
-      
+
       // Convert markdown to simple HTML (basic conversion)
       const htmlContent = markdown
         .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-6 mb-2">$1</h3>')
@@ -457,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto my-4"><code>$2</code></pre>')
         .replace(/\n\n/g, '</p><p class="my-3 text-gray-300">')
         .replace(/^\| .+$/gm, match => `<div class="font-mono text-sm bg-gray-800 p-2 rounded my-1">${match}</div>`);
-      
+
       const html = `<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -487,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   </div>
 </body>
 </html>`;
-      
+
       res.type('html').send(html);
     } catch (error) {
       console.error("[Docs] Error serving doc page:", error);
@@ -515,84 +435,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Share endpoints
-  app.post("/api/share", async (req, res) => {
-    try {
-      const { code, title, description } = req.body;
-      
-      if (!code || typeof code !== 'string') {
-        return res.status(400).json({ error: "Code is required" });
-      }
-      
-      const id = crypto.randomBytes(4).toString('hex');
-      
-      await db.insert(shares).values({
-        id,
-        code,
-        title: title || null,
-        description: description || null,
-      });
-      
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      const url = `${baseUrl}/s/${id}`;
-      
-      res.json({ id, url });
-    } catch (error) {
-      console.error("[Share] Error creating share:", error);
-      res.status(500).json({ error: "Failed to create share" });
-    }
-  });
-
-  app.get("/s/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const result = await db.select().from(shares).where(eq(shares.id, id));
-      
-      if (result.length === 0) {
-        return res.status(404).send("Share not found");
-      }
-      
-      await db.update(shares)
-        .set({ views: sql`${shares.views} + 1` })
-        .where(eq(shares.id, id));
-      
-      const share = result[0];
-      const encoded = Buffer.from(share.code).toString('base64');
-      const titleParam = share.title ? `&title=${encodeURIComponent(share.title)}` : '';
-      
-      res.redirect(`/?code=${encodeURIComponent(encoded)}${titleParam}`);
-    } catch (error) {
-      console.error("[Share] Error fetching share:", error);
-      res.status(500).send("Error loading share");
-    }
-  });
-
-  app.get("/api/share/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const result = await db.select().from(shares).where(eq(shares.id, id));
-      
-      if (result.length === 0) {
-        return res.status(404).json({ error: "Share not found" });
-      }
-      
-      res.json(result[0]);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch share" });
-    }
-  });
+  // Register share routes
+  app.use('/api/share', shareRouter);
+  app.get('/s/:id', handleShareView);
 
   // Agent API - Programmatic code analysis
   app.post("/api/agent/analyze", async (req, res) => {
     try {
       const { code, language } = req.body;
-      
+
       if (!code || typeof code !== 'string') {
         return res.status(400).json({ error: "Code is required" });
       }
-      
+
       const grounding = parseCodeToGrounding(code);
-      
+
       res.json({
         summary: grounding.summary,
         flow: grounding.flow,
@@ -611,10 +468,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rewrite-code", async (req, res) => {
     try {
       const { code, instructions, context } = req.body;
-      
+
       if (!code || !instructions) {
-        return res.status(400).json({ 
-          message: "Missing required fields: code and instructions" 
+        return res.status(400).json({
+          message: "Missing required fields: code and instructions"
         });
       }
 
@@ -652,7 +509,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       });
 
       const rewrittenCode = response.choices[0]?.message?.content?.trim() || code;
-      
+
       // Clean up any markdown code blocks if the model included them
       const cleanedCode = rewrittenCode
         .replace(/^```(?:javascript|js)?\n?/i, '')
@@ -662,8 +519,8 @@ Rewrite the code according to the instructions. Output only the new code, no exp
       res.json({ rewrittenCode: cleanedCode });
     } catch (error) {
       console.error("Code rewrite error:", error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to rewrite code" 
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to rewrite code"
       });
     }
   });
@@ -675,19 +532,19 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   app.post("/api/export/grounding", (req, res) => {
     try {
       const { code } = req.body;
-      
+
       if (!code || typeof code !== 'string') {
         return res.status(400).json({ error: "Missing or invalid 'code' field" });
       }
 
       // Parse the code to extract flowchart structure
       const grounding = parseCodeToGrounding(code);
-      
+
       res.json(grounding);
     } catch (error) {
       console.error("Grounding export error:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to generate grounding context" 
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to generate grounding context"
       });
     }
   });
@@ -697,235 +554,27 @@ Rewrite the code according to the instructions. Output only the new code, no exp
   // ============================================
 
   // CORS middleware for remote API endpoints
-  app.use("/api/remote", (req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-    
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
-    }
-    next();
-  });
-
-  // Create a new remote session
-  app.post("/api/remote/session", (req, res) => {
-    try {
-      if (remoteSessions.size >= MAX_SESSIONS) {
-        return res.status(503).json({ error: "Maximum sessions reached. Try again later." });
-      }
-
-      const { code, name } = req.body;
-      const sessionId = crypto.randomUUID();
-      
-      const session: RemoteSession = {
-        id: sessionId,
-        name: name || "Remote Session",
-        code: code || undefined,
-        checkpoints: [],
-        sseClients: [],
-        studioWsClients: new Set(),
-        remoteWsClients: new Set(),
-        createdAt: new Date(),
-        lastActivity: new Date()
-      };
-
-      remoteSessions.set(sessionId, session);
-
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers.host || 'localhost:5000';
-      const connectUrl = `${protocol}://${host}/remote/${sessionId}`;
-
-      res.json({ 
-        sessionId, 
-        connectUrl,
-        message: "Session created. Open connectUrl in LogiGo to view checkpoints."
-      });
-    } catch (error) {
-      console.error("Session creation error:", error);
-      res.status(500).json({ error: "Failed to create session" });
-    }
-  });
-
-  // Send a checkpoint to a session
-  app.post("/api/remote/checkpoint", (req, res) => {
-    try {
-      const { sessionId, checkpoint } = req.body;
-
-      if (!sessionId || !checkpoint) {
-        return res.status(400).json({ error: "Missing sessionId or checkpoint" });
-      }
-
-      const session = remoteSessions.get(sessionId);
-      if (!session) {
-        return res.status(404).json({ error: "Session not found" });
-      }
-
-      const checkpointData: Checkpoint = {
-        id: checkpoint.id || `checkpoint-${session.checkpoints.length}`,
-        label: checkpoint.label,
-        variables: checkpoint.variables || {},
-        line: checkpoint.line,
-        timestamp: Date.now()
-      };
-
-      // Apply queue depth limit (drop oldest if exceeded)
-      if (session.checkpoints.length >= MAX_QUEUE_DEPTH) {
-        session.checkpoints.shift();
-      }
-      session.checkpoints.push(checkpointData);
-      session.lastActivity = new Date();
-
-      // Broadcast to all SSE clients
-      const eventData = JSON.stringify(checkpointData);
-      session.sseClients.forEach(client => {
-        client.write(`event: checkpoint\ndata: ${eventData}\n\n`);
-      });
-
-      res.json({ success: true, checkpointCount: session.checkpoints.length });
-    } catch (error) {
-      console.error("Checkpoint error:", error);
-      res.status(500).json({ error: "Failed to process checkpoint" });
-    }
-  });
-
-  // End a session
-  app.post("/api/remote/session/end", (req, res) => {
-    try {
-      const { sessionId } = req.body;
-
-      if (!sessionId) {
-        return res.status(400).json({ error: "Missing sessionId" });
-      }
-
-      const session = remoteSessions.get(sessionId);
-      if (!session) {
-        return res.status(404).json({ error: "Session not found" });
-      }
-
-      // Notify all clients session ended
-      session.sseClients.forEach(client => {
-        client.write(`event: session_end\ndata: {}\n\n`);
-        client.end();
-      });
-
-      remoteSessions.delete(sessionId);
-
-      res.json({ ended: true });
-    } catch (error) {
-      console.error("Session end error:", error);
-      res.status(500).json({ error: "Failed to end session" });
-    }
-  });
-
-  // SSE stream for real-time checkpoint updates
-  app.get("/api/remote/stream/:sessionId", (req, res) => {
-    const { sessionId } = req.params;
-    const session = remoteSessions.get(sessionId);
-
-    if (!session) {
-      return res.status(404).json({ error: "Session not found" });
-    }
-
-    // Set up SSE headers
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.flushHeaders();
-
-    // Send initial session info
-    res.write(`event: session_info\ndata: ${JSON.stringify({
-      id: session.id,
-      name: session.name,
-      code: session.code,
-      checkpointCount: session.checkpoints.length
-    })}\n\n`);
-
-    // Send existing checkpoints
-    session.checkpoints.forEach(cp => {
-      res.write(`event: checkpoint\ndata: ${JSON.stringify(cp)}\n\n`);
-    });
-
-    // Add client to session
-    session.sseClients.push(res);
-
-    // Remove client on disconnect
-    req.on("close", () => {
-      const index = session.sseClients.indexOf(res);
-      if (index > -1) {
-        session.sseClients.splice(index, 1);
-      }
-    });
-  });
-
-  // Register code for a session (for flowchart visualization)
-  app.post("/api/remote/code", (req, res) => {
-    try {
-      const { sessionId, code } = req.body;
-
-      if (!sessionId || !code) {
-        return res.status(400).json({ error: "Missing sessionId or code" });
-      }
-
-      const session = remoteSessions.get(sessionId);
-      if (!session) {
-        return res.status(404).json({ error: "Session not found" });
-      }
-
-      session.code = code;
-      session.lastActivity = new Date();
-
-      // Notify SSE clients about the code update
-      session.sseClients.forEach(client => {
-        client.write(`event: code_update\ndata: ${JSON.stringify({ code })}\n\n`);
-      });
-
-      res.json({ success: true, message: "Code registered for flowchart visualization" });
-    } catch (error) {
-      console.error("Code registration error:", error);
-      res.status(500).json({ error: "Failed to register code" });
-    }
-  });
-
-  // Get session info (for debugging/testing)
-  app.get("/api/remote/session/:sessionId", (req, res) => {
-    const { sessionId } = req.params;
-    const session = remoteSessions.get(sessionId);
-
-    if (!session) {
-      return res.status(404).json({ error: "Session not found" });
-    }
-
-    res.json({
-      id: session.id,
-      name: session.name,
-      code: session.code,
-      checkpointCount: session.checkpoints.length,
-      viewerCount: session.sseClients.length,
-      createdAt: session.createdAt,
-      lastActivity: session.lastActivity
-    });
-  });
+  // Register remote mode routes
+  app.use('/api/remote', remoteRouter);
 
   // ============================================
   // Runtime Instrumentation API (for Service Worker)
   // ============================================
-  
+
   // Instrument code on-the-fly for zero-code ES module support
   app.post("/api/runtime/instrument", (req, res) => {
     try {
       const { code, filePath = 'module.js' } = req.body;
-      
+
       if (!code || typeof code !== 'string') {
         return res.status(400).json({ error: "Code is required" });
       }
-      
+
       // Lightweight regex-based instrumentation for runtime use
       // This injects checkpoints at function entries without full AST parsing
       let instrumented = code;
       let fnCount = 0;
-      
+
       // Inject checkpoint at async function declarations
       instrumented = instrumented.replace(
         /^(\s*)(export\s+)?(async\s+)?function\s+(\w+)\s*\(([^)]*)\)\s*\{/gm,
@@ -936,7 +585,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
           return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', ${varsObj});`;
         }
       );
-      
+
       // Inject checkpoint at arrow functions assigned to const/let/var
       instrumented = instrumented.replace(
         /^(\s*)(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s*)?\(([^)]*)\)\s*=>\s*\{/gm,
@@ -947,7 +596,7 @@ Rewrite the code according to the instructions. Output only the new code, no exp
           return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', ${varsObj});`;
         }
       );
-      
+
       // Inject checkpoint at method definitions in classes
       instrumented = instrumented.replace(
         /^(\s*)(async\s+)?(\w+)\s*\(([^)]*)\)\s*\{(?!\s*window\.LogiGo)/gm,
@@ -960,23 +609,23 @@ Rewrite the code according to the instructions. Output only the new code, no exp
           return `${match}\n${indent}  window.LogiGo?.checkpoint?.('${name}-entry', {});`;
         }
       );
-      
-      res.json({ 
-        code: instrumented, 
+
+      res.json({
+        code: instrumented,
         instrumented: fnCount > 0,
         functionCount: fnCount,
-        filePath 
+        filePath
       });
     } catch (error) {
       console.error("Instrumentation error:", error);
       res.status(500).json({ error: "Failed to instrument code" });
     }
   });
-  
+
   // Serve the Service Worker script for intercepting module requests
   app.get("/logigo-sw.js", (req, res) => {
     const logigoUrl = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host || 'localhost:5000'}`;
-    
+
     const swScript = `
 // LogiGo Service Worker - Zero-Code ES Module Instrumentation
 // This intercepts module requests and instruments them on-the-fly
@@ -1086,7 +735,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 `;
-    
+
     res.type("application/javascript").send(swScript);
   });
 
@@ -1095,12 +744,12 @@ self.addEventListener('fetch', (event) => {
   // ============================================
   // Usage: Visit https://logigo-url/proxy/https://your-app-url
   // This proxies the target app and instruments all JS on the fly
-  
+
   app.get("/proxy/*", async (req, res) => {
     try {
       // Extract target URL from the path (Express uses params[0] for wildcards)
       const targetUrl = (req.params as Record<string, string>)[0];
-      
+
       if (!targetUrl || !targetUrl.startsWith('http')) {
         return res.status(400).send(`
           <!DOCTYPE html>
@@ -1123,7 +772,7 @@ self.addEventListener('fetch', (event) => {
           </html>
         `);
       }
-      
+
       // Parse the target URL
       let parsedTarget: URL;
       try {
@@ -1131,7 +780,7 @@ self.addEventListener('fetch', (event) => {
       } catch (e) {
         return res.status(400).send("Invalid target URL");
       }
-      
+
       // Security: Only allow specific domains to prevent SSRF
       const allowedDomains = [
         /\.replit\.app$/,
@@ -1143,7 +792,7 @@ self.addEventListener('fetch', (event) => {
       ];
       const hostname = parsedTarget.hostname;
       const isAllowed = allowedDomains.some(pattern => pattern.test(hostname));
-      
+
       if (!isAllowed) {
         return res.status(403).send(`
           <!DOCTYPE html>
@@ -1159,10 +808,10 @@ self.addEventListener('fetch', (event) => {
           </html>
         `);
       }
-      
+
       // Construct the full URL with query string
       const fullUrl = req.originalUrl.replace(/^\/proxy\//, '');
-      
+
       // Fetch from target
       const targetResponse = await fetch(fullUrl, {
         headers: {
@@ -1172,15 +821,15 @@ self.addEventListener('fetch', (event) => {
         },
         redirect: 'follow'
       });
-      
+
       const contentType = targetResponse.headers.get('content-type') || '';
       const targetOrigin = parsedTarget.origin;
       const logigoProxyBase = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/proxy/${targetOrigin}`;
-      
+
       // Handle different content types
       if (contentType.includes('text/html')) {
         let html = await targetResponse.text();
-        
+
         // Rewrite URLs in HTML to go through proxy
         // Handle absolute URLs
         html = html.replace(/(href|src|action)=["'](https?:\/\/[^"']+)["']/gi, (match, attr, url) => {
@@ -1189,13 +838,13 @@ self.addEventListener('fetch', (event) => {
           }
           return match;
         });
-        
+
         // Handle root-relative URLs (but NOT protocol-relative //example.com)
         // Use negative lookahead to exclude // but allow / and /path
         html = html.replace(/(href|src|action)=["'](\/(?!\/)[^"']*)["']/gi, (match, attr, path) => {
           return `${attr}="${logigoProxyBase}${path}"`;
         });
-        
+
         // Handle relative URLs (./path or just path) by adding a <base> tag
         // This ensures all relative URLs resolve correctly through the proxy
         const targetPath = parsedTarget.pathname;
@@ -1206,7 +855,7 @@ self.addEventListener('fetch', (event) => {
         } else if (html.includes('<head ')) {
           html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
         }
-        
+
         // Inject a script to patch location.pathname for SPA routers
         // This makes client-side routers see '/' instead of '/proxy/https://...'
         // Instead of patching location (which doesn't work reliably),
@@ -1268,17 +917,17 @@ self.addEventListener('fetch', (event) => {
   };
 })();
 </script>`;
-        
+
         // Inject LogiGo remote.js script for checkpoint handling
         const logigoScript = `<script src="${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/remote.js?project=Proxy&autoOpen=true"></script>`;
-        
+
         // Inject location patch FIRST (before any other scripts), then remote.js
         if (html.includes('<head>')) {
           html = html.replace('<head>', `<head>${locationPatch}`);
         } else if (html.includes('<head ')) {
           html = html.replace(/<head([^>]*)>/i, `<head$1>${locationPatch}`);
         }
-        
+
         // Then add remote.js before </head>
         if (html.includes('</head>')) {
           html = html.replace('</head>', `${logigoScript}</head>`);
@@ -1287,7 +936,7 @@ self.addEventListener('fetch', (event) => {
         } else {
           html = logigoScript + html;
         }
-        
+
         // Add a floating indicator
         const indicator = `
           <div id="logigo-proxy-indicator" style="position:fixed;bottom:20px;left:20px;background:#3b82f6;color:white;padding:8px 16px;border-radius:8px;font-family:system-ui;font-size:14px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -1296,35 +945,35 @@ self.addEventListener('fetch', (event) => {
           </div>
         `;
         html = html.replace('</body>', `${indicator}</body>`);
-        
+
         res.type('text/html').send(html);
-        
+
       } else if (contentType.includes('javascript') || /\.(js|jsx|mjs)$/.test(fullUrl)) {
         // JavaScript files - be very careful with instrumentation
         let code = await targetResponse.text();
         const originalCode = code;
-        
+
         // Skip instrumentation for bundled/minified files (they break when modified)
         // Signs of bundled code: hash in filename, very long single lines, minified patterns
         const isBundled = /[-_][a-zA-Z0-9]{6,}\.(js|mjs)$/.test(fullUrl) || // hash in filename
-                          code.split('\n').some(line => line.length > 1000) || // minified lines
-                          /\)\{[a-z]\(/g.test(code.slice(0, 1000)); // minified function calls
-        
+          code.split('\n').some(line => line.length > 1000) || // minified lines
+          /\)\{[a-z]\(/g.test(code.slice(0, 1000)); // minified function calls
+
         // Skip if it's a vendor/library file
         const skipPatterns = [/node_modules/, /vendor/, /react\./, /react-dom/, /chunk-/, /@vite/, /\.vite/, /scheduler/];
         const shouldSkip = skipPatterns.some(p => p.test(fullUrl)) || isBundled;
-        
+
         // Detect app entry files for code registration (not just index/main)
         // Include: index.js, main.js, app.js, game.js, script.js, etc.
         // Exclude: vendor files, minified bundles, chunks
         const isAppCode = /\/(index|main|app|game|script|bundle)(-[a-zA-Z0-9]+)?\.js$/i.test(fullUrl) ||
-                          (/\/[a-z][a-z0-9_-]*\.js$/i.test(fullUrl) && !isBundled && code.length < 50000);
-        
+          (/\/[a-z][a-z0-9_-]*\.js$/i.test(fullUrl) && !isBundled && code.length < 50000);
+
         if (!shouldSkip && code.length < 500000) { // Skip very large files
           // Inject checkpoints into functions
           let fnCount = 0;
           const discoveredFunctions: string[] = [];
-          
+
           // Helper to check if function name looks like user code (not minified)
           const isUserFunction = (name: string): boolean => {
             // Skip very short names (likely minified: a, b, Ym, gd, etc.)
@@ -1341,7 +990,7 @@ self.addEventListener('fetch', (event) => {
             if (/^[A-Z][a-zA-Z0-9]{5,}$/.test(name)) return true;
             return false;
           };
-          
+
           // Named function declarations anywhere (not just line start)
           code = code.replace(
             /((?:export\s+)?(?:async\s+)?function\s+)(\w+)(\s*\([^)]*\)\s*\{)/g,
@@ -1352,7 +1001,7 @@ self.addEventListener('fetch', (event) => {
               return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
             }
           );
-          
+
           // Arrow functions with block body (const x = () => {)
           code = code.replace(
             /((?:export\s+)?(?:const|let|var)\s+)(\w+)(\s*=\s*(?:async\s*)?\([^)]*\)\s*=>\s*\{)/g,
@@ -1363,7 +1012,7 @@ self.addEventListener('fetch', (event) => {
               return `${prefix}${name}${suffix}\n  window.LogiGo?.checkpoint?.('${name}', {});`;
             }
           );
-          
+
           // Object method shorthand: { methodName() { } }
           code = code.replace(
             /([,{]\s*)(\w+)(\s*\([^)]*\)\s*\{)/g,
@@ -1374,13 +1023,13 @@ self.addEventListener('fetch', (event) => {
               return `${prefix}${name}${suffix}\n    window.LogiGo?.checkpoint?.('${name}', {});`;
             }
           );
-          
+
           if (fnCount > 0) {
             res.set('X-LogiGo-Instrumented', String(fnCount));
             console.log(`[Proxy] Instrumented ${fnCount} functions in ${fullUrl}: ${discoveredFunctions.slice(0, 5).join(', ')}${discoveredFunctions.length > 5 ? '...' : ''}`);
           }
         }
-        
+
         // For app code files, register the code for flowchart visualization (even if not instrumented)
         // Note: Vite bundles can be large (500KB+), so we accept up to 1MB and slice to 50KB for the flowchart
         if (isAppCode && originalCode.length > 500) {
@@ -1404,21 +1053,21 @@ self.addEventListener('fetch', (event) => {
         } else if (isAppCode) {
           console.log(`[Proxy] Skipping code registration: ${fullUrl} (${originalCode.length} bytes) - too small`);
         }
-        
+
         res.type('application/javascript').send(code);
-        
+
       } else if (contentType.includes('typescript') || /\.(ts|tsx)$/.test(fullUrl)) {
         // For TypeScript, we need the browser to handle it via Vite
         // Just pass through since Vite will transform it
         const code = await targetResponse.text();
         res.type(contentType || 'application/javascript').send(code);
-        
+
       } else {
         // Pass through other content types
         const buffer = await targetResponse.arrayBuffer();
         res.type(contentType).send(Buffer.from(buffer));
       }
-      
+
     } catch (error) {
       console.error("Proxy error:", error);
       res.status(500).send(`
@@ -1439,7 +1088,7 @@ self.addEventListener('fetch', (event) => {
   // ============================================
   // One-Line Bootstrap Script
   // ============================================
-  
+
   // Serve the bootstrap script - auto-creates session and sets up checkpoint()
   app.get("/remote.js", (req, res) => {
     try {
@@ -1450,28 +1099,9 @@ self.addEventListener('fetch', (event) => {
       const sourceCode = encodedCode ? Buffer.from(encodedCode, 'base64').toString('utf-8') : undefined;
       // Auto-open option (default: true for zero-click experience)
       const autoOpen = req.query.autoOpen !== 'false';
-      
-      // Create a new session
-      if (remoteSessions.size >= MAX_SESSIONS) {
-        res.status(503).type("application/javascript").send(
-          `console.error("LogiGo: Maximum sessions reached. Try again later.");`
-        );
-        return;
-      }
 
-      const sessionId = crypto.randomUUID();
-      const session: RemoteSession = {
-        id: sessionId,
-        name: String(projectName),
-        code: sourceCode,
-        checkpoints: [],
-        sseClients: [],
-        studioWsClients: new Set(),
-        remoteWsClients: new Set(),
-        createdAt: new Date(),
-        lastActivity: new Date()
-      };
-      remoteSessions.set(sessionId, session);
+      // Create a new session using session manager
+      const { sessionId } = sessionManager.createSession(String(projectName), sourceCode);
 
       const protocol = req.headers['x-forwarded-proto'] || 'https';
       const host = req.headers.host || 'localhost:5000';
@@ -2158,11 +1788,17 @@ self.addEventListener('fetch', (event) => {
 `;
 
       res.type("application/javascript").send(script);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Bootstrap script error:", error);
-      res.status(500).type("application/javascript").send(
-        `console.error("LogiGo: Failed to initialize remote mode");`
-      );
+      if (error.message === 'Maximum sessions reached') {
+        res.status(503).type("application/javascript").send(
+          `console.error("LogiGo: Maximum sessions reached. Try again later.");`
+        );
+      } else {
+        res.status(500).type("application/javascript").send(
+          `console.error("LogiGo: Failed to initialize remote mode");`
+        );
+      }
     }
   });
 
@@ -2171,64 +1807,64 @@ self.addEventListener('fetch', (event) => {
   // ============================================
   // WebSocket Control Channel for Visual Handshake
   // ============================================
-  
+
   const wss = new WebSocketServer({ noServer: true });
-  
+
   httpServer.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url || '', `http://${request.headers.host}`);
     const pathMatch = url.pathname.match(/^\/api\/remote\/control\/([^/]+)$/);
-    
+
     if (!pathMatch) {
       socket.destroy();
       return;
     }
-    
+
     const sessionId = pathMatch[1];
     const clientType = url.searchParams.get('type') || 'studio';
-    const session = remoteSessions.get(sessionId);
-    
+    const session = sessionManager.getSession(sessionId);
+
     if (!session) {
       socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
       socket.destroy();
       return;
     }
-    
+
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request, sessionId, clientType, session);
     });
   });
-  
-  wss.on('connection', (ws: WebSocket, request: any, sessionId: string, clientType: string, session: RemoteSession) => {
+
+  wss.on('connection', (ws: WebSocket, request: any, sessionId: string, clientType: string, session: any) => {
     console.log(`[WS] ${clientType} connected to session ${sessionId.slice(0, 8)}`);
-    
+
     if (clientType === 'studio') {
       session.studioWsClients.add(ws);
     } else {
       session.remoteWsClients.add(ws);
     }
-    
+
     session.lastActivity = new Date();
-    
+
     ws.on('message', (data) => {
       try {
         const message: ControlMessage = JSON.parse(data.toString());
         session.lastActivity = new Date();
-        
+
         if (message.type === 'PING') {
           ws.send(JSON.stringify({ type: 'PONG', timestamp: Date.now() }));
           return;
         }
-        
+
         if (message.type === 'HIGHLIGHT_ELEMENT' && clientType === 'studio') {
-          session.remoteWsClients.forEach(client => {
+          session.remoteWsClients.forEach((client: WebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
               client.send(JSON.stringify(message));
             }
           });
         }
-        
+
         if ((message.type === 'CONFIRM_HIGHLIGHT' || message.type === 'REMOTE_FOCUS') && clientType === 'remote') {
-          session.studioWsClients.forEach(client => {
+          session.studioWsClients.forEach((client: WebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
               client.send(JSON.stringify(message));
             }
@@ -2238,7 +1874,7 @@ self.addEventListener('fetch', (event) => {
         console.error('[WS] Invalid message:', e);
       }
     });
-    
+
     ws.on('close', () => {
       console.log(`[WS] ${clientType} disconnected from session ${sessionId.slice(0, 8)}`);
       if (clientType === 'studio') {
@@ -2247,7 +1883,7 @@ self.addEventListener('fetch', (event) => {
         session.remoteWsClients.delete(ws);
       }
     });
-    
+
     ws.on('error', (error) => {
       console.error(`[WS] Error in ${clientType}:`, error.message);
     });
