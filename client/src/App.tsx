@@ -37,12 +37,11 @@ function TokenHandler() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
-      const success = setToken(token);
-      if (success) {
-        params.delete('token');
-        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-        window.history.replaceState({}, '', newUrl);
-      }
+      setToken(token);
+      // Always clean the token from URL (valid or invalid)
+      params.delete('token');
+      const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', newUrl);
     }
   }, [setToken]);
 
