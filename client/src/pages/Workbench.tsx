@@ -642,6 +642,18 @@ export default function Workbench() {
     const timer = setTimeout(() => {
       const newFlowData = parseCodeToFlow(code);
       
+      // Check if parse succeeded (not an error node)
+      const parseSucceeded = newFlowData.nodes.length > 0 && newFlowData.nodes[0]?.id !== 'error';
+      
+      // If parse failed, keep showing the last valid flowchart (don't update flowData)
+      // This prevents jarring "Syntax Error" nodes while typing
+      if (!parseSucceeded) {
+        console.log('[Parser] Parse error - keeping last valid flowchart');
+        setIsParsing(false);
+        setParseReady(false);
+        return; // Don't update flowData, keep showing last valid state
+      }
+      
       // Get current original snapshot (persists in window across HMR)
       const currentSnapshot = getOriginalSnapshot();
       
@@ -674,10 +686,8 @@ export default function Workbench() {
       setProgress({ current: 0, total: 0 });
       setIsParsing(false);
       
-      // Mark parse ready immediately after parse completes
-      // Parse succeeds if we have any nodes and the first isn't an error sentinel
-      const parseSucceeded = newFlowData.nodes.length > 0 && newFlowData.nodes[0]?.id !== 'error';
-      setParseReady(parseSucceeded);
+      // Mark parse ready for successful parse
+      setParseReady(true);
       
       // Auto-start playback if user queued it during parsing
       if (parseSucceeded && playQueued) {
