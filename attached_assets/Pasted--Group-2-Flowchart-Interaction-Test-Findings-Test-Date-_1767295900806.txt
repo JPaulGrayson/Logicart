@@ -1,0 +1,170 @@
+# Group 2: Flowchart Interaction - Test Findings
+
+**Test Date:** 2026-01-01  
+**Tester:** Antigravity AI  
+**Application:** LogiGo V1 (http://localhost:5001)  
+**Git Commit:** 44df118 (main branch)
+
+---
+
+## 📋 Test Summary
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **Collapsible Containers** | ✅ **PASS** | Fully functional - containers collapse/expand correctly |
+| **Add Labels** | ❌ **FAIL/NOT FOUND** | Feature not discoverable in UI |
+
+---
+
+## ✅ Feature 1: Collapsible Containers - PASS
+
+### What Works:
+- ✅ Function container nodes (`calculateRouteDistance`, `calculateDistance`) successfully collapse and expand
+- ✅ **Collapse behavior:** Clicking "Expanded" label hides all internal logic nodes
+- ✅ **Expand behavior:** Clicking "Collapsed" label restores all child nodes
+- ✅ **Visual indicators:** Clear text badges showing "Expanded" or "Collapsed" with step counts (e.g., "10")
+- ✅ **Hierarchical nesting:** Correctly handles nested function structures
+- ✅ **DOM behavior:** Child nodes properly removed/added from DOM on state changes
+
+### Test Steps Performed:
+1. Clicked "Expanded" badge on `calculateRouteDistance` container → Successfully collapsed
+2. Verified child nodes removed from DOM
+3. Clicked "Collapsed" badge → Successfully expanded
+4. Verified child nodes restored in DOM
+5. Repeated test with `calculateDistance` container → Same success
+
+### Verdict:
+**PASS** - Feature works exactly as expected with no issues.
+
+---
+
+## ❌ Feature 2: Add Labels - NOT FOUND
+
+### Issue:
+The "Add Labels" feature described in the test plan could not be located or activated through any standard UI interaction method.
+
+### Extensive Testing Performed:
+
+#### 1. **Right-Click Context Menu**
+- ❌ Right-clicked on various node types (Start, Decision, Container, Assignment)
+- **Result:** Only toggles **breakpoints** (red dot indicator)
+- **Expected:** Context menu with "Add Label" option
+- **Actual:** No context menu appears
+
+#### 2. **Double-Click Interactions**
+- ❌ Double-clicked on node bodies
+- ❌ Double-clicked on node text/labels
+- ❌ Double-clicked on edge labels ("True", "False")
+- ❌ Double-clicked on empty canvas areas
+- **Result:** No label editor or input field appears
+
+#### 3. **Hover Interactions**
+- ❌ Hovered over nodes looking for label buttons/icons
+- **Result:** Only connection handles (blue/purple dots) appear
+- **Expected:** Label button or "Add Label" icon
+- **Actual:** No labeling UI elements visible
+
+#### 4. **Toolbar & UI Search**
+- ❌ Searched for "label" in Flow Tools search bar
+- **Result:** Search found matches in DOM but no "Add Label" functionality
+- ❌ Checked all toolbar buttons and menus
+- **Result:** No "Add Label" button found
+- ❌ Checked "View" menu for labeling mode
+- **Result:** No labeling-related options
+
+#### 5. **Keyboard Shortcuts Tested**
+- ❌ Pressed `L` key (common label shortcut)
+- ❌ Pressed `Control+L`
+- ❌ Pressed `Enter` on selected node
+- ❌ Tried typing directly on selected node
+- **Result:** No label editor activated
+
+#### 6. **Mode Toggles**
+- ❌ Checked "Static Mode" badge for edit mode toggle
+- **Result:** Badge is non-interactive
+- ❌ Looked for "Design Mode" or "Edit Mode"
+- **Result:** No such mode found
+
+#### 7. **Other UI Elements**
+- ❌ Found "Add bookmark" button in Debug panel
+- **Result:** Clicking it did not add visible labels to flowchart
+- ❌ Checked if edge labels are editable
+- **Result:** Edge labels ("True", "False") are not editable
+
+### Code Search Results:
+- ❌ No `addLabel` function found in codebase
+- ❌ No "custom label" references found
+- ✅ `LabeledNode` component exists (but appears to be for automatic node labels, not custom user labels)
+
+### Git History Review:
+Recent commits (bf4bd05..44df118) included:
+- View Level dropdown improvements
+- Syntax error prevention
+- Flowchart data updates
+- **No commits related to "Add Labels" functionality**
+
+---
+
+## 🎥 Test Recordings
+
+Two comprehensive test sessions were recorded:
+1. **Initial Test:** `group2_flowchart_interaction_1767293593221.webp`
+2. **Retest (after git pull):** `group2_retest_labels_1767294482212.webp`
+
+Both recordings show the same result: Collapsible containers work, but Add Labels feature is not accessible.
+
+---
+
+## ❓ Questions for Replit Agent
+
+Since you mentioned you already passed this test, could you clarify:
+
+1. **How do you access the "Add Labels" feature?**
+   - Is there a specific keyboard shortcut?
+   - Is there a specific UI element I'm missing?
+   - Does it require a specific mode or state?
+
+2. **What type of labels should be added?**
+   - Custom text labels on nodes?
+   - Annotations on the flowchart?
+   - Editable edge labels?
+   - Something else?
+
+3. **Where should the labels appear?**
+   - On the node itself?
+   - As floating annotations?
+   - In a separate panel?
+
+4. **Is this feature in a different branch?**
+   - Should I be testing on a branch other than `main`?
+
+5. **Could "Add Labels" refer to existing functionality?**
+   - Perhaps the automatic node labels (Start, Return, etc.)?
+   - The edge labels (True/False)?
+   - The LabeledNode component?
+
+---
+
+## 📊 Overall Group 2 Status
+
+**Status:** PARTIAL PASS (1 of 2 features working)
+
+- ✅ **Collapsible Containers:** Fully functional, no issues
+- ❌ **Add Labels:** Not found or not accessible
+
+**Recommendation:** 
+Need clarification on how to access the "Add Labels" feature before this group can fully pass. If the feature is not yet implemented in the UI, the test plan should be updated accordingly.
+
+---
+
+## 🔍 Testing Methodology
+
+**Approach:** Systematic and exhaustive
+- Tested all standard UI interaction patterns
+- Checked multiple node types and states
+- Searched codebase for related functionality
+- Reviewed git history for recent changes
+- Used both manual testing and DOM inspection
+- Attempted keyboard shortcuts and hidden interactions
+
+**Conclusion:** If the "Add Labels" feature exists, it uses a non-standard interaction method that is not documented or discoverable through typical UI exploration.

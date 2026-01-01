@@ -8,6 +8,7 @@ import { EmptyState, SAMPLE_CODE } from '@/components/ide/EmptyState';
 import { ExecutionControls } from '@/components/ide/ExecutionControls';
 import { VariableWatch } from '@/components/ide/VariableWatch';
 import { NodeEditDialog } from '@/components/ide/NodeEditDialog';
+import { NodeLabelDialog } from '@/components/ide/NodeLabelDialog';
 import { parseCodeToFlow, FlowNode } from '@/lib/parser';
 import { Interpreter, ExecutionState } from '@/lib/interpreter';
 import { patchCode, extractCode } from '@/lib/codePatcher';
@@ -128,6 +129,8 @@ export default function Workbench() {
   const [loop, setLoop] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<FlowNode | null>(null);
+  const [labelDialogOpen, setLabelDialogOpen] = useState(false);
+  const [labelingNode, setLabelingNode] = useState<{ nodeId: string; label: string; currentUserLabel?: string } | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [parseReady, setParseReady] = useState(false);
   const [playQueued, setPlayQueued] = useState(false);
@@ -1081,6 +1084,82 @@ export default function Workbench() {
       }
       return next;
     });
+  };
+
+  const handleAddLabel = (nodeId: string, currentUserLabel?: string) => {
+    const node = flowData.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+    
+    setLabelingNode({
+      nodeId,
+      label: node.data?.label || nodeId,
+      currentUserLabel
+    });
+    setLabelDialogOpen(true);
+  };
+
+  const handleRemoveLabel = async (nodeId: string) => {
+    const node = flowData.nodes.find(n => n.id === nodeId);
+    if (!node?.data?.sourceData) return;
+    
+    const lineNum = node.data.sourceData.start.line;
+    const lines = code.split('\n');
+    
+    // Check line above for @logigo comment
+    if (lineNum >= 2) {
+      const prevLineIndex = lineNum - 2;
+      const prevLine = lines[prevLineIndex];
+      if (prevLine && /\/\/\s*@logigo:/i.test(prevLine)) {
+        // Remove the comment line
+        lines.splice(prevLineIndex, 1);
+        const newCode = lines.join('\n');
+        
+        historyManager.push(newCode);
+        adapter.writeFile(newCode);
+        markAsSaved();
+        await saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
+      }
+    }
+  };
+
+  const handleSaveLabel = async (labelText: string): Promise<{ success: boolean; error?: string }> => {
+    if (!labelingNode) return { success: false, error: 'No node selected' };
+    
+    const node = flowData.nodes.find(n => n.id === labelingNode.nodeId);
+    if (!node?.data?.sourceData) return { success: false, error: 'Node has no source location' };
+    
+    const lineNum = node.data.sourceData.start.line;
+    const lines = code.split('\n');
+    const indent = lines[lineNum - 1]?.match(/^(\s*)/)?.[1] || '';
+    const newComment = `${indent}// @logigo: ${labelText}`;
+    
+    // Check if there's already a @logigo comment on the line above
+    if (lineNum >= 2) {
+      const prevLineIndex = lineNum - 2;
+      const prevLine = lines[prevLineIndex];
+      if (prevLine && /\/\/\s*@logigo:/i.test(prevLine)) {
+        // Replace existing comment
+        lines[prevLineIndex] = newComment;
+      } else {
+        // Insert new comment line before the code
+        lines.splice(lineNum - 1, 0, newComment);
+      }
+    } else {
+      // Insert at the beginning
+      lines.unshift(newComment);
+    }
+    
+    const newCode = lines.join('\n');
+    
+    try {
+      historyManager.push(newCode);
+      adapter.writeFile(newCode);
+      markAsSaved();
+      await saveToFile({ code: newCode, nodes: flowData.nodes, edges: flowData.edges });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Failed to save label' };
+    }
   };
 
   const handleReset = () => {
@@ -2834,6 +2913,8 @@ export default function Workbench() {
                   onNodeClick={handleNodeClick}
                   onNodeDoubleClick={handleNodeDoubleClick}
                   onBreakpointToggle={handleBreakpointToggle}
+                  onAddLabel={handleAddLabel}
+                  onRemoveLabel={handleRemoveLabel}
                   activeNodeId={activeNodeId}
                   highlightedNodes={highlightedNodes}
                   breakpoints={effectiveBreakpoints}
@@ -2966,6 +3047,14 @@ export default function Workbench() {
         lineStart={editingNode?.data?.sourceData?.start?.line}
         lineEnd={editingNode?.data?.sourceData?.end?.line}
         onSave={handleSaveNodeEdit}
+      />
+
+      <NodeLabelDialog
+        open={labelDialogOpen}
+        onOpenChange={setLabelDialogOpen}
+        nodeLabel={labelingNode?.label || ''}
+        currentUserLabel={labelingNode?.currentUserLabel}
+        onSave={handleSaveLabel}
       />
 
       
@@ -3138,8 +3227,12 @@ ${code}
                 edges={flowData.edges} 
                 onNodeClick={handleNodeClick}
                 onNodeDoubleClick={handleNodeDoubleClick}
+                onBreakpointToggle={handleBreakpointToggle}
+                onAddLabel={handleAddLabel}
+                onRemoveLabel={handleRemoveLabel}
                 activeNodeId={activeNodeId}
                 highlightedNodes={highlightedNodes}
+                breakpoints={effectiveBreakpoints}
                 runtimeState={runtimeState}
                 handshakeNodeId={handshakeNodeId}
               />

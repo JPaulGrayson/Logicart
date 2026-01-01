@@ -1,19 +1,28 @@
 {
-  "code": "function final() { return 123; }",
+  "code": "function calculateRouteDistance(pois) {\n  // @logigo: My custom label\n  if (pois.length < 2) return 0;\n  \n  let totalDistance = 0;\n  for (let i = 0; i < pois.length - 1; i++) {\n    const poi1 = pois[i];\n    const poi2 = pois[i + 1];\n    totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);\n  }\n  \n  return Math.round(totalDistance);\n}\n\nfunction calculateDistance(lat1, lon1, lat2, lon2) {\n  return 5;\n}",
   "nodes": [
     {
       "id": "container-0",
       "type": "container",
       "data": {
-        "label": "final",
+        "label": "calculateRouteDistance",
         "children": [
-          "node-2"
+          "node-3",
+          "node-4",
+          "node-5",
+          "node-6",
+          "node-7",
+          "node-9",
+          "node-10",
+          "node-11",
+          "node-12",
+          "node-13"
         ],
         "collapsed": false
       },
       "position": {
-        "x": 40,
-        "y": 40
+        "x": -230,
+        "y": 100
       },
       "style": {
         "width": 200,
@@ -21,14 +30,31 @@
       }
     },
     {
-      "id": "node-1",
+      "id": "container-1",
+      "type": "container",
+      "data": {
+        "label": "calculateDistance",
+        "children": [],
+        "collapsed": false
+      },
+      "position": {
+        "x": 30,
+        "y": 100
+      },
+      "style": {
+        "width": 200,
+        "height": 80
+      }
+    },
+    {
+      "id": "node-2",
       "type": "input",
       "data": {
         "label": "Start"
       },
       "position": {
-        "x": 300,
-        "y": 55
+        "x": -75,
+        "y": 20
       },
       "className": "bg-primary text-primary-foreground border-none",
       "style": {
@@ -37,28 +63,262 @@
       }
     },
     {
-      "id": "node-2",
-      "type": "output",
+      "id": "node-3",
+      "type": "decision",
       "data": {
-        "label": "return ...",
-        "sourceSnippet": "function final() { return 123; }",
+        "label": "if (pois.length < 2) ?",
+        "sourceSnippet": "if (pois.length < 2) return 0;",
         "sourceData": {
           "start": {
-            "line": 1,
-            "column": 19
+            "line": 2,
+            "column": 2
           },
           "end": {
-            "line": 1,
-            "column": 30
+            "line": 2,
+            "column": 32
           }
         }
       },
       "position": {
-        "x": 300,
-        "y": 200
+        "x": -206.25,
+        "y": 225
+      },
+      "style": {
+        "width": 100,
+        "height": 100
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "output",
+      "data": {
+        "label": "return ...",
+        "sourceSnippet": "if (pois.length < 2) return 0;",
+        "sourceData": {
+          "start": {
+            "line": 2,
+            "column": 23
+          },
+          "end": {
+            "line": 2,
+            "column": 32
+          }
+        }
+      },
+      "position": {
+        "x": -326.25,
+        "y": 375
       },
       "className": "bg-destructive/20 border-destructive/50",
-      "parentNode": "container-0",
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "default",
+      "data": {
+        "label": "let totalDistance = ...",
+        "sourceSnippet": "let totalDistance = 0;",
+        "sourceData": {
+          "start": {
+            "line": 4,
+            "column": 2
+          },
+          "end": {
+            "line": 4,
+            "column": 24
+          }
+        }
+      },
+      "position": {
+        "x": -136.25,
+        "y": 375
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "default",
+      "data": {
+        "label": "let i = ...",
+        "sourceSnippet": "for (let i = 0; i < pois.length - 1; i++) {",
+        "sourceData": {
+          "start": {
+            "line": 5,
+            "column": 7
+          },
+          "end": {
+            "line": 5,
+            "column": 16
+          }
+        }
+      },
+      "position": {
+        "x": -136.25,
+        "y": 475
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "decision",
+      "data": {
+        "label": "for (i < expr) ?",
+        "sourceSnippet": "for (let i = 0; i < pois.length - 1; i++) {",
+        "sourceData": {
+          "start": {
+            "line": 5,
+            "column": 2
+          },
+          "end": {
+            "line": 9,
+            "column": 3
+          }
+        }
+      },
+      "position": {
+        "x": -111.25,
+        "y": 575
+      },
+      "style": {
+        "width": 100,
+        "height": 100
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "default",
+      "data": {
+        "label": "update",
+        "sourceSnippet": "for (let i = 0; i < pois.length - 1; i++) {",
+        "sourceData": {
+          "start": {
+            "line": 5,
+            "column": 39
+          },
+          "end": {
+            "line": 5,
+            "column": 42
+          }
+        }
+      },
+      "position": {
+        "x": -83.75,
+        "y": 1025
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "default",
+      "data": {
+        "label": "const poi1 = ...",
+        "sourceSnippet": "const poi1 = pois[i];",
+        "sourceData": {
+          "start": {
+            "line": 6,
+            "column": 4
+          },
+          "end": {
+            "line": 6,
+            "column": 25
+          }
+        }
+      },
+      "position": {
+        "x": -326.25,
+        "y": 725
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "default",
+      "data": {
+        "label": "const poi2 = ...",
+        "sourceSnippet": "const poi2 = pois[i + 1];",
+        "sourceData": {
+          "start": {
+            "line": 7,
+            "column": 4
+          },
+          "end": {
+            "line": 7,
+            "column": 29
+          }
+        }
+      },
+      "position": {
+        "x": -326.25,
+        "y": 825
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-12",
+      "type": "default",
+      "data": {
+        "label": "totalDistance = ...",
+        "sourceSnippet": "totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);",
+        "sourceData": {
+          "start": {
+            "line": 8,
+            "column": 4
+          },
+          "end": {
+            "line": 8,
+            "column": 101
+          }
+        }
+      },
+      "position": {
+        "x": -326.25,
+        "y": 925
+      },
+      "style": {
+        "width": 150,
+        "height": 50
+      }
+    },
+    {
+      "id": "node-13",
+      "type": "output",
+      "data": {
+        "label": "return ...",
+        "sourceSnippet": "return Math.round(totalDistance);",
+        "sourceData": {
+          "start": {
+            "line": 11,
+            "column": 2
+          },
+          "end": {
+            "line": 11,
+            "column": 35
+          }
+        }
+      },
+      "position": {
+        "x": -136.25,
+        "y": 725
+      },
+      "className": "bg-destructive/20 border-destructive/50",
       "style": {
         "width": 150,
         "height": 50
@@ -67,13 +327,117 @@
   ],
   "edges": [
     {
-      "id": "edge-node-1-node-2",
-      "source": "node-1",
-      "target": "node-2",
+      "id": "edge-node-2-node-3",
+      "source": "node-2",
+      "target": "node-3",
       "type": "smoothstep",
       "animated": true,
       "style": {
         "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-3-node-4",
+      "source": "node-3",
+      "target": "node-4",
+      "label": "True",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "hsl(142, 71%, 45%)"
+      }
+    },
+    {
+      "id": "edge-node-3-node-5",
+      "source": "node-3",
+      "target": "node-5",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-5-node-6",
+      "source": "node-5",
+      "target": "node-6",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-6-node-7",
+      "source": "node-6",
+      "target": "node-7",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-7-node-10",
+      "source": "node-7",
+      "target": "node-10",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-10-node-11",
+      "source": "node-10",
+      "target": "node-11",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-11-node-12",
+      "source": "node-11",
+      "target": "node-12",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-9-node-7",
+      "source": "node-9",
+      "target": "node-7",
+      "label": "Loop",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "hsl(217, 91%, 60%)",
+        "strokeDasharray": "5,5"
+      }
+    },
+    {
+      "id": "edge-node-12-node-9",
+      "source": "node-12",
+      "target": "node-9",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "var(--color-muted-foreground)"
+      }
+    },
+    {
+      "id": "edge-node-7-node-8",
+      "source": "node-7",
+      "target": "node-13",
+      "label": "False",
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "hsl(0, 84%, 60%)"
       }
     }
   ]

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Maximize, ZoomIn, ZoomOut, Home, ChevronRight, ChevronDown } from 'lucide-react';
 import type { RuntimeState } from '@shared/reporter-api';
+import { NodeContextMenu } from './NodeContextMenu';
 
 // Zoom preset definitions
 const ZOOM_PRESETS = [
@@ -31,6 +32,8 @@ interface FlowchartProps {
   onNodeClick?: (node: Node) => void;
   onNodeDoubleClick?: (node: Node) => void;
   onBreakpointToggle?: (nodeId: string) => void;
+  onAddLabel?: (nodeId: string, currentLabel?: string) => void;
+  onRemoveLabel?: (nodeId: string) => void;
   activeNodeId?: string | null;
   highlightedNodes?: Set<string>;
   breakpoints?: Set<string>;
@@ -47,13 +50,20 @@ const nodeTypes = {
   output: LabeledNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, onAddLabel, onRemoveLabel, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
   const { fitView, getZoom, getNodes, zoomIn, zoomOut, zoomTo } = useReactFlow();
   const [currentZoom, setCurrentZoom] = useState(1);
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string; label: string }>>([{ id: 'root', label: 'Global' }]);
+  
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    open: boolean;
+    position: { x: number; y: number };
+    node: Node | null;
+  }>({ open: false, position: { x: 0, y: 0 }, node: null });
   
   // Apply zoom preset (-1 means fitView)
   const applyZoomPreset = useCallback((zoomLevel: number) => {
@@ -176,8 +186,13 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node)}
         onNodeContextMenu={(event, node) => {
           event.preventDefault();
-          onBreakpointToggle?.(node.id);
+          setContextMenu({
+            open: true,
+            position: { x: event.clientX, y: event.clientY },
+            node,
+          });
         }}
+        onPaneClick={() => setContextMenu({ ...contextMenu, open: false })}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
@@ -187,8 +202,32 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         connectionLineType={ConnectionLineType.SmoothStep}
       >
         <Background color="var(--color-border)" gap={24} size={1} />
-        {/* MiniMap removed - users can zoom out with mouse/keyboard for overview */}
       </ReactFlow>
+      
+      {/* Node Context Menu */}
+      {contextMenu.node && (
+        <NodeContextMenu
+          open={contextMenu.open}
+          onOpenChange={(open) => setContextMenu({ ...contextMenu, open })}
+          position={contextMenu.position}
+          nodeId={contextMenu.node.id}
+          nodeLabel={contextMenu.node.data?.label as string || contextMenu.node.id}
+          hasLabel={!!(contextMenu.node.data?.userLabel)}
+          hasBreakpoint={breakpoints?.has(contextMenu.node.id) || false}
+          onAddLabel={() => {
+            onAddLabel?.(contextMenu.node!.id, contextMenu.node!.data?.userLabel as string | undefined);
+            setContextMenu({ ...contextMenu, open: false });
+          }}
+          onRemoveLabel={() => {
+            onRemoveLabel?.(contextMenu.node!.id);
+            setContextMenu({ ...contextMenu, open: false });
+          }}
+          onToggleBreakpoint={() => {
+            onBreakpointToggle?.(contextMenu.node!.id);
+            setContextMenu({ ...contextMenu, open: false });
+          }}
+        />
+      )}
       
       {/* Breadcrumb Navigation - Top Left */}
       <div 
