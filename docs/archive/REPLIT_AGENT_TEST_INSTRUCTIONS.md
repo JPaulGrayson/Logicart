@@ -1,0 +1,523 @@
+# LogiGo V1 Testing Instructions for Replit Agent
+
+**Date:** December 30, 2025  
+**Application URL:** https://cartographer-flow-jpaulgrayson.replit.app/  
+**Your Role:** Runtime Feature Verification & UI/UX Testing  
+**Estimated Time:** 90 minutes
+
+---
+
+## 🎯 Mission Overview
+
+You are testing the **LogiGo V1** visual code debugger application to verify all features work correctly before production launch. This is a **critical pre-launch verification**.
+
+### What LogiGo Does:
+- Converts JavaScript code into interactive flowcharts
+- Allows step-by-step execution visualization
+- Tracks variables in real-time
+- Helps developers understand code flow visually
+
+### Your Testing Responsibilities:
+You will test **12 features** across 3 categories:
+1. **Core Runtime Features** (R1.4 - R1.5): 2 tests
+2. **V1 Workspace Features** (R2.1 - R2.5): 5 tests  
+3. **UI/UX Features** (R3.1 - R3.4): 4 tests
+
+---
+
+## ✅ Already Completed (by Antigravity AI)
+
+These tests are **DONE** - you don't need to repeat them:
+- ✅ **R1.1**: Static Code Parsing (verified across 5 algorithm patterns)
+- ✅ **R1.2**: Execution Stepping (Play/Pause, Step Forward/Back, Reset)
+- ✅ **R1.3**: Variable Tracking (real-time updates confirmed)
+
+---
+
+## 🧪 Your Test Suite
+
+### **TEST R1.4: User Labels** ⭐ CRITICAL
+**Goal:** Verify that `@logigo:` annotations appear on flowchart nodes.
+
+**Steps:**
+1. Navigate to https://cartographer-flow-jpaulgrayson.replit.app/
+2. In the code editor, find or create a simple function
+3. Add a comment with a label: `// @logigo: This calculates the sum`
+4. Observe the flowchart on the right side
+5. **Expected Result:** The label "This calculates the sum" should appear on the corresponding flowchart node
+6. Try adding 2-3 more labels in different locations
+7. Take a screenshot showing the labels visible on the flowchart
+
+**Pass Criteria:**
+- [ ] Labels appear on flowchart nodes
+- [ ] Labels are readable and correctly positioned
+- [ ] Multiple labels can coexist
+
+**Screenshot Name:** `r1_4_user_labels_test.png`
+
+---
+
+### **TEST R1.5: Breakpoints** ⭐ CRITICAL
+**Goal:** Verify execution pauses at breakpoints.
+
+**Steps:**
+1. Ensure you have code loaded (use "Fibonacci" example if needed)
+2. Click on a flowchart node to set a breakpoint
+   - **Expected:** A red dot or indicator should appear on the node
+3. Click the "Play" button (▶️) to start execution
+4. **Expected:** Execution should pause when it reaches the breakpoint node
+5. Click "Play" again to continue past the breakpoint
+6. Click the breakpoint again to remove it
+7. Click "Play" and verify execution continues without pausing
+8. Take screenshots of:
+   - Breakpoint set (red indicator visible)
+   - Execution paused at breakpoint
+
+**Pass Criteria:**
+- [ ] Breakpoints can be set by clicking nodes
+- [ ] Visual indicator appears when breakpoint is set
+- [ ] Execution pauses at breakpoints
+- [ ] Breakpoints can be removed
+
+**Screenshot Names:** 
+- `r1_5_breakpoint_set.png`
+- `r1_5_breakpoint_paused.png`
+
+---
+
+### **TEST R2.1: Layout Presets** ⭐ CRITICAL
+**Goal:** Verify different workspace layouts work correctly.
+
+**Steps:**
+1. Look for a "Layout" dropdown or button in the toolbar (top of the screen)
+2. You should see options like:
+   - Default Layout
+   - Code Focus
+   - Flowchart Focus
+   - Presentation Mode
+3. Click each layout option and observe how the interface changes
+4. For **Code Focus**: The code editor should be larger
+5. For **Flowchart Focus**: The flowchart should be larger
+6. For **Presentation**: UI chrome should minimize, flowchart maximizes
+7. Switch between examples (e.g., Calculator → Fibonacci) while in a preset
+   - **Expected:** Layout preset should persist
+8. Take a screenshot of each layout preset
+
+**Pass Criteria:**
+- [ ] Layout presets are accessible
+- [ ] Each preset visibly changes the interface
+- [ ] Presets persist when switching examples
+- [ ] All UI elements remain functional in each layout
+
+**Screenshot Names:**
+- `r2_1_layout_default.png`
+- `r2_1_layout_code_focus.png`
+- `r2_1_layout_flowchart_focus.png`
+- `r2_1_layout_presentation.png`
+
+---
+
+### **TEST R2.2: Hierarchical Navigation (Collapsible Containers)** ⭐ CRITICAL
+**Goal:** Verify container nodes can collapse/expand.
+
+**Steps:**
+1. Select the "API Handler Integration" or "Fibonacci Memoized" example
+2. Look at the flowchart - you should see container nodes (boxes containing other nodes)
+   - These represent functions, loops, or conditional blocks
+3. Click on a container node header/title
+   - **Expected:** The container should collapse, hiding its child nodes
+   - **Expected:** A summary or indicator should show it's collapsed
+4. Click the collapsed container again
+   - **Expected:** It should expand, showing child nodes again
+5. Test collapsing multiple containers at different nesting levels
+6. Start execution (Play button) with some containers collapsed
+   - **Expected:** Execution should still work
+   - **Expected:** Collapsed state should be maintained
+7. Take screenshots of:
+   - Fully expanded flowchart
+   - Partially collapsed flowchart
+   - Execution with collapsed containers
+
+**Pass Criteria:**
+- [ ] Container nodes can be collapsed
+- [ ] Collapsed containers show summary/indicator
+- [ ] Containers can be expanded again
+- [ ] Execution works with collapsed containers
+- [ ] Layout adjusts smoothly
+
+**Screenshot Names:**
+- `r2_2_fully_expanded.png`
+- `r2_2_partially_collapsed.png`
+- `r2_2_execution_with_collapse.png`
+
+---
+
+### **TEST R2.3: Undo/Redo**
+**Goal:** Verify code change history works.
+
+**Steps:**
+1. Load any example (e.g., Calculator)
+2. Make a simple code change (e.g., change a variable name)
+3. Observe the flowchart updates
+4. Press `Ctrl+Z` (Windows/Linux) or `Cmd+Z` (Mac) to undo
+   - **Expected:** Code reverts to previous state
+   - **Expected:** Flowchart updates to match
+5. Press `Ctrl+Y` or `Cmd+Shift+Z` to redo
+   - **Expected:** Code returns to edited state
+   - **Expected:** Flowchart updates again
+6. Make 3-4 changes, then undo all of them
+7. Redo some but not all
+8. Take screenshots showing the undo/redo in action
+
+**Pass Criteria:**
+- [ ] Undo reverts code changes
+- [ ] Flowchart updates after undo
+- [ ] Redo restores changes
+- [ ] Multiple undo/redo cycles work correctly
+
+**Screenshot Names:**
+- `r2_3_before_undo.png`
+- `r2_3_after_undo.png`
+- `r2_3_after_redo.png`
+
+---
+
+### **TEST R2.4: Enhanced Sharing**
+**Goal:** Verify share functionality generates working URLs.
+
+**Steps:**
+1. Load the "Fibonacci" example
+2. Look for a "Share" button in the toolbar
+3. Click the Share button
+   - **Expected:** A share dialog should open
+4. In the dialog, you should see:
+   - Current code snapshot
+   - Fields for title/description (optional metadata)
+   - A generated shareable URL
+5. Copy the generated URL
+6. Open a new browser tab/window
+7. Paste and navigate to the URL
+   - **Expected:** The Fibonacci code should load
+   - **Expected:** The flowchart should render
+   - **Expected:** Execution should work
+8. Take screenshots of:
+   - Share dialog with URL
+   - New tab with shared code loaded
+
+**Pass Criteria:**
+- [ ] Share button is accessible
+- [ ] Share dialog opens with metadata fields
+- [ ] URL is generated
+- [ ] Shared URL loads code correctly
+- [ ] Shared code is fully functional
+
+**Screenshot Names:**
+- `r2_4_share_dialog.png`
+- `r2_4_shared_url_loaded.png`
+
+---
+
+### **TEST R2.5: Example Selector** ⭐ CRITICAL
+**Goal:** Verify all algorithm examples load correctly.
+
+**Steps:**
+1. Find the Examples dropdown/menu (should be in toolbar or sidebar)
+2. Click to open the examples list
+3. You should see examples like:
+   - Calculator
+   - Fibonacci (Simple)
+   - Fibonacci (Memoized)
+   - Tic-Tac-Toe
+   - API Handler Integration
+   - (possibly others)
+4. Click each example one by one
+5. For each example, verify:
+   - Code loads in the editor
+   - Flowchart renders correctly
+   - Play button works (execution starts)
+   - Variables panel shows data (if applicable)
+6. Take a screenshot of at least 3 different examples loaded
+
+**Pass Criteria:**
+- [ ] All examples are accessible
+- [ ] Each example loads without errors
+- [ ] Flowcharts render for all examples
+- [ ] Execution works for all examples
+
+**Screenshot Names:**
+- `r2_5_example_calculator.png`
+- `r2_5_example_fibonacci.png`
+- `r2_5_example_tictactoe.png`
+
+---
+
+### **TEST R3.1: Responsive Design**
+**Goal:** Verify UI adapts to different screen sizes.
+
+**Steps:**
+1. Start with your browser at full desktop size
+   - **Expected:** All panels (code, flowchart, variables) visible
+2. Open browser DevTools (F12)
+3. Enable device emulation/responsive mode
+4. Test **Tablet size** (~768px width):
+   - Resize browser or use device emulation
+   - **Expected:** Layout adjusts (may stack panels)
+   - **Expected:** No critical UI elements hidden
+   - **Expected:** Flowchart still readable
+5. Test **Mobile size** (~375px width):
+   - **Expected:** Mobile-friendly layout
+   - **Expected:** Core features still accessible (may need scrolling)
+   - **Expected:** Buttons/controls are tappable
+6. Return to desktop size
+7. Take screenshots at each size
+
+**Pass Criteria:**
+- [ ] Desktop layout is optimal
+- [ ] Tablet layout is functional
+- [ ] Mobile layout is usable
+- [ ] No critical features become inaccessible
+
+**Screenshot Names:**
+- `r3_1_desktop_view.png`
+- `r3_1_tablet_view.png`
+- `r3_1_mobile_view.png`
+
+---
+
+### **TEST R3.2: Keyboard Shortcuts** ⭐ CRITICAL
+**Goal:** Verify all keyboard shortcuts work.
+
+**Steps:**
+1. Load the Fibonacci example
+2. Test each keyboard shortcut:
+
+   **Space Bar:**
+   - Press Space → Execution should Play
+   - Press Space again → Execution should Pause
+   
+   **S Key:**
+   - Press S → Should step forward one node
+   - Press S multiple times → Should step through execution
+   
+   **B Key:**
+   - After stepping forward, press B → Should step backward
+   
+   **R Key:**
+   - Press R → Should reset execution to start
+   
+   **? Key (Question Mark):**
+   - Press ? → Should show keyboard shortcuts help dialog
+   
+   **F Key (if available):**
+   - Press F → Should toggle fullscreen mode
+
+3. Take screenshots showing:
+   - Keyboard shortcuts help dialog (from pressing ?)
+   - Execution state changes from keyboard commands
+
+**Pass Criteria:**
+- [ ] Space toggles play/pause
+- [ ] S steps forward
+- [ ] B steps backward
+- [ ] R resets execution
+- [ ] ? shows help
+- [ ] All shortcuts work consistently
+
+**Screenshot Names:**
+- `r3_2_keyboard_help.png`
+- `r3_2_shortcuts_working.png`
+
+---
+
+### **TEST R3.3: Theme Support**
+**Goal:** Verify Light and Dark modes work correctly.
+
+**Steps:**
+1. Look for a theme toggle button (usually a sun/moon icon)
+2. If currently in Light mode, switch to Dark mode:
+   - **Expected:** Background becomes dark
+   - **Expected:** Text becomes light
+   - **Expected:** Flowchart nodes have good contrast
+   - **Expected:** Code editor syntax highlighting adapts
+3. Switch back to Light mode:
+   - **Expected:** Background becomes light
+   - **Expected:** Text becomes dark
+   - **Expected:** All elements remain readable
+4. Test execution in both themes:
+   - Start execution in Dark mode
+   - Verify highlighted nodes are visible
+   - Switch to Light mode mid-execution
+   - Verify execution continues and highlighting works
+5. Take screenshots of both themes
+
+**Pass Criteria:**
+- [ ] Theme toggle is accessible
+- [ ] Dark mode is readable and well-contrasted
+- [ ] Light mode is readable and well-contrasted
+- [ ] Theme switching doesn't break functionality
+- [ ] Syntax highlighting works in both themes
+
+**Screenshot Names:**
+- `r3_3_light_theme.png`
+- `r3_3_dark_theme.png`
+
+---
+
+### **TEST R3.4: Error Handling**
+**Goal:** Verify graceful error handling.
+
+**Steps:**
+1. **Test Syntax Error Handling:**
+   - Clear the code editor
+   - Type invalid JavaScript: `function test( {`
+   - **Expected:** An error message should appear
+   - **Expected:** The error should indicate the syntax problem
+   - **Expected:** The app should NOT crash
+   - **Expected:** You can still edit and fix the code
+
+2. **Test Empty Code:**
+   - Clear all code from the editor
+   - **Expected:** Graceful handling (empty flowchart or helpful message)
+   - **Expected:** No crash
+
+3. **Test Recovery:**
+   - After causing an error, load a valid example
+   - **Expected:** App recovers and works normally
+
+4. Take screenshots of:
+   - Syntax error message
+   - App state after error (showing it didn't crash)
+
+**Pass Criteria:**
+- [ ] Syntax errors show clear messages
+- [ ] App doesn't crash on invalid input
+- [ ] Error messages are helpful
+- [ ] App can recover from errors
+
+**Screenshot Names:**
+- `r3_4_syntax_error.png`
+- `r3_4_error_recovery.png`
+
+---
+
+## 📋 Reporting Your Results
+
+After completing all tests, create a summary report with this format:
+
+```markdown
+# LogiGo V1 Test Results - Replit Agent
+
+**Date:** [Current Date]
+**Tester:** Replit Agent
+**Total Tests:** 12
+**Passed:** [X]
+**Failed:** [Y]
+**Blocked:** [Z]
+
+---
+
+## Test Results Summary
+
+### ✅ PASSED Tests
+- [List all tests that passed]
+
+### ❌ FAILED Tests
+- [List all tests that failed with brief description of issue]
+
+### ⚠️ ISSUES FOUND
+- [List any bugs, glitches, or concerns]
+
+---
+
+## Critical Findings
+
+[Describe any critical issues that would block V1 launch]
+
+---
+
+## Recommendations
+
+**Launch Readiness:** [GO / NO-GO / CONDITIONAL]
+
+**Reasoning:** [Your assessment]
+
+---
+
+## Screenshots Attached
+[List all screenshot filenames]
+```
+
+---
+
+## 🚨 Important Notes
+
+1. **Take your time** - Accuracy is more important than speed
+2. **Screenshot everything** - Visual proof is required for each test
+3. **Report all issues** - Even small bugs matter for V1 launch
+4. **Test thoroughly** - Don't just click through; actually verify behavior
+5. **Ask questions** - If something is unclear, ask before proceeding
+
+---
+
+## 📸 Screenshot Guidelines
+
+- Use descriptive filenames as specified in each test
+- Capture the full browser window (not just a portion)
+- Ensure text is readable in screenshots
+- Highlight important elements if possible (red arrows/boxes)
+- Save all screenshots in a folder called `logigo_v1_test_screenshots`
+
+---
+
+## ⏱️ Time Estimates
+
+- **R1.4 - R1.5:** 15 minutes
+- **R2.1 - R2.5:** 40 minutes
+- **R3.1 - R3.4:** 30 minutes
+- **Report Writing:** 15 minutes
+- **Total:** ~90 minutes
+
+---
+
+## 🎯 Success Criteria
+
+For LogiGo V1 to be **LAUNCH READY**, these tests must pass:
+
+**CRITICAL (Must Pass):**
+- R1.4: User Labels
+- R1.5: Breakpoints
+- R2.1: Layout Presets
+- R2.2: Hierarchical Navigation
+- R2.5: Example Selector
+- R3.2: Keyboard Shortcuts
+
+**HIGH (Should Pass):**
+- R2.3: Undo/Redo
+- R2.4: Enhanced Sharing
+- R3.1: Responsive Design
+- R3.3: Theme Support
+- R3.4: Error Handling
+
+---
+
+## 🆘 If You Get Stuck
+
+If you encounter issues accessing the application or any test is unclear:
+
+1. **Check the URL:** https://cartographer-flow-jpaulgrayson.replit.app/
+2. **Refresh the page** if the app seems unresponsive
+3. **Check browser console** (F12) for errors
+4. **Document the issue** in your report
+5. **Continue with other tests** - don't let one blocked test stop everything
+
+---
+
+## 🚀 Ready to Begin?
+
+1. Navigate to: https://cartographer-flow-jpaulgrayson.replit.app/
+2. Verify the app loads successfully
+3. Start with TEST R1.4 and work through sequentially
+4. Take screenshots as you go
+5. Compile your final report
+
+**Good luck! The LogiGo V1 launch depends on your thorough testing! 🎉**
