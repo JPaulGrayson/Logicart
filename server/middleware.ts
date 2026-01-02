@@ -20,9 +20,14 @@ export interface VoyaiTokenPayload {
     history_database?: boolean;
     rabbit_hole_rescue?: boolean;
     github_sync?: boolean;
+    managed_allowance?: number;
   };
   iat: number;
   exp: number;
+}
+
+export function verifyTokenPublic(req: Request): VoyaiTokenPayload | null {
+  return verifyToken(req);
 }
 
 function verifyToken(req: Request): VoyaiTokenPayload | null {

@@ -51,3 +51,13 @@ export const insertShareSchema = createInsertSchema(shares).omit({
 
 export type InsertShare = z.infer<typeof insertShareSchema>;
 export type Share = typeof shares.$inferSelect;
+
+export const userUsage = pgTable("user_usage", {
+  voyaiUserId: varchar("voyai_user_id").primaryKey(),
+  currentUsage: integer("current_usage").default(0).notNull(),
+  lastResetDate: timestamp("last_reset_date").defaultNow().notNull(),
+});
+
+export const insertUserUsageSchema = createInsertSchema(userUsage);
+export type InsertUserUsage = z.infer<typeof insertUserUsageSchema>;
+export type UserUsage = typeof userUsage.$inferSelect;

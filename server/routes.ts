@@ -21,6 +21,7 @@ import { eq, sql } from "drizzle-orm";
 import { fileSyncRouter } from "./routes/file-sync";
 import { shareRouter, handleShareView } from "./routes/share";
 import { remoteRouter } from "./routes/remote";
+import { aiProxyRouter } from "./routes/ai-proxy";
 import { sessionManager } from "./services/session-manager";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -291,6 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register modular routes
   app.use('/api/file', fileSyncRouter);
+  app.use('/api/ai', aiProxyRouter);
 
   // Documentation API - serve markdown files from docs/
   const ALLOWED_DOCS = [

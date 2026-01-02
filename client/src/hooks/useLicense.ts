@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY = 'voyai_token';
 const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
+const DEFAULT_MANAGED_ALLOWANCE = 50;
 
 interface VoyaiTokenPayload {
   userId: string;
@@ -13,9 +14,17 @@ interface VoyaiTokenPayload {
     history_database?: boolean;
     rabbit_hole_rescue?: boolean;
     github_sync?: boolean;
+    managed_allowance?: number;
   };
   iat: number;
   exp: number;
+}
+
+interface UsageState {
+  currentUsage: number;
+  managedAllowance: number;
+  remaining: number;
+  isLoading: boolean;
 }
 
 interface LicenseState {
@@ -127,7 +136,7 @@ export function useLicense() {
   }, []);
 
   const hasFeature = useCallback(
-    (feature: keyof VoyaiTokenPayload['features']): boolean => {
+    (feature: 'history_database' | 'rabbit_hole_rescue' | 'github_sync'): boolean => {
       return state.user?.features?.[feature] ?? false;
     },
     [state.user]
@@ -140,6 +149,7 @@ export function useLicense() {
   const hasHistory = state.user?.features?.history_database ?? false;
   const hasRescue = state.user?.features?.rabbit_hole_rescue ?? false;
   const hasGitSync = state.user?.features?.github_sync ?? false;
+  const managedAllowance = state.user?.features?.managed_allowance ?? DEFAULT_MANAGED_ALLOWANCE;
 
   return {
     ...state,
@@ -151,6 +161,7 @@ export function useLicense() {
     hasHistory,
     hasRescue,
     hasGitSync,
+    managedAllowance,
   };
 }
 
@@ -169,4 +180,48 @@ export function useTokenFromUrl() {
       }
     }
   }, [setToken]);
+}
+
+export function useUsage() {
+  const { token, isAuthenticated } = useLicense();
+  const [usage, setUsage] = useState<UsageState>({
+    currentUsage: 0,
+    managedAllowance: DEFAULT_MANAGED_ALLOWANCE,
+    remaining: DEFAULT_MANAGED_ALLOWANCE,
+    isLoading: true,
+  });
+
+  const fetchUsage = useCallback(async () => {
+    if (!token || !isAuthenticated) {
+      setUsage(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/ai/usage', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUsage({
+          currentUsage: data.currentUsage,
+          managedAllowance: data.managedAllowance,
+          remaining: data.remaining,
+          isLoading: false,
+        });
+      } else {
+        setUsage(prev => ({ ...prev, isLoading: false }));
+      }
+    } catch (error) {
+      console.error('[Usage] Failed to fetch usage:', error);
+      setUsage(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [token, isAuthenticated]);
+
+  useEffect(() => {
+    fetchUsage();
+  }, [fetchUsage]);
+
+  return { ...usage, refetch: fetchUsage };
 }
