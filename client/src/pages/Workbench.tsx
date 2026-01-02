@@ -1103,9 +1103,26 @@ export default function Workbench() {
 
   const handleRemoveLabel = async (nodeId: string) => {
     const node = flowData.nodes.find(n => n.id === nodeId);
-    if (!node?.data?.sourceData) return;
     
-    const lineNum = node.data.sourceData.start.line;
+    // Determine the line number
+    let lineNum: number | undefined;
+    
+    if (node?.data?.sourceData) {
+      lineNum = node.data.sourceData.start.line;
+    } else if (node?.type === 'container' && node?.data?.label) {
+      // Container node - find the function declaration in code
+      const funcName = node.data.label;
+      const codeLines = code.split('\n');
+      for (let i = 0; i < codeLines.length; i++) {
+        if (codeLines[i].match(new RegExp(`(function\\s+${funcName}\\s*\\(|${funcName}\\s*=\\s*(async\\s+)?function|${funcName}\\s*=\\s*\\(.*\\)\\s*=>|async\\s+function\\s+${funcName})`))) {
+          lineNum = i + 1;
+          break;
+        }
+      }
+    }
+    
+    if (!lineNum) return;
+    
     const lines = code.split('\n');
     
     // Check line above for @logigo comment
@@ -1130,9 +1147,28 @@ export default function Workbench() {
     if (!labelingNode) return { success: false, error: 'No node selected' };
     
     const node = flowData.nodes.find(n => n.id === labelingNode.nodeId);
-    if (!node?.data?.sourceData) return { success: false, error: 'Node has no source location' };
     
-    const lineNum = node.data.sourceData.start.line;
+    // Determine the line number to add the label
+    let lineNum: number | undefined;
+    
+    if (node?.data?.sourceData) {
+      // Regular node with source location
+      lineNum = node.data.sourceData.start.line;
+    } else if (node?.type === 'container' && node?.data?.label) {
+      // Container node - find the function declaration in code
+      const funcName = node.data.label;
+      const lines = code.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        // Match function declaration patterns
+        if (lines[i].match(new RegExp(`(function\\s+${funcName}\\s*\\(|${funcName}\\s*=\\s*(async\\s+)?function|${funcName}\\s*=\\s*\\(.*\\)\\s*=>|async\\s+function\\s+${funcName})`))) {
+          lineNum = i + 1; // 1-indexed
+          break;
+        }
+      }
+    }
+    
+    if (!lineNum) return { success: false, error: 'Could not find code location for this node' };
+    
     const lines = code.split('\n');
     const indent = lines[lineNum - 1]?.match(/^(\s*)/)?.[1] || '';
     const newComment = `${indent}// @logigo: ${labelText}`;

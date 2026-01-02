@@ -1,0 +1,90 @@
+# Group 2: Flowchart Interaction - Test Findings
+
+**Test Date:** 2026-01-01  
+**Tester:** Antigravity AI  
+**Application:** LogiGo V1 (http://localhost:5001)  
+**Git Commit:** 44df118 (main branch)
+
+---
+
+## 📋 Test Summary
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **Collapsible Containers** | ✅ **PASS** | Fully functional - containers collapse/expand correctly |
+| **Add Labels** | ✅ **PASS** | **Fixed**: Resolved z-index conflict and added hover icons for discovery |
+
+---
+
+## ✅ Feature 1: Collapsible Containers - PASS
+
+### What Works:
+- ✅ Function container nodes (`calculateRouteDistance`, `calculateDistance`) successfully collapse and expand
+- ✅ **Collapse behavior:** Clicking "Expanded" label hides all internal logic nodes
+- ✅ **Expand behavior:** Clicking "Collapsed" label restores all child nodes
+- ✅ **Visual indicators:** Clear text badges showing "Expanded" or "Collapsed" with step counts (e.g., "10")
+- ✅ **Hierarchical nesting:** Correctly handles nested function structures
+- ✅ **DOM behavior:** Child nodes properly removed/added from DOM on state changes
+
+### Test Steps Performed:
+1. Clicked "Expanded" badge on `calculateRouteDistance` container → Successfully collapsed
+2. Verified child nodes removed from DOM
+3. Clicked "Collapsed" badge → Successfully expanded
+4. Verified child nodes restored in DOM
+5. Repeated test with `calculateDistance` container → Same success
+
+### Verdict:
+**PASS** - Feature works exactly as expected with no issues.
+
+---
+
+## ✅ Feature 2: Add Labels - PASS (FIXED)
+
+### What Works:
+- ✅ **Quick Action Bar:** Hovering over any node (Start, Decision, Container, etc.) now reveals a subtle action bar with a **Tag** icon.
+- ✅ **One-Click Labeling:** Clicking the Tag icon directly opens the "Add Label" dialog.
+- ✅ **Context Menu Fixed:** Right-clicked nodes now reliably show the context menu (resolved a `z-index` conflict where it was hiding behind active nodes).
+- ✅ **Persistence:** Labels are correctly added as `// @logigo: label` comments in the source code.
+- ✅ **Visual Indicators:** Nodes with custom labels show a blue indicator dot.
+
+### Fixes Implemented:
+1.  **Z-Index Elevation:** Increased context menu z-index to 2000 to ensure it's always on top of high-priority nodes.
+2.  **Interactive Hover Icons:** Added direct buttons to node components (`LabeledNode`, `DecisionNode`, `ContainerNode`) to solve the discovery issue.
+
+### Verdict:
+**PASS** - Feature is now highly discoverable and fully functional.
+
+---
+
+## 🎥 Test Recordings
+
+A new comprehensive test session was recorded to verify the fix:
+1. **Verification Test:** `verify_node_actions_1767326665605.webp`
+
+This recording shows:
+- Hover action bars appearing on multiple node types.
+- The "Add Label" dialog opening and functioning.
+- The context menu appearing correctly after the z-index fix.
+
+---
+
+
+
+## 📊 Overall Group 2 Status
+
+**Status:** ✅ **FULL PASS** (Both features fully functional)
+
+- ✅ **Collapsible Containers:** Fully functional, no issues
+- ✅ **Add Labels:** Fixed and verified discoverable via hover icons and context menu
+
+---
+
+## 🔍 Testing Methodology
+
+**Approach:** Multiple verification cycles
+- Automatic UI testing (Browser Subagent)
+- Manual DOM interaction audits
+- Visual verification via recorded sessions
+- Codebase patch for discoverability (Hover Quick Actions)
+
+**Conclusion:** Both features are robust and ready for graduation to release status. Validated via hover icons and context menu.
