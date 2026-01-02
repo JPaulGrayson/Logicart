@@ -24,7 +24,7 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { historyManager } from '@/lib/historyManager';
@@ -37,7 +37,7 @@ import { isLogiGoMessage, isSessionStart, isCheckpoint } from '@shared/reporter-
 import { HelpDialog } from '@/components/ide/HelpDialog';
 import { ShareDialog } from '@/components/ide/ShareDialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useLicense } from '@/hooks/useLicense';
+import { useLicense, useUsage } from '@/hooks/useLicense';
 import { useWatchFile } from '@/hooks/useWatchFile';
 import { User, LogIn, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -120,7 +120,8 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
-  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync } = useLicense();
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token } = useLicense();
+  const { currentUsage, managedAllowance, remaining, isLoading: usageLoading } = useUsage(token, isAuthenticated, hasManagedAI);
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
@@ -2596,6 +2597,24 @@ export default function Workbench() {
               )}
             </Tooltip>
           </TooltipProvider>
+          
+          {/* Credit Meter for Pro users with managed AI */}
+          {isAuthenticated && !usageLoading && hasManagedAI && managedAllowance > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-cyan-500/30 bg-cyan-500/5 text-xs" data-testid="credit-meter">
+                    <Sparkles className="w-3 h-3 text-cyan-400" />
+                    <span className="text-cyan-300">{currentUsage}/{managedAllowance}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI Credits: {remaining} remaining this month</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
           <ThemeToggle />
           
           {!licenseLoading && (

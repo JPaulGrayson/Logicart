@@ -149,7 +149,8 @@ export function useLicense() {
   const hasHistory = state.user?.features?.history_database ?? false;
   const hasRescue = state.user?.features?.rabbit_hole_rescue ?? false;
   const hasGitSync = state.user?.features?.github_sync ?? false;
-  const managedAllowance = state.user?.features?.managed_allowance ?? DEFAULT_MANAGED_ALLOWANCE;
+  const hasManagedAI = state.user?.features?.managed_allowance !== undefined && state.user.features.managed_allowance > 0;
+  const managedAllowance = state.user?.features?.managed_allowance ?? 0;
 
   return {
     ...state,
@@ -161,6 +162,7 @@ export function useLicense() {
     hasHistory,
     hasRescue,
     hasGitSync,
+    hasManagedAI,
     managedAllowance,
   };
 }
@@ -182,18 +184,17 @@ export function useTokenFromUrl() {
   }, [setToken]);
 }
 
-export function useUsage() {
-  const { token, isAuthenticated } = useLicense();
+export function useUsage(token: string | null, isAuthenticated: boolean, hasManagedAI: boolean) {
   const [usage, setUsage] = useState<UsageState>({
     currentUsage: 0,
-    managedAllowance: DEFAULT_MANAGED_ALLOWANCE,
-    remaining: DEFAULT_MANAGED_ALLOWANCE,
+    managedAllowance: 0,
+    remaining: 0,
     isLoading: true,
   });
 
   const fetchUsage = useCallback(async () => {
-    if (!token || !isAuthenticated) {
-      setUsage(prev => ({ ...prev, isLoading: false }));
+    if (!token || !isAuthenticated || !hasManagedAI) {
+      setUsage(prev => ({ ...prev, isLoading: false, managedAllowance: 0 }));
       return;
     }
 
@@ -217,7 +218,7 @@ export function useUsage() {
       console.error('[Usage] Failed to fetch usage:', error);
       setUsage(prev => ({ ...prev, isLoading: false }));
     }
-  }, [token, isAuthenticated]);
+  }, [token, isAuthenticated, hasManagedAI]);
 
   useEffect(() => {
     fetchUsage();

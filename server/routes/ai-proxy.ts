@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { userUsage } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { verifyTokenPublic, VoyaiTokenPayload } from '../middleware';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
@@ -43,14 +43,17 @@ async function getUserUsage(userId: string) {
 }
 
 async function incrementUsage(userId: string): Promise<number> {
-  const { currentUsage } = await getUserUsage(userId);
-  const newUsage = currentUsage + 1;
+  await getUserUsage(userId);
   
   await db.update(userUsage)
-    .set({ currentUsage: newUsage })
+    .set({ currentUsage: sql`${userUsage.currentUsage} + 1` })
     .where(eq(userUsage.voyaiUserId, userId));
   
-  return newUsage;
+  const updated = await db.select({ currentUsage: userUsage.currentUsage })
+    .from(userUsage)
+    .where(eq(userUsage.voyaiUserId, userId));
+  
+  return updated[0]?.currentUsage ?? 1;
 }
 
 router.get('/usage', async (req: Request, res: Response) => {
