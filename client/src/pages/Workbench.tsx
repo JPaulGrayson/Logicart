@@ -2753,16 +2753,27 @@ export default function Workbench() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant={showFloatingVariables ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setShowFloatingVariables(!showFloatingVariables)}
-                    className="h-7 w-7 p-0"
-                    title="Toggle Variables Panel"
-                    data-testid="button-toggle-variables"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={showFloatingVariables ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setShowFloatingVariables(!showFloatingVariables)}
+                          className={`h-7 w-7 p-0 ${!(executionState || progress.total > 0) ? 'opacity-50' : ''}`}
+                          data-testid="button-toggle-variables"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{executionState || progress.total > 0 
+                          ? (showFloatingVariables ? 'Hide Debug Panel' : 'Show Debug Panel')
+                          : 'Debug Panel (Run code to see variables)'
+                        }</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -3116,7 +3127,7 @@ export default function Workbench() {
               )}
               
               {/* Docked Variables Panel - Bottom Right */}
-              {showFloatingVariables && (executionState || progress.total > 0) && (
+              {showFloatingVariables && (
                 <div className="absolute bottom-4 right-4 w-80 max-h-96 bg-card/95 backdrop-blur border-2 border-border rounded-lg shadow-2xl overflow-hidden">
                   <div className="flex items-center justify-between p-2 border-b border-border bg-accent/50">
                     <h3 className="text-xs font-semibold">Debug Panel</h3>
@@ -3128,6 +3139,13 @@ export default function Workbench() {
                       ✕
                     </button>
                   </div>
+                  {!(executionState || progress.total > 0) ? (
+                    <div className="p-4 text-center text-muted-foreground">
+                      <Eye className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm font-medium">No execution data</p>
+                      <p className="text-xs mt-1">Click <strong>Play</strong> or <strong>Step</strong> to start debugging</p>
+                    </div>
+                  ) : (
                   <div className="max-h-80 overflow-auto">
                     {features.hasFeature('timeTravel') && progress.total > 0 ? (
                       <div className="flex flex-col">
@@ -3168,6 +3186,7 @@ export default function Workbench() {
                           />
                     )}
                   </div>
+                  )}
                 </div>
               )}
             </div>
