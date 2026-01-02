@@ -635,7 +635,7 @@ function SearchBar({ nodes, onResultSelect }: SearchBarProps) {
     const queryLower = searchQuery.toLowerCase();
     const matches = nodes
       .filter(n => {
-        const label = (n.data.label || '').toLowerCase();
+        const label = (n.data.userLabel || n.data.label || '').toLowerCase();
         return label.includes(queryLower) || n.type.includes(queryLower);
       })
       .map(n => ({ node: n, score: 1 }))
@@ -669,7 +669,7 @@ function SearchBar({ nodes, onResultSelect }: SearchBarProps) {
               }}
             >
               <span className="result-type">{node.type}</span>
-              <span className="result-label">{node.data.label}</span>
+              <span className="result-label">{node.data.userLabel || node.data.label}</span>
             </div>
           ))}
         </div>
@@ -1011,9 +1011,9 @@ function FlowchartViewer() {
     switch (node.type) {
       case 'input': return '#3b82f6';
       case 'output': return '#ef4444';
-      case 'decision': return '#fbbf24';
+      case 'decision': return '#eab308';
       case 'container': return '#1e293b';
-      default: return '#e5e7eb';
+      default: return '#373740';
     }
   };
 
@@ -1022,7 +1022,8 @@ function FlowchartViewer() {
     if (node.diffStatus === 'removed') return '#fee2e2';
     switch (node.type) {
       case 'input': case 'output': case 'container': return 'white';
-      default: return '#1f2937';
+      case 'decision': return '#1e293b';
+      default: return '#f8fafc';
     }
   };
 
@@ -1048,7 +1049,7 @@ function FlowchartViewer() {
         <DiffStats nodes={diffNodes} />
         {selectedNode && (
           <div className="selected-node-info">
-            {selectedNode.data.label}
+            {selectedNode.data.userLabel || selectedNode.data.label}
             {selectedNode.data.sourceData && <span> (Line {selectedNode.data.sourceData.start.line})</span>}
           </div>
         )}
@@ -1088,14 +1089,14 @@ function FlowchartViewer() {
 
             return (
               <g key={node.id} className="container-node" onClick={() => handleNodeClick(node)} style={{ opacity: getNodeOpacity(node) }}>
-                <rect x={x} y={y} width={width} height={height} rx="12" fill="#1e293b" stroke={getNodeColor(node)} strokeWidth="2" />
-                <rect x={x} y={y} width={width} height="40" rx="12" fill="#3b82f6" />
-                <rect x={x} y={y + 28} width={width} height="14" fill="#3b82f6" />
+                <rect x={x} y={y} width={width} height={height} rx="12" fill="#1e293b" stroke="#3b82f6" strokeWidth="2" strokeOpacity="0.3" />
+                <rect x={x} y={y} width={width} height="40" rx="12" fill="rgba(59, 130, 246, 0.1)" />
+                <rect x={x} y={y + 28} width={width} height="12" fill="rgba(59, 130, 246, 0.05)" />
                 <g className="collapse-button" onClick={(e) => toggleContainer(node.id, e as any)} style={{ cursor: 'pointer' }}>
-                  <circle cx={x + 20} cy={y + 20} r="10" fill="rgba(255,255,255,0.2)" />
-                  <text x={x + 20} y={y + 24} textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">{isCollapsed ? '▶' : '▼'}</text>
+                  <circle cx={x + 20} cy={y + 20} r="10" />
+                  <text x={x + 20} y={y + 24} textAnchor="middle" fill="#3b82f6" fontSize="12" fontWeight="bold">{isCollapsed ? '▶' : '▼'}</text>
                 </g>
-                <text x={x + 40} y={y + 25} fill="white" fontSize="14" fontWeight="bold">{node.data.label}</text>
+                <text x={x + 40} y={y + 25} fill="#3b82f6" fontSize="13" fontWeight="700" style={{ letterSpacing: '0.05em' }}>{node.data.label.toUpperCase()}</text>
               </g>
             );
           })}
@@ -1144,8 +1145,11 @@ function FlowchartViewer() {
                   <rect x={x} y={y} width={width} height={height} rx="8" fill={getNodeColor(node)} stroke={isCurrentStep ? '#22c55e' : '#333'} strokeWidth={isCurrentStep ? '3' : '2'} />
                 )}
                 <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle" className="node-label" fill={getNodeTextColor(node)}>
-                  {node.data.label}
+                  {node.data.userLabel || node.data.label}
                 </text>
+                {node.data.userLabel && (
+                  <circle cx={x + width - 10} cy={y + 10} r="3" fill="#3b82f6" title="User defined label" />
+                )}
               </g>
             );
           })}

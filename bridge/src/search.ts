@@ -5,7 +5,7 @@
  * Matches queries like "find the login function" or "show where errors happen"
  */
 
-import { FlowNode } from './parser';
+import { FlowNode } from './types';
 
 export interface SearchResult {
     node: FlowNode;

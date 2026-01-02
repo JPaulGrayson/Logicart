@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { 
-  SortingVisualizer, 
+import {
+  SortingVisualizer,
   PathfindingVisualizer,
   CalculatorVisualizer,
   QuizVisualizer,
@@ -145,10 +145,10 @@ export function VisualizationPanel({
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !dragRef.current) return;
-    
+
     const deltaX = e.clientX - dragRef.current.startX;
     const deltaY = e.clientY - dragRef.current.startY;
-    
+
     setPosition({
       x: dragRef.current.initialX + deltaX,
       y: dragRef.current.initialY + deltaY
@@ -183,14 +183,14 @@ export function VisualizationPanel({
   };
 
   return (
-    <div 
-      className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-xl", className)}
+    <div
+      className={cn("flex flex-col bg-card border border-border rounded-lg overflow-hidden shadow-xl z-50", className)}
       style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div 
+      <div
         className={cn(
           "flex items-center justify-between px-3 py-2 border-b border-border bg-accent/30",
           "cursor-grab select-none",
@@ -238,7 +238,7 @@ export function VisualizationPanel({
           )}
         </div>
       </div>
-      
+
       {/* Edit mode toolbar for pathfinding */}
       {type === 'pathfinding' && onEditModeChange && (
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-border bg-muted/30">
@@ -283,7 +283,7 @@ export function VisualizationPanel({
           )}
         </div>
       )}
-      
+
       <div className="flex-1 p-2">
         {type === 'sorting' && sortingState && (
           <SortingVisualizer
@@ -294,7 +294,7 @@ export function VisualizationPanel({
             pivotIndex={sortingState.pivotIndex}
           />
         )}
-        
+
         {type === 'pathfinding' && pathfindingState && (
           <PathfindingVisualizer
             rows={pathfindingState.rows}
@@ -308,7 +308,7 @@ export function VisualizationPanel({
             onCellClick={onCellClick}
           />
         )}
-        
+
         {type === 'calculator' && calculatorState && (
           <CalculatorVisualizer
             expression={calculatorState.expression}
@@ -321,7 +321,7 @@ export function VisualizationPanel({
             interactive={!!onCalculatorExpressionChange}
           />
         )}
-        
+
         {type === 'quiz' && quizState && (
           <QuizVisualizer
             question={quizState.question}
@@ -335,7 +335,7 @@ export function VisualizationPanel({
             onAnswerSelect={onQuizAnswer}
           />
         )}
-        
+
         {type === 'tictactoe' && tictactoeState && (
           <TicTacToeVisualizer
             board={tictactoeState.board}
@@ -348,7 +348,7 @@ export function VisualizationPanel({
             interactive={!!onTictactoeMove}
           />
         )}
-        
+
         {type === 'fibonacci' && fibonacciState && (
           <FibonacciVisualizer
             sequence={fibonacciState.sequence}
@@ -358,7 +358,7 @@ export function VisualizationPanel({
             callStack={fibonacciState.callStack}
           />
         )}
-        
+
         {type === 'snake' && snakeState && (
           <SnakeVisualizer
             gridSize={snakeState.gridSize}
@@ -448,12 +448,12 @@ export const DEFAULT_SNAKE_STATE: SnakeState = {
   highlightedSegment: null,
 };
 
-export type { 
-  SortingState, 
-  PathfindingState, 
-  CalculatorState, 
-  QuizState, 
-  TicTacToeState, 
-  FibonacciState, 
-  SnakeState 
+export type {
+  SortingState,
+  PathfindingState,
+  CalculatorState,
+  QuizState,
+  TicTacToeState,
+  FibonacciState,
+  SnakeState
 };

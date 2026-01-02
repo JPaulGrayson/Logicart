@@ -18,25 +18,27 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMock, setIsMock] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleShare = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, title: title || undefined, description: description || undefined })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create share link');
       }
-      
-      const { url } = await response.json();
+
+      const { url, isMock } = await response.json();
       setShareUrl(url);
+      setIsMock(isMock || false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create share link');
     } finally {
@@ -75,7 +77,7 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
             Create a shareable link to this flowchart that anyone can view.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 pt-4">
           {!shareUrl ? (
             <>
@@ -89,7 +91,7 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
                   data-testid="input-share-title"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="share-description">Description (optional)</Label>
                 <Textarea
@@ -101,13 +103,13 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
                   data-testid="input-share-description"
                 />
               </div>
-              
+
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
               )}
-              
-              <Button 
-                onClick={handleShare} 
+
+              <Button
+                onClick={handleShare}
                 className="w-full"
                 disabled={isLoading || !code.trim()}
                 data-testid="button-create-share"
@@ -130,9 +132,9 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-2">Share Link Created!</p>
                 <div className="flex gap-2">
-                  <Input 
-                    value={shareUrl} 
-                    readOnly 
+                  <Input
+                    value={shareUrl}
+                    readOnly
                     className="text-xs"
                     data-testid="input-share-url"
                   />
@@ -146,17 +148,23 @@ export function ShareDialog({ open, onOpenChange, code }: ShareDialogProps) {
                   </Button>
                 </div>
               </div>
-              
+
+              {isMock && (
+                <div className="p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-[11px] text-yellow-200/90 italic">
+                  ⚠️ <strong>Local Session:</strong> Link is stored in memory and will vanish if the server restarts.
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground text-center">
                 Anyone with this link can view your flowchart
               </p>
-              
+
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose} className="flex-1">
                   Done
                 </Button>
-                <Button 
-                  onClick={() => setShareUrl('')} 
+                <Button
+                  onClick={() => setShareUrl('')}
                   variant="ghost"
                   className="flex-1"
                 >

@@ -7,7 +7,7 @@
  * - Function level: Individual statements
  */
 
-import { FlowNode } from './parser';
+import { FlowNode } from './types';
 
 export type ZoomLevel = 'system' | 'feature' | 'function' | 'statement';
 

@@ -1,12 +1,26 @@
-/**
- * LogiGo Bridge - Shared Utilities
- * 
- * This package contains shared code between LogiGo Studio and LogiGo for VS Code.
- */
 
-export * from './parser';
-export * from './types';
-export * from './injector';
-export * from './interpreter';
-export * from './search';
-export * from './hierarchy';
+export { parseCodeToFlow } from './parser';
+export { injectCheckpoints, getRuntimeInitCode } from './injector';
+
+export type {
+    SourceLocation,
+    FlowNode,
+    FlowEdge,
+    FlowData,
+    LogiGoMessage,
+    LogiGoMessageType,
+    SessionStartPayload,
+    CheckpointPayload,
+    ControlMessage,
+    ControlMessageType,
+    JumpToLinePayload,
+    WriteFilePayload,
+    RequestFilePayload,
+    RuntimeState
+} from './types';
+
+export {
+    isLogiGoMessage,
+    isCheckpoint,
+    isSessionStart
+} from './types';

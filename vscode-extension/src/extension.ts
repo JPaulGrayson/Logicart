@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseCodeToFlow } from './parser';
+import { parseCodeToFlow } from '@logigo/bridge';
 import { generateGroundingContext } from '@logigo/core';
 
 let currentPanel: vscode.WebviewPanel | undefined;
@@ -195,7 +195,7 @@ function setupDocumentWatcher(context: vscode.ExtensionContext, document: vscode
     documentChangeListener.dispose();
   }
 
-  const config = vscode.workspace.getConfiguration('cartographer');
+  const config = vscode.workspace.getConfiguration('logigo');
   const autoRefresh = config.get<boolean>('autoRefresh', true);
 
   if (!autoRefresh) {

@@ -28,7 +28,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
             Quick start guide, documentation, keyboard shortcuts, and information about LogiGo Studio
           </DialogDescription>
         </DialogHeader>
-        
+
         <Tabs defaultValue="quick-start" className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="quick-start" className="flex items-center gap-1.5" data-testid="tab-quick-start">
@@ -48,7 +48,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
               <span>About</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <ScrollArea className="flex-1 mt-4">
             {/* Quick Start Tab */}
             <TabsContent value="quick-start" className="space-y-4 pr-4">
@@ -133,7 +133,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     while (i {'<'} 10) {'{ ... }'}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Nodes with labels show a blue dot. Hover to see the original code.
+                    <strong>Quick Tip:</strong> Right-click any node to add or edit labels directly from the UI. Nodes with labels show a blue dot; hover to see the original code.
                   </p>
                 </section>
               </div>
@@ -150,33 +150,33 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                   Access detailed guides and references:
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  <a href="/docs/getting-started" target="_blank" rel="noopener" 
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-getting-started">
+                  <a href="/docs/getting-started" target="_blank" rel="noopener"
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-getting-started">
                     <span className="text-green-500">🚀</span>
                     Getting Started
                   </a>
                   <a href="/docs/quick-reference" target="_blank" rel="noopener"
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-quick-reference">
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-quick-reference">
                     <span className="text-yellow-500">⚡</span>
                     Quick Reference
                   </a>
                   <a href="/docs/installation" target="_blank" rel="noopener"
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-installation">
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-installation">
                     <span className="text-blue-500">📦</span>
                     Installation Guide
                   </a>
                   <a href="/docs/api-reference" target="_blank" rel="noopener"
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-api">
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-api">
                     <span className="text-purple-500">🔧</span>
                     API Reference
                   </a>
                   <a href="/docs/common-pitfalls" target="_blank" rel="noopener"
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-pitfalls">
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-pitfalls">
                     <span className="text-red-500">⚠️</span>
                     Common Pitfalls
                   </a>
                   <a href="/docs/vibe-coder-guide" target="_blank" rel="noopener"
-                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-vibe-coder">
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-vibe-coder">
                     <span className="text-pink-500">✨</span>
                     Vibe Coder Guide
                   </a>
@@ -362,14 +362,14 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                   Pause execution at specific points in your code to inspect the program state:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Set a breakpoint:</strong> Right-click on any flowchart node (no menu appears - the breakpoint toggles immediately)</li>
+                  <li>• <strong>Set a breakpoint:</strong> Right-click on any flowchart node to open the context menu and select "Add Breakpoint"</li>
                   <li>• <strong>Visual indicator:</strong> Once set, a red dot appears on the left side of the node</li>
                   <li>• <strong>Execution pauses:</strong> When playback reaches a breakpoint, it automatically pauses</li>
                   <li>• <strong>Inspect state:</strong> Check the Variables panel to see current values</li>
-                  <li>• <strong>Continue:</strong> Press Play to resume until the next breakpoint, or right-click again to remove it</li>
+                  <li>• <strong>Continue:</strong> Press Play to resume until the next breakpoint, or right-click to remove it</li>
                 </ul>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Breakpoints are cleared when you modify the code, as the flowchart structure may change.
+                  Breakpoints are persisted even during code edits, but nodes may shift as code structure changes.
                 </p>
               </section>
 
@@ -523,7 +523,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                 <p className="text-sm text-muted-foreground mb-3">
                   All playback controls are located in the sidebar for a clean, focused interface:
                 </p>
-                
+
                 <div className="p-3 bg-muted/50 rounded-md">
                   <p className="text-sm font-semibold mb-2">Sidebar Controls</p>
                   <p className="text-xs text-muted-foreground mb-2">
@@ -537,9 +537,9 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     <li>• <strong>Speed:</strong> Full range from 0.25x (slow-mo) to 20x (lightning fast)</li>
                   </ul>
                 </div>
-                
+
                 <p className="text-xs text-muted-foreground mt-3">
-                  <strong>Tip:</strong> Use slow speeds (0.25x-0.5x) to carefully observe complex logic, 
+                  <strong>Tip:</strong> Use slow speeds (0.25x-0.5x) to carefully observe complex logic,
                   and fast speeds (10x-20x) to quickly scan through familiar code.
                 </p>
               </section>
@@ -695,7 +695,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                 <section>
                   <h3 className="text-lg font-semibold mb-2">Philosophy</h3>
                   <p className="text-sm text-muted-foreground italic">
-                    "LogiGo Studio is the universal entry point for code visualization—zero friction, instant insights. 
+                    "LogiGo Studio is the universal entry point for code visualization—zero friction, instant insights.
                     For power users who need runtime debugging, seamlessly connect to logigo-core without losing the simplicity."
                   </p>
                 </section>

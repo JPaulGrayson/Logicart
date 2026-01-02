@@ -5,10 +5,15 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #1e1e1e;
-  color: #d4d4d4;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #2d2d34;
+  /* hsl(220 13% 18%) */
+  color: #f8fafc;
   overflow: hidden;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .flowchart-container {
@@ -19,29 +24,34 @@ body {
 }
 
 .header {
-  padding: 10px 16px;
-  background-color: #252526;
-  border-bottom: 1px solid #3c3c3c;
+  padding: 12px 20px;
+  background-color: #25252b;
+  border-bottom: 1px solid #3c3c45;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   justify-content: flex-start;
   align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 .header h2 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #cccccc;
+  font-size: 15px;
+  font-weight: 700;
+  color: #3b82f6;
   margin-right: auto;
+  letter-spacing: -0.02em;
 }
 
 .selected-node-info {
   font-size: 12px;
-  color: #858585;
-  background-color: #3c3c3c;
-  padding: 4px 10px;
-  border-radius: 4px;
+  color: #f8fafc;
+  background-color: #3b82f6;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
 }
 
 /* Algorithm Examples Dropdown */
@@ -470,41 +480,48 @@ body {
 }
 
 .var-value {
-  color: #ce9178;
+  color: #fbbf24;
 }
 
 /* ============== NODE STYLES ============== */
 .node {
-  transition: opacity 0.2s, transform 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .node:hover {
-  opacity: 0.8;
+  filter: brightness(1.2);
+  transform: translateY(-1px);
 }
 
-.node.selected rect,
-.node.selected polygon {
-  stroke: #007acc;
-  stroke-width: 3;
+.node rect,
+.node polygon {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 
 .node.current-step rect,
 .node.current-step polygon {
-  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
+  filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.6));
 }
 
 .node-label {
-  font-size: 13px;
-  font-weight: 500;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
   pointer-events: none;
   user-select: none;
+  letter-spacing: -0.01em;
 }
 
 .edge-label {
-  font-size: 12px;
-  fill: #858585;
+  font-size: 11px;
+  fill: #94a3b8;
   pointer-events: none;
   user-select: none;
+  transition: all 0.3s ease;
+}
+
+path {
+  transition: d 0.4s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
 }
 
 /* Active edge during execution */
@@ -514,7 +531,7 @@ body {
 
 /* ============== CONTAINER NODE STYLES ============== */
 .container-node {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .container-node:hover rect:first-child {
@@ -522,18 +539,27 @@ body {
 }
 
 .container-node.collapsed {
-  opacity: 0.85;
+  opacity: 0.7;
+}
+
+.container-node.collapsed rect:first-child {
+  fill: #0f172a;
 }
 
 .collapse-button circle {
   transition: fill 0.2s ease;
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.2);
 }
 
 .collapse-button:hover circle {
-  fill: rgba(255, 255, 255, 0.4);
+  fill: rgba(255, 255, 255, 0.3);
 }
 
-/* ============== CONTAINER LEGEND ============== */
+.container-node rect {
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.4));
+}
+
 .container-legend {
   display: flex;
   align-items: center;
