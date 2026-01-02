@@ -1,0 +1,33 @@
+Here is the technical feedback on those two implementations. You can share this directly with Replit to help them verify the logic.
+
+1. In-Memory Fallback (Sharable URLs)
+Files Involved: 
+server/routes/share.ts
+, 
+server/db.ts
+
+The Rationale: In local development, many users (and agents) run without a DATABASE_URL. Previously, clicking "Share URL" would crash the backend with a 500 error because Drizzle attempted to connect to a non-existent Postgres instance.
+The Implementation:
+I introduced a Map<string, Share> in 
+server/routes/share.ts
+ to serve as a volatile, zero-config data store.
+The code now performs a simple check: if (process.env.DATABASE_URL). If true, it uses the database; if false, it routes data to the Map.
+Replit Verification Points:
+Logic Check: Confirm that handleShareView (the redirect function) correctly reads from the Map when DB is missing.
+DB Independence: Verify that 
+server/db.ts
+ no longer throws an error on startup when the connection string is empty.
+Trade-off: This is a "Local Only" feature. Data is lost on server restart, which I deemed acceptable for V1 local testing to ensure the UI doesn't break.
+2. Quick Action Bar (Node Labeling)
+Files Involved: client/src/components/ide/[LabeledNode|DecisionNode|ContainerNode].tsx, Flowchart.tsx, NodeContextMenu.tsx
+
+The Rationale: User feedback indicated that "Add Label" was undiscoverable. Users had to right-click a node, but the context menu was often hidden behind other nodes due to a z-index conflict with the React Flow layer (.active nodes were at 1000).
+The Implementation:
+Floating UI: Added a small toolbar inside each node that only appears onMouseEnter. It contains a Tag icon (Add Label) and a CircleDot icon (Toggle Breakpoint).
+Event Handling: Used e.stopPropagation() on the icons to ensure that clicking a "Quick Action" doesn't accidentally trigger a node drag or selection in React Flow.
+Z-Index Fix: Forced the NodeContextMenu to z-index: 2000 so it always appears above the flowchart nodes.
+Replit Verification Points:
+Callback Injection: In Flowchart.tsx, I injected onAddLabel and onBreakpointToggle directly into the node's data object. Replit should verify this isn't creating unnecessary re-renders of the entire graph.
+Handle Collision: Confirm that the action bar (positioned at the top-right of nodes) doesn't overlap with the top/bottom Handle points used for drawing edges.
+Accessibility: Ensure the tooltips on the icons provide enough context for what the buttons do.
+This should give Replit a very clear map of what to look for and what risks to mitigate. Is there any other part of the logic you'd like me to clarify before they start?
