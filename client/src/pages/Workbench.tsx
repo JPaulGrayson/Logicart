@@ -2598,23 +2598,6 @@ export default function Workbench() {
             </Tooltip>
           </TooltipProvider>
           
-          {/* Credit Meter for Pro users with managed AI */}
-          {isAuthenticated && !usageLoading && hasManagedAI && managedAllowance > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-cyan-500/30 bg-cyan-500/5 text-xs" data-testid="credit-meter">
-                    <Sparkles className="w-3 h-3 text-cyan-400" />
-                    <span className="text-cyan-300">{currentUsage}/{managedAllowance}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>AI Credits: {remaining} remaining this month</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          
           <ThemeToggle />
           
           {/* Demo Mode Indicator */}
@@ -2638,35 +2621,65 @@ export default function Workbench() {
                     <span className="text-xs max-w-24 truncate">{user?.name || user?.email?.split('@')[0]}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {user?.name && (
-                    <DropdownMenuItem className="text-xs font-medium" disabled>
-                      {user.name}
+                <DropdownMenuContent align="end" className="w-64">
+                  <div className="px-2 py-1.5 border-b border-border mb-1">
+                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  
+                  <div className="px-2 py-2 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Plan</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                        user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
+                        user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className="text-green-400">Active</span>
+                    </div>
+                    
+                    {hasManagedAI && managedAllowance > 0 && (
+                      <div className="flex items-center justify-between text-xs" data-testid="credit-meter">
+                        <span className="text-muted-foreground">AI Credits Used</span>
+                        <span className="text-cyan-400">{currentUsage} / {managedAllowance}</span>
+                      </div>
+                    )}
+                    
+                    {(hasHistory || hasRescue || hasGitSync) && (
+                      <div className="pt-1 border-t border-border/50">
+                        <p className="text-[10px] text-muted-foreground mb-1">Features</p>
+                        <div className="flex flex-wrap gap-1">
+                          {hasHistory && (
+                            <span className="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">History</span>
+                          )}
+                          {hasRescue && (
+                            <span className="px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px]">Rescue</span>
+                          )}
+                          {hasGitSync && (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">Git Sync</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <DropdownMenuSeparator />
+                  {isDemoMode ? (
+                    <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
+                      <LogOut className="w-3.5 h-3.5 mr-2" />
+                      Exit Demo Mode
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
-                    {user?.email}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
-                    Tier: {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
-                  </DropdownMenuItem>
-                  {isDemoMode && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
-                        <LogOut className="w-3.5 h-3.5 mr-2" />
-                        Exit Demo Mode
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {!isDemoMode && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={logout} data-testid="button-logout">
-                        <LogOut className="w-3.5 h-3.5 mr-2" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </>
+                  ) : (
+                    <DropdownMenuItem onClick={logout} data-testid="button-logout">
+                      <LogOut className="w-3.5 h-3.5 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
