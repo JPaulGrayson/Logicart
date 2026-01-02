@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY = 'voyai_token';
+const DEMO_MODE_KEY = 'logigo_demo_mode';
 const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
 const DEFAULT_MANAGED_ALLOWANCE = 50;
 
@@ -54,6 +55,22 @@ function isTokenExpired(payload: VoyaiTokenPayload): boolean {
   return payload.exp * 1000 < Date.now();
 }
 
+const DEMO_USER: VoyaiTokenPayload = {
+  userId: 'demo-user-123',
+  email: 'demo@logigo.dev',
+  name: 'Demo User',
+  appId: 'logigo',
+  tier: 'founder',
+  features: {
+    history_database: true,
+    rabbit_hole_rescue: true,
+    github_sync: true,
+    managed_allowance: 100,
+  },
+  iat: Math.floor(Date.now() / 1000),
+  exp: Math.floor(Date.now() / 1000) + 86400 * 365,
+};
+
 export function useLicense() {
   const [state, setState] = useState<LicenseState>({
     isAuthenticated: false,
@@ -61,12 +78,25 @@ export function useLicense() {
     user: null,
     token: null,
   });
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
+    const demoMode = localStorage.getItem(DEMO_MODE_KEY) === 'true';
+    if (demoMode) {
+      console.log('[Demo] Restored demo mode session');
+      setIsDemoMode(true);
+      setState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: DEMO_USER,
+        token: 'demo-token',
+      });
+      return;
+    }
+
     const storedToken = localStorage.getItem(STORAGE_KEY);
     if (storedToken) {
       const payload = decodeJWT(storedToken);
-      // Accept token if appId is 'logigo' or if it's a valid Voyai token with email
       if (payload && !isTokenExpired(payload) && (payload.appId === 'logigo' || payload.email)) {
         console.log('[Voyai] Restored session for:', payload.email);
         setState({
@@ -122,6 +152,8 @@ export function useLicense() {
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(DEMO_MODE_KEY);
+    setIsDemoMode(false);
     setState({
       isAuthenticated: false,
       isLoading: false,
@@ -134,6 +166,44 @@ export function useLicense() {
     const currentUrl = window.location.href;
     window.location.href = VOYAI_LOGIN_URL + encodeURIComponent(currentUrl);
   }, []);
+
+  const toggleDemoMode = useCallback(() => {
+    if (isDemoMode) {
+      localStorage.removeItem(DEMO_MODE_KEY);
+      setIsDemoMode(false);
+      const storedToken = localStorage.getItem(STORAGE_KEY);
+      if (storedToken) {
+        const payload = decodeJWT(storedToken);
+        if (payload && !isTokenExpired(payload)) {
+          setState({
+            isAuthenticated: true,
+            isLoading: false,
+            user: payload,
+            token: storedToken,
+          });
+          console.log('[Demo] Demo mode disabled, restored session for:', payload.email);
+          return;
+        }
+      }
+      setState({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null,
+        token: null,
+      });
+      console.log('[Demo] Demo mode disabled');
+    } else {
+      localStorage.setItem(DEMO_MODE_KEY, 'true');
+      setIsDemoMode(true);
+      setState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: DEMO_USER,
+        token: 'demo-token',
+      });
+      console.log('[Demo] Demo mode enabled');
+    }
+  }, [isDemoMode]);
 
   const hasFeature = useCallback(
     (feature: 'history_database' | 'rabbit_hole_rescue' | 'github_sync'): boolean => {
@@ -164,6 +234,8 @@ export function useLicense() {
     hasGitSync,
     hasManagedAI,
     managedAllowance,
+    isDemoMode,
+    toggleDemoMode,
   };
 }
 
@@ -184,15 +256,38 @@ export function useTokenFromUrl() {
   }, [setToken]);
 }
 
-export function useUsage(token: string | null, isAuthenticated: boolean, hasManagedAI: boolean) {
+export function useUsage(token: string | null, isAuthenticated: boolean, hasManagedAI: boolean, isDemoMode: boolean = false) {
   const [usage, setUsage] = useState<UsageState>({
     currentUsage: 0,
     managedAllowance: 0,
     remaining: 0,
     isLoading: true,
   });
+  const prevDemoMode = useRef(isDemoMode);
+
+  useEffect(() => {
+    if (prevDemoMode.current && !isDemoMode) {
+      setUsage({
+        currentUsage: 0,
+        managedAllowance: 0,
+        remaining: 0,
+        isLoading: true,
+      });
+    }
+    prevDemoMode.current = isDemoMode;
+  }, [isDemoMode]);
 
   const fetchUsage = useCallback(async () => {
+    if (isDemoMode && hasManagedAI) {
+      setUsage({
+        currentUsage: 23,
+        managedAllowance: 100,
+        remaining: 77,
+        isLoading: false,
+      });
+      return;
+    }
+
     if (!token || !isAuthenticated || !hasManagedAI) {
       setUsage(prev => ({ ...prev, isLoading: false, managedAllowance: 0 }));
       return;
@@ -218,7 +313,7 @@ export function useUsage(token: string | null, isAuthenticated: boolean, hasMana
       console.error('[Usage] Failed to fetch usage:', error);
       setUsage(prev => ({ ...prev, isLoading: false }));
     }
-  }, [token, isAuthenticated, hasManagedAI]);
+  }, [token, isAuthenticated, hasManagedAI, isDemoMode]);
 
   useEffect(() => {
     fetchUsage();

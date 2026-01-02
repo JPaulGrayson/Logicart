@@ -120,8 +120,8 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
-  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token } = useLicense();
-  const { currentUsage, managedAllowance, remaining, isLoading: usageLoading } = useUsage(token, isAuthenticated, hasManagedAI);
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token, isDemoMode, toggleDemoMode } = useLicense();
+  const { currentUsage, managedAllowance, remaining, isLoading: usageLoading } = useUsage(token, isAuthenticated, hasManagedAI, isDemoMode);
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
@@ -2617,6 +2617,13 @@ export default function Workbench() {
           
           <ThemeToggle />
           
+          {/* Demo Mode Indicator */}
+          {isDemoMode && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs" data-testid="demo-mode-indicator">
+              <span>Demo Mode</span>
+            </div>
+          )}
+          
           {!licenseLoading && (
             isAuthenticated ? (
               <DropdownMenu>
@@ -2643,24 +2650,48 @@ export default function Workbench() {
                   <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
                     Tier: {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} data-testid="button-logout">
-                    <LogOut className="w-3.5 h-3.5 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
+                  {isDemoMode && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        Exit Demo Mode
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {!isDemoMode && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={logout} data-testid="button-logout">
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={login}
-                className="h-7 gap-1.5 text-xs border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-                data-testid="button-login"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign In
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleDemoMode}
+                  className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
+                  data-testid="button-demo-mode"
+                >
+                  Try Demo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={login}
+                  className="h-7 gap-1.5 text-xs border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                  data-testid="button-login"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  Sign In
+                </Button>
+              </div>
             )
           )}
           
