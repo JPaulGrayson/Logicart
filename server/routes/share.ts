@@ -27,7 +27,7 @@ shareRouter.post('/', async (req, res) => {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const url = `${baseUrl}/s/${id}`;
 
-        res.json({ id, url, isMock: db.isMock || false });
+        res.json({ id, url, isMock: (db as any).isMock || false });
     } catch (error) {
         console.error('[Share] Error creating share:', error);
         res.status(500).json({ error: 'Failed to create share' });
