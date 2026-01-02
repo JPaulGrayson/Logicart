@@ -807,6 +807,138 @@ logigoPlugin({
 
 ---
 
+## 🌉 Bridge & Model Integration
+
+Documentation for connecting LogiGo to external AI models and IDE platforms (Cursor, VS Code).
+
+### Model Context Protocol (MCP)
+
+LogiGo serves as a standard MCP server, allowing any AI model (Claude 3.5, GPT-4o) to "see" and "analyze" your code structure through LogiGo's logic engine.
+
+**Endpoint:** `http://localhost:5001/api/mcp/sse`
+
+#### Available Tools:
+
+| Tool | Parameters | Description |
+|------|------------|-------------|
+| `analyze_code` | `code: string` | Returns a full JSON map of nodes and edges. |
+| `get_complexity` | `code: string` | Returns a complexity score (1-100) and refactoring advice. |
+| `explain_flow` | `code: string` | Returns a natural language summary of the logic paths. |
+| `find_branches` | `code: string` | Lists all conditional logic points and their current state. |
+
+**Example (Cursor Setup):**
+1. Open Cursor Settings -> Features -> MCP.
+2. Add New MCP Server.
+3. Type: `sse`, Name: `LogiGo`.
+4. URL: `http://localhost:5001/api/mcp/sse`.
+
+---
+
+### Remote Mode API
+
+Sync local IDE activity to the LogiGo Workbench in real-time.
+
+#### `POST /api/remote/session`
+Create a new telepresence session for an active file.
+
+**Request:**
+```json
+{
+  "name": "MyComponent.tsx",
+  "code": "function start() { ... }"
+}
+```
+
+**Response:**
+```json
+{
+  "sessionId": "abc-123",
+  "connectUrl": "http://localhost:5001/remote/abc-123"
+}
+```
+
+#### `POST /api/remote/checkpoint`
+Send a live execution event to a remote session.
+
+```json
+{
+  "sessionId": "abc-123",
+  "checkpoint": {
+    "nodeId": "auth:success",
+    "variables": { "userId": 42 }
+  }
+}
+```
+
+---
+
+### Agent Bridge API
+
+Programmatic analysis for custom Agent workflows.
+
+#### `POST /api/agent/analyze`
+High-speed structural analysis for context injection.
+
+**Request:**
+```json
+{
+  "code": "const x = 10;",
+  "language": "javascript"
+}
+```
+
+**Response:**
+```json
+{
+  "summary": { "nodeCount": 1, "complexityScore": 0 },
+  "flow": [...],
+  "nodes": 1,
+  "edges": 0
+}
+```
+
+---
+
+### Model Arena API
+
+Comparative analysis and model benchmarking endpoints.
+
+#### `POST /api/arena/generate`
+Generate code across 4 specific model providers simultaneously.
+
+**Request:**
+```json
+{
+  "prompt": "Write a binary search."
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    { "provider": "OpenAI", "code": "...", "latencyMs": 450 },
+    { "provider": "Claude", "code": "...", "latencyMs": 620 }
+  ],
+  "comparison": { "similarityMatrix": [...] }
+}
+```
+
+#### `POST /api/arena/verdict`
+Determine which model's output is superior using an LLM Chairman.
+
+**Request:**
+```json
+{
+  "mode": "code",
+  "chairman": "openai",
+  "originalPrompt": "Write a binary search.",
+  "results": [...]
+}
+```
+
+---
+
 ## User Labels
 
 Add human-readable labels to flowchart nodes with `// @logigo:` comments.

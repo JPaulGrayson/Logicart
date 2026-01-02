@@ -302,7 +302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'COMMON_PITFALLS.md',
     'QUICK_REFERENCE.md',
     'INTEGRATION_GUIDE.md',
-    'VIBE_CODER_GUIDE.md'
+    'VIBE_CODER_GUIDE.md',
+    'MCP_INTEGRATION_GUIDE.md',
+    'ARENA_MASTERCLASS.md',
+    'REMOTE_SYNC_GUIDE.md'
   ];
 
   app.get("/api/docs", (req, res) => {
@@ -348,11 +351,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'common-pitfalls': 'COMMON_PITFALLS.md',
     'quick-reference': 'QUICK_REFERENCE.md',
     'integration': 'INTEGRATION_GUIDE.md',
-    'vibe-coder-guide': 'VIBE_CODER_GUIDE.md'
+    'vibe-coder-guide': 'VIBE_CODER_GUIDE.md',
+    'mcp-guide': 'MCP_INTEGRATION_GUIDE.md',
+    'arena-masterclass': 'ARENA_MASTERCLASS.md',
+    'remote-sync': 'REMOTE_SYNC_GUIDE.md'
   };
 
   // Serve documentation pages as styled HTML
   app.get("/docs/:slug", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     try {
       const { slug } = req.params;
       const filename = DOC_SLUGS[slug];
@@ -366,51 +373,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const markdown = await fs.readFile(docPath, 'utf-8');
       const title = filename.replace('.md', '').replace(/_/g, ' ');
 
-      // Convert markdown to simple HTML (basic conversion)
-      const htmlContent = markdown
-        .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-6 mb-2">$1</h3>')
-        .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-3 border-b pb-2">$1</h2>')
-        .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold mb-4">$1</h1>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        .replace(/`(.+?)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded text-sm">$1</code>')
-        .replace(/^- (.+)$/gm, '<li class="ml-4">• $1</li>')
-        .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4">$1. $2</li>')
-        .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto my-4"><code>$2</code></pre>')
-        .replace(/\n\n/g, '</p><p class="my-3 text-gray-300">')
-        .replace(/^\| .+$/gm, match => `<div class="font-mono text-sm bg-gray-800 p-2 rounded my-1">${match}</div>`);
+      // --- LOGIGO DOC ENGINE V1.2 (VERIFIED) ---
+      let htmlContent = markdown;
+      const codeBlocks: string[] = [];
+
+      // 1. Extra-Robust Code Block Extraction
+      htmlContent = htmlContent.replace(/```(\w+)?[\s\S]*?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const placeholder = `\n\n__CODE_BLOCK_${codeBlocks.length}__\n\n`;
+        codeBlocks.push(`<pre class="bg-[#05070a] p-8 rounded-3xl overflow-x-auto my-10 font-mono text-sm border border-white/5 text-blue-300 shadow-[0_30px_60px_rgba(0,0,0,0.6)] leading-relaxed relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-3 opacity-20 text-[10px] font-bold tracking-widest text-white uppercase">${lang || 'code'}</div>
+          <code>${code.trim()}</code>
+        </pre>`);
+        return placeholder;
+      });
+
+      const slugify = (text: string) => text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+
+      // 2. High-End Typography & Structural Elements
+      htmlContent = htmlContent
+        .replace(/^### (.+)$/gm, (m, p1) => `<h3 id="${slugify(p1)}" class="text-xl font-semibold mt-14 mb-5 text-slate-100">${p1}</h3>`)
+        .replace(/^## (.+)$/gm, (m, p1) => `<h2 id="${slugify(p1)}" class="text-2xl font-semibold mt-20 mb-8 border-b border-white/5 pb-5 text-slate-100 tracking-tight">${p1}</h2>`)
+        .replace(/^# (.+)$/gm, (m, p1) => `<h1 id="${slugify(p1)}" class="text-4xl font-bold mb-12 text-white tracking-tight bg-gradient-to-br from-white via-slate-200 to-blue-400/50 bg-clip-text text-transparent">${p1}</h1>`)
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-100 font-semibold">$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em class="italic text-slate-400">$1</em>')
+        .replace(/`(.+?)`/g, '<code class="bg-white/5 px-2 py-0.5 rounded-md text-sm font-mono text-blue-300 border border-white/5">$1</code>')
+        .replace(/^---$/gm, '<hr class="my-16 border-white/5" />');
+
+      // 3. Navigation & Advanced Linking
+      htmlContent = htmlContent
+        .replace(/\[(.+?)\]\((#.+?)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-200 underline underline-offset-8 decoration-blue-500/20 font-semibold transition-all hover:decoration-blue-400">$1</a>')
+        .replace(/\[(.+?)\]\((http.+?)\)/g, '<a href="$2" target="_blank" class="text-blue-400 hover:text-blue-200 underline underline-offset-8 decoration-blue-500/20 font-semibold transition-all hover:decoration-blue-400">$1</a>');
+
+      // 4. Premium List Styles
+      htmlContent = htmlContent
+        .replace(/^[*-] (.+)$/gm, '<li class="ml-8 mb-4 list-disc text-slate-300 leading-relaxed">$1</li>')
+        .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-8 mb-4 list-decimal text-slate-300 leading-relaxed">$1. $2</li>');
+
+      // 5. Data Visualization (Tables/Quotes)
+      htmlContent = htmlContent.replace(/^\| (.+)$/gm, match => {
+        if (match.includes('---')) return '';
+        return `<div class="font-mono text-sm bg-blue-950/20 p-5 border-l-4 border-blue-500/30 my-3 text-slate-400 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/5">${match}</div>`;
+      });
+
+      // 6. Dynamic Paragraph Injection
+      htmlContent = htmlContent.split('\n\n').map(p => {
+        const trimmed = p.trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<hr') || trimmed.startsWith('<div') || trimmed.startsWith('<pre') || trimmed.startsWith('\n\n__CODE')) return trimmed;
+        return `<p class="my-10 text-slate-300 leading-relaxed text-xl font-normal selection:bg-blue-500/20">${trimmed}</p>`;
+      }).join('\n');
+
+      // 7. Restoration Phase
+      codeBlocks.forEach((block, i) => {
+        htmlContent = htmlContent.replace(`\n\n__CODE_BLOCK_${i}__\n\n`, block);
+      });
 
       const html = `<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} - LogiGo Documentation</title>
+  <title>${title} - LogiGo Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { background: #0a0a0a; color: #e5e5e5; }
-    a { color: #60a5fa; }
-    a:hover { text-decoration: underline; }
+    body { 
+      background: #020408; 
+      color: #94a3b8; 
+      font-family: 'Outfit', sans-serif;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0, transparent 40%), 
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0, transparent 40%);
+      line-height: 1.7;
+    }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    h1, h2, h3 { color: #f8fafc; letter-spacing: -0.01em; }
+    article li + li { margin-top: 0.75rem; }
+    article li + li { margin-top: 0.75rem; }
   </style>
 </head>
-<body class="min-h-screen p-8">
+<body class="min-h-screen py-24 px-8 sm:px-16 lg:px-48">
   <div class="max-w-4xl mx-auto">
-    <nav class="mb-8 flex items-center gap-4">
-      <a href="/" class="text-blue-400 hover:underline">← Back to LogiGo</a>
-      <span class="text-gray-600">|</span>
-      <span class="text-gray-400">Documentation</span>
+    <nav class="mb-24 flex items-center justify-between">
+      <div class="flex items-center gap-6 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500">
+        <a href="/" class="text-blue-400 hover:text-white transition-all flex items-center gap-2 group">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:-translate-x-1"><path d="m15 18-6-6 6-6"/></svg>
+          Workbench
+        </a>
+        <span class="opacity-10">/</span>
+        <span class="text-slate-400">Documentation</span>
+      </div>
     </nav>
     <article class="prose prose-invert max-w-none">
-      <p class="my-3 text-gray-300">${htmlContent}</p>
+      ${htmlContent}
     </article>
-    <footer class="mt-12 pt-8 border-t border-gray-800 text-sm text-gray-500">
-      <p>LogiGo Studio - Code-to-Flowchart Visualization</p>
+    <footer class="mt-40 pt-20 border-t border-white/5 text-[10px] font-medium text-slate-600 flex justify-between items-center tracking-[0.2em] uppercase">
+      <p>LogiGo Documentation Core</p>
+      <p>© 2026 J. Paul Grayson</p>
     </footer>
   </div>
+  <script>
+    // Advanced smooth scroll with offset and state update
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').slice(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          const offset = 60;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = targetElement.getBoundingClientRect().top;
+          const elementPosition = elementRect - bodyRect;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update URL without jump
+          window.history.pushState(null, null, '#' + targetId);
+          
+          // Subtle flash effect on target
+          targetElement.style.transition = 'color 0.3s ease';
+          const originalColor = targetElement.style.color;
+          targetElement.style.color = '#60a5fa';
+          setTimeout(() => { targetElement.style.color = originalColor; }, 1000);
+        }
+      });
+    });
+  </script>
 </body>
 </html>`;
 
-      res.type('html').send(html);
+      res.type('html').set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate').send(html);
     } catch (error) {
       console.error("[Docs] Error serving doc page:", error);
       res.status(404).send("Documentation not found");

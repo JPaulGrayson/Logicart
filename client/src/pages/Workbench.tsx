@@ -43,6 +43,8 @@ import { User, LogIn, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, DEFAULT_CALCULATOR_STATE, DEFAULT_QUIZ_STATE, DEFAULT_TICTACTOE_STATE, DEFAULT_FIBONACCI_STATE, DEFAULT_SNAKE_STATE, type VisualizerType, type SortingState, type PathfindingState, type CalculatorState, type QuizState, type TicTacToeState, type FibonacciState, type SnakeState, type GridEditMode } from '@/components/ide/VisualizationPanel';
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
+import { useTutorial } from '@/contexts/TutorialContext';
+import { TutorialSidebar } from '@/components/ide/TutorialSidebar';
 
 // Use sessionStorage for Ghost Diff - persists within browser session
 const STORAGE_KEY = '__logigo_original_snapshot';
@@ -85,14 +87,14 @@ const detectFunctionCalls = (code: string): boolean => {
       ast = acorn.parse(code, { ecmaVersion: 2020, sourceType: 'script' });
     }
     let foundCall = false;
-    
+
     const walk = (node: any): void => {
       if (!node || foundCall) return;
       if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
         return;
       }
-      if (node.type === 'CallExpression' || node.type === 'NewExpression' || 
-          node.type === 'TaggedTemplateExpression' || node.type === 'ImportExpression') {
+      if (node.type === 'CallExpression' || node.type === 'NewExpression' ||
+        node.type === 'TaggedTemplateExpression' || node.type === 'ImportExpression') {
         foundCall = true;
         return;
       }
@@ -106,7 +108,7 @@ const detectFunctionCalls = (code: string): boolean => {
         }
       }
     };
-    
+
     for (const stmt of ast.body) {
       if (stmt.type === 'FunctionDeclaration') continue;
       walk(stmt);
@@ -138,7 +140,8 @@ export default function Workbench() {
   const [parseReady, setParseReady] = useState(false);
   const [playQueued, setPlayQueued] = useState(false);
   const [hasFunctionCalls, setHasFunctionCalls] = useState(() => detectFunctionCalls(code));
-  
+  const { startTutorial } = useTutorial();
+
   // Premium features state
   const [showDiff, setShowDiff] = useState(false);
   const [diffNodes, setDiffNodes] = useState<DiffNode[]>([]);
@@ -147,59 +150,59 @@ export default function Workbench() {
   const [bookmarks, setBookmarks] = useState<Array<{ step: number; label: string }>>([]);
   const [breakpoints, setBreakpoints] = useState<Set<string>>(new Set());
   const [variableHistory, setVariableHistory] = useState<Array<{ step: number; variables: Record<string, unknown> }>>([]);
-  
+
   const interpreterRef = useRef<Interpreter | null>(null);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ghostDiffRef = useRef<GhostDiff>(new GhostDiff({ debug: true }));
   const executionControllerRef = useRef<ExecutionController>(new ExecutionController({ debug: false }));
   const flowDataRef = useRef(flowData);
-  
+
   // Test feature states
   const [testPanelOpen, setTestPanelOpen] = useState(false);
-  
+
   // New UI state for sidebar layout
   const [codeEditorCollapsed, setCodeEditorCollapsed] = useState(false);
   const [showFloatingVariables, setShowFloatingVariables] = useState(true);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   // Help dialog state
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
-  
+
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  
+
   // AI Debug / Visualize Flow state
   const [showDebugPane, setShowDebugPane] = useState(false);
   const [debugSessionId, setDebugSessionId] = useState<string | null>(null);
   const [debugPromptCopied, setDebugPromptCopied] = useState(false);
   const [debugCheckpoints, setDebugCheckpoints] = useState<Array<{ id: string; variables: Record<string, unknown>; timestamp: number }>>([]);
   const [originalCodeSnapshot, setOriginalCodeSnapshot] = useState<string | null>(null);
-  
+
   // Fullscreen mode state: null = normal, 'workspace' = with controls, 'presentation' = clean
   const [fullscreenMode, setFullscreenMode] = useState<'workspace' | 'presentation' | null>(null);
   const flowchartContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Layout presets - refs for programmatic resizing
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const flowchartPanelRef = useRef<ImperativePanelHandle>(null);
   const [currentLayout, setCurrentLayout] = useState<string>('30-70');
-  
+
   // Layout preset configurations (sidebar : flowchart ratios)
   const layoutPresets = {
     '50-50': { sidebar: 50, flowchart: 50, label: '50/50' },
     '30-70': { sidebar: 30, flowchart: 70, label: '30/70' },
     'flow-only': { sidebar: 0, flowchart: 100, label: 'Flow Only' },
   };
-  
+
   const applyLayoutPreset = (presetKey: keyof typeof layoutPresets) => {
     const preset = layoutPresets[presetKey];
-    
+
     // Expand both panels first to ensure they're not collapsed
     sidebarPanelRef.current?.expand();
     flowchartPanelRef.current?.expand();
-    
+
     // Small delay to let expand complete before resizing
     setTimeout(() => {
       if (presetKey === 'flow-only') {
@@ -210,11 +213,11 @@ export default function Workbench() {
         flowchartPanelRef.current?.resize(preset.flowchart);
       }
     }, 50);
-    
+
     setCurrentLayout(presetKey);
     localStorage.setItem('logigo-layout-preset', presetKey);
   };
-  
+
   // Load saved layout on mount
   useEffect(() => {
     const savedLayout = localStorage.getItem('logigo-layout-preset') as keyof typeof layoutPresets | null;
@@ -223,7 +226,7 @@ export default function Workbench() {
       setTimeout(() => applyLayoutPreset(savedLayout), 100);
     }
   }, []);
-  
+
   // Runtime Mode state (logigo-core integration)
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     isConnected: false,
@@ -231,7 +234,7 @@ export default function Workbench() {
     checkpointCount: 0
   });
   const [liveCheckpoints, setLiveCheckpoints] = useState<CheckpointPayload[]>([]);
-  
+
   // Remote session state (for ?session= URL parameter - connects to external app)
   const [remoteSessionId, setRemoteSessionId] = useState<string | null>(null);
   const [remoteSessionName, setRemoteSessionName] = useState<string | null>(null);
@@ -243,14 +246,14 @@ export default function Workbench() {
   const remoteReconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const controlWsRef = useRef<WebSocket | null>(null);
   const [handshakeNodeId, setHandshakeNodeId] = useState<string | null>(null);
-  
+
   // Remote breakpoint/pause state
   const [remotePausedAt, setRemotePausedAt] = useState<string | null>(null);
   const [remoteBreakpoints, setRemoteBreakpoints] = useState<Set<string>>(new Set());
-  
+
   // Backwards compatibility
   const remoteConnected = remoteConnectionStatus === 'connected';
-  
+
   // Compute active node info for Debug Panel display
   // Always use flowData.nodes for label lookup since diffNodes may not have userLabel data
   const activeNodeInfo = useMemo(() => {
@@ -261,7 +264,7 @@ export default function Workbench() {
       userLabel: activeNode?.data?.userLabel as string | undefined
     };
   }, [activeNodeId, flowData.nodes]);
-  
+
   // Convert remote breakpoints (checkpointIds) to nodeIds for Flowchart display
   // When in remote mode, only show remote breakpoints, not local ones
   const effectiveBreakpoints = useMemo(() => {
@@ -283,7 +286,7 @@ export default function Workbench() {
     // Otherwise use local breakpoints
     return breakpoints;
   }, [remoteSessionId, remoteBreakpoints, breakpoints, flowData.nodes]);
-  
+
   // Algorithm visualization state
   const [activeVisualizer, setActiveVisualizer] = useState<VisualizerType>(null);
   const [sortingState, setSortingState] = useState<SortingState>(DEFAULT_SORTING_STATE);
@@ -299,7 +302,7 @@ export default function Workbench() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<string | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Grid edit mode for pathfinding visualizer
   const [gridEditMode, setGridEditMode] = useState<GridEditMode>(null);
 
@@ -327,7 +330,7 @@ export default function Workbench() {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedCode = urlParams.get('code');
     const isPopup = urlParams.get('popup') === 'true';
-    
+
     if (encodedCode && isReady) {
       try {
         // Decode: first atob (base64 decode), then decodeURIComponent
@@ -339,7 +342,7 @@ export default function Workbench() {
           url.searchParams.delete('code');
           url.searchParams.delete('popup');
           window.history.replaceState({}, '', url.toString());
-          
+
           // If popup mode, auto-apply Flow Only layout
           if (isPopup) {
             setTimeout(() => applyLayoutPreset('flow-only'), 200);
@@ -355,18 +358,18 @@ export default function Workbench() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session');
-    
+
     if (!sessionId || !isReady) return;
-    
+
     console.log('[Remote Session] Connecting to session:', sessionId);
     setRemoteSessionId(sessionId);
     setRemoteConnectionStatus('connecting');
-    
+
     // Self-healing configuration
     const MAX_RECONNECT_ATTEMPTS = 5;
     const BASE_RECONNECT_DELAY = 1000;
     let sessionEnded = false;
-    
+
     // Fetch session info and code
     fetch(`/api/remote/session/${sessionId}`)
       .then(res => {
@@ -376,7 +379,7 @@ export default function Workbench() {
       .then(info => {
         console.log('[Remote Session] Session info:', info);
         setRemoteSessionName(info.name || 'Remote App');
-        
+
         // Load code into editor if provided
         if (info.code) {
           adapter.writeFile(info.code);
@@ -388,7 +391,7 @@ export default function Workbench() {
             description: 'Listening for checkpoints. Use "Add Source Code" in the remote app to visualize the full flowchart.'
           });
         }
-        
+
         // Load existing checkpoints
         if (info.checkpoints && info.checkpoints.length > 0) {
           setRemoteCheckpoints(info.checkpoints);
@@ -402,33 +405,33 @@ export default function Workbench() {
           description: 'The remote session may have expired. Ask the app to reconnect.'
         });
       });
-    
+
     // SSE connection with automatic reconnection
     function connectSSE() {
       if (sessionEnded) return;
-      
+
       const eventSource = new EventSource(`/api/remote/stream/${sessionId}`);
       remoteEventSourceRef.current = eventSource;
-      
+
       eventSource.addEventListener('session_info', (e) => {
         const info = JSON.parse(e.data);
         setRemoteSessionName(info.name || 'Remote App');
         setRemoteConnectionStatus('connected');
         remoteReconnectAttemptRef.current = 0; // Reset on successful connection
-        
+
         // If code is updated, reload it
         if (info.code) {
           adapter.writeFile(info.code);
         }
       });
-      
+
       eventSource.addEventListener('checkpoint', (e) => {
         const checkpoint = JSON.parse(e.data);
         console.log('[Remote Session] Checkpoint received:', checkpoint.id);
         setRemoteCheckpoints(prev => [...prev, checkpoint]);
         setRemoteActiveCheckpoint(checkpoint);
       });
-      
+
       eventSource.addEventListener('code_update', (e) => {
         const { code: newCode } = JSON.parse(e.data);
         if (newCode) {
@@ -436,7 +439,7 @@ export default function Workbench() {
           toast.info('Code updated from remote app');
         }
       });
-      
+
       eventSource.addEventListener('session_end', () => {
         console.log('[Remote Session] Session ended by remote app');
         sessionEnded = true;
@@ -445,25 +448,25 @@ export default function Workbench() {
           description: 'The remote app disconnected. Your flowchart is preserved.'
         });
       });
-      
+
       eventSource.onerror = () => {
         console.warn('[Remote Session] SSE connection error');
         eventSource.close();
         remoteEventSourceRef.current = null;
-        
+
         // Don't reconnect if session was intentionally ended
         if (sessionEnded) {
           setRemoteConnectionStatus('disconnected');
           return;
         }
-        
+
         // Attempt reconnection with exponential backoff
         if (remoteReconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
           remoteReconnectAttemptRef.current++;
           const delay = BASE_RECONNECT_DELAY * Math.pow(2, remoteReconnectAttemptRef.current - 1);
           console.log(`[Remote Session] Reconnecting in ${delay}ms (attempt ${remoteReconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
           setRemoteConnectionStatus('reconnecting');
-          
+
           remoteReconnectTimeoutRef.current = setTimeout(() => {
             connectSSE();
           }, delay);
@@ -475,31 +478,31 @@ export default function Workbench() {
           });
         }
       };
-      
+
       eventSource.onopen = () => {
         console.log('[Remote Session] SSE connected');
         setRemoteConnectionStatus('connected');
         remoteReconnectAttemptRef.current = 0;
       };
     }
-    
+
     connectSSE();
-    
+
     // Connect WebSocket control channel for visual handshake
     function connectControlChannel() {
       if (sessionEnded) return;
-      
+
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${wsProtocol}//${window.location.host}/api/remote/control/${sessionId}?type=studio`;
-      
+
       try {
         const ws = new WebSocket(wsUrl);
         controlWsRef.current = ws;
-        
+
         ws.onopen = () => {
           console.log('[Control Channel] WebSocket connected');
         };
-        
+
         ws.onmessage = (event) => {
           try {
             const message = JSON.parse(event.data);
@@ -511,7 +514,7 @@ export default function Workbench() {
               console.log('[Control Channel] Remote focus requested:', message.checkpointId);
               // Remote app wants to focus on a checkpoint - highlight the node
               // Use ref to avoid stale flowData closure
-              const matchingNode = flowDataRef.current.nodes.find(n => 
+              const matchingNode = flowDataRef.current.nodes.find(n =>
                 (n.data?.userLabel as string) === message.checkpointId
               );
               if (matchingNode) {
@@ -521,7 +524,7 @@ export default function Workbench() {
               console.log('[Control Channel] Remote paused at:', message.checkpointId);
               setRemotePausedAt(message.checkpointId);
               // Find and highlight the paused node
-              const pausedNode = flowDataRef.current.nodes.find(n => 
+              const pausedNode = flowDataRef.current.nodes.find(n =>
                 (n.data?.userLabel as string) === message.checkpointId
               );
               if (pausedNode) {
@@ -541,7 +544,7 @@ export default function Workbench() {
             console.warn('[Control Channel] Invalid message:', e);
           }
         };
-        
+
         ws.onclose = () => {
           console.log('[Control Channel] WebSocket disconnected');
           controlWsRef.current = null;
@@ -550,7 +553,7 @@ export default function Workbench() {
             setTimeout(connectControlChannel, 2000);
           }
         };
-        
+
         ws.onerror = () => {
           console.warn('[Control Channel] WebSocket error');
         };
@@ -558,12 +561,12 @@ export default function Workbench() {
         console.warn('[Control Channel] Failed to connect:', e);
       }
     }
-    
+
     connectControlChannel();
-    
+
     // Keep session param in URL for reconnection on refresh
     // Don't clear it - allows page refresh to reconnect
-    
+
     return () => {
       sessionEnded = true;
       if (remoteReconnectTimeoutRef.current) {
@@ -586,38 +589,38 @@ export default function Workbench() {
   // Highlight flowchart node when remote checkpoint arrives
   useEffect(() => {
     if (!remoteActiveCheckpoint || flowData.nodes.length === 0) return;
-    
+
     const checkpointId = remoteActiveCheckpoint.id;
-    
+
     // Try to find a matching node using deterministic matching:
     // 1. Exact match on userLabel (highest priority - set by parser for checkpoint nodes)
     // 2. Exact match on checkpoint ID in label (e.g., checkpoint('upload-start'))
     const matchingNode = flowData.nodes.find(node => {
       const label = (node.data?.label as string) || '';
       const userLabel = (node.data?.userLabel as string) || '';
-      
+
       // Priority 1: Exact match on userLabel (most reliable)
       if (userLabel === checkpointId) {
         return true;
       }
-      
+
       // Priority 2: Exact match with quoted checkpoint ID in label
       // Match checkpoint('id') or checkpoint("id") patterns exactly
       const singleQuoteMatch = label.match(/checkpoint\s*\(\s*'([^']+)'\s*[,)]/);
       const doubleQuoteMatch = label.match(/checkpoint\s*\(\s*"([^"]+)"\s*[,)]/);
       const extractedId = singleQuoteMatch?.[1] || doubleQuoteMatch?.[1];
-      
+
       if (extractedId === checkpointId) {
         return true;
       }
-      
+
       return false;
     });
-    
+
     if (matchingNode) {
       console.log('[Remote Session] Highlighting node:', matchingNode.id, 'for checkpoint:', checkpointId);
       setActiveNodeId(matchingNode.id);
-      
+
       // Also update execution state to show variables in the panel
       setExecutionState({
         variables: remoteActiveCheckpoint.variables,
@@ -641,17 +644,17 @@ export default function Workbench() {
   // Parse code whenever it changes
   useEffect(() => {
     if (!isReady) return;
-    
+
     // Mark parsing started - disables shortcuts immediately
     setIsParsing(true);
     setParseReady(false);
-    
+
     const timer = setTimeout(() => {
       const newFlowData = parseCodeToFlow(code);
-      
+
       // Check if parse succeeded (not an error node)
       const parseSucceeded = newFlowData.nodes.length > 0 && newFlowData.nodes[0]?.id !== 'error';
-      
+
       // If parse failed, keep showing the last valid flowchart (don't update flowData)
       // This prevents jarring "Syntax Error" nodes while typing
       if (!parseSucceeded) {
@@ -660,10 +663,10 @@ export default function Workbench() {
         setParseReady(false);
         return; // Don't update flowData, keep showing last valid state
       }
-      
+
       // Get current original snapshot (persists in window across HMR)
       const currentSnapshot = getOriginalSnapshot();
-      
+
       // Capture original snapshot on first successful parse
       if (newFlowData.nodes.length > 0 && currentSnapshot.length === 0) {
         setOriginalSnapshot(JSON.parse(JSON.stringify(newFlowData.nodes))); // Deep copy
@@ -676,7 +679,7 @@ export default function Workbench() {
         const diff = ghostDiffRef.current.diffTrees(currentSnapshot, newFlowData.nodes);
         const styledDiffNodes = ghostDiffRef.current.applyDiffStyling(diff.nodes);
         setDiffNodes(styledDiffNodes);
-        
+
         console.log('[Ghost Diff] Stats:', diff.stats);
         setFlowData(newFlowData);
         setHasFunctionCalls(detectFunctionCalls(code));
@@ -684,7 +687,7 @@ export default function Workbench() {
         setFlowData(newFlowData);
         setHasFunctionCalls(detectFunctionCalls(code));
       }
-      
+
       // Reset interpreter when code changes
       interpreterRef.current = null;
       setActiveNodeId(null);
@@ -692,10 +695,10 @@ export default function Workbench() {
       setIsPlaying(false);
       setProgress({ current: 0, total: 0 });
       setIsParsing(false);
-      
+
       // Mark parse ready for successful parse
       setParseReady(true);
-      
+
       // Auto-start playback if user queued it during parsing
       if (parseSucceeded && playQueued) {
         setPlayQueued(false);
@@ -705,7 +708,7 @@ export default function Workbench() {
         }, 0);
       }
     }, 500); // Debounce parsing
-    
+
     return () => {
       clearTimeout(timer);
       setIsParsing(false);
@@ -720,17 +723,17 @@ export default function Workbench() {
       if (event.origin !== window.location.origin) {
         return; // Reject cross-origin messages
       }
-      
+
       const message = event.data;
-      
+
       // Protocol check: Only handle messages from LOGIGO_CORE
       if (!isLogiGoMessage(message)) {
         return; // Ignore non-LogiGo messages
       }
-      
+
       // Update heartbeat on any message
       const heartbeat = Date.now();
-      
+
       if (isSessionStart(message)) {
         // Session Start - switch to Live Mode and reset visualization
         console.log('[LogiGo Studio] Session started:', message.payload.sessionId);
@@ -742,22 +745,22 @@ export default function Workbench() {
           sessionId: message.payload.sessionId,
           sessionStartTime: message.payload.startTime
         });
-        
+
         // Reset visualization state
         setLiveCheckpoints([]);
         setActiveNodeId(null);
-        
+
         // Could reset interpreter or execution state here if needed
       }
-      
+
       if (isCheckpoint(message)) {
         // Checkpoint event - process checkpoint data
         const checkpoint = message.payload;
         console.log('[LogiGo Studio] Checkpoint:', checkpoint.id, checkpoint.variables);
-        
+
         // Add to checkpoints list
         setLiveCheckpoints(prev => [...prev, checkpoint]);
-        
+
         // Update runtime state
         setRuntimeState(prev => ({
           ...prev,
@@ -767,7 +770,7 @@ export default function Workbench() {
           currentCheckpoint: checkpoint,
           lastHeartbeat: heartbeat
         }));
-        
+
         // Highlight DOM element if specified (Visual Handshake)
         if (checkpoint.domElement) {
           try {
@@ -782,7 +785,7 @@ export default function Workbench() {
             console.warn('[LogiGo Studio] Invalid DOM selector:', checkpoint.domElement);
           }
         }
-        
+
         // Map checkpoint to flowchart node if metadata includes line number
         if (checkpoint.metadata?.line && flowData.nodeMap) {
           const nodeId = flowData.nodeMap.get(`${checkpoint.metadata.line}:0`);
@@ -792,7 +795,7 @@ export default function Workbench() {
         }
       }
     };
-    
+
     // Inactivity timer: revert to Static Mode if no heartbeat for 15 seconds
     const inactivityTimer = setInterval(() => {
       setRuntimeState(prev => {
@@ -810,9 +813,9 @@ export default function Workbench() {
         return prev;
       });
     }, 5000); // Check every 5 seconds
-    
+
     window.addEventListener('message', handleMessage);
-    
+
     return () => {
       window.removeEventListener('message', handleMessage);
       clearInterval(inactivityTimer);
@@ -821,16 +824,16 @@ export default function Workbench() {
 
   const initializeInterpreter = () => {
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
-    
+
     // Prepare the first function found in the code (no specific function name required)
     const success = interpreterRef.current.prepare();
-    
+
     if (success) {
       const prog = interpreterRef.current.getProgress();
       setProgress(prog);
       return true;
     }
-    
+
     // Check for step limit/recursion depth errors and show helpful message
     if (interpreterRef.current.isStepLimitError()) {
       const friendlyError = interpreterRef.current.getUserFriendlyError();
@@ -839,13 +842,13 @@ export default function Workbench() {
         duration: 8000,
         action: {
           label: 'Got it',
-          onClick: () => {}
+          onClick: () => { }
         }
       });
       // Clear the interpreter so user can retry
       interpreterRef.current = null;
     }
-    
+
     return false;
   };
 
@@ -855,47 +858,47 @@ export default function Workbench() {
       setPlayQueued(true);
       return;
     }
-    
+
     // Clear any pending restart to avoid interrupting manual playback
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
     }
-    
+
     // Clear queued flag if set
     setPlayQueued(false);
-    
+
     if (!interpreterRef.current) {
       const success = initializeInterpreter();
       if (!success) return;
     }
-    
+
     setIsPlaying(true);
-    
+
     // Use ExecutionController for premium tier, simple interval for free tier
     const usePremiumController = features.hasFeature('executionController');
-    
+
     if (usePremiumController) {
       executionControllerRef.current.setSpeed(speed);
     }
-    
+
     // Calculate interval based on speed (base is 800ms)
     const baseInterval = 800;
-    const interval = usePremiumController 
+    const interval = usePremiumController
       ? executionControllerRef.current.getStepDelay()
       : baseInterval / speed;
-    
+
     // Execute one step and schedule next (using setTimeout for clean breakpoint handling)
     const executeStep = () => {
       if (!interpreterRef.current) return;
-      
+
       const step = interpreterRef.current.stepForward();
-      
+
       if (step) {
         setActiveNodeId(step.nodeId);
         setExecutionState(step.state);
         setProgress(interpreterRef.current.getProgress());
-        
+
         // Record variable history snapshot
         const currentProgress = interpreterRef.current.getProgress();
         setVariableHistory(prev => {
@@ -903,14 +906,14 @@ export default function Workbench() {
           if (existingIdx >= 0) return prev;
           return [...prev, { step: currentProgress.current, variables: { ...step.state.variables } }];
         });
-        
+
         // Find and highlight the source line
         const node = flowData.nodes.find(n => n.id === step.nodeId);
         if (node?.data.sourceData) {
           setHighlightedLine(node.data.sourceData.start.line);
           adapter.navigateToLine(node.data.sourceData.start.line);
         }
-        
+
         // Check for breakpoint - pause and don't schedule next step
         if (breakpoints.has(step.nodeId)) {
           setIsPlaying(false);
@@ -920,7 +923,7 @@ export default function Workbench() {
           }
           return; // Exit without scheduling next step
         }
-        
+
         // Schedule next step
         playIntervalRef.current = setTimeout(executeStep, interval);
       } else {
@@ -930,31 +933,31 @@ export default function Workbench() {
           clearTimeout(playIntervalRef.current);
           playIntervalRef.current = null;
         }
-        
+
         if (loop) {
           // Clear any pending restart
           if (restartTimeoutRef.current) {
             clearTimeout(restartTimeoutRef.current);
           }
-          
+
           // Reset and restart after a brief delay
           restartTimeoutRef.current = setTimeout(() => {
             restartTimeoutRef.current = null;
-            
+
             // Reset state
             interpreterRef.current = null;
             setActiveNodeId(null);
             setExecutionState(null);
             setHighlightedLine(null);
             setProgress({ current: 0, total: 0 });
-            
+
             // Start playing again
             handlePlay();
           }, 600);
         }
       }
     };
-    
+
     // Start the execution chain
     playIntervalRef.current = setTimeout(executeStep, interval);
   };
@@ -977,16 +980,16 @@ export default function Workbench() {
       const success = initializeInterpreter();
       if (!success) return;
     }
-    
+
     if (!interpreterRef.current) return;
-    
+
     const step = interpreterRef.current.stepForward();
-    
+
     if (step) {
       setActiveNodeId(step.nodeId);
       setExecutionState(step.state);
       setProgress(interpreterRef.current.getProgress());
-      
+
       // Record variable history snapshot
       const currentProgress = interpreterRef.current.getProgress();
       setVariableHistory(prev => {
@@ -994,7 +997,7 @@ export default function Workbench() {
         if (existingIdx >= 0) return prev;
         return [...prev, { step: currentProgress.current, variables: { ...step.state.variables } }];
       });
-      
+
       // Find and highlight the source line
       const node = flowData.nodes.find(n => n.id === step.nodeId);
       if (node?.data.sourceData) {
@@ -1006,14 +1009,14 @@ export default function Workbench() {
 
   const handleStepBackward = () => {
     if (!interpreterRef.current) return;
-    
+
     const step = interpreterRef.current.stepBackward();
-    
+
     if (step) {
       setActiveNodeId(step.nodeId);
       setExecutionState(step.state);
       setProgress(interpreterRef.current.getProgress());
-      
+
       // Find and highlight the source line
       const node = flowData.nodes.find(n => n.id === step.nodeId);
       if (node?.data.sourceData) {
@@ -1025,14 +1028,14 @@ export default function Workbench() {
 
   const handleJumpToStep = (targetStep: number) => {
     if (!interpreterRef.current) return;
-    
+
     const result = interpreterRef.current.jumpToStep(targetStep);
-    
+
     if (result) {
       setActiveNodeId(result.nodeId);
       setExecutionState(result.state);
       setProgress(interpreterRef.current.getProgress());
-      
+
       // Find and highlight the source line
       const node = flowData.nodes.find(n => n.id === result.nodeId);
       if (node?.data.sourceData) {
@@ -1053,7 +1056,7 @@ export default function Workbench() {
       const allSteps = interpreterRef.current?.getAllSteps() || [];
       return allSteps[step - 1]?.nodeId === n.id;
     });
-    
+
     const label = node?.data.label || `Step ${step}`;
     setBookmarks(prev => [...prev, { step, label }]);
   };
@@ -1068,7 +1071,7 @@ export default function Workbench() {
       // Find the node to get its checkpoint ID (userLabel)
       const node = flowData.nodes.find(n => n.id === nodeId);
       const checkpointId = (node?.data?.userLabel as string) || nodeId;
-      
+
       // Toggle on the remote side
       if (remoteBreakpoints.has(checkpointId)) {
         handleRemoteRemoveBreakpoint(checkpointId);
@@ -1077,7 +1080,7 @@ export default function Workbench() {
       }
       return;
     }
-    
+
     // Local breakpoints (non-remote mode)
     setBreakpoints(prev => {
       const next = new Set(prev);
@@ -1093,7 +1096,7 @@ export default function Workbench() {
   const handleAddLabel = (nodeId: string, currentUserLabel?: string) => {
     const node = flowData.nodes.find(n => n.id === nodeId);
     if (!node) return;
-    
+
     setLabelingNode({
       nodeId,
       label: node.data?.label || nodeId,
@@ -1104,10 +1107,10 @@ export default function Workbench() {
 
   const handleRemoveLabel = async (nodeId: string) => {
     const node = flowData.nodes.find(n => n.id === nodeId);
-    
+
     // Determine the line number
     let lineNum: number | undefined;
-    
+
     if (node?.data?.sourceData) {
       lineNum = node.data.sourceData.start.line;
     } else if (node?.type === 'container' && node?.data?.label) {
@@ -1121,11 +1124,11 @@ export default function Workbench() {
         }
       }
     }
-    
+
     if (!lineNum) return;
-    
+
     const lines = code.split('\n');
-    
+
     // Check line above for @logigo comment
     if (lineNum >= 2) {
       const prevLineIndex = lineNum - 2;
@@ -1134,7 +1137,7 @@ export default function Workbench() {
         // Remove the comment line
         lines.splice(prevLineIndex, 1);
         const newCode = lines.join('\n');
-        
+
         historyManager.push(newCode);
         adapter.writeFile(newCode);
         markAsSaved();
@@ -1146,12 +1149,12 @@ export default function Workbench() {
 
   const handleSaveLabel = async (labelText: string): Promise<{ success: boolean; error?: string }> => {
     if (!labelingNode) return { success: false, error: 'No node selected' };
-    
+
     const node = flowData.nodes.find(n => n.id === labelingNode.nodeId);
-    
+
     // Determine the line number to add the label
     let lineNum: number | undefined;
-    
+
     if (node?.data?.sourceData) {
       // Regular node with source location
       lineNum = node.data.sourceData.start.line;
@@ -1167,13 +1170,13 @@ export default function Workbench() {
         }
       }
     }
-    
+
     if (!lineNum) return { success: false, error: 'Could not find code location for this node' };
-    
+
     const lines = code.split('\n');
     const indent = lines[lineNum - 1]?.match(/^(\s*)/)?.[1] || '';
     const newComment = `${indent}// @logigo: ${labelText}`;
-    
+
     // Check if there's already a @logigo comment on the line above
     if (lineNum >= 2) {
       const prevLineIndex = lineNum - 2;
@@ -1189,9 +1192,9 @@ export default function Workbench() {
       // Insert at the beginning
       lines.unshift(newComment);
     }
-    
+
     const newCode = lines.join('\n');
-    
+
     try {
       historyManager.push(newCode);
       adapter.writeFile(newCode);
@@ -1227,12 +1230,12 @@ export default function Workbench() {
 
   const handleSpeedChange = (newSpeed: number) => {
     setSpeed(newSpeed);
-    
+
     // Update ExecutionController if premium tier
     if (features.hasFeature('executionController')) {
       executionControllerRef.current.setSpeed(newSpeed);
     }
-    
+
     // If currently playing, restart with new speed
     if (isPlaying) {
       handlePause();
@@ -1246,7 +1249,7 @@ export default function Workbench() {
   const handleLoopToggle = () => {
     const newLoop = !loop;
     setLoop(newLoop);
-    
+
     // If disabling loop, clear any pending restart
     if (!newLoop && restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
@@ -1306,7 +1309,7 @@ export default function Workbench() {
       setHighlightedLine(flowNode.data.sourceData.start.line);
       adapter.navigateToLine(flowNode.data.sourceData.start.line);
     }
-    
+
     // Visual Handshake: Send highlight command to remote app
     if (remoteSessionId && controlWsRef.current?.readyState === WebSocket.OPEN) {
       const checkpointId = (flowNode.data?.userLabel as string) || flowNode.id;
@@ -1319,7 +1322,7 @@ export default function Workbench() {
       controlWsRef.current.send(JSON.stringify(message));
       setHandshakeNodeId(flowNode.id);
       console.log('[Visual Handshake] Sent highlight request:', checkpointId);
-      
+
       // Fallback timeout: Clear handshake if no confirmation within 3 seconds
       setTimeout(() => {
         setHandshakeNodeId((current) => current === flowNode.id ? null : current);
@@ -1329,22 +1332,22 @@ export default function Workbench() {
 
   const handleNodeDoubleClick = (node: Node) => {
     const flowNode = node as unknown as FlowNode;
-    
+
     // Prevent editing while parsing to avoid stale location issues
     if (isParsing) {
       return;
     }
-    
+
     // Only allow editing nodes with source data (not Start/End nodes)
     if (!flowNode.data?.sourceData) {
       return;
     }
-    
+
     // Check if adapter supports editing
     if (!adapter.supportsEditing()) {
       return;
     }
-    
+
     setEditingNode(flowNode);
     setEditDialogOpen(true);
   };
@@ -1353,35 +1356,35 @@ export default function Workbench() {
     if (!editingNode?.data?.sourceData) {
       return { success: false, error: 'No node selected' };
     }
-    
+
     try {
       const patchedCode = patchCode(code, editingNode.data.sourceData, newCode);
-      
+
       // Validate that the patched code parses correctly
       const testParse = parseCodeToFlow(patchedCode);
-      
+
       // Check if parse resulted in error node
       if (testParse.nodes.length > 0 && testParse.nodes[0].id === 'error') {
-        return { 
-          success: false, 
-          error: 'Syntax error: Code contains invalid JavaScript syntax' 
+        return {
+          success: false,
+          error: 'Syntax error: Code contains invalid JavaScript syntax'
         };
       }
-      
+
       // Clear editing state first to prevent stale location issues
       setEditingNode(null);
       setEditDialogOpen(false);
-      
+
       // Write to file via adapter
       await adapter.writeFile(patchedCode);
       // Also save to file for external sync
       await saveToFile({ code: patchedCode, nodes: flowData.nodes, edges: flowData.edges });
-      
+
       return { success: true };
     } catch (err) {
-      return { 
-        success: false, 
-        error: `Error: ${err instanceof Error ? err.message : 'Failed to update code'}` 
+      return {
+        success: false,
+        error: `Error: ${err instanceof Error ? err.message : 'Failed to update code'}`
       };
     }
   };
@@ -1394,10 +1397,10 @@ export default function Workbench() {
     // Only save code - parser will regenerate nodes from the code
     saveToFile({ code: newCode });
   };
-  
+
   const [canUndo, setCanUndo] = useState(historyManager.canUndo());
   const [canRedo, setCanRedo] = useState(historyManager.canRedo());
-  
+
   const handleUndo = useCallback(async () => {
     const previousCode = historyManager.undo();
     if (previousCode !== null) {
@@ -1410,7 +1413,7 @@ export default function Workbench() {
       setCanRedo(historyManager.canRedo());
     }
   }, [adapter, markAsSaved, saveToFile]);
-  
+
   const handleRedo = useCallback(async () => {
     const nextCode = historyManager.redo();
     if (nextCode !== null) {
@@ -1423,7 +1426,7 @@ export default function Workbench() {
       setCanRedo(historyManager.canRedo());
     }
   }, [adapter, markAsSaved, saveToFile]);
-  
+
   useEffect(() => {
     setCanUndo(historyManager.canUndo());
     setCanRedo(historyManager.canRedo());
@@ -1431,7 +1434,7 @@ export default function Workbench() {
 
   // Track whether we've pushed the initial code to history
   const initialHistoryPushed = useRef(false);
-  
+
   // Push initial code to history on mount (so there's something to undo to)
   useEffect(() => {
     if (code && isReady && !initialHistoryPushed.current) {
@@ -1451,10 +1454,10 @@ export default function Workbench() {
       const target = e.target as HTMLElement;
       const isInEditor = target.closest('[data-testid="code-editor"]');
       const isInInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-      
+
       // Allow shortcuts in code editor but not in other inputs
       if (isInInput && !isInEditor) return;
-      
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
@@ -1463,7 +1466,7 @@ export default function Workbench() {
         handleRedo();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo]);
@@ -1485,7 +1488,7 @@ export default function Workbench() {
       setCurrentAlgorithm(exampleId);
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
-      
+
       // Stop any running animation and reset edit mode
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
@@ -1495,7 +1498,7 @@ export default function Workbench() {
       setAnimationIndex(0);
       setAnimationSteps([]);
       setGridEditMode(null);
-      
+
       // Set up the appropriate visualizer based on example id
       if (example.category === 'sorting') {
         setActiveVisualizer('sorting');
@@ -1536,7 +1539,7 @@ export default function Workbench() {
       }
     }
   };
-  
+
   const handleResetVisualization = () => {
     // Stop any running animation
     if (animationIntervalRef.current) {
@@ -1546,7 +1549,7 @@ export default function Workbench() {
     setIsAnimating(false);
     setAnimationIndex(0);
     setAnimationSteps([]);
-    
+
     if (activeVisualizer === 'sorting') {
       setSortingState({
         array: [64, 34, 25, 12, 22, 11, 90],
@@ -1563,7 +1566,7 @@ export default function Workbench() {
       setSnakeState(DEFAULT_SNAKE_STATE);
     }
   };
-  
+
   const handleCloseVisualization = () => {
     // Stop any running animation
     if (animationIntervalRef.current) {
@@ -1573,11 +1576,11 @@ export default function Workbench() {
     setIsAnimating(false);
     setShowVisualization(false);
   };
-  
+
   // Handle cell click in pathfinding grid for setting start/end/walls
   const handleGridCellClick = (node: { x: number; y: number }) => {
     if (!gridEditMode || activeVisualizer !== 'pathfinding') return;
-    
+
     // Stop any running animation when editing
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
@@ -1586,12 +1589,12 @@ export default function Workbench() {
     setIsAnimating(false);
     setAnimationIndex(0);
     setAnimationSteps([]);
-    
+
     setPathfindingState(prev => {
       const isWall = prev.wallNodes.some(w => w.x === node.x && w.y === node.y);
       const isStart = prev.startNode.x === node.x && prev.startNode.y === node.y;
       const isEnd = prev.endNode.x === node.x && prev.endNode.y === node.y;
-      
+
       if (gridEditMode === 'start') {
         // Don't place start on end or wall
         if (isEnd) return prev;
@@ -1604,7 +1607,7 @@ export default function Workbench() {
           currentNode: undefined
         };
       }
-      
+
       if (gridEditMode === 'end') {
         // Don't place end on start or wall
         if (isStart) return prev;
@@ -1617,11 +1620,11 @@ export default function Workbench() {
           currentNode: undefined
         };
       }
-      
+
       if (gridEditMode === 'wall') {
         // Don't place wall on start or end
         if (isStart || isEnd) return prev;
-        
+
         // Toggle wall
         if (isWall) {
           return {
@@ -1641,11 +1644,11 @@ export default function Workbench() {
           };
         }
       }
-      
+
       return prev;
     });
   };
-  
+
   // Handle TicTacToe cell click for interactive play
   const handleTictactoeMove = (index: number) => {
     // Stop any running animation when user makes a move
@@ -1654,26 +1657,26 @@ export default function Workbench() {
       animationIntervalRef.current = null;
     }
     setIsAnimating(false);
-    
+
     // Helper function to check for winner
     const checkWinner = (board: (string | null)[]): string | null => {
-      const patterns = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      for (const [a,b,c] of patterns) {
+      const patterns = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+      for (const [a, b, c] of patterns) {
         if (board[a] && board[a] === board[b] && board[b] === board[c]) return board[a];
       }
       if (board.every(c => c !== null)) return 'tie';
       return null;
     };
-    
+
     // Minimax algorithm for unbeatable AI
     const minimax = (board: (string | null)[], isMaximizing: boolean, depth: number): number => {
       const winner = checkWinner(board);
       if (winner === 'O') return 10 - depth; // AI wins (prefer faster wins)
       if (winner === 'X') return depth - 10; // Player wins
       if (winner === 'tie') return 0;        // Draw
-      
+
       const emptyCells = board.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
-      
+
       if (isMaximizing) {
         let bestScore = -Infinity;
         for (const idx of emptyCells) {
@@ -1692,35 +1695,35 @@ export default function Workbench() {
         return bestScore;
       }
     };
-    
+
     // Get best move using minimax
     const getAIMove = (board: (string | null)[]): number => {
       const emptyCells = board.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
       let bestScore = -Infinity;
       let bestMove = emptyCells[0];
-      
+
       for (const idx of emptyCells) {
         board[idx] = 'O';
         const score = minimax(board, false, 0);
         board[idx] = null;
-        
+
         if (score > bestScore) {
           bestScore = score;
           bestMove = idx;
         }
       }
-      
+
       return bestMove;
     };
-    
+
     setTictactoeState(prev => {
       // Don't allow move if game is over or cell is taken
       if (prev.winner || prev.board[index] !== null) return prev;
-      
+
       // Player X makes move
       const newBoard = [...prev.board];
       newBoard[index] = 'X';
-      
+
       // Check if player won
       const playerWinner = checkWinner(newBoard);
       if (playerWinner) {
@@ -1734,13 +1737,13 @@ export default function Workbench() {
           evaluationScore: null
         };
       }
-      
+
       // AI (O) makes move
       const aiMoveIndex = getAIMove(newBoard);
       if (aiMoveIndex !== undefined && aiMoveIndex >= 0) {
         newBoard[aiMoveIndex] = 'O';
         const aiWinner = checkWinner(newBoard);
-        
+
         return {
           ...prev,
           board: newBoard,
@@ -1751,7 +1754,7 @@ export default function Workbench() {
           evaluationScore: null
         };
       }
-      
+
       return {
         ...prev,
         board: newBoard,
@@ -1762,15 +1765,15 @@ export default function Workbench() {
       };
     });
   };
-  
+
   // Handle Quiz answer selection
   const handleQuizAnswer = (answerIndex: number) => {
     setQuizState(prev => {
       if (prev.isAnswered) return prev;
-      
+
       const isCorrect = answerIndex === prev.correctAnswer;
       const newScore = isCorrect ? prev.score + 10 : prev.score;
-      
+
       // Show answer result
       const answeredState = {
         ...prev,
@@ -1778,12 +1781,12 @@ export default function Workbench() {
         isAnswered: true,
         score: newScore
       };
-      
+
       // Auto-advance to next question after a delay
       setTimeout(() => {
         setQuizState(current => {
           const nextQuestionIndex = current.currentQuestion + 1;
-          
+
           if (nextQuestionIndex >= current.totalQuestions) {
             // Quiz complete - reset for replay
             return {
@@ -1791,14 +1794,14 @@ export default function Workbench() {
               score: current.score
             };
           }
-          
+
           // Move to next question
           const questions = [
             { question: 'What is the capital of France?', options: ['London', 'Berlin', 'Paris', 'Madrid'], correct: 2 },
             { question: 'What is 2 + 2?', options: ['3', '4', '5', '6'], correct: 1 },
             { question: 'Which planet is closest to the Sun?', options: ['Venus', 'Mercury', 'Mars', 'Earth'], correct: 1 }
           ];
-          
+
           const nextQ = questions[nextQuestionIndex];
           return {
             ...current,
@@ -1811,11 +1814,11 @@ export default function Workbench() {
           };
         });
       }, 1500);
-      
+
       return answeredState;
     });
   };
-  
+
   // Handle Snake direction change
   const handleSnakeDirectionChange = (newDirection: 'up' | 'down' | 'left' | 'right') => {
     setSnakeState(prev => {
@@ -1823,7 +1826,7 @@ export default function Workbench() {
       return { ...prev, direction: newDirection };
     });
   };
-  
+
   // Handle Calculator expression change
   const handleCalculatorExpressionChange = (expression: string) => {
     // Parse the expression
@@ -1833,7 +1836,7 @@ export default function Workbench() {
       const op = match[2];
       const num2 = parseFloat(match[3]);
       let result: number;
-      
+
       switch (op) {
         case '+': result = num1 + num2; break;
         case '-': result = num1 - num2; break;
@@ -1841,7 +1844,7 @@ export default function Workbench() {
         case '/': result = num2 !== 0 ? num1 / num2 : NaN; break;
         default: result = NaN;
       }
-      
+
       setCalculatorState({
         expression,
         num1: match[1],
@@ -1859,15 +1862,15 @@ export default function Workbench() {
       }));
     }
   };
-  
+
   // Snake game loop - move snake automatically when playing
   const snakeGameLoopRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const startSnakeGame = () => {
     if (snakeGameLoopRef.current) {
       clearInterval(snakeGameLoopRef.current);
     }
-    
+
     snakeGameLoopRef.current = setInterval(() => {
       setSnakeState(prev => {
         if (prev.gameOver) {
@@ -1877,10 +1880,10 @@ export default function Workbench() {
           }
           return prev;
         }
-        
+
         const head = prev.snake[0];
         let newHead: { x: number; y: number };
-        
+
         switch (prev.direction) {
           case 'up':
             newHead = { x: head.x, y: head.y - 1 };
@@ -1895,21 +1898,21 @@ export default function Workbench() {
             newHead = { x: head.x + 1, y: head.y };
             break;
         }
-        
+
         // Check wall collision
         if (newHead.x < 0 || newHead.x >= prev.gridSize || newHead.y < 0 || newHead.y >= prev.gridSize) {
           return { ...prev, gameOver: true };
         }
-        
+
         // Check self collision
         if (prev.snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
           return { ...prev, gameOver: true };
         }
-        
+
         const newSnake = [newHead, ...prev.snake];
         let newFood = prev.food;
         let newScore = prev.score;
-        
+
         // Check food collision
         if (newHead.x === prev.food.x && newHead.y === prev.food.y) {
           newScore += 10;
@@ -1928,7 +1931,7 @@ export default function Workbench() {
         } else {
           newSnake.pop(); // Remove tail if no food eaten
         }
-        
+
         return {
           ...prev,
           snake: newSnake,
@@ -1939,14 +1942,14 @@ export default function Workbench() {
       });
     }, 200);
   };
-  
+
   const stopSnakeGame = () => {
     if (snakeGameLoopRef.current) {
       clearInterval(snakeGameLoopRef.current);
       snakeGameLoopRef.current = null;
     }
   };
-  
+
   // Clean up snake game loop on unmount
   useEffect(() => {
     return () => {
@@ -1955,10 +1958,10 @@ export default function Workbench() {
       }
     };
   }, []);
-  
+
   // Snake game state for tracking if actively playing
   const [snakeGameActive, setSnakeGameActive] = useState(false);
-  
+
   // Start/stop snake game based on active state
   useEffect(() => {
     if (snakeGameActive && activeVisualizer === 'snake' && showVisualization && !snakeState.gameOver) {
@@ -1966,23 +1969,23 @@ export default function Workbench() {
     } else {
       stopSnakeGame();
     }
-    
+
     return () => stopSnakeGame();
   }, [snakeGameActive, activeVisualizer, showVisualization, snakeState.gameOver]);
-  
+
   // Stop snake game when switching away or closing
   useEffect(() => {
     if (activeVisualizer !== 'snake' || !showVisualization) {
       setSnakeGameActive(false);
     }
   }, [activeVisualizer, showVisualization]);
-  
+
   // Helper function to find flowchart node from line number
   const findNodeByLine = (lineNumber: number): string | null => {
     if (!flowData.nodeMap) {
       return null;
     }
-    
+
     // Look for a node that starts on this line (check column 0 first, then other columns)
     for (let col = 0; col < 50; col++) {
       const locKey = `${lineNumber}:${col}`;
@@ -1993,7 +1996,7 @@ export default function Workbench() {
     }
     return null;
   };
-  
+
   // Get list of all available line numbers from the nodeMap for debugging
   const getAvailableLines = (): number[] => {
     if (!flowData.nodeMap) return [];
@@ -2004,18 +2007,18 @@ export default function Workbench() {
     });
     return Array.from(lines).sort((a, b) => a - b);
   };
-  
+
   // Find the closest node to a target line
   const findClosestNode = (targetLine: number): string | null => {
     if (!flowData.nodeMap) return null;
-    
+
     const availableLines = getAvailableLines();
     if (availableLines.length === 0) return null;
-    
+
     // Find closest line
     let closestLine = availableLines[0];
     let minDist = Math.abs(targetLine - closestLine);
-    
+
     for (const line of availableLines) {
       const dist = Math.abs(targetLine - line);
       if (dist < minDist) {
@@ -2023,10 +2026,10 @@ export default function Workbench() {
         closestLine = line;
       }
     }
-    
+
     return findNodeByLine(closestLine);
   };
-  
+
   // Apply animation step (updates visualizer state and highlights flowchart node)
   const applyAnimationStep = (step: AnimationStep) => {
     // Update visualizer state
@@ -2045,12 +2048,12 @@ export default function Workbench() {
     } else if (step.type === 'snake') {
       setSnakeState(step.state as SnakeState);
     }
-    
+
     // Highlight corresponding flowchart node
     // Priority: lineNumber (if provided) -> closest match via findClosestNode -> stepType heuristic fallback
     const availableLines = getAvailableLines();
     if (availableLines.length === 0) return;
-    
+
     // First priority: Use actual lineNumber from step if available
     if (step.lineNumber !== undefined) {
       const nodeId = findNodeByLine(step.lineNumber);
@@ -2065,7 +2068,7 @@ export default function Workbench() {
         return;
       }
     }
-    
+
     // Fallback: Use stepType heuristics only when lineNumber is not available
     if (step.stepType) {
       let targetLineIndex = 0;
@@ -2097,11 +2100,11 @@ export default function Workbench() {
         default:
           targetLineIndex = Math.floor(availableLines.length / 2);
       }
-      
+
       targetLineIndex = Math.max(0, Math.min(targetLineIndex, availableLines.length - 1));
       const targetLine = availableLines[targetLineIndex];
       const nodeId = findNodeByLine(targetLine);
-      
+
       if (nodeId) {
         setActiveNodeId(nodeId);
       }
@@ -2124,7 +2127,7 @@ export default function Workbench() {
       }
       return;
     }
-    
+
     if (isAnimating) {
       // Pause animation
       if (animationIntervalRef.current) {
@@ -2134,7 +2137,7 @@ export default function Workbench() {
       setIsAnimating(false);
       return;
     }
-    
+
     // Generate animation steps if not already generated
     let steps = animationSteps;
     if (steps.length === 0) {
@@ -2171,25 +2174,25 @@ export default function Workbench() {
       }
       setAnimationSteps(steps);
     }
-    
+
     if (steps.length === 0) return;
-    
+
     // Reset to beginning if at end
     let startIndex = animationIndex;
     if (startIndex >= steps.length) {
       startIndex = 0;
       setAnimationIndex(0);
     }
-    
+
     setIsAnimating(true);
-    
+
     // Calculate interval based on speed (faster = shorter interval)
     const intervalMs = Math.max(50, 500 / speed);
-    
+
     animationIntervalRef.current = setInterval(() => {
       setAnimationIndex(prevIndex => {
         const nextIndex = prevIndex + 1;
-        
+
         if (nextIndex >= steps.length) {
           // Animation complete
           if (animationIntervalRef.current) {
@@ -2200,20 +2203,20 @@ export default function Workbench() {
           setActiveNodeId(null); // Clear highlight when done
           return prevIndex;
         }
-        
+
         // Apply the step (updates visualizer and highlights flowchart node)
         applyAnimationStep(steps[nextIndex]);
-        
+
         return nextIndex;
       });
     }, intervalMs);
-    
+
     // Apply first step immediately
     if (steps.length > 0 && startIndex < steps.length) {
       applyAnimationStep(steps[startIndex]);
     }
   };
-  
+
   // Cleanup animation on unmount
   useEffect(() => {
     return () => {
@@ -2298,7 +2301,7 @@ export default function Workbench() {
       }
     };
     reader.readAsText(file);
-    
+
     // Reset the input so the same file can be selected again
     event.target.value = '';
   };
@@ -2414,29 +2417,29 @@ export default function Workbench() {
     ],
     enabled: isReady,
   });
-  
+
   // Test Functions for Antigravity Features
   const testVisualHandshake = () => {
     console.log('Visual Handshake test triggered!');
     alert('✨ Visual Handshake Test\n\nThis feature will highlight DOM elements when checkpoints execute.\n\nAntigravity team has implemented this in src/overlay.js with the highlightElement() method.');
   };
-  
+
   const testReporterAPI = () => {
     console.log('Reporter API test triggered!');
-    
+
     // Simulate Reporter capturing checkpoint data
     const mockCheckpoints = [
       { id: 'start', timestamp: Date.now(), timeSinceStart: 0, domElement: null, variables: {} },
       { id: 'if_check', timestamp: Date.now() + 100, timeSinceStart: 100, domElement: '#condition', variables: { x: 10 } },
       { id: 'for_loop', timestamp: Date.now() + 250, timeSinceStart: 250, domElement: '#loop', variables: { i: 0 } },
     ];
-    
+
     console.group('📊 LogiGo Reporter API Test');
     console.log('Reporter would capture these checkpoints:');
     mockCheckpoints.forEach((cp, index) => {
       console.log(`[${index + 1}]`, cp);
     });
-    
+
     const mockReport = {
       metadata: {
         exportTime: Date.now(),
@@ -2450,10 +2453,10 @@ export default function Workbench() {
       },
       checkpoints: mockCheckpoints
     };
-    
+
     console.log('Full Report Export:', mockReport);
     console.groupEnd();
-    
+
     alert('✅ Reporter API Test Complete!\n\nCheck the browser console for full JSON data export.');
   };
 
@@ -2507,7 +2510,7 @@ export default function Workbench() {
             <Button variant="outline" onClick={() => setShowUpgradeModal(false)} data-testid="button-upgrade-cancel">
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 setShowUpgradeModal(false);
                 window.open('https://voyai.org/upgrade?app=logigo', '_blank');
@@ -2521,7 +2524,7 @@ export default function Workbench() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Minimal Header - Just Branding */}
       <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
         <div className="flex items-center gap-3">
@@ -2536,23 +2539,22 @@ export default function Workbench() {
             </span>
           )}
           {remoteSessionId && (
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
-              remoteConnectionStatus === 'connected'
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                : remoteConnectionStatus === 'reconnecting'
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${remoteConnectionStatus === 'connected'
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+              : remoteConnectionStatus === 'reconnecting'
                 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                 : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-            }`}>
+              }`}>
               <Wifi className={`w-3 h-3 ${remoteConnectionStatus === 'reconnecting' ? 'animate-pulse' : ''}`} />
-              {remoteConnectionStatus === 'connected' 
-                ? `Connected: ${remoteSessionName || 'Remote App'}` 
+              {remoteConnectionStatus === 'connected'
+                ? `Connected: ${remoteSessionName || 'Remote App'}`
                 : remoteConnectionStatus === 'reconnecting'
-                ? 'Reconnecting...'
-                : 'Connecting...'}
+                  ? 'Reconnecting...'
+                  : 'Connecting...'}
             </span>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant={showDebugPane ? "default" : "outline"}
@@ -2575,6 +2577,43 @@ export default function Workbench() {
             <Bug className="w-3.5 h-3.5" />
             Debug with AI
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-primary hover:text-primary hover:bg-primary/10 gap-1.5"
+                data-testid="button-tutorial-menu"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="text-xs font-semibold">Tours</span>
+                <ChevronRight className="w-3 h-3 rotate-90 ml-0.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Guided Pathways
+              </div>
+              <DropdownMenuItem onClick={() => startTutorial('agent-nudge')} className="cursor-pointer">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-bold">The Agent Bridge</span>
+                  <span className="text-[10px] text-muted-foreground">Natural language to flowcharts</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => startTutorial('vibe-master')} className="cursor-pointer">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-bold">The Vibe Master</span>
+                  <span className="text-[10px] text-muted-foreground">Sections, Containers & Diff</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => startTutorial('coding-without-code')} className="cursor-pointer">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-bold">Coding Without Code</span>
+                  <span className="text-[10px] text-muted-foreground">Structural intent vs typing</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2597,16 +2636,16 @@ export default function Workbench() {
               )}
             </Tooltip>
           </TooltipProvider>
-          
+
           <ThemeToggle />
-          
+
           {/* Demo Mode Indicator */}
           {isDemoMode && (
             <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs" data-testid="demo-mode-indicator">
               <span>Demo Mode</span>
             </div>
           )}
-          
+
           {!licenseLoading && (
             isAuthenticated ? (
               <DropdownMenu>
@@ -2626,31 +2665,30 @@ export default function Workbench() {
                     <p className="text-sm font-medium">{user?.name || 'User'}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                  
+
                   <div className="px-2 py-2 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Plan</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                        user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
-                        user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
+                          user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
+                            'bg-gray-500/20 text-gray-400'
+                        }`}>
                         {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Status</span>
                       <span className="text-green-400">Active</span>
                     </div>
-                    
+
                     {hasManagedAI && managedAllowance > 0 && (
                       <div className="flex items-center justify-between text-xs" data-testid="credit-meter">
                         <span className="text-muted-foreground">AI Credits Used</span>
                         <span className="text-cyan-400">{currentUsage} / {managedAllowance}</span>
                       </div>
                     )}
-                    
+
                     {(hasHistory || hasRescue || hasGitSync) && (
                       <div className="pt-1 border-t border-border/50">
                         <p className="text-[10px] text-muted-foreground mb-1">Features</p>
@@ -2668,7 +2706,7 @@ export default function Workbench() {
                       </div>
                     )}
                   </div>
-                  
+
                   <DropdownMenuSeparator />
                   {isDemoMode ? (
                     <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
@@ -2707,7 +2745,7 @@ export default function Workbench() {
               </div>
             )
           )}
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -2719,21 +2757,23 @@ export default function Workbench() {
           </Button>
         </div>
       </header>
-      
+
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
       <div className="flex-1 overflow-hidden min-h-0">
         <ResizablePanelGroup direction="horizontal" autoSaveId="logigo-workbench-panels">
           {/* Left Sidebar - Controls (Resizable) */}
           <ResizablePanel ref={sidebarPanelRef} defaultSize={30} minSize={0} maxSize={100} collapsible>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
-              
+
+              <TutorialSidebar />
+
               {/* Flow Tools Section - Always Visible at Top */}
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
                 <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                   <Search className="w-3 h-3" />
                   Flow Tools
                 </h3>
-                
+
                 {/* Natural Language Search - Premium Feature */}
                 {features.hasFeature('naturalLanguageSearch') && (
                   <div className="mb-2">
@@ -2745,12 +2785,13 @@ export default function Workbench() {
                     />
                   </div>
                 )}
-                
+
                 <div className="space-y-1">
                   {/* Ghost Diff Toggle */}
                   {features.hasFeature('ghostDiff') && (
                     <div className="flex gap-1">
                       <Button
+                        id="ghost-diff-toggle"
                         variant={showDiff ? "default" : "outline"}
                         size="sm"
                         onClick={() => setShowDiff(!showDiff)}
@@ -2775,7 +2816,7 @@ export default function Workbench() {
                       </Button>
                     </div>
                   )}
-                  
+
                   {/* Share */}
                   <Button
                     variant="outline"
@@ -2787,7 +2828,7 @@ export default function Workbench() {
                   >
                     <span className="text-sm">🔗</span> Share Flowchart
                   </Button>
-                  
+
                   {/* Remote Mode */}
                   <Link href="/remote">
                     <Button
@@ -2800,7 +2841,7 @@ export default function Workbench() {
                     </Button>
                   </Link>
                 </div>
-                
+
                 {/* Compact Layout, Views & History Row */}
                 <div className="pt-2 border-t border-border/50 flex items-center gap-2">
                   <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">View</span>
@@ -2830,7 +2871,7 @@ export default function Workbench() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{executionState || progress.total > 0 
+                        <p>{executionState || progress.total > 0
                           ? (showFloatingVariables ? 'Hide Debug Panel' : 'Show Debug Panel')
                           : 'Debug Panel (Run code to see variables)'
                         }</p>
@@ -2882,7 +2923,7 @@ export default function Workbench() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Execution Controls Section */}
               <div className="flex-shrink-0">
                 <ExecutionControls
@@ -2901,7 +2942,7 @@ export default function Workbench() {
                   onLoopToggle={handleLoopToggle}
                 />
               </div>
-              
+
               {/* Remote Control Section - Only when connected to remote session */}
               {remoteSessionId && (
                 <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
@@ -2951,7 +2992,7 @@ export default function Workbench() {
                         Pause Remote
                       </Button>
                     )}
-                    
+
                     {/* Breakpoints Summary */}
                     {remoteBreakpoints.size > 0 && (
                       <div className="mt-2 space-y-1">
@@ -2975,7 +3016,7 @@ export default function Workbench() {
                   </div>
                 </div>
               )}
-              
+
               {/* Compact Code & Export Row */}
               <div className="border-b border-border p-3 flex-shrink-0">
                 <input
@@ -2989,7 +3030,7 @@ export default function Workbench() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">Code</span>
                   <Select onValueChange={handleLoadExample}>
-                    <SelectTrigger className="h-7 text-sm text-foreground flex-1" data-testid="select-example">
+                    <SelectTrigger id="editor-toolbar" className="h-7 text-sm text-foreground flex-1" data-testid="select-example">
                       <SelectValue placeholder="📚 Examples..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -3059,7 +3100,7 @@ export default function Workbench() {
                             size="sm"
                             onClick={() => hasGitSync ? toast.info('GitHub sync coming soon!') : setShowUpgradeModal(true)}
                             className={`h-7 w-7 p-0 ${!hasGitSync ? 'opacity-50' : ''}`}
-                            title={hasGitSync ? "Sync to GitHub" : "Pro Feature"}
+                            title={hasGitSync ? "Sync Flowchart to GitHub" : "Pro Feature: GitHub Sync"}
                             data-testid="button-git-sync"
                           >
                             <Github className="w-3.5 h-3.5" />
@@ -3067,7 +3108,7 @@ export default function Workbench() {
                         </TooltipTrigger>
                         {!hasGitSync && (
                           <TooltipContent>
-                            <p>Pro Feature. Upgrade to sync.</p>
+                            <p>GitHub Sync (Pro). Backup and version your flowcharts to GitHub.</p>
                           </TooltipContent>
                         )}
                       </Tooltip>
@@ -3075,14 +3116,14 @@ export default function Workbench() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Code Editor Section - At Bottom */}
               {showCodeEditor && !codeEditorCollapsed && (
-                <div className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
+                <div id="code-editor-container" className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
                   <div className="h-full">
-                    <CodeEditor 
-                      code={code} 
-                      onChange={handleCodeChange} 
+                    <CodeEditor
+                      code={code}
+                      onChange={handleCodeChange}
                       highlightedLine={highlightedLine}
                     />
                   </div>
@@ -3103,23 +3144,23 @@ export default function Workbench() {
                   </button>
                 </div>
               )}
-              
+
             </div>
           </ResizablePanel>
-          
+
           <ResizableHandle withHandle />
-          
+
           {/* Right Panel - Flowchart Canvas (Maximized) */}
           <ResizablePanel ref={flowchartPanelRef} defaultSize={70} minSize={0} collapsible>
-            <div className="h-full w-full overflow-hidden relative">
+            <div id="flow-viewport" className="h-full w-full overflow-hidden relative">
               {isParsing ? (
                 <FlowchartSkeleton />
               ) : !code.trim() || flowData.nodes.length === 0 ? (
                 <EmptyState onLoadSample={handleLoadSample} />
               ) : (
-                <Flowchart 
-                  nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
-                  edges={flowData.edges} 
+                <Flowchart
+                  nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes}
+                  edges={flowData.edges}
                   onNodeClick={handleNodeClick}
                   onNodeDoubleClick={handleNodeDoubleClick}
                   onBreakpointToggle={handleBreakpointToggle}
@@ -3132,7 +3173,7 @@ export default function Workbench() {
                   handshakeNodeId={handshakeNodeId}
                 />
               )}
-              
+
               {/* Fullscreen Controls - Top Left of Flowchart */}
               {!isParsing && code.trim() && flowData.nodes.length > 0 && (
                 <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">
@@ -3159,7 +3200,7 @@ export default function Workbench() {
                   </Button>
                 </div>
               )}
-              
+
               {/* Algorithm Visualization Panel - Bottom Left */}
               {showVisualization && activeVisualizer && (
                 <div className="absolute bottom-4 left-4 w-[420px] z-50">
@@ -3188,7 +3229,7 @@ export default function Workbench() {
                   />
                 </div>
               )}
-              
+
               {/* Docked Variables Panel - Bottom Right */}
               {showFloatingVariables && (
                 <div className="absolute bottom-4 right-4 w-80 max-h-96 bg-card/95 backdrop-blur border-2 border-border rounded-lg shadow-2xl overflow-hidden">
@@ -3209,46 +3250,46 @@ export default function Workbench() {
                       <p className="text-xs mt-1">Click <strong>Play</strong> or <strong>Step</strong> to start debugging</p>
                     </div>
                   ) : (
-                  <div className="max-h-80 overflow-auto">
-                    {features.hasFeature('timeTravel') && progress.total > 0 ? (
-                      <div className="flex flex-col">
-                        <div className="flex-1 overflow-auto">
-                          <VariableWatch 
-                            state={executionState}
-                            history={variableHistory}
-                            currentStep={progress.current}
-                            totalSteps={progress.total}
-                            activeNodeLabel={activeNodeInfo.label}
-                            activeNodeUserLabel={activeNodeInfo.userLabel}
-                            onJumpToStep={handleJumpToStep}
-                            hasFunctionCallsInCode={hasFunctionCalls}
-                          />
+                    <div className="max-h-80 overflow-auto">
+                      {features.hasFeature('timeTravel') && progress.total > 0 ? (
+                        <div className="flex flex-col">
+                          <div className="flex-1 overflow-auto">
+                            <VariableWatch
+                              state={executionState}
+                              history={variableHistory}
+                              currentStep={progress.current}
+                              totalSteps={progress.total}
+                              activeNodeLabel={activeNodeInfo.label}
+                              activeNodeUserLabel={activeNodeInfo.userLabel}
+                              onJumpToStep={handleJumpToStep}
+                              hasFunctionCallsInCode={hasFunctionCalls}
+                            />
+                          </div>
+                          <div className="border-t border-border p-2">
+                            <TimelineScrubber
+                              currentStep={progress.current}
+                              totalSteps={progress.total}
+                              onJumpToStep={handleJumpToStep}
+                              bookmarks={bookmarks}
+                              onAddBookmark={handleAddBookmark}
+                              onRemoveBookmark={handleRemoveBookmark}
+                              disabled={isPlaying}
+                            />
+                          </div>
                         </div>
-                        <div className="border-t border-border p-2">
-                          <TimelineScrubber
-                            currentStep={progress.current}
-                            totalSteps={progress.total}
-                            onJumpToStep={handleJumpToStep}
-                            bookmarks={bookmarks}
-                            onAddBookmark={handleAddBookmark}
-                            onRemoveBookmark={handleRemoveBookmark}
-                            disabled={isPlaying}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <VariableWatch 
-                            state={executionState}
-                            history={variableHistory}
-                            currentStep={progress.current}
-                            totalSteps={progress.total}
-                            activeNodeLabel={activeNodeInfo.label}
-                            activeNodeUserLabel={activeNodeInfo.userLabel}
-                            onJumpToStep={handleJumpToStep}
-                            hasFunctionCallsInCode={hasFunctionCalls}
-                          />
-                    )}
-                  </div>
+                      ) : (
+                        <VariableWatch
+                          state={executionState}
+                          history={variableHistory}
+                          currentStep={progress.current}
+                          totalSteps={progress.total}
+                          activeNodeLabel={activeNodeInfo.label}
+                          activeNodeUserLabel={activeNodeInfo.userLabel}
+                          onJumpToStep={handleJumpToStep}
+                          hasFunctionCallsInCode={hasFunctionCalls}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               )}
@@ -3275,13 +3316,13 @@ export default function Workbench() {
         onSave={handleSaveLabel}
       />
 
-      
+
       {/* Help Dialog */}
       <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
-      
+
       {/* Share Dialog */}
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} code={code} />
-      
+
       {/* AI Debug Pane - Slides in from right */}
       {showDebugPane && (
         <div className="fixed top-10 right-0 bottom-0 w-[400px] bg-card border-l border-border z-40 flex flex-col shadow-2xl">
@@ -3301,7 +3342,7 @@ export default function Workbench() {
               <X className="w-4 h-4" />
             </Button>
           </div>
-          
+
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Step 1: Generate Prompt */}
@@ -3348,7 +3389,7 @@ ${code}
                 {debugPromptCopied ? 'Copied!' : 'Copy Prompt'}
               </Button>
             </div>
-            
+
             {/* Step 2: Open Visualization */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -3371,7 +3412,7 @@ ${code}
                 Open Remote Mode
               </Button>
             </div>
-            
+
             {/* Step 3: Ghost Diff */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -3391,7 +3432,7 @@ ${code}
                       // Compute diff between original snapshot and current code
                       const originalNodes = getOriginalSnapshot();
                       const currentNodes = flowData.nodes;
-                      
+
                       if (originalNodes.length > 0) {
                         const diffResult = ghostDiffRef.current.diffTrees(originalNodes, currentNodes);
                         console.log('[Ghost Diff] AI changes:', diffResult);
@@ -3416,7 +3457,7 @@ ${code}
                 </p>
               )}
             </div>
-            
+
             {/* Quick Tips */}
             <div className="mt-6 p-3 bg-muted/50 rounded-lg">
               <h4 className="font-medium text-xs mb-2">Quick Tips</h4>
@@ -3429,7 +3470,7 @@ ${code}
           </div>
         </div>
       )}
-      
+
       {/* Fullscreen Overlay */}
       {fullscreenMode && (
         <div className="fixed inset-0 z-50 bg-background">
@@ -3440,9 +3481,9 @@ ${code}
             ) : !code.trim() || flowData.nodes.length === 0 ? (
               <EmptyState onLoadSample={handleLoadSample} />
             ) : (
-              <Flowchart 
-                nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes} 
-                edges={flowData.edges} 
+              <Flowchart
+                nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes}
+                edges={flowData.edges}
                 onNodeClick={handleNodeClick}
                 onNodeDoubleClick={handleNodeDoubleClick}
                 onBreakpointToggle={handleBreakpointToggle}
@@ -3456,7 +3497,7 @@ ${code}
               />
             )}
           </div>
-          
+
           {/* Floating Controls - Only in Workspace Mode */}
           {fullscreenMode === 'workspace' && (
             <>
@@ -3483,7 +3524,7 @@ ${code}
                   Presentation
                 </Button>
               </div>
-              
+
               {/* Bottom Controls - Execution */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg px-4 py-2 z-10">
                 <Button
@@ -3517,7 +3558,7 @@ ${code}
                   {progress.current}/{progress.total}
                 </span>
               </div>
-              
+
               {/* Algorithm Visualization Panel - Fullscreen */}
               {showVisualization && activeVisualizer && (
                 <div className="absolute bottom-4 left-4 w-[420px] z-50">
@@ -3548,7 +3589,7 @@ ${code}
               )}
             </>
           )}
-          
+
           {/* Presentation Mode - Minimal UI */}
           {fullscreenMode === 'presentation' && (
             <div className="absolute top-4 right-4 opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">
@@ -3564,7 +3605,7 @@ ${code}
               </Button>
             </div>
           )}
-          
+
           {/* Exit hint for presentation mode */}
           {fullscreenMode === 'presentation' && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">

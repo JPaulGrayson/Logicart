@@ -14,6 +14,8 @@ import RemoteMode from "@/pages/RemoteMode";
 import ZeroClickDemo from "@/pages/ZeroClickDemo";
 import ModelArena from "@/pages/ModelArena";
 import { useLicense } from "@/hooks/useLicense";
+import { TutorialProvider } from "@/contexts/TutorialContext";
+import { TutorialOverlay } from "@/components/ide/TutorialOverlay";
 
 function Router() {
   return (
@@ -54,9 +56,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AdapterProvider>
-            <TokenHandler />
-            <Toaster />
-            <Router />
+            <TutorialProvider>
+              <TokenHandler />
+              <Toaster />
+              <TutorialOverlay />
+              <Router />
+            </TutorialProvider>
           </AdapterProvider>
         </TooltipProvider>
       </QueryClientProvider>

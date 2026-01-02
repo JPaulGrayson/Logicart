@@ -8,7 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Zap, Code2, Radio, Keyboard, Info, Lightbulb } from 'lucide-react';
+import { Zap, Code2, Radio, Keyboard, Info, Lightbulb, Sparkles, ChevronRight } from 'lucide-react';
+import { useTutorial } from '@/contexts/TutorialContext';
+import { Button } from '@/components/ui/button';
 
 interface HelpDialogProps {
   open: boolean;
@@ -16,6 +18,7 @@ interface HelpDialogProps {
 }
 
 export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
+  const { startTutorial } = useTutorial();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[80vh]">
@@ -52,6 +55,60 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
           <ScrollArea className="flex-1 mt-4">
             {/* Quick Start Tab */}
             <TabsContent value="quick-start" className="space-y-4 pr-4">
+              <section className="p-4 bg-primary/10 rounded-lg border border-primary/20 mb-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Interactive Guided Tours
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  New to LogiGo? Take a 2-minute tour to see how to partner with the Agent and master Vibe Coding.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5"
+                    onClick={() => {
+                      onOpenChange(false);
+                      startTutorial('agent-nudge');
+                    }}
+                  >
+                    <div className="text-left">
+                      <div className="font-bold text-sm">The Agent Bridge</div>
+                      <div className="text-[10px] text-muted-foreground">Natural language to flowcharts</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-primary" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5"
+                    onClick={() => {
+                      onOpenChange(false);
+                      startTutorial('vibe-master');
+                    }}
+                  >
+                    <div className="text-left">
+                      <div className="font-bold text-sm">The Vibe Master</div>
+                      <div className="text-[10px] text-muted-foreground">Sections, Containers & Diff</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-primary" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5 md:col-span-2"
+                    onClick={() => {
+                      onOpenChange(false);
+                      startTutorial('coding-without-code');
+                    }}
+                  >
+                    <div className="text-left">
+                      <div className="font-bold text-sm">Coding Without Code</div>
+                      <div className="text-[10px] text-muted-foreground">Lead the Agent through structural intent</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-primary" />
+                  </Button>
+                </div>
+              </section>
+
               <div className="space-y-4">
                 <section>
                   <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -179,6 +236,21 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                     className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-vibe-coder">
                     <span className="text-pink-500">✨</span>
                     Vibe Coder Guide
+                  </a>
+                  <a href="/docs/mcp-guide" target="_blank" rel="noopener"
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-mcp-guide">
+                    <span className="text-cyan-400">🤖</span>
+                    MCP Guide
+                  </a>
+                  <a href="/docs/arena-masterclass" target="_blank" rel="noopener"
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-arena-masterclass">
+                    <span className="text-amber-500">🏛</span>
+                    Arena Masterclass
+                  </a>
+                  <a href="/docs/remote-sync" target="_blank" rel="noopener"
+                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-remote-sync">
+                    <span className="text-blue-400">🛰</span>
+                    Remote Sync Guide
                   </a>
                 </div>
               </section>

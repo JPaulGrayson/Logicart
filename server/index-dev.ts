@@ -37,7 +37,7 @@ export async function setupVite(app: Express, server: Server) {
   // Debug middleware to log all incoming requests
   app.use((req, res, next) => {
     const url = req.originalUrl;
-    if (url.startsWith('/proxy') || url.startsWith('/api/') || url.startsWith('/remote')) {
+    if (url.startsWith('/proxy') || url.startsWith('/api/') || url.startsWith('/remote') || url.startsWith('/docs')) {
       log(`[DEBUG] Request: ${req.method} ${url}`);
     }
     next();
@@ -46,15 +46,16 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
-    
-    // Skip SPA handling for API routes, proxy, and other backend endpoints
+
+    // Skip SPA handling for API routes, docs, proxy, and other backend endpoints
     // These are handled by Express routes registered in registerRoutes()
-    if (url.startsWith('/api/') || 
-        url.startsWith('/proxy') || 
-        url.startsWith('/remote') ||
-        url.startsWith('/embed') ||
-        url === '/remote.js' ||
-        url === '/logigo-sw.js') {
+    if (url.startsWith('/api/') ||
+      url.startsWith('/docs') ||
+      url.startsWith('/proxy') ||
+      url.startsWith('/remote') ||
+      url.startsWith('/embed') ||
+      url === '/remote.js' ||
+      url === '/logigo-sw.js') {
       log(`[DEBUG] Skipping SPA for: ${url}`);
       return next();
     }
