@@ -10,7 +10,7 @@ Copy and paste this into any Replit Agent to add LogiGo visualization.
 Add LogiGo code visualization to this project.
 
 Add this script tag to the HTML <head>:
-<script src="https://logigo-studio.replit.app/remote.js?project=MyApp"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp"></script>
 
 That's it! A "View in LogiGo" badge will appear. When clicked, it automatically captures the page's code and opens a flowchart visualization.
 ```
@@ -41,7 +41,7 @@ That's it! A "View in LogiGo" badge will appear. When clicked, it automatically 
 The zero-code script works best with traditional scripts. For Vite/React apps with bundled modules, add to `index.html`:
 
 ```html
-<script src="https://logigo-studio.replit.app/remote.js?project=MyReactApp"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyReactApp"></script>
 ```
 
 Then in the browser console, run:
