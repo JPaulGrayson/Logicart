@@ -11,7 +11,7 @@ buildCommand = "npx vite build --config vite.extension.config.ts"
 outputDirectory = "dist/extension"
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "gce"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
