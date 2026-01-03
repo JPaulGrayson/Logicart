@@ -1430,18 +1430,79 @@ self.addEventListener('fetch', (event) => {
     window.open(window.LogiGo.remoteUrl, "_blank", "noopener,noreferrer");
   };
   
-  window.LogiGo.registerCode = function(code) {
+  // Register code and update the current session
+  window.LogiGo.registerCode = function(code, sessionName) {
     registeredCode = code;
-    fetchWithRetry(LOGIGO_URL + "/api/remote/code", {
+    // Create a new session with unique name to avoid stale data
+    var uniqueName = (sessionName || PROJECT_NAME) + "-" + Date.now();
+    
+    fetch(LOGIGO_URL + "/api/remote/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: SESSION_ID, code: code }),
+      body: JSON.stringify({ name: uniqueName, code: code }),
       mode: "cors"
-    }).then(function(r) {
-      console.log("[LogiGo] Code registered for flowchart visualization");
+    }).then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }).then(function(data) {
+      // Update session info
+      SESSION_ID = data.sessionId;
+      window.LogiGo.sessionId = data.sessionId;
+      window.LogiGo.studioUrl = data.studioUrl;
+      window.LogiGo.viewUrl = data.studioUrl;
+      window.LogiGo.remoteUrl = LOGIGO_URL + "/remote/" + data.sessionId;
+      console.log("[LogiGo] Code registered. New session: " + data.sessionId.slice(0,8));
+      console.log("[LogiGo] Studio URL: " + data.studioUrl);
+      updateStatus('connected');
+      // Reconnect WebSocket to new session
+      setTimeout(reconnectControlChannel, 100);
     }).catch(function(e) {
-      console.warn("[LogiGo] Code registration failed after retries:", e.message);
+      console.warn("[LogiGo] Code registration failed:", e.message);
+      updateStatus('error');
     });
+  };
+  
+  // Open LogiGo Studio with code - creates fresh session and opens in new tab
+  window.LogiGo.openWithCode = async function(code, sessionName) {
+    registeredCode = code;
+    var uniqueName = (sessionName || PROJECT_NAME) + "-" + Date.now();
+    
+    try {
+      var response = await fetch(LOGIGO_URL + "/api/remote/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: uniqueName, code: code }),
+        mode: "cors"
+      });
+      
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      var data = await response.json();
+      
+      // Update session info
+      SESSION_ID = data.sessionId;
+      window.LogiGo.sessionId = data.sessionId;
+      window.LogiGo.studioUrl = data.studioUrl;
+      window.LogiGo.viewUrl = data.studioUrl;
+      window.LogiGo.remoteUrl = LOGIGO_URL + "/remote/" + data.sessionId;
+      
+      console.log("[LogiGo] Session created: " + data.sessionId.slice(0,8));
+      
+      // Reconnect WebSocket to new session
+      reconnectControlChannel();
+      
+      // Wait for session to initialize before opening
+      await new Promise(function(resolve) { setTimeout(resolve, 1500); });
+      
+      window.open(data.studioUrl, "_blank", "noopener,noreferrer");
+      console.log("[LogiGo] Studio opened!");
+      updateStatus('connected');
+      
+      return { success: true, studioUrl: data.studioUrl, sessionId: data.sessionId };
+    } catch(e) {
+      console.error("[LogiGo] Failed to open:", e.message);
+      updateStatus('error');
+      return { success: false, error: e.message };
+    }
   };
   
   // ============================================
@@ -1465,6 +1526,17 @@ self.addEventListener('fetch', (event) => {
     var wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     var wsHost = LOGIGO_URL.replace(/^https?:/, wsProtocol);
     return wsHost + "/api/remote/control/" + SESSION_ID + "?type=remote";
+  }
+  
+  // Force reconnect the control channel (used when session changes)
+  function reconnectControlChannel() {
+    if (controlWs) {
+      controlWs.onclose = null; // Prevent auto-reconnect loop
+      controlWs.close();
+      controlWs = null;
+    }
+    wsReconnectAttempts = 0;
+    connectControlChannel();
   }
   
   function connectControlChannel() {
