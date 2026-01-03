@@ -1865,14 +1865,40 @@ self.addEventListener('fetch', (event) => {
   console.log('[LogiGo] 💡 For traditional scripts: LogiGo.enableAutoDiscovery()');
   console.log('[LogiGo] 💡 For Vite/React apps: LogiGo.enableModuleInstrumentation() then reload');
   
+  // Auto-capture code when badge is clicked (zero-code experience)
+  async function captureAndOpenStudio(e) {
+    e.preventDefault();
+    var badge = document.getElementById("logigo-badge");
+    var linkText = badge ? badge.querySelector(".logigo-link-text") : null;
+    if (linkText) linkText.textContent = "Capturing code...";
+    
+    try {
+      // Enable auto-discovery and capture code
+      autoDiscoveryEnabled = true;
+      await discoverScripts();
+      autoRegisterCode();
+      wrapGlobalFunctions();
+      
+      if (linkText) linkText.textContent = "Opening LogiGo...";
+      console.log("[LogiGo] ✅ Code captured! Opening Studio...");
+    } catch (err) {
+      console.warn("[LogiGo] Code capture error:", err);
+    }
+    
+    // Open LogiGo Studio
+    window.open(window.LogiGo.studioUrl, "_blank", "noopener,noreferrer");
+    if (linkText) linkText.textContent = "View in LogiGo";
+  }
+  
   // Show a persistent clickable badge (stays until closed)
   if (typeof document !== "undefined") {
     function showBadge() {
       if (document.getElementById("logigo-badge")) return;
       var badge = document.createElement("div");
       badge.id = "logigo-badge";
-      badge.innerHTML = '<span class="logigo-status-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:8px;" title="Connected"></span><a href="' + window.LogiGo.studioUrl + '" target="_blank" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
+      badge.innerHTML = '<span class="logigo-status-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:8px;" title="Connected"></span><a href="#" class="logigo-link" style="color:#60a5fa;text-decoration:none;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="logigo-link-text" style="border-bottom:1px solid #60a5fa;">View in LogiGo</span></a><button style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0 0 0 10px;font-size:16px;line-height:1;" title="Close">&times;</button>';
       badge.style.cssText = "position:fixed;bottom:16px;right:16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;font-family:system-ui,-apple-system,sans-serif;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:1px solid #334155;display:flex;align-items:center;";
+      badge.querySelector(".logigo-link").onclick = captureAndOpenStudio;
       badge.querySelector("button").onclick = function() { badge.remove(); };
       document.body.appendChild(badge);
     }
