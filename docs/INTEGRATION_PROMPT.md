@@ -12,8 +12,9 @@ Add LogiGo code visualization to this project.
 1. Add this script tag to the HTML <head> (replace PROJECT_NAME with this app's actual name):
 <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Store algorithms as source code strings:
+2. Call LogiGo.openWithCode(codeString, name) when user wants to visualize code:
 
+// FOR ALGORITHM VISUALIZERS (stored code strings):
 const algorithms = {
   bubbleSort: `function bubbleSort(arr) {
     for (let i = 0; i < arr.length; i++) {
@@ -26,22 +27,64 @@ const algorithms = {
     return arr;
   }`
 };
+// When user selects algorithm:
+LogiGo.openWithCode(algorithms.bubbleSort, 'BubbleSort');
 
-3. When user wants to visualize code, call:
-if (window.LogiGo) {
-  LogiGo.openWithCode(algorithms.bubbleSort, 'BubbleSort');
-}
+// FOR CODE EDITORS (user-typed code):
+// Get the current editor content and visualize it
+const editorContent = editor.getValue(); // or textarea.value, etc.
+LogiGo.openWithCode(editorContent, 'UserCode');
+
+// FOR APPS WITH EXISTING FUNCTIONS:
+// Convert function to string
+LogiGo.openWithCode(myFunction.toString(), 'MyFunction');
 
 This creates a fresh session and opens LogiGo Studio in a new tab with the flowchart.
 ```
 
 ---
 
-## What Happens
+## Use Case Examples
 
-1. **User clicks "View Flowchart"** - Your app calls `LogiGo.openWithCode(code, name)`
-2. **Fresh session created** - LogiGo creates a unique session with the code
-3. **Studio opens** - After a brief delay, LogiGo Studio opens with the flowchart in a new tab
+### 1. Algorithm Visualizers
+Store algorithms as template literal strings:
+```javascript
+const algorithms = {
+  quickSort: `function quickSort(arr) { ... }`,
+  mergeSort: `function mergeSort(arr) { ... }`
+};
+
+// Visualize when selected
+LogiGo.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
+```
+
+### 2. Code Editors
+Capture the editor's current content:
+```javascript
+// For Monaco Editor
+const code = monacoEditor.getValue();
+LogiGo.openWithCode(code, 'UserCode');
+
+// For CodeMirror
+const code = codeMirrorInstance.getValue();
+LogiGo.openWithCode(code, 'UserCode');
+
+// For simple textarea
+const code = document.getElementById('code-textarea').value;
+LogiGo.openWithCode(code, 'UserCode');
+```
+
+### 3. Apps with Core Functions
+Convert existing functions to strings:
+```javascript
+// Visualize an existing function
+function calculateTax(income, rate) {
+  if (income < 10000) return 0;
+  return income * rate;
+}
+
+LogiGo.openWithCode(calculateTax.toString(), 'CalculateTax');
+```
 
 ---
 
@@ -50,17 +93,16 @@ This creates a fresh session and opens LogiGo Studio in a new tab with the flowc
 ### LogiGo.openWithCode(code, name)
 Creates a session and opens LogiGo Studio with the flowchart:
 ```javascript
-// Opens LogiGo Studio in a new tab
 if (window.LogiGo) {
-  LogiGo.openWithCode(algorithmCode, 'AlgorithmName');
+  LogiGo.openWithCode(codeString, 'SessionName');
 }
 ```
 
 ### LogiGo.registerCode(code, name)
-Register code without opening Studio (updates the badge):
+Register code without opening Studio (updates badge for later):
 ```javascript
 if (window.LogiGo) {
-  LogiGo.registerCode(algorithmCode, 'AlgorithmName');
+  LogiGo.registerCode(codeString, 'SessionName');
 }
 ```
 
@@ -76,19 +118,20 @@ if (window.LogiGo) {
 
 ## Key Points
 
-1. **Source code as strings** - Algorithms must be stored as readable template literals, not bundled code
-2. **Unique sessions** - Each call creates a fresh session to avoid stale data
+1. **Source code as strings** - Pass readable JavaScript source, not bundled/minified code
+2. **Unique sessions** - Each call creates a fresh session automatically
 3. **Opens in new tab** - LogiGo requires a full browser tab (not iframes)
 
 ---
 
 ## Troubleshooting
 
-**Flowchart shows old/wrong code:**
+**Flowchart shows wrong code:**
 - Use `openWithCode()` which creates fresh sessions automatically
+- Make sure you're passing the actual source code string
 
 **Flowchart empty:**
-- Ensure the code is a readable JavaScript string, not minified/bundled
+- Ensure the code is readable JavaScript, not minified/bundled
 - Check browser console for `[LogiGo]` messages
 
 **Badge not appearing:**
