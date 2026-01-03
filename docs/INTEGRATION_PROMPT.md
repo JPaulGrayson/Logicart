@@ -12,13 +12,32 @@ Add LogiGo code visualization to this project.
 1. Add this script tag to the HTML <head> (replace PROJECT_NAME with this app's actual name):
 <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Register source code with LogiGo using LogiGo.registerCode(sourceCodeString):
-- The source code must be the ACTUAL JavaScript source text as a string
-- For algorithm visualizers: register the algorithm's source code string when selected
-- For code editors: register the editor's content whenever it changes
-- For apps with core logic: register the function source as a template literal
+2. Create a function to open LogiGo with algorithm code:
 
-Example for an algorithm visualizer:
+async function openInLogiGo(algorithmCode, algorithmName) {
+  try {
+    const response = await fetch('https://logigo-studio-jpaulgrayson.replit.app/api/remote/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        name: `${algorithmName}-${Date.now()}`,  // Unique name prevents stale state
+        code: algorithmCode
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      // Wait for session to initialize before opening
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      window.open(data.studioUrl, '_blank');
+    }
+  } catch (error) {
+    console.error('LogiGo error:', error);
+  }
+}
+
+3. Store algorithms as source code strings and call openInLogiGo when user wants to visualize:
+
 const algorithms = {
   bubbleSort: `function bubbleSort(arr) {
     for (let i = 0; i < arr.length; i++) {
@@ -32,78 +51,66 @@ const algorithms = {
   }`
 };
 
-// When user selects an algorithm:
-if (window.LogiGo) LogiGo.registerCode(algorithms[selected]);
+// When user clicks "View Flowchart" button:
+openInLogiGo(algorithms.bubbleSort, 'BubbleSort');
 
-A "View in LogiGo" badge will appear. Clicking it opens an interactive flowchart of the registered code.
+A "View in LogiGo" badge will also appear from remote.js. Both methods work - the API approach is more reliable for on-demand visualization.
 ```
+
+---
+
+## Key Points
+
+1. **Unique session names** - Append timestamp to avoid stale flowchart data
+2. **1.5 second delay** - Let session fully initialize before opening URL
+3. **Opens in new tab** - LogiGo requires a full browser tab (not iframes) due to security policies
+4. **Source code as strings** - Algorithms must be stored as readable string literals, not bundled code
 
 ---
 
 ## What Happens
 
-1. **Badge appears** - A "View in LogiGo" badge shows in the bottom-right corner
-2. **Click to visualize** - Opens LogiGo Studio with your flowchart
-3. **Real-time updates** - When registerCode() is called again, the flowchart updates
-
----
-
-## Common Mistakes
-
-**Wrong: Registering bundled/minified code**
-```javascript
-// DON'T do this - it captures React/framework code
-LogiGo.registerCode(document.body.innerHTML);
-```
-
-**Right: Register the actual source code string**
-```javascript
-// DO this - register the algorithm's source text
-LogiGo.registerCode(algorithmSourceCode);
-```
+1. **User clicks visualize** - Your app calls the LogiGo API with the algorithm code
+2. **Session created** - LogiGo creates a unique session with the code
+3. **Studio opens** - After a brief delay, LogiGo Studio opens with the flowchart
 
 ---
 
 ## API Reference
 
+### POST /api/remote/session
+Create a visualization session:
+```javascript
+const response = await fetch('https://logigo-studio-jpaulgrayson.replit.app/api/remote/session', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    name: 'MySession-' + Date.now(),
+    code: 'function example() { return 42; }'
+  })
+});
+const { studioUrl } = await response.json();
+```
+
 ### LogiGo.registerCode(sourceCode)
-Send source code for flowchart visualization:
+Alternative: Register code via the remote.js script:
 ```javascript
 if (window.LogiGo) {
-  LogiGo.registerCode(`
-    function myFunction(x) {
-      if (x > 10) return x * 2;
-      return x;
-    }
-  `);
+  LogiGo.registerCode(algorithmSourceCode);
 }
-```
-
-### checkpoint(id, variables)
-Optional: Track execution for live debugging:
-```javascript
-function processOrder(order) {
-  checkpoint('order-received', { orderId: order.id });
-  // ... processing logic
-  checkpoint('order-complete', { total: order.total });
-}
-```
-
-### LogiGo.openStudio()
-Manually open LogiGo Studio:
-```javascript
-LogiGo.openStudio();
 ```
 
 ---
 
 ## Troubleshooting
 
-**Badge not appearing:**
-- Make sure the script is in `<head>` before other scripts
-- Check browser console for `[LogiGo]` messages
+**Flowchart shows old/wrong code:**
+- Use unique session names with timestamps
+- Make sure the delay is at least 1.5 seconds before opening
 
-**Flowchart empty or shows wrong code:**
-- Ensure registerCode() receives the actual source code as a string
-- The code should be human-readable JavaScript, not minified/bundled code
-- Check that the code contains valid JavaScript function declarations
+**Flowchart empty:**
+- Ensure the code is a readable JavaScript string, not minified/bundled
+- Check browser console for errors
+
+**Badge not appearing:**
+- Make sure remote.js script is in `<head>` before other scripts
