@@ -3033,7 +3033,7 @@ export default function Workbench() {
                     <SelectTrigger id="editor-toolbar" className="h-7 text-sm text-foreground flex-1" data-testid="select-example">
                       <SelectValue placeholder="📚 Examples..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" className="max-h-[300px]" sideOffset={4}>
                       <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
                       {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
                         <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
