@@ -1744,37 +1744,70 @@ self.addEventListener('fetch', (event) => {
       });
   };
   
-  // Auto-discover inline and external scripts
+  // Auto-discover inline, external, AND module scripts (for Vite/React apps)
   function discoverScripts() {
     var scripts = document.querySelectorAll('script');
     var promises = [];
+    var isViteApp = false;
     
     scripts.forEach(function(script) {
       // Skip LogiGo's own script, external libraries, and already-discovered
       if (script.src && script.src.includes('remote.js')) return;
+      if (script.src && script.src.includes('logigo')) return;
       if (script.src && (script.src.includes('node_modules') || script.src.includes('cdn') || script.src.includes('unpkg') || script.src.includes('jsdelivr'))) return;
+      
+      // Detect Vite app
+      if (script.type === 'module' || (script.src && script.src.includes('@vite'))) {
+        isViteApp = true;
+      }
       
       var srcKey = script.src || ('inline-' + script.textContent.slice(0, 50));
       if (discoveredSrcSet.has(srcKey)) return;
       discoveredSrcSet.add(srcKey);
       
       if (script.src && !script.src.includes('node_modules')) {
-        // External script - fetch it
+        // External script (including ES modules) - fetch it
         promises.push(
           fetch(script.src)
             .then(function(r) { return r.ok ? r.text() : ''; })
             .then(function(code) {
-              if (code && code.length > 10) {
-                discoveredCode.push({ src: script.src, code: code });
-              }
+              if (!code || code.length < 10) return;
+              // Only skip exact @vite/client which is library code
+              if (script.src.includes('@vite/client')) return;
+              // Allow all other code including source files with HMR
+              discoveredCode.push({ src: script.src, code: code });
             })
             .catch(function() {})
         );
       } else if (script.textContent && script.textContent.trim().length > 10) {
-        // Inline script
-        discoveredCode.push({ src: 'inline', code: script.textContent });
+        // Inline script - include all meaningful content
+        var text = script.textContent.trim();
+        discoveredCode.push({ src: 'inline', code: text });
       }
     });
+    
+    // For Vite apps, try fetching common source files directly
+    if (isViteApp) {
+      var vitePaths = [
+        '/src/main.tsx', '/src/main.ts', '/src/main.jsx', '/src/main.js',
+        '/src/App.tsx', '/src/App.jsx', '/src/App.ts', '/src/App.js'
+      ];
+      vitePaths.forEach(function(path) {
+        if (discoveredSrcSet.has(path)) return;
+        discoveredSrcSet.add(path);
+        promises.push(
+          fetch(path)
+            .then(function(r) { return r.ok ? r.text() : ''; })
+            .then(function(code) {
+              if (code && code.length > 20 && !code.includes('<!DOCTYPE')) {
+                discoveredCode.push({ src: path, code: code });
+                console.log('[LogiGo] Found Vite source:', path);
+              }
+            })
+            .catch(function() {})
+        );
+      });
+    }
     
     return Promise.all(promises);
   }
@@ -1876,11 +1909,18 @@ self.addEventListener('fetch', (event) => {
       // Enable auto-discovery and capture code
       autoDiscoveryEnabled = true;
       await discoverScripts();
-      autoRegisterCode();
-      wrapGlobalFunctions();
       
-      if (linkText) linkText.textContent = "Opening LogiGo...";
-      console.log("[LogiGo] ✅ Code captured! Opening Studio...");
+      // Check if we found any code
+      if (discoveredCode.length > 0) {
+        autoRegisterCode();
+        wrapGlobalFunctions();
+        console.log("[LogiGo] ✅ Captured " + discoveredCode.length + " source(s)!");
+        if (linkText) linkText.textContent = "Opening LogiGo...";
+      } else {
+        console.log("[LogiGo] ⚠️ No source code found to capture.");
+        console.log("[LogiGo] 💡 For bundled apps, try: LogiGo.registerCode(yourSourceCode)");
+        if (linkText) linkText.textContent = "Opening LogiGo...";
+      }
     } catch (err) {
       console.warn("[LogiGo] Code capture error:", err);
     }
