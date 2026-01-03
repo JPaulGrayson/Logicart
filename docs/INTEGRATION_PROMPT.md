@@ -12,10 +12,28 @@ Add LogiGo code visualization to this project.
 1. Add this script tag to the HTML <head> (replace PROJECT_NAME with this app's actual name):
 <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Register the app's main logic with LogiGo so it can generate a flowchart:
-- If this app displays code to users, call LogiGo.registerCode(codeString) whenever that code changes
-- If this app has core functions/algorithms, call LogiGo.registerCode() with that source code
-- Use: if (window.LogiGo) LogiGo.registerCode(code);
+2. Register source code with LogiGo using LogiGo.registerCode(sourceCodeString):
+- The source code must be the ACTUAL JavaScript source text as a string
+- For algorithm visualizers: register the algorithm's source code string when selected
+- For code editors: register the editor's content whenever it changes
+- For apps with core logic: register the function source as a template literal
+
+Example for an algorithm visualizer:
+const algorithms = {
+  bubbleSort: `function bubbleSort(arr) {
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = 0; j < arr.length - i - 1; j++) {
+        if (arr[j] > arr[j + 1]) {
+          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        }
+      }
+    }
+    return arr;
+  }`
+};
+
+// When user selects an algorithm:
+if (window.LogiGo) LogiGo.registerCode(algorithms[selected]);
 
 A "View in LogiGo" badge will appear. Clicking it opens an interactive flowchart of the registered code.
 ```
@@ -27,6 +45,22 @@ A "View in LogiGo" badge will appear. Clicking it opens an interactive flowchart
 1. **Badge appears** - A "View in LogiGo" badge shows in the bottom-right corner
 2. **Click to visualize** - Opens LogiGo Studio with your flowchart
 3. **Real-time updates** - When registerCode() is called again, the flowchart updates
+
+---
+
+## Common Mistakes
+
+**Wrong: Registering bundled/minified code**
+```javascript
+// DON'T do this - it captures React/framework code
+LogiGo.registerCode(document.body.innerHTML);
+```
+
+**Right: Register the actual source code string**
+```javascript
+// DO this - register the algorithm's source text
+LogiGo.registerCode(algorithmSourceCode);
+```
 
 ---
 
@@ -69,6 +103,7 @@ LogiGo.openStudio();
 - Make sure the script is in `<head>` before other scripts
 - Check browser console for `[LogiGo]` messages
 
-**Flowchart empty or wrong:**
-- Ensure registerCode() is being called with the correct source code
-- Check that the code contains valid JavaScript functions
+**Flowchart empty or shows wrong code:**
+- Ensure registerCode() receives the actual source code as a string
+- The code should be human-readable JavaScript, not minified/bundled code
+- Check that the code contains valid JavaScript function declarations
