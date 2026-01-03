@@ -1,171 +1,90 @@
 # LogiGo Integration Prompt
 
-This is the prompt users copy and paste into Replit Agent to integrate LogiGo into their app.
+Copy and paste this into any Replit Agent to add LogiGo visualization.
 
 ---
 
-## Quick Start Prompt (Simplest)
-
-Copy this and give it to Replit Agent:
+## Zero-Code Prompt (Just Paste This)
 
 ```
-Add LogiGo visualization to this project so I can see a flowchart of my code execution.
+Add LogiGo code visualization to this project.
 
-1. Add this script tag to the HTML head (before any other scripts):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=true"></script>
+Add this script tag to the HTML <head>:
+<script src="https://logigo-studio.replit.app/remote.js?project=MyApp"></script>
 
-2. In my JavaScript code, add checkpoint() calls at important points:
-   checkpoint('step-name', { variableName: value });
-
-Example:
-function addTodo(text) {
-  checkpoint('addTodo-start', { text });
-  const todo = { id: Date.now(), text, completed: false };
-  checkpoint('todo-created', { todo });
-  todos.push(todo);
-  checkpoint('addTodo-end', { count: todos.length });
-  return todo;
-}
-
-The flowchart will show each checkpoint as a step, highlighting in real-time as my code runs.
+That's it! A "View in LogiGo" badge will appear. When clicked, it automatically captures the page's code and opens a flowchart visualization.
 ```
 
 ---
 
-## What Happens Automatically
+## What Happens
 
-When remote.js loads:
-1. Creates a session with LogiGo Studio (no setup needed)
-2. Provides a global `checkpoint(id, variables)` function
-3. Auto-opens LogiGo Studio in a new tab on first checkpoint (if autoOpen=true)
-4. Handles reconnection and session renewal automatically
+1. **Badge appears** - A "View in LogiGo" badge shows in the bottom-right corner
+2. **Click to visualize** - Clicking automatically:
+   - Discovers all scripts on the page
+   - Captures and registers the source code
+   - Wraps global functions for auto-checkpoints
+   - Opens LogiGo Studio with your flowchart ready
+3. **No code changes needed** - Works with existing code, no `checkpoint()` calls required
 
 ---
 
-## API Reference
+## Query Parameters
 
-### checkpoint(id, variables, options)
-Send a checkpoint to LogiGo:
-```javascript
-checkpoint('processing-data', { items: 5, status: 'active' });
+- `project=MyApp` - Name shown in LogiGo Studio (optional)
+- `autoOpen=false` - Don't auto-open after first checkpoint (default: true)
+
+---
+
+## For Vite/React Apps
+
+The zero-code script works best with traditional scripts. For Vite/React apps with bundled modules, add to `index.html`:
+
+```html
+<script src="https://logigo-studio.replit.app/remote.js?project=MyReactApp"></script>
 ```
 
-### window.LogiGo.checkpoint(id, variables)
-Same as above (alias):
+Then in the browser console, run:
 ```javascript
-window.LogiGo.checkpoint('step-1', { value: 42 });
+LogiGo.enableModuleInstrumentation()
 ```
 
-### window.LogiGo.registerCode(sourceCode)
-Send readable source code for flowchart generation:
+Reload the page - your modules will be instrumented for visualization.
+
+---
+
+## Advanced: Manual Checkpoints
+
+For more control, you can also add explicit checkpoints:
+
 ```javascript
-window.LogiGo.registerCode(`
-function myFunction(x) {
-  if (x > 10) {
-    return x * 2;
+function processOrder(order) {
+  checkpoint('order-received', { orderId: order.id });
+  
+  if (order.total > 100) {
+    checkpoint('applying-discount', { discount: 0.1 });
+    order.total *= 0.9;
   }
-  return x;
+  
+  checkpoint('order-complete', { finalTotal: order.total });
+  return order;
 }
-`);
 ```
 
-### window.LogiGo.openStudio()
-Manually open the LogiGo Studio:
-```javascript
-window.LogiGo.openStudio();
-```
-
-### Query Parameters
-- `project=MyApp` - Name shown in LogiGo Studio
-- `autoOpen=true` - Auto-open Studio on first checkpoint (default: true)
-- `autoOpen=false` - Don't auto-open (user clicks "View in LogiGo" manually)
-
----
-
-## Full Integration Prompt (With Code Registration)
-
-For developers who want the full flowchart with their source code:
-
-```
-Add LogiGo visualization with full flowchart support.
-
-1. Add this to the HTML head (before other scripts):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyApp"></script>
-
-2. After my main JavaScript loads, register the code for visualization:
-   <script>
-     // Fetch and register the main source code
-     fetch('/main.js')
-       .then(r => r.text())
-       .then(code => window.LogiGo.registerCode(code));
-   </script>
-
-3. Add checkpoint() calls at important execution points in my code.
-
-This gives LogiGo the source code to parse into a proper flowchart, with nodes highlighting as checkpoints fire.
-```
-
----
-
-## Vite/React Integration Prompt
-
-For React or Vite-based apps:
-
-```
-Add LogiGo to this Vite project.
-
-1. Add remote.js to index.html (in the <head>):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyReactApp"></script>
-
-2. In my React components, import and use checkpoint:
-   // At the top of App.tsx or any component:
-   declare global {
-     function checkpoint(id: string, vars?: Record<string, any>): void;
-   }
-
-   // Inside functions/effects:
-   function handleSubmit(data: FormData) {
-     checkpoint('form-submitted', { data });
-     // ... rest of logic
-   }
-
-3. Optionally, register readable source by fetching a dev build or bundling source separately.
-
-Note: Production builds are minified and won't produce readable flowcharts. Use development builds for visualization.
-```
-
----
-
-## Testing the Integration
-
-After Agent applies the integration:
-
-1. Run your app
-2. Interact with it (trigger the code paths with checkpoints)
-3. LogiGo Studio should auto-open (or click "View in LogiGo" badge)
-4. See your checkpoints appear in the flowchart in real-time
+Each `checkpoint(id, variables)` creates a node in the flowchart that lights up as your code runs.
 
 ---
 
 ## Troubleshooting
 
-**Flowchart shows generic nodes instead of my code:**
-- Call `window.LogiGo.registerCode(sourceCode)` with your readable source
-- Production builds are minified - use development builds
+**Badge not appearing:**
+- Make sure the script is in `<head>` and loads before other scripts
+- Check browser console for `[LogiGo]` messages
 
-**Checkpoints not appearing:**
-- Make sure remote.js loads before your app scripts
-- Check browser console for "[LogiGo]" messages
+**Flowchart empty:**
+- Click the badge to trigger auto-capture
+- For bundled apps, try `LogiGo.enableModuleInstrumentation()` + reload
 
-**Studio not opening automatically:**
-- Add `autoOpen=true` to the script URL
-- Or call `window.LogiGo.openStudio()` manually
-
----
-
-## Architecture Notes
-
-- remote.js creates a unique session ID and connects to LogiGo's server
-- Checkpoints are sent via HTTP POST to `/api/remote/checkpoint`
-- LogiGo Studio receives them via Server-Sent Events (SSE)
-- No WebSocket or special build configuration required
+**Cross-origin errors:**
+- The script works best on same-origin or CORS-enabled pages
+- For localhost development, this shouldn't be an issue
