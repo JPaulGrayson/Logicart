@@ -306,43 +306,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'MCP_INTEGRATION_GUIDE.md',
     'ARENA_MASTERCLASS.md',
     'REMOTE_SYNC_GUIDE.md',
-    'FILE_SYNC_GUIDE.md'
+    'FILE_SYNC_GUIDE.md',
+    'AGENT_API.md',
+    'ANTIGRAVITY_V1_FEATURE_REVIEW.md'
   ];
-
-  app.get("/api/docs", (req, res) => {
-    res.json({
-      docs: ALLOWED_DOCS.map(file => ({
-        id: file.replace('.md', '').toLowerCase().replace(/_/g, '-'),
-        name: file.replace('.md', '').replace(/_/g, ' '),
-        file
-      }))
-    });
-  });
-
-  app.get("/api/docs/:file", async (req, res) => {
-    try {
-      const { file } = req.params;
-      const filename = file.endsWith('.md') ? file : `${file}.md`;
-
-      // Security: Only allow whitelisted files
-      if (!ALLOWED_DOCS.includes(filename)) {
-        return res.status(404).json({ error: "Documentation not found" });
-      }
-
-      const docPath = path.join(__dirname, "..", "docs", filename);
-      const fs = await import('fs/promises');
-      const content = await fs.readFile(docPath, 'utf-8');
-
-      res.json({
-        file: filename,
-        content,
-        title: filename.replace('.md', '').replace(/_/g, ' ')
-      });
-    } catch (error) {
-      console.error("[Docs] Error reading doc:", error);
-      res.status(404).json({ error: "Documentation not found" });
-    }
-  });
 
   // Map URL slugs to documentation files
   const DOC_SLUGS: Record<string, string> = {
@@ -356,8 +323,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'mcp-guide': 'MCP_INTEGRATION_GUIDE.md',
     'arena-masterclass': 'ARENA_MASTERCLASS.md',
     'remote-sync': 'REMOTE_SYNC_GUIDE.md',
-    'file-sync': 'FILE_SYNC_GUIDE.md'
+    'file-sync': 'FILE_SYNC_GUIDE.md',
+    'agent-api': 'AGENT_API.md',
+    'feature-review': 'ANTIGRAVITY_V1_FEATURE_REVIEW.md'
   };
+
+  app.get("/api/docs", (req, res) => {
+    res.json({
+      docs: ALLOWED_DOCS.map(file => ({
+        id: file.replace('.md', '').toLowerCase().replace(/_/g, '-'),
+        name: file.replace('.md', '').replace(/_/g, ' '),
+        file
+      }))
+    });
+  });
+
+  app.get("/api/docs/:file", async (req, res) => {
+    console.log(`[Docs] API Request for: ${req.params.file}`);
+    try {
+      const { file } = req.params;
+
+      // Try to find the filename by slug first, otherwise use as-is
+      let filename = DOC_SLUGS[file.toLowerCase()];
+
+      if (!filename) {
+        // Fallback: search ALLOWED_DOCS case-insensitively and with underscore/hyphen flexibility
+        const normalizedRequest = file.toLowerCase().replace(/-/g, '_').replace('.md', '');
+        filename = ALLOWED_DOCS.find(doc => {
+          const normalizedDoc = doc.toLowerCase().replace(/-/g, '_').replace('.md', '');
+          return normalizedDoc === normalizedRequest;
+        });
+      }
+
+      // If still not found, use the original request but ensure .md
+      if (!filename) {
+        filename = file;
+        if (!filename.endsWith('.md')) {
+          filename = `${filename}.md`;
+        }
+      }
+
+      console.log(`[Docs] Final resolved filename: ${filename}`);
+
+      // Security: Only allow whitelisted files
+      const isWhitelisted = ALLOWED_DOCS.some(doc => doc.toLowerCase() === filename!.toLowerCase());
+      if (!isWhitelisted) {
+        console.warn(`[Docs] Blocked access to unlisted doc: ${filename}`);
+        return res.status(404).json({ error: "Documentation not found" });
+      }
+
+      // Ensure we use the exact casing from ALLOWED_DOCS to prevent FS issues on some systems
+      const exactFilename = ALLOWED_DOCS.find(doc => doc.toLowerCase() === filename!.toLowerCase()) || filename;
+
+
+      const docPath = path.join(__dirname, "..", "docs", exactFilename);
+      console.log(`[Docs] Loading from path: ${docPath}`);
+
+      const fs = await import('fs/promises');
+
+      // Existence check
+      try {
+        await fs.access(docPath);
+      } catch (e) {
+        console.error(`[Docs] File does not exist: ${docPath}`);
+        return res.status(404).json({ error: "File not found on disk" });
+      }
+
+      const content = await fs.readFile(docPath, 'utf-8');
+      console.log(`[Docs] Successfully loaded ${content.length} chars`);
+
+      res.json({
+        file: filename,
+        content,
+        title: filename.replace('.md', '').replace(/_/g, ' ')
+      });
+    } catch (error) {
+      console.error("[Docs] Error reading doc:", error);
+      res.status(404).json({ error: "Documentation not found" });
+    }
+  });
 
   // Serve documentation pages as styled HTML
   app.get("/docs/:slug", async (req, res) => {

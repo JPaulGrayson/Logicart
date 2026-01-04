@@ -4,10 +4,10 @@
 
 ```mermaid
 graph TD
-    A[Your Code] -->|remote.js| B(LogiGo Server)
-    B --> C{LogiGo Studio}
-    C -->|Real-time| D[Visual Flowchart]
-    D -->|Interaction| E[Better Code Understanding]
+    A["Your Code"] -->|remote.js| B("LogiGo Server")
+    B --> C{"LogiGo Studio"}
+    C -->|Real-time| D["Visual Flowchart"]
+    D -->|Interaction| E["Better Code Understanding"]
 ```
 
 ---

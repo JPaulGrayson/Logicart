@@ -41,6 +41,7 @@ interface HelpDialogProps {
 const VISIBLE_DOCS = [
   { id: 'getting-started', title: 'Getting Started', emoji: '🚀', slug: 'getting-started' },
   { id: 'vibe-coder-guide', title: 'Vibe Coder Guide', emoji: '✨', slug: 'vibe-coder-guide' },
+  { id: 'agent-api', title: 'Agent API', emoji: '🤖', slug: 'agent-api' },
   { id: 'integration-wizard', title: 'Integration Wizard', emoji: '🪄', component: true },
   { id: 'common-pitfalls', title: 'Common Pitfalls', emoji: '⚠️', slug: 'common-pitfalls' },
   { id: 'api-reference', title: 'API Reference', emoji: '🔧', slug: 'api-reference' },
@@ -288,7 +289,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 </div>
                 <h2 className="font-bold text-lg tracking-tight">LogiGo Doc</h2>
               </div>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] opacity-60">Documentation Center v1.2</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] opacity-60">Documentation Center v1.3</p>
             </div>
 
             <ScrollArea className="flex-1 px-3 py-4">
@@ -401,7 +402,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
               </Button>
             </header>
 
-            <ScrollArea className="flex-1 px-8 py-8">
+            <ScrollArea key={activeSection} className="flex-1 px-8 py-8">
               <div className="max-w-3xl mx-auto">
                 {renderContent()}
               </div>
