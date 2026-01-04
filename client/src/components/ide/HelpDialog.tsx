@@ -227,7 +227,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
 
     if (docContent) {
       return (
-        <div className="markdown-content pr-4 pb-12">
+        <div className="markdown-content pb-8">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -244,8 +244,8 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 }
 
                 return !inline ? (
-                  <div className="relative group my-6">
-                    <pre className="p-4 bg-muted/80 rounded-xl overflow-x-auto border border-white/5 font-mono text-[13px] shadow-inner">
+                  <div className="relative group my-4">
+                    <pre className="p-3 bg-muted/80 rounded-lg overflow-x-auto border border-white/5 font-mono text-[13px] shadow-inner">
                       <code className={className} {...props}>
                         {children}
                       </code>
@@ -257,14 +257,18 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                   </code>
                 );
               },
-              h1: ({ children }) => <h1 className="text-4xl font-bold mb-10 text-white tracking-tight bg-gradient-to-br from-white via-slate-200 to-blue-400/50 bg-clip-text text-transparent">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-2xl font-semibold mt-16 mb-6 border-b border-white/5 pb-4 text-slate-100 tracking-tight">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-xl font-semibold mt-10 mb-4 text-slate-200">{children}</h3>,
-              p: ({ children }) => <p className="text-slate-400 leading-relaxed mb-6">{children}</p>,
-              ul: ({ children }) => <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-400">{children}</ul>,
-              li: ({ children }) => <li className="pl-2">{children}</li>,
-              strong: ({ children }) => <strong className="text-slate-200 font-bold">{children}</strong>,
-              hr: () => <hr className="my-12 border-white/5" />
+              h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 text-white tracking-tight">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-xl font-semibold mt-8 mb-3 border-b border-white/5 pb-2 text-slate-100 tracking-tight">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-lg font-semibold mt-6 mb-2 text-slate-200">{children}</h3>,
+              p: ({ children }) => <p className="text-slate-400 leading-relaxed mb-4 text-sm">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-5 mb-4 space-y-1 text-slate-400 text-sm">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-5 mb-4 space-y-1 text-slate-400 text-sm">{children}</ol>,
+              li: ({ children }) => <li className="pl-1">{children}</li>,
+              strong: ({ children }) => <strong className="text-slate-200 font-semibold">{children}</strong>,
+              hr: () => <hr className="my-6 border-white/5" />,
+              table: ({ children }) => <table className="w-full my-4 text-sm border-collapse">{children}</table>,
+              th: ({ children }) => <th className="text-left p-2 border-b border-white/10 text-slate-300 font-semibold">{children}</th>,
+              td: ({ children }) => <td className="p-2 border-b border-white/5 text-slate-400">{children}</td>
             }}
           >
             {docContent}
@@ -278,8 +282,8 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[1000px] h-[85vh] p-0 overflow-hidden border-white/10 shadow-2xl bg-[#09090b]">
-        <div className="flex h-full w-full">
+      <DialogContent className="max-w-[1100px] h-[90vh] p-0 overflow-hidden border-white/10 shadow-2xl bg-[#09090b]">
+        <div className="flex h-full w-full overflow-hidden">
           {/* Sidebar */}
           <div className="w-[260px] flex flex-col border-r border-white/5 bg-[#0e0e11]">
             <div className="p-6 border-b border-white/5">
@@ -387,10 +391,10 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
-            <header className="px-8 py-5 border-b border-white/5 flex items-center justify-between bg-[#0e0e11]/50 backdrop-blur-md sticky top-0 z-10">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#09090b]">
+            <header className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-[#0e0e11]/50 backdrop-blur-md flex-shrink-0">
               <div>
-                <h2 className="text-xl font-bold tracking-tight capitalize">
+                <h2 className="text-lg font-bold tracking-tight capitalize">
                   {VISIBLE_DOCS.find(d => d.id === activeSection)?.title ||
                     (activeSection === 'shortcuts' ? 'Shortcuts' :
                       activeSection === 'about' ? 'About LogiGo' :
@@ -402,11 +406,11 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
               </Button>
             </header>
 
-            <ScrollArea key={activeSection} className="flex-1 px-8 py-8">
-              <div className="max-w-3xl mx-auto">
+            <div className="flex-1 overflow-auto">
+              <div key={activeSection} className="px-6 py-6">
                 {renderContent()}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </DialogContent>

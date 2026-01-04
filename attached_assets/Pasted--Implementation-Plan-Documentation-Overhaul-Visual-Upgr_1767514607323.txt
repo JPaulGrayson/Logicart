@@ -1,0 +1,96 @@
+# Implementation Plan: Documentation Overhaul & Visual Upgrade
+
+We are transforming the Help system from a "text dump" into a polished, user-facing Documentation Center. This involves filtering out engineering logs, adding visual diagrams (Mermaid.js), and creating a dedicated "Integration Wizard" for new users.
+
+## Phase 1: Dependencies & Configuration
+**Goal:** Install necessary libraries for visual rendering.
+
+1.  **Install Dependencies:**
+    * `npm install mermaid` (For rendering flowcharts/diagrams within docs)
+    * `npm install clsx tailwind-merge` (If not already present, for styling)
+
+2.  **Define the Content Whitelist:**
+    * In `client/src/components/ide/HelpDialog.tsx`, create a constant to filter the documentation list. We only want to show user-ready files.
+
+    ```typescript
+    // Only show these files in the sidebar
+    const VISIBLE_DOCS = [
+      { id: 'GETTING_STARTED', title: '🚀 Getting Started', file: 'GETTING_STARTED.md' },
+      { id: 'VIBE_CODER', title: '✨ Vibe Coder Guide', file: 'VIBE_CODER_GUIDE.md' }, // High Priority
+      { id: 'INTEGRATION', title: '🔌 Integration Prompt', file: 'INTEGRATION_PROMPT.md' },
+      { id: 'PITFALLS', title: '🛑 Common Pitfalls', file: 'COMMON_PITFALLS.md' },
+      { id: 'API', title: '📚 API Reference', file: 'API_REFERENCE.md' },
+      { id: 'ARENA', title: '🏛️ Arena Masterclass', file: 'ARENA_MASTERCLASS.md' }
+    ];
+    ```
+
+## Phase 2: The "Integration Wizard" (The Connect App)
+**Goal:** Create a specialized, high-visual UI for the `INTEGRATION_PROMPT.md` content, rather than just rendering it as text.
+
+1.  **Create `ConnectWizard.tsx`:**
+    * Instead of standard Markdown, render this as a custom component when the user selects "Integration Prompt".
+    * **UI Layout:**
+        * **Step 1 (The Script):** A styled code box with the `<script>` tag and a large "Copy Script" button.
+        * **Step 2 (The Agent Prompt):** A distinctive box containing the AI Instructions.
+        * **Action:** A primary button: **"Copy Prompt for Replit Agent"**.
+    * *Visual Polish:* Use a "Magic Wand" icon or similar to emphasize the AI nature of this step.
+
+2.  **Header Button:**
+    * Add a **"Connect App"** button to the main LogiGo header (next to "Share").
+    * Clicking this directly opens the Help Dialog to the **Integration Wizard** tab.
+
+## Phase 3: Visual Rendering (Mermaid & Callouts)
+**Goal:** Replace text descriptions with diagrams and style the markdown.
+
+1.  **Mermaid Component (`components/ui/Mermaid.tsx`):**
+    * Create a component that takes a `chart` string prop.
+    * Use `useEffect` to initialize `mermaid.contentLoaded()` on mount.
+    * Render the diagram into a `div`.
+
+2.  **Upgrade Markdown Renderer (in `HelpDialog.tsx`):**
+    * Configure `react-markdown` to intercept code blocks.
+    * **Logic:**
+        * If `language === 'mermaid'`, render the `<Mermaid />` component.
+        * If `language === 'callout'`, render a styled `<InfoBox />` (Blue border, light background).
+        * Otherwise, render the standard Code Block.
+
+3.  **Inject Diagrams into `GETTING_STARTED.md`:**
+    * Programmatically (or manually) append this Mermaid block to the top of the Getting Started text in the UI:
+    ```mermaid
+    graph LR
+        A[Paste Code] -->|Acorn Parser| B(AST Tree)
+        B -->|LogiGo Engine| C{Flowchart}
+        C -->|React Flow| D[Visual Output]
+        style D fill:#4CAF50,stroke:#333,stroke-width:2px,color:white
+    ```
+
+## Phase 4: Layout & Gallery
+**Goal:** Move from "Tabs" to "Documentation Site" layout.
+
+1.  **Sidebar Layout:**
+    * Refactor `HelpDialog` content area to use a CSS Grid or Flexbox:
+        * **Left (25%):** Vertical Navigation List (The `VISIBLE_DOCS` items).
+        * **Right (75%):** Scrollable Content Area (The Markdown Renderer).
+    * Style the Sidebar with a subtle gray background (`bg-muted/30`) to distinguish navigation.
+
+2.  **The Showcase Gallery:**
+    * Add a "Gallery" item to the bottom of the Sidebar.
+    * **Content:** Render a grid of cards linking to the HTML demos:
+        * **Card 1:** "Sorting Algorithms" (Links to `/library/sorting.html`) -> 
+
+[Image of Sorting]
+
+        * **Card 2:** "Ghost Diff Demo" (Links to `/ghost_diff.html`) -> 
+        * **Card 3:** "Visual Handshake" (Links to `/visual_handshake.html`) -> 
+
+[Image of Handshake]
+
+    * *Note:* Ensure these open in a `_blank` new tab so the user doesn't lose their place.
+
+## Phase 5: Action Items for Replit Agent
+
+1.  Install `mermaid`.
+2.  Update `HelpDialog.tsx` with the `VISIBLE_DOCS` filter and Sidebar layout.
+3.  Create the `Mermaid` component and integrate it into the Markdown renderer.
+4.  Build the `ConnectWizard` UI components.
+5.  Add the "Gallery" section pointing to the `public/` HTML files.
