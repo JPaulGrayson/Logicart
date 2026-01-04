@@ -4,34 +4,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp"></script>`;
+const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp&mode=push&hideBadge=true"></script>`;
 
 const AGENT_PROMPT = `Add LogiGo code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME&mode=push&hideBadge=true"></script>
 
-2. FOR REACT/VITE APPS: Hide the auto-discovery badge (prevents framework noise):
-#logigo-badge { display: none !important; }
-
-3. Create a visualization handler:
+2. Create a visualization handler:
 const handleVisualize = (code, name) => {
-  if (window.LogiGo?.openWithCode) {
-    window.LogiGo.openWithCode(code, name);
-  } else if (window.LogiGo) {
-    window.LogiGo.registerCode(code, name);
-    window.LogiGo.openStudio();
+  if (window.LogiGo?.visualize) {
+    window.LogiGo.visualize(code, name);
   }
 };
 
-4. Call handleVisualize with CLEAN algorithm code:
+3. Call handleVisualize with CLEAN algorithm code:
 handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
-5. Connect the handler to a "View Flowchart" button.
+4. Connect the handler to a "View Flowchart" button.
 
-6. TEST: Click the button - LogiGo should open with a clean flowchart.
+5. TEST: Click the button - LogiGo should open with a clean flowchart.
 
-Key: Push clean code to LogiGo, don't let it auto-discover bundled framework code.`;
+URL params: mode=push disables auto-discovery, hideBadge=true hides the floating badge.`;
 
 export function ConnectWizard() {
     const [copiedScript, setCopiedScript] = useState(false);

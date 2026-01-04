@@ -1243,6 +1243,10 @@ self.addEventListener('fetch', (event) => {
       const sourceCode = encodedCode ? Buffer.from(encodedCode, 'base64').toString('utf-8') : undefined;
       // Auto-open option (default: true for zero-click experience)
       const autoOpen = req.query.autoOpen !== 'false';
+      // Hide badge option (for React/Vite apps where auto-discovery causes noise)
+      const hideBadge = req.query.hideBadge === 'true';
+      // Mode: 'push' disables auto-discovery (recommended for bundled apps)
+      const mode = (req.query.mode as string) || 'auto';
 
       // Create a new session using session manager
       const { sessionId } = sessionManager.createSession(String(projectName), sourceCode);
@@ -1261,6 +1265,8 @@ self.addEventListener('fetch', (event) => {
   var SESSION_ID = "${sessionId}";
   var PROJECT_NAME = "${String(projectName).replace(/"/g, '\\"')}";
   var AUTO_OPEN = ${autoOpen};
+  var HIDE_BADGE = ${hideBadge};
+  var MODE = "${mode}";
   var hasOpenedLogigo = false;
   var checkpointCount = 0;
   
@@ -1550,6 +1556,10 @@ self.addEventListener('fetch', (event) => {
       return { success: false, error: e.message };
     }
   };
+  
+  // One-shot visualize method (recommended for bundled apps)
+  // Handles the entire pipeline: register -> session create -> open tab
+  window.LogiGo.visualize = window.LogiGo.openWithCode;
   
   // ============================================
   // Bidirectional Control Channel (WebSocket)
@@ -2012,9 +2022,13 @@ self.addEventListener('fetch', (event) => {
     });
   };
   
-  // Show hint about auto-discovery in console
-  console.log('[LogiGo] 💡 For traditional scripts: LogiGo.enableAutoDiscovery()');
-  console.log('[LogiGo] 💡 For Vite/React apps: LogiGo.enableModuleInstrumentation() then reload');
+  // Show hint about auto-discovery in console (skip in push mode)
+  if (MODE !== 'push') {
+    console.log('[LogiGo] 💡 For traditional scripts: LogiGo.enableAutoDiscovery()');
+    console.log('[LogiGo] 💡 For Vite/React apps: Use LogiGo.visualize(code, name) to push clean code');
+  } else {
+    console.log('[LogiGo] 📦 Push mode enabled. Use LogiGo.visualize(code, name) to send clean code.');
+  }
   
   // Auto-capture code when badge is clicked (zero-code experience)
   async function captureAndOpenStudio(e) {
@@ -2049,7 +2063,8 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Show a persistent clickable badge (stays until closed)
-  if (typeof document !== "undefined") {
+  // Skip if ?hideBadge=true was set (recommended for React/Vite apps)
+  if (typeof document !== "undefined" && !HIDE_BADGE) {
     function showBadge() {
       if (document.getElementById("logigo-badge")) return;
       var badge = document.createElement("div");

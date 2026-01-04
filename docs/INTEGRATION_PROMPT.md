@@ -10,29 +10,21 @@ Copy and paste this prompt into any Replit Agent to add LogiGo visualization to 
 Add LogiGo code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME&mode=push&hideBadge=true"></script>
 
-2. IMPORTANT FOR REACT/VITE APPS: Hide the auto-discovery badge to prevent framework noise:
-Add this CSS to hide LogiGo's automatic badge (it captures bundled framework code, not your algorithms):
-#logigo-badge { display: none !important; }
+URL Parameters:
+- project=NAME: Your project/app name
+- mode=push: Disables auto-discovery (recommended for React/Vite)
+- hideBadge=true: Hides the floating badge (prevents UI conflicts)
 
-3. Create a visualization handler with API fallback:
+2. Create a visualization handler:
 const handleVisualize = (code, name) => {
-  if (!window.LogiGo) {
-    console.error('[LogiGo] Not loaded yet');
-    return;
-  }
-  
-  // Try openWithCode first, fallback to registerCode + openStudio
-  if (window.LogiGo.openWithCode) {
-    window.LogiGo.openWithCode(code, name);
-  } else {
-    window.LogiGo.registerCode(code, name);
-    window.LogiGo.openStudio();
+  if (window.LogiGo?.visualize) {
+    window.LogiGo.visualize(code, name);
   }
 };
 
-4. Call handleVisualize with CLEAN algorithm code (not framework code):
+3. Call handleVisualize with CLEAN algorithm code (not framework code):
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):
 handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
@@ -43,20 +35,20 @@ handleVisualize(editor.getValue(), 'UserCode');
 // FOR APPS WITH EXISTING FUNCTIONS:
 handleVisualize(myFunction.toString(), 'FunctionName');
 
-5. Connect the handler to a "View Flowchart" or "Visualize" button in your UI.
+4. Connect the handler to a "View Flowchart" or "Visualize" button in your UI.
 
-6. TEST THE INTEGRATION:
+5. TEST THE INTEGRATION:
 - Open the app in the browser
 - Select or enter some code
 - Click the visualization button
 - Verify LogiGo Studio opens in a new tab with a CLEAN flowchart showing only algorithm logic
 
-7. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
-- Make sure you added the CSS to hide #logigo-badge
+6. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
+- Verify ?mode=push&hideBadge=true are in the script URL
 - Verify you're passing the raw algorithm string, not bundled code
 - The app should PUSH clean code to LogiGo, not let LogiGo auto-discover
 
-8. Report what was done and whether the integration is working.
+7. Report what was done and whether the integration is working.
 
 NOTE: Every AI-generated app is unique. The key principle is "clean-in, clean-out" - push only the algorithm code you want visualized.
 ```
@@ -68,18 +60,23 @@ NOTE: Every AI-generated app is unique. The key principle is "clean-in, clean-ou
 ### Push vs Auto-Discovery
 LogiGo has two modes:
 - **Auto-Discovery**: Scans all scripts on the page (captures framework noise in React/Vite)
-- **Push Mode**: Your app sends specific clean code via `openWithCode()` (recommended)
+- **Push Mode** (`?mode=push`): Your app sends specific clean code via `visualize()` (recommended)
 
-For bundled apps (React, Vue, Vite), always use **Push Mode** and hide the auto-discovery badge.
+For bundled apps (React, Vue, Vite), always use **Push Mode** with `?mode=push&hideBadge=true`.
 
-### The Fallback Pattern
-The LogiGo API loads asynchronously. Use this resilient pattern:
+### URL Parameters
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `project` | string | Your project/app name |
+| `mode` | `auto`, `push` | `push` disables auto-discovery |
+| `hideBadge` | `true`, `false` | Hides the floating badge |
+| `autoOpen` | `true`, `false` | Auto-open Studio on first checkpoint |
+
+### The Simple Pattern
+With the new `visualize()` method, integration is straightforward:
 ```javascript
-if (window.LogiGo?.openWithCode) {
-  window.LogiGo.openWithCode(code, name);
-} else if (window.LogiGo) {
-  window.LogiGo.registerCode(code, name);
-  window.LogiGo.openStudio();
+if (window.LogiGo?.visualize) {
+  window.LogiGo.visualize(code, name);
 }
 ```
 
