@@ -1597,8 +1597,49 @@ self.addEventListener('fetch', (event) => {
   };
   
   // One-shot visualize method (recommended for bundled apps)
-  // Handles the entire pipeline: register -> session create -> open tab
-  window.LogiGo.visualize = window.LogiGo.openWithCode;
+  // Uses synchronous window.open first to avoid popup blockers, then registers code
+  window.LogiGo.visualize = function(code, sessionName) {
+    registeredCode = code;
+    var uniqueName = (sessionName || PROJECT_NAME) + "-" + Date.now();
+    
+    // Open window FIRST (synchronous, within user gesture) to avoid popup blocker
+    var studioWindow = window.open("about:blank", "_blank", "noopener");
+    
+    // Then register the code and update the window URL
+    fetch(LOGIGO_URL + "/api/remote/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: uniqueName, code: code }),
+      mode: "cors"
+    }).then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }).then(function(data) {
+      // Update session info
+      SESSION_ID = data.sessionId;
+      window.LogiGo.sessionId = data.sessionId;
+      window.LogiGo.studioUrl = data.studioUrl;
+      window.LogiGo.viewUrl = data.studioUrl;
+      window.LogiGo.remoteUrl = LOGIGO_URL + "/remote/" + data.sessionId;
+      
+      console.log("[LogiGo] Session created: " + data.sessionId.slice(0,8));
+      
+      // Navigate the already-opened window to the studio
+      if (studioWindow) {
+        studioWindow.location.href = data.studioUrl;
+      }
+      
+      updateStatus('connected');
+      // Reconnect WebSocket to new session
+      setTimeout(reconnectControlChannel, 100);
+    }).catch(function(e) {
+      console.error("[LogiGo] Failed to visualize:", e.message);
+      if (studioWindow) {
+        studioWindow.close();
+      }
+      updateStatus('error');
+    });
+  };
   
   // ============================================
   // Bidirectional Control Channel (WebSocket)

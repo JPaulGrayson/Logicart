@@ -23,6 +23,11 @@ const handleVisualize = (code, name) => {
   }
 };
 
+Available methods:
+- visualize(code, name) - One-shot: registers code and opens LogiGo (recommended)
+- registerCode(code, name) - Just registers code without opening
+- openStudio() - Opens LogiGo in a new tab
+
 3. Call handleVisualize with CLEAN algorithm code (not framework code):
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):

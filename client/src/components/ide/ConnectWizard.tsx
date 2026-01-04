@@ -18,12 +18,17 @@ const handleVisualize = (code, name) => {
   }
 };
 
-3. Call handleVisualize with CLEAN algorithm code:
+3. Call handleVisualize with CLEAN algorithm code (not framework code):
 handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 4. Connect the handler to a "View Flowchart" button.
 
 5. TEST: Click the button - LogiGo should open with a clean flowchart.
+
+Available LogiGo methods:
+- visualize(code, name) - One-shot: registers code and opens LogiGo (recommended)
+- registerCode(code, name) - Just registers code without opening
+- openStudio() - Opens LogiGo in a new tab
 
 The project name is auto-detected from your app's hostname.`;
 
