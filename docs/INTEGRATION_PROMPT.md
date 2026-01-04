@@ -1,6 +1,6 @@
 # LogiGo Integration Prompt
 
-Copy and paste this single prompt into any Replit Agent to add LogiGo visualization.
+Copy and paste this prompt into any Replit Agent to add LogiGo visualization to your app.
 
 ---
 
@@ -9,82 +9,51 @@ Copy and paste this single prompt into any Replit Agent to add LogiGo visualizat
 ```
 Add LogiGo code visualization to this project.
 
-1. Add this script tag to the HTML <head> (replace PROJECT_NAME with this app's actual name):
+1. Add this script tag to the HTML <head>:
 <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Call LogiGo.openWithCode(codeString, name) when user wants to visualize code:
+2. Find where the app stores/displays source code and call LogiGo.openWithCode() when the user wants to visualize it:
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):
-const algorithms = {
-  bubbleSort: `function bubbleSort(arr) {
-    for (let i = 0; i < arr.length; i++) {
-      for (let j = 0; j < arr.length - i - 1; j++) {
-        if (arr[j] > arr[j + 1]) {
-          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        }
-      }
-    }
-    return arr;
-  }`
-};
-// When user selects algorithm:
-LogiGo.openWithCode(algorithms.bubbleSort, 'BubbleSort');
+LogiGo.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 // FOR CODE EDITORS (user-typed code):
-// Get the current editor content and visualize it
-const editorContent = editor.getValue(); // or textarea.value, etc.
-LogiGo.openWithCode(editorContent, 'UserCode');
+LogiGo.openWithCode(editor.getValue(), 'UserCode');
 
 // FOR APPS WITH EXISTING FUNCTIONS:
-// Convert function to string
 LogiGo.openWithCode(myFunction.toString(), 'MyFunction');
 
-This creates a fresh session and opens LogiGo Studio in a new tab with the flowchart.
+3. TEST THE INTEGRATION:
+- Open the app in the browser
+- Select or enter some code
+- Click the flowchart/visualization button
+- Verify LogiGo Studio opens in a new tab with a flowchart
+
+4. IF SOMETHING FAILS:
+- Check browser console for [LogiGo] error messages
+- Verify the code being passed is a readable string (not bundled/minified)
+- Fix any issues before returning to the user
+
+5. Report what was done and whether the integration is working. If there are remaining issues you couldn't resolve, explain them clearly so the user can help troubleshoot.
+
+NOTE: Every AI-generated app is unique. Adapt the integration to match this app's structure.
 ```
 
 ---
 
-## Use Case Examples
+## Important Notes for Users
 
-### 1. Algorithm Visualizers
-Store algorithms as template literal strings:
-```javascript
-const algorithms = {
-  quickSort: `function quickSort(arr) { ... }`,
-  mergeSort: `function mergeSort(arr) { ... }`
-};
+**Before adding LogiGo:** Make sure your app is working correctly first. If the app has bugs, fix them before adding the integration.
 
-// Visualize when selected
-LogiGo.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
-```
+**AI variability:** Every AI-generated app is different. The Replit Agent will adapt the integration to your app's specific structure. If something doesn't work as expected, describe the issue to the agent and it will help debug.
 
-### 2. Code Editors
-Capture the editor's current content:
-```javascript
-// For Monaco Editor
-const code = monacoEditor.getValue();
-LogiGo.openWithCode(code, 'UserCode');
+---
 
-// For CodeMirror
-const code = codeMirrorInstance.getValue();
-LogiGo.openWithCode(code, 'UserCode');
+## What Happens
 
-// For simple textarea
-const code = document.getElementById('code-textarea').value;
-LogiGo.openWithCode(code, 'UserCode');
-```
-
-### 3. Apps with Core Functions
-Convert existing functions to strings:
-```javascript
-// Visualize an existing function
-function calculateTax(income, rate) {
-  if (income < 10000) return 0;
-  return income * rate;
-}
-
-LogiGo.openWithCode(calculateTax.toString(), 'CalculateTax');
-```
+1. **Script loads** - LogiGo connects to your app
+2. **User clicks visualize** - Your app calls LogiGo.openWithCode() with the source code
+3. **Studio opens** - LogiGo Studio opens in a new tab with an interactive flowchart
 
 ---
 
@@ -116,23 +85,16 @@ if (window.LogiGo) {
 
 ---
 
-## Key Points
-
-1. **Source code as strings** - Pass readable JavaScript source, not bundled/minified code
-2. **Unique sessions** - Each call creates a fresh session automatically
-3. **Opens in new tab** - LogiGo requires a full browser tab (not iframes)
-
----
-
 ## Troubleshooting
 
-**Flowchart shows wrong code:**
-- Use `openWithCode()` which creates fresh sessions automatically
-- Make sure you're passing the actual source code string
-
-**Flowchart empty:**
-- Ensure the code is readable JavaScript, not minified/bundled
+**LogiGo Studio doesn't open:**
 - Check browser console for `[LogiGo]` messages
+- Make sure the script tag is in `<head>` before other scripts
+
+**Flowchart is empty or wrong:**
+- Verify the code passed is readable JavaScript (not minified/bundled)
+- Code should be a string containing function declarations
 
 **Badge not appearing:**
-- Make sure remote.js script is in `<head>` before other scripts
+- The badge appears after registerCode() or openWithCode() is called
+- Check that the script loaded successfully
