@@ -4,17 +4,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp"></script>`;
 
-const AGENT_PROMPT = `Add LogiGo visualization to this project so I can see a flowchart of my code execution.
+const AGENT_PROMPT = `Add LogiGo code visualization to this project.
 
-1. Add this script tag to the HTML head (before any other scripts):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=true"></script>
+1. Add this script tag to the HTML <head>:
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. In my JavaScript code, add checkpoint() calls at important points:
-   checkpoint('step-name', { variableName: value });
+2. FOR REACT/VITE APPS: Hide the auto-discovery badge (prevents framework noise):
+#logigo-badge { display: none !important; }
 
-The flowchart will show each checkpoint as a step, highlighting in real-time as my code runs.`;
+3. Create a visualization handler:
+const handleVisualize = (code, name) => {
+  if (window.LogiGo?.openWithCode) {
+    window.LogiGo.openWithCode(code, name);
+  } else if (window.LogiGo) {
+    window.LogiGo.registerCode(code, name);
+    window.LogiGo.openStudio();
+  }
+};
+
+4. Call handleVisualize with CLEAN algorithm code:
+handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
+
+5. Connect the handler to a "View Flowchart" button.
+
+6. TEST: Click the button - LogiGo should open with a clean flowchart.
+
+Key: Push clean code to LogiGo, don't let it auto-discover bundled framework code.`;
 
 export function ConnectWizard() {
     const [copiedScript, setCopiedScript] = useState(false);

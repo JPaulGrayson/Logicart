@@ -1,0 +1,53 @@
+To get the integration working smoothly, I made several targeted changes to the AlgoViz Tutorial app to properly interface with the LogiGo engine. No changes to the LogiGo codebase itself were required, as its current API was capable of handling the task once the communication was optimized.
+
+Here is a summary of the work:
+
+1. Changes to the AlgoViz Tutorial App
+The primary focus was converting the app from a "passive" target (where LogiGo tries to guess what to visualize) to an "active" source (where the app sends clean code).
+
+
+index.html
+ (Bootstrapping):
+Added the LogiGo remote script tag with a unique project ID (AlgoVizTutorial). This established the bridge between the two applications.
+
+src/App.jsx
+ (Core Logic):
+Implemented a resilient 
+
+handleVisualize
+ function.
+Added logic to extract the RAW source code of the selected algorithm (Bubble Sort, etc.) from the application state.
+Implemented a Multi-Stage API Fallback: It first tries LogiGo.openWithCode(). If that hasn't initialized yet, it falls back to registerCode() and manually triggers openStudio().
+
+src/components/Sidebar.jsx
+ (UI Integration):
+Connected the "View Flowchart" button to the new visualization logic via React props.
+
+src/index.css
+ (UI Polishing):
+Anti-Confusion Fix: Added CSS to hide the automatic #logigo-badge. This was critical because LogiGo's built-in "Auto-Discovery" was trying to visualize the entire React framework shell (resulting in the "broken" flowchart you saw). Hiding the badge ensures you only use the clean, "Algorithm-Only" visualization.
+2. Integration Insights (LogiGo)
+While I didn't modify LogiGo's code, I had to perform several "under-the-hood" checks to ensure compatibility:
+
+API Verification: I used a browser subagent to inspect the window.LogiGo object to confirm which methods were exposed (openWithCode vs registerCode).
+Auto-Discovery Audit: I identified that LogiGo's default behavior is to capture all scripts on the page. In a Vite/React environment, this captures thousands of lines of "framework noise."
+Strategic Pivot: Based on these findings, I switched the integration strategy to a Snippet-Based Push. Instead of letting LogiGo "discover" the code, the app now "pushes" only the clean algorithm function, which is why the flowchart now looks perfect.
+Summary Table
+Component	Change Made	Purpose
+
+index.html
+Added Script Tag	Establish connection to LogiGo Studio.
+
+App.jsx
+Added 
+
+handleVisualize
+Extract clean code and push to LogiGo API.
+
+Sidebar.jsx
+Button Event Bind	Trigger visualization on user click.
+
+index.css
+Hide #logigo-badge	Prevent the "broken" auto-discovery flowchart.
+LogiGo Engine	None	Verified existing API was ready for clean code injection.
+The result is a "clean-in, clean-out" integration where the flowchart strictly represents the algorithm logic.

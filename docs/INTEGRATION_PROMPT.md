@@ -12,48 +12,76 @@ Add LogiGo code visualization to this project.
 1. Add this script tag to the HTML <head>:
 <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Find where the app stores/displays source code and call LogiGo.openWithCode() when the user wants to visualize it:
+2. IMPORTANT FOR REACT/VITE APPS: Hide the auto-discovery badge to prevent framework noise:
+Add this CSS to hide LogiGo's automatic badge (it captures bundled framework code, not your algorithms):
+#logigo-badge { display: none !important; }
+
+3. Create a visualization handler with API fallback:
+const handleVisualize = (code, name) => {
+  if (!window.LogiGo) {
+    console.error('[LogiGo] Not loaded yet');
+    return;
+  }
+  
+  // Try openWithCode first, fallback to registerCode + openStudio
+  if (window.LogiGo.openWithCode) {
+    window.LogiGo.openWithCode(code, name);
+  } else {
+    window.LogiGo.registerCode(code, name);
+    window.LogiGo.openStudio();
+  }
+};
+
+4. Call handleVisualize with CLEAN algorithm code (not framework code):
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):
-LogiGo.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
+handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 // FOR CODE EDITORS (user-typed code):
-LogiGo.openWithCode(editor.getValue(), 'UserCode');
+handleVisualize(editor.getValue(), 'UserCode');
 
 // FOR APPS WITH EXISTING FUNCTIONS:
-LogiGo.openWithCode(myFunction.toString(), 'MyFunction');
+handleVisualize(myFunction.toString(), 'FunctionName');
 
-3. TEST THE INTEGRATION:
+5. Connect the handler to a "View Flowchart" or "Visualize" button in your UI.
+
+6. TEST THE INTEGRATION:
 - Open the app in the browser
 - Select or enter some code
-- Click the flowchart/visualization button
-- Verify LogiGo Studio opens in a new tab with a flowchart
+- Click the visualization button
+- Verify LogiGo Studio opens in a new tab with a CLEAN flowchart showing only algorithm logic
 
-4. IF SOMETHING FAILS:
-- Check browser console for [LogiGo] error messages
-- Verify the code being passed is a readable string (not bundled/minified)
-- Fix any issues before returning to the user
+7. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
+- Make sure you added the CSS to hide #logigo-badge
+- Verify you're passing the raw algorithm string, not bundled code
+- The app should PUSH clean code to LogiGo, not let LogiGo auto-discover
 
-5. Report what was done and whether the integration is working. If there are remaining issues you couldn't resolve, explain them clearly so the user can help troubleshoot.
+8. Report what was done and whether the integration is working.
 
-NOTE: Every AI-generated app is unique. Adapt the integration to match this app's structure.
+NOTE: Every AI-generated app is unique. The key principle is "clean-in, clean-out" - push only the algorithm code you want visualized.
 ```
 
 ---
 
-## Important Notes for Users
+## Key Concepts
 
-**Before adding LogiGo:** Make sure your app is working correctly first. If the app has bugs, fix them before adding the integration.
+### Push vs Auto-Discovery
+LogiGo has two modes:
+- **Auto-Discovery**: Scans all scripts on the page (captures framework noise in React/Vite)
+- **Push Mode**: Your app sends specific clean code via `openWithCode()` (recommended)
 
-**AI variability:** Every AI-generated app is different. The Replit Agent will adapt the integration to your app's specific structure. If something doesn't work as expected, describe the issue to the agent and it will help debug.
+For bundled apps (React, Vue, Vite), always use **Push Mode** and hide the auto-discovery badge.
 
----
-
-## What Happens
-
-1. **Script loads** - LogiGo connects to your app
-2. **User clicks visualize** - Your app calls LogiGo.openWithCode() with the source code
-3. **Studio opens** - LogiGo Studio opens in a new tab with an interactive flowchart
+### The Fallback Pattern
+The LogiGo API loads asynchronously. Use this resilient pattern:
+```javascript
+if (window.LogiGo?.openWithCode) {
+  window.LogiGo.openWithCode(code, name);
+} else if (window.LogiGo) {
+  window.LogiGo.registerCode(code, name);
+  window.LogiGo.openStudio();
+}
+```
 
 ---
 
@@ -62,39 +90,45 @@ NOTE: Every AI-generated app is unique. Adapt the integration to match this app'
 ### LogiGo.openWithCode(code, name)
 Creates a session and opens LogiGo Studio with the flowchart:
 ```javascript
-if (window.LogiGo) {
-  LogiGo.openWithCode(codeString, 'SessionName');
-}
+window.LogiGo.openWithCode(algorithmCode, 'BubbleSort');
 ```
 
 ### LogiGo.registerCode(code, name)
-Register code without opening Studio (updates badge for later):
+Register code without opening Studio (for deferred visualization):
 ```javascript
-if (window.LogiGo) {
-  LogiGo.registerCode(codeString, 'SessionName');
-}
+window.LogiGo.registerCode(algorithmCode, 'BubbleSort');
 ```
 
 ### LogiGo.openStudio()
 Open the current session in LogiGo Studio:
 ```javascript
-if (window.LogiGo) {
-  LogiGo.openStudio();
-}
+window.LogiGo.openStudio();
 ```
 
 ---
 
 ## Troubleshooting
 
+**Flowchart shows thousands of nodes / framework code:**
+- Add CSS: `#logigo-badge { display: none !important; }`
+- Ensure you're passing raw algorithm strings, not bundled code
+- Use Push Mode, not Auto-Discovery
+
 **LogiGo Studio doesn't open:**
 - Check browser console for `[LogiGo]` messages
-- Make sure the script tag is in `<head>` before other scripts
+- Verify script tag is in `<head>` before other scripts
+- Use the fallback pattern (registerCode + openStudio)
 
-**Flowchart is empty or wrong:**
-- Verify the code passed is readable JavaScript (not minified/bundled)
-- Code should be a string containing function declarations
+**Flowchart is empty:**
+- Verify the code is readable JavaScript (not minified)
+- Code should contain function declarations
 
-**Badge not appearing:**
-- The badge appears after registerCode() or openWithCode() is called
-- Check that the script loaded successfully
+---
+
+## Integration Checklist
+
+- [ ] Script tag added to HTML `<head>`
+- [ ] CSS added to hide `#logigo-badge` (for React/Vite apps)
+- [ ] Handler function created with API fallback
+- [ ] "Visualize" button connected to handler
+- [ ] Tested: clicking button opens LogiGo with clean flowchart
