@@ -1268,6 +1268,45 @@ self.addEventListener('fetch', (event) => {
   var HIDE_BADGE = ${hideBadge};
   var MODE = "${mode}";
   var hasOpenedLogigo = false;
+  
+  // Auto-detect project name from hostname if not provided
+  if (PROJECT_NAME === "Remote App") {
+    try {
+      var hostname = window.location.hostname;
+      var detected = null;
+      
+      // Replit patterns:
+      // - project--username.replit.app (double-dash separates project from user)
+      // - project.username.repl.co (dot separates project from user)
+      if (hostname.includes('.replit.app')) {
+        // Double-dash pattern: "myproject--username.replit.app"
+        var subdomain = hostname.split('.')[0];
+        if (subdomain.includes('--')) {
+          detected = subdomain.split('--')[0];
+        } else {
+          detected = subdomain;
+        }
+      } else if (hostname.includes('.repl.co')) {
+        // Dot pattern: "myproject.username.repl.co"
+        detected = hostname.split('.')[0];
+      } else if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        // Generic hostname: use first subdomain
+        detected = hostname.split('.')[0];
+      }
+      
+      // Capitalize and use detected name
+      if (detected && detected.length > 0) {
+        PROJECT_NAME = detected.charAt(0).toUpperCase() + detected.slice(1);
+      }
+      
+      // Fallback to page title
+      if (PROJECT_NAME === "Remote App" && document.title) {
+        PROJECT_NAME = document.title.split(' - ')[0].split(' | ')[0].trim() || "Remote App";
+      }
+    } catch (e) {
+      // Keep default if detection fails
+    }
+  }
   var checkpointCount = 0;
   
   // Self-healing configuration

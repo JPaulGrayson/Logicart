@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp&mode=push&hideBadge=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
 
 const AGENT_PROMPT = `Add LogiGo code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME&mode=push&hideBadge=true"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
 
 2. Create a visualization handler:
 const handleVisualize = (code, name) => {
@@ -25,7 +25,7 @@ handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 5. TEST: Click the button - LogiGo should open with a clean flowchart.
 
-URL params: mode=push disables auto-discovery, hideBadge=true hides the floating badge.`;
+The project name is auto-detected from your app's hostname.`;
 
 export function ConnectWizard() {
     const [copiedScript, setCopiedScript] = useState(false);

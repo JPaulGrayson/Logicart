@@ -10,10 +10,9 @@ Copy and paste this prompt into any Replit Agent to add LogiGo visualization to 
 Add LogiGo code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME&mode=push&hideBadge=true"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
 
-URL Parameters:
-- project=NAME: Your project/app name
+The project name is auto-detected from your hostname. URL Parameters:
 - mode=push: Disables auto-discovery (recommended for React/Vite)
 - hideBadge=true: Hides the floating badge (prevents UI conflicts)
 
@@ -67,7 +66,7 @@ For bundled apps (React, Vue, Vite), always use **Push Mode** with `?mode=push&h
 ### URL Parameters
 | Parameter | Values | Description |
 |-----------|--------|-------------|
-| `project` | string | Your project/app name |
+| `project` | string | Your project/app name (auto-detected from hostname if not set) |
 | `mode` | `auto`, `push` | `push` disables auto-discovery |
 | `hideBadge` | `true`, `false` | Hides the floating badge |
 | `autoOpen` | `true`, `false` | Auto-open Studio on first checkpoint |
