@@ -305,7 +305,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'VIBE_CODER_GUIDE.md',
     'MCP_INTEGRATION_GUIDE.md',
     'ARENA_MASTERCLASS.md',
-    'REMOTE_SYNC_GUIDE.md'
+    'REMOTE_SYNC_GUIDE.md',
+    'FILE_SYNC_GUIDE.md'
   ];
 
   app.get("/api/docs", (req, res) => {
@@ -354,7 +355,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'vibe-coder-guide': 'VIBE_CODER_GUIDE.md',
     'mcp-guide': 'MCP_INTEGRATION_GUIDE.md',
     'arena-masterclass': 'ARENA_MASTERCLASS.md',
-    'remote-sync': 'REMOTE_SYNC_GUIDE.md'
+    'remote-sync': 'REMOTE_SYNC_GUIDE.md',
+    'file-sync': 'FILE_SYNC_GUIDE.md'
   };
 
   // Serve documentation pages as styled HTML
@@ -419,13 +421,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       htmlContent = htmlContent.split('\n\n').map(p => {
         const trimmed = p.trim();
         if (!trimmed) return '';
-        if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<hr') || trimmed.startsWith('<div') || trimmed.startsWith('<pre') || trimmed.startsWith('\n\n__CODE')) return trimmed;
+        if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<hr') || trimmed.startsWith('<div') || trimmed.startsWith('<pre') || trimmed.startsWith('__CODE')) return trimmed;
         return `<p class="my-10 text-slate-300 leading-relaxed text-xl font-normal selection:bg-blue-500/20">${trimmed}</p>`;
       }).join('\n');
 
       // 7. Restoration Phase
       codeBlocks.forEach((block, i) => {
-        htmlContent = htmlContent.replace(`\n\n__CODE_BLOCK_${i}__\n\n`, block);
+        htmlContent = htmlContent.replace(`__CODE_BLOCK_${i}__`, block);
       });
 
       const html = `<!DOCTYPE html>

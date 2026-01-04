@@ -2,6 +2,20 @@
 
 **Learn to visualize and debug JavaScript code in 5 minutes**
 
+```mermaid
+graph TD
+    A[Your Code] -->|remote.js| B(LogiGo Server)
+    B --> C{LogiGo Studio}
+    C -->|Real-time| D[Visual Flowchart]
+    D -->|Interaction| E[Better Code Understanding]
+```
+
+---
+
+```callout
+LogiGo is designed for "Vibe Coders" who want to lead the Agent through structural intent rather than just typing lines of code.
+```
+
 ---
 
 ## 🎯 What You'll Learn

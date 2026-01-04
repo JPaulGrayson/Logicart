@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,775 +6,408 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Zap, Code2, Radio, Keyboard, Info, Lightbulb, Sparkles, ChevronRight } from 'lucide-react';
+import {
+  Zap,
+  Code2,
+  Keyboard,
+  Info,
+  Lightbulb,
+  Sparkles,
+  ChevronRight,
+  BookOpen,
+  Github,
+  Layers,
+  Workflow,
+  Layout,
+  ExternalLink,
+  Wand2,
+  Image as ImageIcon
+} from 'lucide-react';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { Button } from '@/components/ui/button';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import Mermaid from '@/components/ui/Mermaid';
+import { ConnectWizard } from './ConnectWizard';
+import { cn } from '@/lib/utils';
 
 interface HelpDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialSection?: string;
 }
 
-export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
+const VISIBLE_DOCS = [
+  { id: 'getting-started', title: 'Getting Started', emoji: '🚀', slug: 'getting-started' },
+  { id: 'vibe-coder-guide', title: 'Vibe Coder Guide', emoji: '✨', slug: 'vibe-coder-guide' },
+  { id: 'integration-wizard', title: 'Integration Wizard', emoji: '🪄', component: true },
+  { id: 'common-pitfalls', title: 'Common Pitfalls', emoji: '⚠️', slug: 'common-pitfalls' },
+  { id: 'api-reference', title: 'API Reference', emoji: '🔧', slug: 'api-reference' },
+  { id: 'arena-masterclass', title: 'Arena Masterclass', emoji: '🏛', slug: 'arena-masterclass' },
+  { id: 'remote-sync', title: 'Remote Sync Guide', emoji: '🛰', slug: 'remote-sync' },
+  { id: 'file-sync', title: 'File Sync Guide', emoji: '🔄', slug: 'file-sync' },
+];
+
+const GALLERY_ITEMS = [
+  {
+    title: 'Sorting Algorithms',
+    url: '/demo/library/sorting.html',
+    icon: <Workflow className="w-4 h-4 text-blue-400" />,
+    description: 'Visualization of Bubble, Quick, and Merge sort.'
+  },
+  {
+    title: 'Ghost Diff Demo',
+    url: '/demo/ghost_diff.html',
+    icon: <Layers className="w-4 h-4 text-purple-400" />,
+    description: 'See execution diffs in real-time.'
+  },
+  {
+    title: 'Visual Handshake',
+    url: '/demo/visual_handshake.html',
+    icon: <Sparkles className="w-4 h-4 text-amber-400" />,
+    description: 'Connecting code to DOM elements.'
+  }
+];
+
+const InfoBox = ({ children }: { children: React.ReactNode }) => (
+  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 my-6 flex gap-3 text-sm text-blue-100/80 leading-relaxed shadow-sm animate-in fade-in duration-500">
+    <div className="text-xl">💡</div>
+    <div className="flex-1 prose-invert prose-sm">
+      {children}
+    </div>
+  </div>
+);
+
+export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogProps) {
   const { startTutorial } = useTutorial();
+  const [activeSection, setActiveSection] = useState<string>(initialSection || 'getting-started');
+  const [docContent, setDocContent] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+    }
+  }, [initialSection]);
+
+  useEffect(() => {
+    const doc = VISIBLE_DOCS.find(d => d.id === activeSection);
+    if (doc && doc.slug) {
+      fetchDoc(doc.slug);
+    } else {
+      setDocContent(null);
+    }
+  }, [activeSection]);
+
+  const fetchDoc = async (slug: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/docs/${slug}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDocContent(data.content);
+      } else {
+        setDocContent('Failed to load documentation.');
+      }
+    } catch (error) {
+      setDocContent('Error loading documentation.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderContent = () => {
+    if (activeSection === 'integration-wizard') {
+      return <ConnectWizard />;
+    }
+
+    if (activeSection === 'shortcuts') {
+      return (
+        <div className="space-y-6 pr-4">
+          <section>
+            <h3 className="text-lg font-semibold mb-3">Execution Control</h3>
+            <div className="space-y-2">
+              <ShortcutRow shortcut="Space or K" description="Play / Pause execution" />
+              <ShortcutRow shortcut="S or →" description="Step forward (next step)" />
+              <ShortcutRow shortcut="B or ←" description="Step backward (Time Travel)" />
+              <ShortcutRow shortcut="R" description="Reset execution" />
+              <ShortcutRow shortcut="L" description="Toggle loop mode" />
+            </div>
+          </section>
+          <section>
+            <h3 className="text-lg font-semibold mb-3">Speed Control</h3>
+            <div className="space-y-2">
+              <ShortcutRow shortcut="[" description="Decrease speed" />
+              <ShortcutRow shortcut="]" description="Increase speed" />
+              <ShortcutRow shortcut="1-5" description="Set speed preset (1=0.5x, 2=1x, 3=2x, 4=5x, 5=10x)" />
+            </div>
+          </section>
+          <section>
+            <h3 className="text-lg font-semibold mb-3">View & Navigation</h3>
+            <div className="space-y-2">
+              <ShortcutRow shortcut="F" description="Toggle fullscreen (Workspace mode)" />
+              <ShortcutRow shortcut="Escape" description="Exit fullscreen" />
+              <ShortcutRow shortcut="V" description="Toggle variables panel" />
+              <ShortcutRow shortcut="D" description="Toggle Ghost Diff overlay" />
+              <ShortcutRow shortcut="Cmd/Ctrl + K" description="Focus Natural Language Search" />
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    if (activeSection === 'about') {
+      return (
+        <div className="space-y-6 pr-4 text-sm text-muted-foreground">
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">LogiGo Studio</h3>
+            <p>
+              A bidirectional code-to-flowchart visualization tool designed for "Vibe Coders" who benefit from visual learning and debugging.
+            </p>
+          </section>
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Version</h3>
+            <p><strong>LogiGo Studio:</strong> v1.2.0-stable</p>
+          </section>
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Key Features</h3>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <li>✓ Static code analysis</li>
+              <li>✓ Live Mode debugging</li>
+              <li>✓ Time Travel execution</li>
+              <li>✓ View Levels (1000ft, etc)</li>
+              <li>✓ Ghost Diff overlays</li>
+              <li>✓ Multi-AI Model Arena</li>
+              <li>✓ MCP Integration</li>
+              <li>✓ VS Code Extension</li>
+            </ul>
+          </section>
+        </div>
+      );
+    }
+
+    if (activeSection === 'gallery') {
+      return (
+        <div className="space-y-8 pr-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {GALLERY_ITEMS.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group p-5 bg-muted/30 rounded-2xl border border-white/5 hover:border-primary/40 hover:bg-muted/50 transition-all shadow-sm"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-background rounded-xl border border-white/5 group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.description}</p>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (docContent) {
+      return (
+        <div className="markdown-content pr-4 pb-12">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code({ node, inline, className, children, ...props }: any) {
+                const match = /language-(\w+)/.exec(className || '');
+                const language = match ? match[1] : '';
+
+                if (!inline && language === 'mermaid') {
+                  return <Mermaid chart={String(children).replace(/\n$/, '')} />;
+                }
+
+                if (!inline && language === 'callout') {
+                  return <InfoBox>{children}</InfoBox>;
+                }
+
+                return !inline ? (
+                  <div className="relative group my-6">
+                    <pre className="p-4 bg-muted/80 rounded-xl overflow-x-auto border border-white/5 font-mono text-[13px] shadow-inner">
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  </div>
+                ) : (
+                  <code className="bg-muted px-1.5 py-0.5 rounded text-[13px] text-primary" {...props}>
+                    {children}
+                  </code>
+                );
+              },
+              h1: ({ children }) => <h1 className="text-4xl font-bold mb-10 text-white tracking-tight bg-gradient-to-br from-white via-slate-200 to-blue-400/50 bg-clip-text text-transparent">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-2xl font-semibold mt-16 mb-6 border-b border-white/5 pb-4 text-slate-100 tracking-tight">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-xl font-semibold mt-10 mb-4 text-slate-200">{children}</h3>,
+              p: ({ children }) => <p className="text-slate-400 leading-relaxed mb-6">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-400">{children}</ul>,
+              li: ({ children }) => <li className="pl-2">{children}</li>,
+              strong: ({ children }) => <strong className="text-slate-200 font-bold">{children}</strong>,
+              hr: () => <hr className="my-12 border-white/5" />
+            }}
+          >
+            {docContent}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Lightbulb className="w-5 h-5" />
-            LogiGo Studio Help
-          </DialogTitle>
-          <DialogDescription>
-            Quick start guide, documentation, keyboard shortcuts, and information about LogiGo Studio
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="quick-start" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="quick-start" className="flex items-center gap-1.5" data-testid="tab-quick-start">
-              <Zap className="w-3.5 h-3.5" />
-              <span>Quick Start</span>
-            </TabsTrigger>
-            <TabsTrigger value="documentation" className="flex items-center gap-1.5" data-testid="tab-documentation">
-              <Code2 className="w-3.5 h-3.5" />
-              <span>Documentation</span>
-            </TabsTrigger>
-            <TabsTrigger value="shortcuts" className="flex items-center gap-1.5" data-testid="tab-shortcuts">
-              <Keyboard className="w-3.5 h-3.5" />
-              <span>Shortcuts</span>
-            </TabsTrigger>
-            <TabsTrigger value="about" className="flex items-center gap-1.5" data-testid="tab-about">
-              <Info className="w-3.5 h-3.5" />
-              <span>About</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <ScrollArea className="flex-1 mt-4">
-            {/* Quick Start Tab */}
-            <TabsContent value="quick-start" className="space-y-4 pr-4">
-              <section className="p-4 bg-primary/10 rounded-lg border border-primary/20 mb-6">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Interactive Guided Tours
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  New to LogiGo? Take a 2-minute tour to see how to partner with the Agent and master Vibe Coding.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5"
-                    onClick={() => {
-                      onOpenChange(false);
-                      startTutorial('agent-nudge');
-                    }}
-                  >
-                    <div className="text-left">
-                      <div className="font-bold text-sm">The Agent Bridge</div>
-                      <div className="text-[10px] text-muted-foreground">Natural language to flowcharts</div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-primary" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5"
-                    onClick={() => {
-                      onOpenChange(false);
-                      startTutorial('vibe-master');
-                    }}
-                  >
-                    <div className="text-left">
-                      <div className="font-bold text-sm">The Vibe Master</div>
-                      <div className="text-[10px] text-muted-foreground">Sections, Containers & Diff</div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-primary" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-between h-auto py-3 px-4 border-primary/30 hover:bg-primary/5 md:col-span-2"
-                    onClick={() => {
-                      onOpenChange(false);
-                      startTutorial('coding-without-code');
-                    }}
-                  >
-                    <div className="text-left">
-                      <div className="font-bold text-sm">Coding Without Code</div>
-                      <div className="text-[10px] text-muted-foreground">Lead the Agent through structural intent</div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-primary" />
-                  </Button>
+      <DialogContent className="max-w-[1000px] h-[85vh] p-0 overflow-hidden border-white/10 shadow-2xl bg-[#09090b]">
+        <div className="flex h-full w-full">
+          {/* Sidebar */}
+          <div className="w-[260px] flex flex-col border-r border-white/5 bg-[#0e0e11]">
+            <div className="p-6 border-b border-white/5">
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                  L
                 </div>
-              </section>
-
-              <div className="space-y-4">
-                <section>
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</span>
-                    Paste Your Code
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Copy any JavaScript function and paste it into the code editor on the left. LogiGo instantly parses your code and generates a flowchart visualization.
-                  </p>
-                  <div className="mt-2 p-3 bg-muted/50 rounded-md font-mono text-xs">
-                    function bubbleSort(arr) {'{'}<br />
-                    &nbsp;&nbsp;for (let i = 0; i {'<'} arr.length; i++) {'{'}<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;// Your logic here<br />
-                    &nbsp;&nbsp;{'}'}<br />
-                    {'}'}
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</span>
-                    Execute Step-by-Step
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Use the execution controls in the sidebar to run your code interactively:
-                  </p>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium min-w-[80px]">▶️ Play</span>
-                      <span className="text-muted-foreground">Auto-execute through all steps</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium min-w-[80px]">⏸️ Pause</span>
-                      <span className="text-muted-foreground">Pause execution at current step</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium min-w-[80px]">⏭️ Step</span>
-                      <span className="text-muted-foreground">Execute one step at a time</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary font-medium min-w-[80px]">🔄 Reset</span>
-                      <span className="text-muted-foreground">Reset to beginning</span>
-                    </li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold">3</span>
-                    Adjust Speed
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Use the speed selector in the sidebar to control execution speed from 0.25x (slow motion) to 20x (lightning fast). Perfect for debugging complex algorithms or quickly scanning familiar code.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-bold">4</span>
-                    Explore the Flowchart
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    The flowchart shows your code's control flow. Active nodes are highlighted in real-time as execution progresses. Use scroll/pinch to zoom, and drag to pan around large flowcharts.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold">💡</span>
-                    Pro Tip: Add Labels
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Make your flowcharts more readable by adding human-friendly labels:
-                  </p>
-                  <div className="p-3 bg-muted/50 rounded-md font-mono text-xs">
-                    {'// @logigo: Initialize counter'}<br />
-                    let i = 0;<br /><br />
-                    {'// @logigo: Check if done'}<br />
-                    while (i {'<'} 10) {'{ ... }'}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    <strong>Quick Tip:</strong> Right-click any node to add or edit labels directly from the UI. Nodes with labels show a blue dot; hover to see the original code.
-                  </p>
-                </section>
+                <h2 className="font-bold text-lg tracking-tight">LogiGo Doc</h2>
               </div>
-            </TabsContent>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] opacity-60">Documentation Center v1.2</p>
+            </div>
 
-            {/* Documentation Tab */}
-            <TabsContent value="documentation" className="space-y-6 pr-4">
-              <section className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-blue-500">📖</span>
-                  Full Documentation
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Access detailed guides and references:
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <a href="/docs/getting-started" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-getting-started">
-                    <span className="text-green-500">🚀</span>
-                    Getting Started
-                  </a>
-                  <a href="/docs/quick-reference" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-quick-reference">
-                    <span className="text-yellow-500">⚡</span>
-                    Quick Reference
-                  </a>
-                  <a href="/docs/installation" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-installation">
-                    <span className="text-blue-500">📦</span>
-                    Installation Guide
-                  </a>
-                  <a href="/docs/api-reference" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-api">
-                    <span className="text-purple-500">🔧</span>
-                    API Reference
-                  </a>
-                  <a href="/docs/common-pitfalls" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-pitfalls">
-                    <span className="text-red-500">⚠️</span>
-                    Common Pitfalls
-                  </a>
-                  <a href="/docs/vibe-coder-guide" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-vibe-coder">
-                    <span className="text-pink-500">✨</span>
-                    Vibe Coder Guide
-                  </a>
-                  <a href="/docs/mcp-guide" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-mcp-guide">
-                    <span className="text-cyan-400">🤖</span>
-                    MCP Guide
-                  </a>
-                  <a href="/docs/arena-masterclass" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-arena-masterclass">
-                    <span className="text-amber-500">🏛</span>
-                    Arena Masterclass
-                  </a>
-                  <a href="/docs/remote-sync" target="_blank" rel="noopener"
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors text-sm" data-testid="link-docs-remote-sync">
-                    <span className="text-blue-400">🛰</span>
-                    Remote Sync Guide
-                  </a>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-yellow-500">✏️</span>
-                  Bidirectional Editing
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Edit code directly from the flowchart - changes sync back to your source:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Double-click any node:</strong> Opens an inline editor for that code block</li>
-                  <li>• <strong>Edit and save:</strong> Your changes update the source code in the editor</li>
-                  <li>• <strong>Flowchart updates:</strong> The flowchart regenerates to reflect your changes</li>
-                  <li>• <strong>Two-way sync:</strong> Edit in code or flowchart - both stay in sync</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-gradient bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text">🤖</span>
-                  Model Arena (4-AI Comparison)
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Compare code generation from 4 different AI models side-by-side:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>4 AI Models:</strong> OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, Grok 4</li>
-                  <li>• <strong>Side-by-side view:</strong> See code and flowcharts from all models at once</li>
-                  <li>• <strong>Chairman Verdict:</strong> AI synthesizes all responses into one recommendation</li>
-                  <li>• <strong>Session History:</strong> Save and review past arena sessions</li>
-                  <li>• <strong>Code Similarity:</strong> See how similar the generated solutions are</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Access via the "Model Arena" link in the header navigation.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-red-500">🔧</span>
-                  Debug Arena
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Get debugging advice from 4 AI models simultaneously:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Describe your problem:</strong> Explain the bug you're encountering</li>
-                  <li>• <strong>Paste error logs:</strong> Include stack traces and error messages</li>
-                  <li>• <strong>Add code snippets:</strong> Share the relevant code</li>
-                  <li>• <strong>Compare solutions:</strong> See different debugging approaches from each AI</li>
-                  <li>• <strong>Chairman synthesis:</strong> Get a unified debugging recommendation</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Toggle between "Code" and "Debug" modes in the Model Arena.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-amber-500">🔑</span>
-                  BYOK (Bring Your Own Key)
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Use your own API keys for AI features in Model Arena:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Settings button:</strong> Click the gear icon in Model Arena header</li>
-                  <li>• <strong>Add your keys:</strong> Enter API keys for OpenAI, Gemini, Anthropic, or xAI</li>
-                  <li>• <strong>Local storage:</strong> Keys are stored securely in your browser only</li>
-                  <li>• <strong>Per-request:</strong> Keys are sent via headers, never stored on server</li>
-                  <li>• <strong>Optional:</strong> LogiGo works without your keys using shared quota</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-blue-500">💻</span>
-                  VS Code Extension
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Visualize code directly in VS Code with the LogiGo extension:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Command palette:</strong> "LogiGo: Visualize Current File"</li>
-                  <li>• <strong>Auto-refresh:</strong> Flowchart updates as you type</li>
-                  <li>• <strong>Jump to line:</strong> Click flowchart nodes to navigate to source</li>
-                  <li>• <strong>Bidirectional:</strong> Edit code from the flowchart panel</li>
-                  <li>• <strong>LM Context:</strong> Provides flowchart context to GitHub Copilot</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Install from the <code className="bg-muted px-1 py-0.5 rounded text-xs">vscode-extension/</code> folder (.vsix file).
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-cyan-500">🔍</span>
-                  View Levels
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  LogiGo displays a view level indicator based on your current zoom level:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Mile-High ({'<'}40% zoom):</strong> Overview of your entire codebase structure</li>
-                  <li>• <strong>1000ft (40-100% zoom):</strong> Normal viewing with full flow logic visible</li>
-                  <li>• <strong>100ft ({'>'}100% zoom):</strong> Detailed view for examining specific nodes</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  The current view level is shown in the flowchart header (e.g., "View: 1000ft (50%)").
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-purple-500">📦</span>
-                  Collapsible Containers
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Organize large flowcharts with collapsible section containers:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Create sections:</strong> Use <code className="bg-muted px-1 py-0.5 rounded text-xs">// --- SECTION NAME ---</code> comments</li>
-                  <li>• <strong>Click to toggle:</strong> Click container nodes to expand or collapse</li>
-                  <li>• <strong>Visual indicators:</strong> Chevron icons show collapse state, badge shows child count</li>
-                  <li>• <strong>Hide children:</strong> Collapsed containers hide all child nodes</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3">Visual Handshake</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Connect code execution to UI elements on the page:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• Include <code className="bg-muted px-1 py-0.5 rounded text-xs">domElement</code> CSS selector in checkpoints</li>
-                  <li>• Studio highlights the element on the page for 1 second</li>
-                  <li>• Creates visual connection between logic and UI</li>
-                  <li>• Perfect for debugging UI interactions</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-sm">👻</span>
-                  Ghost Diff
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Visualize code changes directly on the flowchart. When you edit your code, Ghost Diff compares the previous version with your current version and highlights the differences:
-                </p>
-                <div className="mt-2 p-3 bg-muted/50 rounded-md space-y-2">
-                  <p className="text-xs font-semibold">Color Coding:</p>
-                  <ul className="space-y-1.5 text-sm">
-                    <li className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded bg-green-500"></span>
-                      <span className="text-muted-foreground"><strong>Green:</strong> New nodes (code you just added)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded bg-red-500 opacity-50"></span>
-                      <span className="text-muted-foreground"><strong>Red/Ghost:</strong> Deleted nodes (code that was removed)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded bg-yellow-500"></span>
-                      <span className="text-muted-foreground"><strong>Yellow:</strong> Modified nodes (code that changed)</span>
-                    </li>
-                  </ul>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Toggle with the "Show Diff" button in Flow Tools, or press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">D</kbd> on your keyboard.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  Breakpoints
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Pause execution at specific points in your code to inspect the program state:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Set a breakpoint:</strong> Right-click on any flowchart node to open the context menu and select "Add Breakpoint"</li>
-                  <li>• <strong>Visual indicator:</strong> Once set, a red dot appears on the left side of the node</li>
-                  <li>• <strong>Execution pauses:</strong> When playback reaches a breakpoint, it automatically pauses</li>
-                  <li>• <strong>Inspect state:</strong> Check the Variables panel to see current values</li>
-                  <li>• <strong>Continue:</strong> Press Play to resume until the next breakpoint, or right-click to remove it</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Breakpoints are persisted even during code edits, but nodes may shift as code structure changes.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-purple-500">~</span>
-                  Variable History Timeline
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Track how variables change throughout execution with a visual timeline:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Access:</strong> Click the "History" tab in the Variables panel</li>
-                  <li>• <strong>Value chips:</strong> Each variable shows clickable chips for each recorded value</li>
-                  <li>• <strong>Step navigation:</strong> Click any value chip to jump to that execution step</li>
-                  <li>• <strong>Bar charts:</strong> For numeric variables with multiple values, a mini bar chart appears below</li>
-                  <li>• <strong>Trend indicators:</strong> Numeric variables show up/down arrows when values change</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  History is reset when you modify the code or click Reset.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-blue-400">🔗</span>
-                  Shareable URLs
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Share your flowchart with others using database-backed short links:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Create share:</strong> Click "Share Flowchart" to open the share dialog</li>
-                  <li>• <strong>Add metadata:</strong> Give your share a title and optional description</li>
-                  <li>• <strong>Short URLs:</strong> Links are short and clean (e.g., /s/abc12345)</li>
-                  <li>• <strong>View tracking:</strong> See how many times your share has been viewed</li>
-                  <li>• <strong>No account needed:</strong> Sharing works without sign-up or login</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Shares are stored in the database with persistent short IDs.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-green-400">📐</span>
-                  Layout Presets
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Quickly switch between different workspace layouts:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>50/50:</strong> Equal split between code editor and flowchart</li>
-                  <li>• <strong>30/70:</strong> More space for flowchart visualization</li>
-                  <li>• <strong>70/30:</strong> More space for code editing</li>
-                  <li>• <strong>Code Only:</strong> Maximize code editor, minimize flowchart</li>
-                  <li>• <strong>Flow Only:</strong> Maximize flowchart, minimize code editor</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Find the preset buttons in the sidebar under "Layout". Your preference is saved.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-cyan-400">🔍</span>
-                  Zoom Presets
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Jump to standard zoom levels with one click:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>25%:</strong> Maximum zoom out for overview of large flowcharts</li>
-                  <li>• <strong>50%:</strong> Mid-range view for navigating structure</li>
-                  <li>• <strong>100%:</strong> Full size for reading node details</li>
-                  <li>• <strong>Fit:</strong> Auto-fit the entire flowchart to the viewport</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Find the zoom buttons in the flowchart toolbar.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-yellow-400">↩️</span>
-                  Undo/Redo History
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Easily undo and redo code changes:
-                </p>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Undo:</strong> Press Ctrl+Z (Cmd+Z on Mac) to undo last change</li>
-                  <li>• <strong>Redo:</strong> Press Ctrl+Y (Cmd+Y on Mac) to redo undone change</li>
-                  <li>• <strong>Smart saving:</strong> Changes are recorded after 1 second of inactivity</li>
-                  <li>• <strong>Toolbar buttons:</strong> Click Undo/Redo in the sidebar History section</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  History is preserved during your session. Reset when you reload the page.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-orange-400">📚</span>
-                  Algorithm Examples
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Pre-loaded algorithm samples to help you learn and explore LogiGo's features:
-                </p>
-                <div className="space-y-3 text-sm text-muted-foreground ml-4">
-                  <div>
-                    <p className="font-medium text-foreground mb-1">Sorting Algorithms</p>
-                    <ul className="space-y-1">
-                      <li>• <strong>Quick Sort:</strong> Divide-and-conquer sorting with partition visualization</li>
-                      <li>• <strong>Bubble Sort:</strong> Simple comparison-based sorting for beginners</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground mb-1">Pathfinding</p>
-                    <ul className="space-y-1">
-                      <li>• <strong>A* Pathfinder:</strong> Optimal pathfinding with heuristic-based graph traversal</li>
-                      <li>• <strong>Maze Solver:</strong> Recursive backtracking to find a path through a maze</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground mb-1">Games (Interactive)</p>
-                    <ul className="space-y-1">
-                      <li>• <strong>TicTacToe AI:</strong> Play against an unbeatable minimax AI opponent</li>
-                      <li>• <strong>Snake Game:</strong> Classic snake game - use Arrow keys or WASD to play</li>
-                      <li>• <strong>Quiz Game:</strong> Interactive trivia quiz with score tracking</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground mb-1">Math & Recursion</p>
-                    <ul className="space-y-1">
-                      <li>• <strong>Fibonacci Memoized:</strong> Optimized recursive calculation with memoization</li>
-                      <li>• <strong>Calculator:</strong> Enter custom expressions like "25*4" to compute</li>
-                    </ul>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Access examples from the "Examples" dropdown in the sidebar.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="text-purple-400">🎛️</span>
-                  Execution Controls
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  All playback controls are located in the sidebar for a clean, focused interface:
-                </p>
-
-                <div className="p-3 bg-muted/50 rounded-md">
-                  <p className="text-sm font-semibold mb-2">Sidebar Controls</p>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Step through your code line-by-line with flowchart highlighting:
-                  </p>
-                  <ul className="space-y-1 text-xs text-muted-foreground">
-                    <li>• <strong>Play/Pause:</strong> Auto-step through code</li>
-                    <li>• <strong>Step Forward/Back:</strong> Move one step at a time</li>
-                    <li>• <strong>Reset/Stop:</strong> Return to beginning or end execution</li>
-                    <li>• <strong>Loop:</strong> Toggle continuous replay</li>
-                    <li>• <strong>Speed:</strong> Full range from 0.25x (slow-mo) to 20x (lightning fast)</li>
-                  </ul>
-                </div>
-
-                <p className="text-xs text-muted-foreground mt-3">
-                  <strong>Tip:</strong> Use slow speeds (0.25x-0.5x) to carefully observe complex logic,
-                  and fast speeds (10x-20x) to quickly scan through familiar code.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-3">Advanced Features</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground ml-4">
-                  <li>• <strong>Time Travel:</strong> Step backward through execution history</li>
-                  <li>• <strong>Export:</strong> Save flowcharts as PNG or PDF images</li>
-                  <li>• <strong>Natural Language Search:</strong> Search flowchart nodes using plain English queries</li>
-                  <li>• <strong>Ghost Diff:</strong> Visualize code changes with color-coded overlays</li>
-                </ul>
-              </section>
-            </TabsContent>
-
-            {/* Keyboard Shortcuts Tab */}
-            <TabsContent value="shortcuts" className="space-y-4 pr-4">
+            <ScrollArea className="flex-1 px-3 py-4">
               <div className="space-y-6">
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">Execution Control</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="Space or K" description="Play / Pause execution" />
-                    <ShortcutRow shortcut="S or →" description="Step forward (next step)" />
-                    <ShortcutRow shortcut="B or ←" description="Step backward (Time Travel)" />
-                    <ShortcutRow shortcut="R" description="Reset execution" />
-                    <ShortcutRow shortcut="L" description="Toggle loop mode" />
+                <div>
+                  <div className="px-3 mb-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">General</div>
+                  <div className="space-y-1">
+                    {VISIBLE_DOCS.map((doc) => (
+                      <button
+                        key={doc.id}
+                        onClick={() => setActiveSection(doc.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all group",
+                          activeSection === doc.id
+                            ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]"
+                            : "text-muted-foreground hover:text-white hover:bg-white/5"
+                        )}
+                      >
+                        <span className="text-base grayscale group-hover:grayscale-0 transition-all">{doc.emoji}</span>
+                        <span className="font-medium">{doc.title}</span>
+                      </button>
+                    ))}
                   </div>
-                </section>
+                </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">Speed Control</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="[" description="Decrease speed" />
-                    <ShortcutRow shortcut="]" description="Increase speed" />
-                    <ShortcutRow shortcut="1-5" description="Set speed preset (1=0.5x, 2=1x, 3=2x, 4=5x, 5=10x)" />
+                <div>
+                  <div className="px-3 mb-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Resources</div>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => setActiveSection('shortcuts')}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all group",
+                        activeSection === 'shortcuts' ? "bg-primary/20 text-primary border border-primary/20" : "text-muted-foreground hover:text-white"
+                      )}
+                    >
+                      <Keyboard className="w-4 h-4" />
+                      <span className="font-medium">Shortcuts</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveSection('gallery')}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all group",
+                        activeSection === 'gallery' ? "bg-primary/20 text-primary border border-primary/20" : "text-muted-foreground hover:text-white"
+                      )}
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      <span className="font-medium">Showcase Gallery</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveSection('about')}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all group",
+                        activeSection === 'about' ? "bg-primary/20 text-primary border border-primary/20" : "text-muted-foreground hover:text-white"
+                      )}
+                    >
+                      <Info className="w-4 h-4" />
+                      <span className="font-medium">About LogiGo</span>
+                    </button>
                   </div>
-                </section>
+                </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">View & Navigation</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="F" description="Toggle fullscreen (Workspace mode)" />
-                    <ShortcutRow shortcut="Escape" description="Exit fullscreen" />
-                    <ShortcutRow shortcut="V" description="Toggle variables panel" />
-                    <ShortcutRow shortcut="D" description="Toggle Ghost Diff overlay" />
-                    <ShortcutRow shortcut="Cmd/Ctrl + K" description="Focus Natural Language Search" />
+                <div className="pt-4 mt-4 border-t border-white/5">
+                  <div className="px-3 mb-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Interactive Tours</div>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => { onOpenChange(false); startTutorial('agent-nudge'); }}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-blue-400 hover:bg-blue-400/10 transition-colors"
+                    >
+                      <span>The Agent Bridge</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => { onOpenChange(false); startTutorial('vibe-master'); }}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-purple-400 hover:bg-purple-400/10 transition-colors"
+                    >
+                      <span>The Vibe Master</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
                   </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">History (New in V1)</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="Ctrl/Cmd + Z" description="Undo last code change" />
-                    <ShortcutRow shortcut="Ctrl/Cmd + Y" description="Redo undone change" />
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">File Operations</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="Cmd/Ctrl + O" description="Import code from file" />
-                    <ShortcutRow shortcut="Cmd/Ctrl + S" description="Export code to file" />
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-3">Export & Share</h3>
-                  <div className="space-y-2">
-                    <ShortcutRow shortcut="Cmd/Ctrl + E" description="Export flowchart as PNG" />
-                    <ShortcutRow shortcut="Cmd/Ctrl + P" description="Export flowchart as PDF" />
-                  </div>
-                </section>
+                </div>
               </div>
-            </TabsContent>
+            </ScrollArea>
 
-            {/* About Tab */}
-            <TabsContent value="about" className="space-y-4 pr-4">
-              <div className="space-y-6">
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">LogiGo Studio</h3>
-                  <p className="text-sm text-muted-foreground">
-                    A bidirectional code-to-flowchart visualization tool designed for "Vibe Coders" who benefit from visual learning and debugging.
-                  </p>
-                </section>
+            <div className="p-4 bg-muted/20 border-t border-white/5">
+              <a
+                href="https://github.com/JPaulGrayson/LogiGo"
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-white transition-colors"
+              >
+                <Github className="w-3 h-3" />
+                View Source on GitHub
+              </a>
+            </div>
+          </div>
 
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">Version</h3>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>LogiGo Studio:</strong> v1.0.0-beta<br />
-                    <strong>Reporter API:</strong> v1.0.0-beta.2 (Compatible with logigo-core)
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">Technology Stack</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• <strong>Parser:</strong> Acorn (ECMAScript 2020)</li>
-                    <li>• <strong>Visualization:</strong> React Flow (@xyflow/react)</li>
-                    <li>• <strong>UI Framework:</strong> React 18 + TypeScript</li>
-                    <li>• <strong>Styling:</strong> Tailwind CSS v4</li>
-                    <li>• <strong>Build Tool:</strong> Vite</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">Key Features</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>✓ Zero-friction static code analysis</li>
-                    <li>✓ Real-time runtime debugging (Live Mode)</li>
-                    <li>✓ Step-by-step execution with Time Travel</li>
-                    <li>✓ View Levels (Mile-High, 1000ft, 100ft zoom indicators)</li>
-                    <li>✓ Collapsible Containers (organize large flowcharts)</li>
-                    <li>✓ User Labels (@logigo: annotations with blue dot)</li>
-                    <li>✓ Bidirectional editing (code ↔ flowchart sync)</li>
-                    <li>✓ Visual Handshake (code ↔ DOM highlighting)</li>
-                    <li>✓ Variable inspection and tracking</li>
-                    <li>✓ Export to PNG/PDF</li>
-                    <li>✓ Natural Language Search</li>
-                    <li>✓ Model Arena (4-AI comparison)</li>
-                    <li>✓ Debug Arena (AI debugging advice)</li>
-                    <li>✓ BYOK (Bring Your Own API Keys)</li>
-                    <li>✓ VS Code Extension</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">New in V1</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>✓ Layout Presets (50/50, 30/70, 70/30, Code Only, Flow Only)</li>
-                    <li>✓ Zoom Presets (25%, 50%, 100%, Fit)</li>
-                    <li>✓ Undo/Redo History (Ctrl+Z, Ctrl+Y)</li>
-                    <li>✓ Enhanced Sharing (database-backed short URLs with metadata)</li>
-                    <li>✓ Arena Example Selector (6 pre-built coding prompts)</li>
-                    <li>✓ Agent API (programmatic code analysis endpoint)</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">Reporter API Integration</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    LogiGo Studio seamlessly integrates with logigo-core for runtime debugging:
-                  </p>
-                  <div className="p-3 bg-muted/50 rounded-md text-xs space-y-1">
-                    <p><strong>Message Protocol:</strong> window.postMessage (same-origin)</p>
-                    <p><strong>Message Envelope:</strong> {`{ source: 'LOGIGO_CORE', type: string, payload: any }`}</p>
-                    <p><strong>Event Types:</strong> LOGIGO_SESSION_START, LOGIGO_CHECKPOINT</p>
-                    <p><strong>Security:</strong> Origin validation, source verification, 15s inactivity timeout</p>
-                    <p><strong>Status:</strong> v1.0.0-beta.2 (Final Draft)</p>
-                    <p className="text-muted-foreground italic mt-2">Future: Handshake protocol for bidirectional control</p>
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-semibold mb-2">Philosophy</h3>
-                  <p className="text-sm text-muted-foreground italic">
-                    "LogiGo Studio is the universal entry point for code visualization—zero friction, instant insights.
-                    For power users who need runtime debugging, seamlessly connect to logigo-core without losing the simplicity."
-                  </p>
-                </section>
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
+            <header className="px-8 py-5 border-b border-white/5 flex items-center justify-between bg-[#0e0e11]/50 backdrop-blur-md sticky top-0 z-10">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight capitalize">
+                  {VISIBLE_DOCS.find(d => d.id === activeSection)?.title ||
+                    (activeSection === 'shortcuts' ? 'Shortcuts' :
+                      activeSection === 'about' ? 'About LogiGo' :
+                        activeSection === 'gallery' ? 'Showcase Gallery' : '')}
+                </h2>
               </div>
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
+              <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:text-white">
+                Close
+              </Button>
+            </header>
+
+            <ScrollArea className="flex-1 px-8 py-8">
+              <div className="max-w-3xl mx-auto">
+                {renderContent()}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -782,9 +415,9 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 
 function ShortcutRow({ shortcut, description }: { shortcut: string; description: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-3 rounded bg-muted/30 hover:bg-muted/50 transition-colors">
-      <span className="text-sm text-muted-foreground">{description}</span>
-      <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-background border border-border rounded shadow-sm">
+    <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+      <span className="text-sm text-slate-300">{description}</span>
+      <kbd className="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded shadow-sm font-mono">
         {shortcut}
       </kbd>
     </div>

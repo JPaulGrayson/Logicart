@@ -168,6 +168,7 @@ export default function Workbench() {
 
   // Help dialog state
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [helpDialogSection, setHelpDialogSection] = useState<string | undefined>(undefined);
 
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -2637,6 +2638,20 @@ export default function Workbench() {
             </Tooltip>
           </TooltipProvider>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setHelpDialogSection('integration-wizard');
+              setHelpDialogOpen(true);
+            }}
+            className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary/10 shadow-[0_0_15px_rgba(37,99,235,0.1)]"
+            data-testid="button-connect-app"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            Connect App
+          </Button>
+
           <ThemeToggle />
 
           {/* Demo Mode Indicator */}
@@ -2670,8 +2685,8 @@ export default function Workbench() {
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Plan</span>
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
-                          user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
-                            'bg-gray-500/20 text-gray-400'
+                        user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-gray-500/20 text-gray-400'
                         }`}>
                         {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
                       </span>
@@ -3318,7 +3333,14 @@ export default function Workbench() {
 
 
       {/* Help Dialog */}
-      <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
+      <HelpDialog
+        open={helpDialogOpen}
+        onOpenChange={(open) => {
+          setHelpDialogOpen(open);
+          if (!open) setHelpDialogSection(undefined);
+        }}
+        initialSection={helpDialogSection}
+      />
 
       {/* Share Dialog */}
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} code={code} />
