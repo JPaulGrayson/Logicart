@@ -24,7 +24,7 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown, Sparkles } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown, Sparkles, Wand2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { historyManager } from '@/lib/historyManager';
