@@ -20,7 +20,7 @@ This guide documents the tested integration flow for connecting any JavaScript a
 
 **Step 1: Add remote.js to HTML head**
 ```html
-<script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
 ```
 
 **Step 2: Add checkpoint() calls to key functions**
@@ -53,7 +53,7 @@ Copy this prompt and give it to Agent to integrate LogiGo:
 Add LogiGo visualization to this project.
 
 1. Add this script to the HTML head (before other scripts):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyAppName&autoOpen=false"></script>
+   <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyAppName&autoOpen=false"></script>
 
 2. Add checkpoint() calls at important points in my JavaScript:
    - At function start: checkpoint('functionName-start', { param1, param2 })
@@ -110,15 +110,21 @@ fetch('/app.js')
 ## API Reference
 
 ### checkpoint(id, variables, options)
-Send execution checkpoint to LogiGo:
+Send execution checkpoint to LogiGo (for Live Mode):
 ```javascript
 checkpoint('step-name', { var1: value1 });
 ```
 
-### window.LogiGo.registerCode(sourceCode)
-Register source code for flowchart parsing:
+### window.LogiGo.visualize(code, name)
+One-shot: registers code AND opens LogiGo Studio (recommended for Static Mode):
 ```javascript
-window.LogiGo.registerCode(sourceString);
+window.LogiGo.visualize(algorithmCode, 'My Algorithm');
+```
+
+### window.LogiGo.registerCode(code, name)
+Register source code for flowchart parsing without opening Studio:
+```javascript
+window.LogiGo.registerCode(sourceString, 'Optional Name');
 ```
 
 ### window.LogiGo.openStudio()
@@ -148,10 +154,17 @@ console.log(window.LogiGo.studioUrl);
 | project | "Remote App" | Name shown in LogiGo Studio |
 | autoOpen | true | Auto-open Studio on first checkpoint |
 | name | (same as project) | Alias for project |
+| mode | "checkpoint" | Use "push" for static visualization mode |
+| hideBadge | false | Set to "true" to hide the LogiGo badge overlay |
 
-Example:
+Example (Live Mode with checkpoints):
 ```html
-<script src="/remote.js?project=TodoApp&autoOpen=false"></script>
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=TodoApp&autoOpen=false"></script>
+```
+
+Example (Static Mode for one-shot visualization):
+```html
+<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
 ```
 
 ---
