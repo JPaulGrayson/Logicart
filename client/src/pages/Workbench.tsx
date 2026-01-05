@@ -38,6 +38,7 @@ import { HelpDialog } from '@/components/ide/HelpDialog';
 import { ShareDialog } from '@/components/ide/ShareDialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useLicense, useUsage } from '@/hooks/useLicense';
+import { GitHubSyncModal } from '@/components/github/GitHubSyncModal';
 import { useWatchFile } from '@/hooks/useWatchFile';
 import { User, LogIn, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -175,6 +176,7 @@ export default function Workbench() {
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showGitHubSyncModal, setShowGitHubSyncModal] = useState(false);
 
   // AI Debug / Visualize Flow state
   const [showDebugPane, setShowDebugPane] = useState(false);
@@ -2562,6 +2564,15 @@ export default function Workbench() {
         </DialogContent>
       </Dialog>
 
+      {/* GitHub Sync Modal */}
+      <GitHubSyncModal
+        open={showGitHubSyncModal}
+        onOpenChange={setShowGitHubSyncModal}
+        code={code}
+        flowchartData={flowData}
+        token={token}
+      />
+
       {/* Minimal Header - Just Branding */}
       <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
         <div className="flex items-center gap-3">
@@ -3159,7 +3170,7 @@ export default function Workbench() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => hasGitSync ? toast.info('GitHub sync coming soon!') : setShowUpgradeModal(true)}
+                            onClick={() => hasGitSync ? setShowGitHubSyncModal(true) : setShowUpgradeModal(true)}
                             className={`h-7 w-7 p-0 ${!hasGitSync ? 'opacity-50' : ''}`}
                             title={hasGitSync ? "Sync Flowchart to GitHub" : "Pro Feature: GitHub Sync"}
                             data-testid="button-git-sync"
