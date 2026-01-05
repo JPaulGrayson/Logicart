@@ -20,48 +20,30 @@
 
 Use this decision tree to find the right approach:
 
-```
-START HERE: What do you want to do?
-│
-├─ 📖 Just visualize code to understand it
-│  │
-│  └─ ✅ STATIC MODE (No Installation)
-│     • Open LogiGo Studio
-│     • Paste your code
-│     • See flowchart instantly
-│     └─ Best for: Learning, code reviews, quick visualization
-│
-├─ 🔧 Add flowcharts to my React app
-│  │
-│  └─ ✅ EMBED COMPONENT
-│     • npm install logigo-embed
-│     • Import <LogiGoEmbed /> component
-│     • Pass code as prop
-│     └─ Best for: Documentation, demos, educational apps
-│
-├─ 🏗️ Auto-instrument my Vite project
-│  │
-│  └─ ✅ VITE PLUGIN
-│     • npm install logigo-vite-plugin
-│     • Add to vite.config.js
-│     • Automatic checkpoint injection
-│     └─ Best for: Build-time instrumentation, minimal code changes
-│
-├─ 🐛 Debug my Node.js/Express server
-│  │
-│  └─ ✅ BACKEND LOGGING
-│     • Copy checkpoint helper (no npm package)
-│     • Add to server file
-│     • Logs to console
-│     └─ Best for: Server-side debugging, API logic
-│
-└─ 🎯 Fine-grained control over checkpoints
-   │
-   └─ ✅ MANUAL CHECKPOINTS
-      • npm install logigo-core
-      • Add checkpoint() calls manually
-      • Full control over tracking
-      └─ Best for: Complex debugging, precise instrumentation
+```mermaid
+graph TD
+    A[What do you want to do?] --> B{Just visualize code?}
+    B -->|Yes| C[STATIC MODE<br/>No Installation Required]
+    B -->|No| D{Add to React app?}
+    D -->|Yes| E[EMBED COMPONENT<br/>npm install logigo-embed]
+    D -->|No| F{Auto-instrument Vite?}
+    F -->|Yes| G[VITE PLUGIN<br/>npm install logigo-vite-plugin]
+    F -->|No| H{Debug Node.js server?}
+    H -->|Yes| I[BACKEND LOGGING<br/>Copy checkpoint helper]
+    H -->|No| J[MANUAL CHECKPOINTS<br/>npm install logigo-core]
+
+    C --> C1[Best for: Learning, code reviews]
+    E --> E1[Best for: Docs, demos, educational apps]
+    G --> G1[Best for: Build-time instrumentation]
+    I --> I1[Best for: Server-side debugging]
+    J --> J1[Best for: Complex debugging, precise control]
+
+    style A fill:#4f46e5,stroke:#312e81,color:#fff
+    style C fill:#10b981,stroke:#065f46,color:#fff
+    style E fill:#10b981,stroke:#065f46,color:#fff
+    style G fill:#10b981,stroke:#065f46,color:#fff
+    style I fill:#10b981,stroke:#065f46,color:#fff
+    style J fill:#10b981,stroke:#065f46,color:#fff
 ```
 
 ---
