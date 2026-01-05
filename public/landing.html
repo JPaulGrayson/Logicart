@@ -80,9 +80,9 @@
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-bold uppercase tracking-wider mb-6 animate-pulse-slow">
                     <span class="w-2 h-2 rounded-full bg-primary"></span> v1.0 Launch
                 </div>
-                <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-                    Stop staring at AI <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary animate-gradient">Spaghetti Code.</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-6 leading-[1.4]">
+                    Stop staring at AI <br class="mb-2">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary animate-gradient mt-2 inline-block">Spaghetti Code.</span>
                 </h1>
                 <p class="text-lg md:text-2xl text-textMuted leading-relaxed max-w-2xl mx-auto mb-10">
                     Your Agent writes code at lightspeed. LogiGo helps you <strong class="text-white">see the logic</strong>, debug the flow, and trust the output in real-time.
@@ -261,15 +261,19 @@
             </div>
         </section>
 
-        <section class="py-24 px-6 max-w-7xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section id="features" class="py-24 px-6 max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">Powerful Features for Visual Debugging</h2>
+                <p class="text-textMuted max-w-2xl mx-auto">Everything you need to understand, debug, and trust AI-generated code.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="glass-panel p-8 rounded-2xl hover:border-primary/30 transition-colors group">
                     <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform">
                         <i data-lucide="history" class="w-6 h-6"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-white">Time Travel Debugging</h3>
                     <p class="text-textMuted leading-relaxed">
-                        Don't just guess. Scrub the execution timeline backwards to find exactly where the state corrupted. Watch variables change in reverse.
+                        Scrub the execution timeline backwards to find exactly where the state corrupted. Watch variables change in reverse.
                     </p>
                 </div>
 
@@ -279,7 +283,47 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-white">Ghost Diff Overlay</h3>
                     <p class="text-textMuted leading-relaxed">
-                        Your agent refactored the code. What changed? We overlay the new logic on the old flowchart in green and red. See the structural impact instantly.
+                        See what your agent changed. We overlay the new logic on the old flowchart in green and red.
+                    </p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-2xl hover:border-success/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center mb-6 text-success group-hover:scale-110 transition-transform">
+                        <i data-lucide="swords" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Model Arena</h3>
+                    <p class="text-textMuted leading-relaxed">
+                        Compare code from 4 AI models side-by-side. See which one writes cleaner logic with complexity metrics.
+                    </p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-2xl hover:border-red-500/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center mb-6 text-red-400 group-hover:scale-110 transition-transform">
+                        <i data-lucide="bug" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Debug Arena</h3>
+                    <p class="text-textMuted leading-relaxed">
+                        Stuck in an infinite loop? Visualize the crash path and get AI-powered fix suggestions.
+                    </p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-2xl hover:border-yellow-500/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-6 text-yellow-400 group-hover:scale-110 transition-transform">
+                        <i data-lucide="search" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Natural Language Search</h3>
+                    <p class="text-textMuted leading-relaxed">
+                        Ask "show me all conditionals" or "find loops" and watch matching nodes light up in your flowchart.
+                    </p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-2xl hover:border-cyan-500/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-6 text-cyan-400 group-hover:scale-110 transition-transform">
+                        <i data-lucide="github" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">GitHub Sync</h3>
+                    <p class="text-textMuted leading-relaxed">
+                        Back up your flowcharts to GitHub. Share your visual logic with teammates in one click.
                     </p>
                 </div>
             </div>
