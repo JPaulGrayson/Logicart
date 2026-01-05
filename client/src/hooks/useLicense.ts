@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY = 'voyai_token';
 const DEMO_MODE_KEY = 'logigo_demo_mode';
+const DEMO_EXPIRY_KEY = 'logigo_demo_expiry';
 const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
 const DEFAULT_MANAGED_ALLOWANCE = 50;
+const DEMO_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface VoyaiTokenPayload {
   userId: string;
@@ -79,19 +81,33 @@ export function useLicense() {
     token: null,
   });
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoExpiresAt, setDemoExpiresAt] = useState<number | null>(null);
 
   useEffect(() => {
     const demoMode = localStorage.getItem(DEMO_MODE_KEY) === 'true';
-    if (demoMode) {
-      console.log('[Demo] Restored demo mode session');
-      setIsDemoMode(true);
-      setState({
-        isAuthenticated: true,
-        isLoading: false,
-        user: DEMO_USER,
-        token: 'demo-token',
-      });
-      return;
+    const storedExpiry = localStorage.getItem(DEMO_EXPIRY_KEY);
+    const expiryTime = storedExpiry ? parseInt(storedExpiry, 10) : null;
+    
+    if (demoMode && expiryTime) {
+      if (Date.now() < expiryTime) {
+        console.log('[Demo] Restored demo mode session, expires:', new Date(expiryTime).toLocaleString());
+        setIsDemoMode(true);
+        setDemoExpiresAt(expiryTime);
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: DEMO_USER,
+          token: 'demo-token',
+        });
+        return;
+      } else {
+        console.log('[Demo] Demo mode expired, clearing...');
+        localStorage.removeItem(DEMO_MODE_KEY);
+        localStorage.removeItem(DEMO_EXPIRY_KEY);
+      }
+    } else if (demoMode) {
+      console.log('[Demo] Demo mode found but no expiry, clearing...');
+      localStorage.removeItem(DEMO_MODE_KEY);
     }
 
     const storedToken = localStorage.getItem(STORAGE_KEY);
@@ -125,6 +141,57 @@ export function useLicense() {
     }
   }, []);
 
+  // Shared helper to exit demo mode and restore previous session if any
+  const exitDemoMode = useCallback(() => {
+    localStorage.removeItem(DEMO_MODE_KEY);
+    localStorage.removeItem(DEMO_EXPIRY_KEY);
+    setIsDemoMode(false);
+    setDemoExpiresAt(null);
+    
+    // Try to restore previous Voyai session
+    const storedToken = localStorage.getItem(STORAGE_KEY);
+    if (storedToken) {
+      const payload = decodeJWT(storedToken);
+      if (payload && !isTokenExpired(payload)) {
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: payload,
+          token: storedToken,
+        });
+        console.log('[Demo] Exited demo mode, restored session for:', payload.email);
+        return;
+      }
+    }
+    setState({
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      token: null,
+    });
+    console.log('[Demo] Exited demo mode');
+  }, []);
+
+  // Auto-expire demo mode when time runs out
+  useEffect(() => {
+    if (!isDemoMode || !demoExpiresAt) return;
+    
+    const remaining = demoExpiresAt - Date.now();
+    if (remaining <= 0) {
+      console.log('[Demo] Demo mode expired, auto-exiting...');
+      exitDemoMode();
+      return;
+    }
+    
+    // Set timer to expire demo mode
+    const timer = setTimeout(() => {
+      console.log('[Demo] Demo mode timer expired, auto-exiting...');
+      exitDemoMode();
+    }, remaining);
+    
+    return () => clearTimeout(timer);
+  }, [isDemoMode, demoExpiresAt, exitDemoMode]);
+
   const setToken = useCallback((token: string) => {
     const payload = decodeJWT(token);
     console.log('[Voyai] Token payload:', payload);
@@ -153,7 +220,9 @@ export function useLicense() {
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(DEMO_MODE_KEY);
+    localStorage.removeItem(DEMO_EXPIRY_KEY);
     setIsDemoMode(false);
+    setDemoExpiresAt(null);
     setState({
       isAuthenticated: false,
       isLoading: false,
@@ -169,41 +238,22 @@ export function useLicense() {
 
   const toggleDemoMode = useCallback(() => {
     if (isDemoMode) {
-      localStorage.removeItem(DEMO_MODE_KEY);
-      setIsDemoMode(false);
-      const storedToken = localStorage.getItem(STORAGE_KEY);
-      if (storedToken) {
-        const payload = decodeJWT(storedToken);
-        if (payload && !isTokenExpired(payload)) {
-          setState({
-            isAuthenticated: true,
-            isLoading: false,
-            user: payload,
-            token: storedToken,
-          });
-          console.log('[Demo] Demo mode disabled, restored session for:', payload.email);
-          return;
-        }
-      }
-      setState({
-        isAuthenticated: false,
-        isLoading: false,
-        user: null,
-        token: null,
-      });
-      console.log('[Demo] Demo mode disabled');
+      exitDemoMode();
     } else {
+      const expiryTime = Date.now() + DEMO_DURATION_MS;
       localStorage.setItem(DEMO_MODE_KEY, 'true');
+      localStorage.setItem(DEMO_EXPIRY_KEY, expiryTime.toString());
       setIsDemoMode(true);
+      setDemoExpiresAt(expiryTime);
       setState({
         isAuthenticated: true,
         isLoading: false,
         user: DEMO_USER,
         token: 'demo-token',
       });
-      console.log('[Demo] Demo mode enabled');
+      console.log('[Demo] Demo mode enabled, expires:', new Date(expiryTime).toLocaleString());
     }
-  }, [isDemoMode]);
+  }, [isDemoMode, exitDemoMode]);
 
   const hasFeature = useCallback(
     (feature: 'history_database' | 'rabbit_hole_rescue' | 'github_sync'): boolean => {
@@ -235,6 +285,7 @@ export function useLicense() {
     hasManagedAI,
     managedAllowance,
     isDemoMode,
+    demoExpiresAt,
     toggleDemoMode,
   };
 }

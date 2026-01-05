@@ -123,7 +123,7 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
-  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token, isDemoMode, toggleDemoMode } = useLicense();
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token, isDemoMode, demoExpiresAt, toggleDemoMode } = useLicense();
   const { currentUsage, managedAllowance, remaining, isLoading: usageLoading } = useUsage(token, isAuthenticated, hasManagedAI, isDemoMode);
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
@@ -197,6 +197,16 @@ export default function Workbench() {
     '50-50': { sidebar: 50, flowchart: 50, label: '50/50' },
     '30-70': { sidebar: 30, flowchart: 70, label: '30/70' },
     'flow-only': { sidebar: 0, flowchart: 100, label: 'Flow Only' },
+  };
+
+  const formatDemoTimeRemaining = (expiresAt: number | null): string => {
+    if (!expiresAt) return '';
+    const remaining = expiresAt - Date.now();
+    if (remaining <= 0) return 'Expired';
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
   };
 
   const applyLayoutPreset = (presetKey: keyof typeof layoutPresets) => {
@@ -2756,6 +2766,11 @@ export default function Workbench() {
                     <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
                       <LogOut className="w-3.5 h-3.5 mr-2" />
                       Exit Demo Mode
+                      {demoExpiresAt && (
+                        <span className="ml-auto text-[10px] text-amber-400">
+                          {formatDemoTimeRemaining(demoExpiresAt)}
+                        </span>
+                      )}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={logout} data-testid="button-logout">
@@ -2774,7 +2789,7 @@ export default function Workbench() {
                   className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
                   data-testid="button-demo-mode"
                 >
-                  Try Demo
+                  Try Demo (24h)
                 </Button>
                 <Button
                   variant="outline"
