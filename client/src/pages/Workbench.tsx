@@ -2556,7 +2556,7 @@ export default function Workbench() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <Button
             variant={showDebugPane ? "default" : "outline"}
             size="sm"
@@ -2765,7 +2765,7 @@ export default function Workbench() {
             variant="ghost"
             size="sm"
             onClick={() => setHelpDialogOpen(true)}
-            className="h-7 px-2"
+            className="h-7 px-2 flex-shrink-0"
             data-testid="button-help"
           >
             <HelpCircle className="w-4 h-4" />
