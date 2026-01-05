@@ -91,9 +91,9 @@
                     <a href="/" class="px-8 py-4 bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 no-underline">
                         <i data-lucide="zap"></i> Try Live Demo
                     </a>
-                    <button onclick="navigator.clipboard.writeText('npm install logigo').then(() => { this.innerHTML = '<i data-lucide=\\'check\\'></i> Copied! Paste in your terminal'; setTimeout(() => { this.innerHTML = '<i data-lucide=\\'terminal\\'></i> npm install logigo'; lucide.createIcons(); }, 3000); lucide.createIcons(); })" class="px-8 py-4 bg-surfaceHighlight hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2" title="Click to copy - paste this in your project's terminal">
-                        <i data-lucide="terminal"></i> npm install logigo
-                    </button>
+                    <a href="https://github.com" target="_blank" class="px-8 py-4 bg-surfaceHighlight hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 no-underline" title="View source code and documentation">
+                        <i data-lucide="github"></i> View on GitHub
+                    </a>
                 </div>
             </div>
 
@@ -107,7 +107,7 @@
                             <div class="flex gap-1.5"><div class="w-3 h-3 rounded-full bg-red-500/20"></div><div class="w-3 h-3 rounded-full bg-yellow-500/20"></div><div class="w-3 h-3 rounded-full bg-green-500/20"></div></div>
                             <span class="text-xs text-slate-600 font-mono ml-2">agent_output.ts</span>
                         </div>
-                        <svg width="100%" height="400" class="opacity-60">
+                        <svg width="100%" height="400" class="opacity-80">
                             <defs>
                                 <linearGradient id="codeFade" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#475569" />
@@ -116,13 +116,15 @@
                             </defs>
                             <g class="code-lines">
                                 <rect x="0" y="0" width="80" height="10" rx="2" fill="#8b5cf6" />
-                                <rect x="90" y="0" width="120" height="10" rx="2" fill="#94a3b8" />
-                                <rect x="20" y="25" width="200" height="10" rx="2" fill="#334155" />
-                                <rect x="20" y="45" width="150" height="10" rx="2" fill="#334155" />
+                                <rect x="90" y="0" width="120" height="10" rx="2" fill="#cbd5e1" />
+                                <rect x="20" y="25" width="200" height="10" rx="2" fill="#64748b" />
+                                <rect x="20" y="45" width="150" height="10" rx="2" fill="#64748b" />
                                 <rect x="40" y="70" width="100" height="10" rx="2" fill="#3b82f6" />
-                                <rect x="40" y="90" width="180" height="10" rx="2" fill="#334155" />
-                                <rect x="60" y="115" width="140" height="10" rx="2" fill="#334155" />
-                                <rect x="0" y="150" width="300" height="200" fill="url(#codeFade)" opacity="0.2" />
+                                <rect x="40" y="90" width="180" height="10" rx="2" fill="#64748b" />
+                                <rect x="60" y="115" width="140" height="10" rx="2" fill="#64748b" />
+                                <rect x="0" y="140" width="220" height="10" rx="2" fill="#475569" />
+                                <rect x="20" y="165" width="180" height="10" rx="2" fill="#475569" />
+                                <rect x="0" y="200" width="300" height="150" fill="url(#codeFade)" opacity="0.3" />
                             </g>
                         </svg>
                         
@@ -213,7 +215,7 @@
                     <p class="text-textMuted">LogiGo bridges the gap between your editor, your agent, and your understanding.</p>
                 </div>
 
-                <div class="relative max-w-4xl mx-auto h-[300px] flex items-center justify-center">
+                <div class="relative max-w-4xl mx-auto h-[300px] hidden md:flex items-center justify-center">
                     <svg width="100%" height="100%" viewBox="0 0 800 400">
                         <path d="M150 100 Q 400 100 400 180" fill="none" stroke="url(#lineGradLeft)" stroke-width="2" stroke-dasharray="5,5" class="animate-pulse" />
                         <path d="M150 300 Q 400 300 400 220" fill="none" stroke="url(#lineGradLeft)" stroke-width="2" stroke-dasharray="5,5" class="animate-pulse" style="animation-delay: 0.5s" />
@@ -257,6 +259,36 @@
                             <circle cx="30" cy="40" r="6" fill="#10b981" />
                         </g>
                     </svg>
+                </div>
+                
+                <div class="flex flex-col gap-4 md:hidden px-4">
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <i data-lucide="bot" class="w-5 h-5 text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white text-sm">Replit Agent</div>
+                            <div class="text-xs text-textMuted">Bi-directional Sync</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                            <i data-lucide="code" class="w-5 h-5 text-accent"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white text-sm">Cursor / VS Code</div>
+                            <div class="text-xs text-textMuted">Extension Link</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl flex items-center gap-4 border-success/30">
+                        <div class="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                            <i data-lucide="globe" class="w-5 h-5 text-success"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white text-sm">Your Web App</div>
+                            <div class="text-xs text-textMuted">Remote Bridge Script</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
