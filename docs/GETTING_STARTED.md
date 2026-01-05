@@ -75,6 +75,18 @@ Use keyboard shortcuts to control execution:
 
 **Try it:** Press `Space` to watch the flowchart highlight each step!
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Studio
+    participant Visualizer
+    User->>Studio: Pastes Code
+    Studio->>Visualizer: Parses AST
+    Visualizer->>User: Shows Flowchart
+    User->>Studio: Presses Space
+    Studio->>Visualizer: Highlights Node
+```
+
 ---
 
 ## 🎨 Adding Human-Readable Labels
@@ -118,30 +130,24 @@ return total;
 
 **Visual Indicator:** Labeled nodes have a **blue dot** in the corner. Hover to see original code.
 
+```callout
+Pro Tip: Use // @logigo: My Label comments to give your nodes human-readable names!
+```
+
 ---
 
 ## 🔍 Understanding the Interface
 
 ### Main Components
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  LogiGo Studio                                          │
-├──────────────────┬──────────────────────────────────────┤
-│                  │                                      │
-│  Code Editor     │  Flowchart Visualization            │
-│                  │                                      │
-│  - Monaco Editor │  - Interactive nodes                │
-│  - Syntax        │  - Step highlighting                │
-│    highlighting  │  - Zoom/pan controls                │
-│  - Line numbers  │                                      │
-│                  │                                      │
-├──────────────────┴──────────────────────────────────────┤
-│  Debug Panel (Floating)                                 │
-│  - Current step indicator                               │
-│  - Variable values                                      │
-│  - Call stack                                           │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[Code Editor] -->|Parses| B(Acorn Parser)
+    B -->|Generates| C{Flowchart Engine}
+    C -->|Renders| D[React Flow Canvas]
+    C -->|Steps| E[Interpreter]
+    E -->|Updates| F[Debug Panel]
+    style D fill:#4f46e5,stroke:#fff,stroke-width:2px
 ```
 
 ### Debug Panel Features
