@@ -349,10 +349,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!filename) {
         // Fallback: search ALLOWED_DOCS case-insensitively and with underscore/hyphen flexibility
         const normalizedRequest = file.toLowerCase().replace(/-/g, '_').replace('.md', '');
-        filename = ALLOWED_DOCS.find(doc => {
+        const foundDoc = ALLOWED_DOCS.find(doc => {
           const normalizedDoc = doc.toLowerCase().replace(/-/g, '_').replace('.md', '');
           return normalizedDoc === normalizedRequest;
         });
+        if (foundDoc) {
+          filename = foundDoc;
+        }
       }
 
       // If still not found, use the original request but ensure .md
