@@ -80,18 +80,18 @@
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-bold uppercase tracking-wider mb-6 animate-pulse-slow">
                     <span class="w-2 h-2 rounded-full bg-primary"></span> v1.0 Launch
                 </div>
-                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
+                <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]">
                     Stop staring at AI <br>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary animate-gradient">Spaghetti Code.</span>
                 </h1>
-                <p class="text-xl text-textMuted leading-relaxed max-w-2xl mx-auto mb-10">
-                    Your Agent writes code at lightspeed. LogiGo helps you <strong>see the logic</strong>, debug the flow, and trust the output in real-time.
+                <p class="text-lg md:text-2xl text-textMuted leading-relaxed max-w-2xl mx-auto mb-10">
+                    Your Agent writes code at lightspeed. LogiGo helps you <strong class="text-white">see the logic</strong>, debug the flow, and trust the output in real-time.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <button class="px-8 py-4 bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <a href="/" class="px-8 py-4 bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 no-underline">
                         <i data-lucide="zap"></i> Try Live Demo
-                    </button>
-                    <button class="px-8 py-4 bg-surfaceHighlight hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
+                    </a>
+                    <button onclick="navigator.clipboard.writeText('npm install logigo').then(() => { this.innerHTML = '<i data-lucide=\\'check\\'></i> Copied!'; setTimeout(() => { this.innerHTML = '<i data-lucide=\\'terminal\\'></i> npm install logigo'; lucide.createIcons(); }, 2000); lucide.createIcons(); })" class="px-8 py-4 bg-surfaceHighlight hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
                         <i data-lucide="terminal"></i> npm install logigo
                     </button>
                 </div>
