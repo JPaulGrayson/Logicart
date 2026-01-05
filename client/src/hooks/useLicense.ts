@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 const STORAGE_KEY = 'voyai_token';
 const DEMO_MODE_KEY = 'logigo_demo_mode';
 const DEMO_EXPIRY_KEY = 'logigo_demo_expiry';
+const DEMO_STARTED_KEY = 'logigo_demo_started'; // Permanent - tracks first demo activation
 const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
 const DEFAULT_MANAGED_ALLOWANCE = 50;
 const DEMO_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -82,8 +83,23 @@ export function useLicense() {
   });
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoExpiresAt, setDemoExpiresAt] = useState<number | null>(null);
+  const [demoConsumed, setDemoConsumed] = useState(false); // True if demo was used and expired
 
   useEffect(() => {
+    // Check if demo was previously started and has expired (consumed)
+    const demoStarted = localStorage.getItem(DEMO_STARTED_KEY);
+    if (demoStarted) {
+      const startTime = parseInt(demoStarted, 10);
+      const expiryTime = startTime + DEMO_DURATION_MS;
+      if (Date.now() >= expiryTime) {
+        console.log('[Demo] Demo trial has been consumed (expired)');
+        setDemoConsumed(true);
+        // Clean up any lingering demo state
+        localStorage.removeItem(DEMO_MODE_KEY);
+        localStorage.removeItem(DEMO_EXPIRY_KEY);
+      }
+    }
+
     const demoMode = localStorage.getItem(DEMO_MODE_KEY) === 'true';
     const storedExpiry = localStorage.getItem(DEMO_EXPIRY_KEY);
     const expiryTime = storedExpiry ? parseInt(storedExpiry, 10) : null;
@@ -104,6 +120,7 @@ export function useLicense() {
         console.log('[Demo] Demo mode expired, clearing...');
         localStorage.removeItem(DEMO_MODE_KEY);
         localStorage.removeItem(DEMO_EXPIRY_KEY);
+        setDemoConsumed(true);
       }
     } else if (demoMode) {
       console.log('[Demo] Demo mode found but no expiry, clearing...');
@@ -179,6 +196,7 @@ export function useLicense() {
     const remaining = demoExpiresAt - Date.now();
     if (remaining <= 0) {
       console.log('[Demo] Demo mode expired, auto-exiting...');
+      setDemoConsumed(true);
       exitDemoMode();
       return;
     }
@@ -186,6 +204,7 @@ export function useLicense() {
     // Set timer to expire demo mode
     const timer = setTimeout(() => {
       console.log('[Demo] Demo mode timer expired, auto-exiting...');
+      setDemoConsumed(true);
       exitDemoMode();
     }, remaining);
     
@@ -240,7 +259,34 @@ export function useLicense() {
     if (isDemoMode) {
       exitDemoMode();
     } else {
-      const expiryTime = Date.now() + DEMO_DURATION_MS;
+      // Check if demo trial has been consumed
+      if (demoConsumed) {
+        console.log('[Demo] Demo trial already consumed, cannot reactivate');
+        return;
+      }
+      
+      // Check if there's already a start time (user is re-entering within 24h window)
+      let startTime = localStorage.getItem(DEMO_STARTED_KEY);
+      let expiryTime: number;
+      
+      if (startTime) {
+        // Use existing start time to calculate remaining time
+        const startTimeNum = parseInt(startTime, 10);
+        expiryTime = startTimeNum + DEMO_DURATION_MS;
+        
+        // Double-check we're still within the window
+        if (Date.now() >= expiryTime) {
+          console.log('[Demo] Demo trial expired, cannot reactivate');
+          setDemoConsumed(true);
+          return;
+        }
+      } else {
+        // First time activation - record start time
+        startTime = Date.now().toString();
+        localStorage.setItem(DEMO_STARTED_KEY, startTime);
+        expiryTime = parseInt(startTime, 10) + DEMO_DURATION_MS;
+      }
+      
       localStorage.setItem(DEMO_MODE_KEY, 'true');
       localStorage.setItem(DEMO_EXPIRY_KEY, expiryTime.toString());
       setIsDemoMode(true);
@@ -253,7 +299,7 @@ export function useLicense() {
       });
       console.log('[Demo] Demo mode enabled, expires:', new Date(expiryTime).toLocaleString());
     }
-  }, [isDemoMode, exitDemoMode]);
+  }, [isDemoMode, demoConsumed, exitDemoMode]);
 
   const hasFeature = useCallback(
     (feature: 'history_database' | 'rabbit_hole_rescue' | 'github_sync'): boolean => {
@@ -286,6 +332,7 @@ export function useLicense() {
     managedAllowance,
     isDemoMode,
     demoExpiresAt,
+    demoConsumed,
     toggleDemoMode,
   };
 }

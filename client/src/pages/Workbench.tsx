@@ -123,7 +123,7 @@ const detectFunctionCalls = (code: string): boolean => {
 
 export default function Workbench() {
   const { adapter, code, isReady } = useAdapter();
-  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token, isDemoMode, demoExpiresAt, toggleDemoMode } = useLicense();
+  const { isAuthenticated, user, login, logout, isLoading: licenseLoading, hasHistory, hasRescue, hasGitSync, hasManagedAI, token, isDemoMode, demoExpiresAt, demoConsumed, toggleDemoMode } = useLicense();
   const { currentUsage, managedAllowance, remaining, isLoading: usageLoading } = useUsage(token, isAuthenticated, hasManagedAI, isDemoMode);
   const [flowData, setFlowData] = useState(parseCodeToFlow(code));
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
@@ -2782,15 +2782,17 @@ export default function Workbench() {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-1.5">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleDemoMode}
-                  className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
-                  data-testid="button-demo-mode"
-                >
-                  Try Demo (24h)
-                </Button>
+                {!demoConsumed && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleDemoMode}
+                    className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
+                    data-testid="button-demo-mode"
+                  >
+                    Try Demo (24h)
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
