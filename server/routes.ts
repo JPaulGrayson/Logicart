@@ -266,6 +266,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/demo-src", express.static(path.join(__dirname, "..", "src")));
   app.use("/test-app", express.static(path.join(__dirname, "..", "public", "test-app")));
 
+  // Serve the marketing landing page
+  app.get("/landing.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "landing.html"));
+  });
+  app.get("/landing", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "landing.html"));
+  });
+
   // Serve the test page explicitly
   app.get("/test-antigravity.html", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "example", "test-antigravity.html"));
