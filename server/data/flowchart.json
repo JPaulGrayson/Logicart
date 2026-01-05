@@ -1,3 +1,1 @@
-{
-  "code": "OpenAI\ngpt-4o\n2\n• Clean\n4121ms\nfunction findDuplicates(arr) {\n  const seen = new Set();         // Set to store unique elements\n  const duplicates = new Set();   // Set to store duplicate elements\n\n  for (const item of arr) {\n    if (seen.has(item)) {\n      duplicates.add(item);       // Add to duplicates if item has been seen before\n    } else {\n      seen.add(item);             // Add to seen if encountering the item for the first time\n    }\n  }\n\n  return Array.from(duplicates);  // Convert set of duplicates to an array before returning\n}"
-}
+{"code": "// HACKED BY AGENT\nfunction testSync(x) {\n  if (x > 10) {\n    return \"big\";\n  } else {\n    return \"small\";\n  }\n}"}
