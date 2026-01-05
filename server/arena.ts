@@ -5,7 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { parseCodeToFlowchart, calculateSimilarityFromParsed, type ParseResult } from "./ai";
 import { storage } from "./storage";
 import { insertArenaSessionSchema } from "@shared/schema";
-import { requireHistoryFeature } from "./middleware";
+import { requireHistoryFeature, verifyTokenPublic } from "./middleware";
 
 interface ModelResult {
   model: string;
@@ -27,11 +27,16 @@ interface APIKeys {
 }
 
 function extractAPIKeys(req: Request): APIKeys {
+  // Check if user has managed AI access (authenticated with managed_allowance > 0 or demo mode)
+  const user = verifyTokenPublic(req);
+  const hasManagedAI = user && (user.features?.managed_allowance ?? 0) > 0;
+  
+  // Only fall back to server-side keys if user has managed AI access
   return {
-    openai: (req.headers["x-openai-key"] as string) || process.env.OPENAI_API_KEY,
-    gemini: (req.headers["x-gemini-key"] as string) || process.env.GEMINI_API_KEY,
-    anthropic: (req.headers["x-anthropic-key"] as string) || process.env.ANTHROPIC_API_KEY,
-    xai: (req.headers["x-xai-key"] as string) || process.env.XAI_API_KEY,
+    openai: (req.headers["x-openai-key"] as string) || (hasManagedAI ? process.env.OPENAI_API_KEY : undefined),
+    gemini: (req.headers["x-gemini-key"] as string) || (hasManagedAI ? process.env.GEMINI_API_KEY : undefined),
+    anthropic: (req.headers["x-anthropic-key"] as string) || (hasManagedAI ? process.env.ANTHROPIC_API_KEY : undefined),
+    xai: (req.headers["x-xai-key"] as string) || (hasManagedAI ? process.env.XAI_API_KEY : undefined),
   };
 }
 

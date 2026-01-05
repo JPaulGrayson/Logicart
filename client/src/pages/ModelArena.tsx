@@ -101,13 +101,14 @@ const MODEL_COLORS: Record<string, string> = {
   "Grok": "bg-purple-500/20 text-purple-400 border-purple-500/50",
 };
 
-function getAPIKeyHeaders(): Record<string, string> {
+function getAPIKeyHeaders(authToken?: string | null): Record<string, string> {
   const keys = getStoredAPIKeys();
   const headers: Record<string, string> = {};
   if (keys.openai) headers["x-openai-key"] = keys.openai;
   if (keys.gemini) headers["x-gemini-key"] = keys.gemini;
   if (keys.anthropic) headers["x-anthropic-key"] = keys.anthropic;
   if (keys.xai) headers["x-xai-key"] = keys.xai;
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
   return headers;
 }
 
@@ -142,7 +143,7 @@ export default function ModelArena() {
 
   const generateMutation = useMutation({
     mutationFn: async (prompt: string) => {
-      const headers = getAPIKeyHeaders();
+      const headers = getAPIKeyHeaders(token);
       const response = await apiRequest("POST", "/api/arena/generate", { prompt }, headers);
       return response.json() as Promise<ArenaResponse>;
     },
@@ -155,7 +156,7 @@ export default function ModelArena() {
 
   const debugMutation = useMutation({
     mutationFn: async (data: { problem: string; errorLogs: string; codeSnippet: string }) => {
-      const headers = getAPIKeyHeaders();
+      const headers = getAPIKeyHeaders(token);
       const response = await apiRequest("POST", "/api/arena/debug", data, headers);
       return response.json() as Promise<DebugResponse>;
     },
@@ -172,7 +173,7 @@ export default function ModelArena() {
       originalPrompt: string; 
       results: Array<{ provider: string; content: string }> 
     }) => {
-      const headers = getAPIKeyHeaders();
+      const headers = getAPIKeyHeaders(token);
       const response = await apiRequest("POST", "/api/arena/verdict", data, headers);
       const result = await response.json() as VerdictResponse;
       if (!result.success) {
