@@ -125,7 +125,7 @@ function applyStandardDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
     const isDecision = node.type === 'decision';
     const isContainer = node.type === 'container';
     g.setNode(node.id, {
-      width: isContainer ? 200 : (isDecision ? 100 : 150),
+      width: isContainer ? 240 : (isDecision ? 100 : 150),
       height: isContainer ? 80 : (isDecision ? 100 : 50)
     });
   });
@@ -141,7 +141,7 @@ function applyStandardDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
     if (nodeWithPosition) {
       const isDecision = node.type === 'decision';
       const isContainer = node.type === 'container';
-      const width = isContainer ? 200 : (isDecision ? 100 : 150);
+      const width = isContainer ? 240 : (isDecision ? 100 : 150);
       const height = isContainer ? 80 : (isDecision ? 100 : 50);
 
       node.position = {
@@ -159,9 +159,9 @@ function applyStandardDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
 
 // Two-phase layout: containers horizontal at top, flows below
 function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowNode[], edges: FlowEdge[]): void {
-  const CONTAINER_WIDTH = 200;
+  const CONTAINER_WIDTH = 240;
   const CONTAINER_HEIGHT = 80;
-  const CONTAINER_GAP = 60;
+  const CONTAINER_GAP = 80;
   const START_NODE_Y = 20;
   const CONTAINER_Y = 100;
   const FLOW_START_Y = CONTAINER_Y + CONTAINER_HEIGHT + 30;

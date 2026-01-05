@@ -57,7 +57,7 @@ function ContainerNode({ data, selected, id }: NodeProps) {
         border-2 border-purple-500/30
         rounded-lg
         p-3
-        min-w-[200px]
+        min-w-[240px]
         min-h-[80px]
         shadow-md
         ${selected ? 'ring-2 ring-purple-500 shadow-purple-500/50' : ''}
@@ -79,8 +79,8 @@ function ContainerNode({ data, selected, id }: NodeProps) {
         ) : (
           <ChevronDown className="w-3 h-3 text-purple-500" />
         )}
-        <Package className="w-3.5 h-3.5 text-purple-500" />
-        <div className="font-semibold text-xs text-foreground uppercase tracking-wide">
+        <Package className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
+        <div className="font-semibold text-xs text-foreground uppercase tracking-wide truncate max-w-[160px]" title={nodeData.label || 'Container'}>
           {nodeData.label || 'Container'}
         </div>
         {nodeData.children && (
