@@ -279,6 +279,42 @@ body:is(.dark *) {
   }
 }
 
+/* Crash Path Visualization - Red glow for infinite loop detection */
+.react-flow__node.crash-path-node {
+  outline: 4px solid #ef4444 !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.9), inset 0 0 15px rgba(239, 68, 68, 0.15) !important;
+  animation: crash-path-pulse 0.8s ease-in-out infinite;
+  z-index: 100 !important;
+}
+
+.react-flow__edge.crash-path-edge path {
+  stroke: #ef4444 !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 8px #ef4444) !important;
+  animation: crash-edge-dash 0.5s linear infinite;
+}
+
+@keyframes crash-path-pulse {
+  0%, 100% {
+    outline-color: #ef4444;
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.9);
+  }
+  50% {
+    outline-color: #f87171;
+    box-shadow: 0 0 60px rgba(248, 113, 113, 1);
+  }
+}
+
+@keyframes crash-edge-dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -20;
+  }
+}
+
 /* Ghost Diff Styling - High contrast for dark theme */
 .react-flow__node.diff-added {
   outline: 4px solid #4ade80 !important;

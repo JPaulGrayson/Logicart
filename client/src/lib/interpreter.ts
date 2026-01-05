@@ -21,6 +21,15 @@ export interface InterpreterStep {
 // Set to 5000 as a balance between showing useful execution traces and preventing browser freezes
 const MAX_STEPS = 5000;
 
+// Number of trailing steps to keep for crash path visualization
+const CRASH_PATH_TAIL_SIZE = 50;
+
+export interface CrashPathData {
+  nodeIds: Set<string>;
+  edgePairs: Array<{ source: string; target: string }>;
+  tailSteps: InterpreterStep[];
+}
+
 export class Interpreter {
   private ast: any;
   private code: string;
@@ -30,6 +39,7 @@ export class Interpreter {
   private currentStepIndex: number;
   private functionDeclarations: Map<string, any> = new Map();
   private stepLimitExceeded: boolean = false;
+  private crashPathData: CrashPathData | null = null;
   
   // Helper: Set variable and sync with current call frame
   private setVariable(name: string, value: any): void {
@@ -74,6 +84,7 @@ export class Interpreter {
     this.reset();
     this.steps = [];
     this.stepLimitExceeded = false;
+    this.crashPathData = null;
     this.state.status = 'running';
     
     const body = this.ast.body;
@@ -98,9 +109,9 @@ export class Interpreter {
         
         // Check if we hit the step limit
         if (this.stepLimitExceeded) {
-          this.steps = []; // Clear steps to prevent autoplay
+          this.buildCrashPathData();
           this.state.status = 'error';
-          this.state.error = 'STEP_LIMIT: This algorithm has too many steps for autoplay. Try using Step mode (S key) to step through manually.';
+          this.state.error = 'STEP_LIMIT: Infinite loop detected! The crash path is highlighted.';
           return false;
         }
         
@@ -131,9 +142,9 @@ export class Interpreter {
       
       // Check if we hit the step limit
       if (this.stepLimitExceeded) {
-        this.steps = []; // Clear steps to prevent autoplay
+        this.buildCrashPathData();
         this.state.status = 'error';
-        this.state.error = 'STEP_LIMIT: This algorithm has too many steps for autoplay. Try using Step mode (S key) to step through manually.';
+        this.state.error = 'STEP_LIMIT: Infinite loop detected! The crash path is highlighted.';
         return false;
       }
       
@@ -163,6 +174,43 @@ export class Interpreter {
       return this.state.error.split(': ')[1];
     }
     return this.state.error;
+  }
+  
+  // Build crash path data from the last N steps when step limit is exceeded
+  private buildCrashPathData(): void {
+    const tailSize = Math.min(CRASH_PATH_TAIL_SIZE, this.steps.length);
+    const tailSteps = this.steps.slice(-tailSize);
+    
+    // Extract unique node IDs from the tail
+    const nodeIds = new Set<string>();
+    tailSteps.forEach(step => nodeIds.add(step.nodeId));
+    
+    // Build edge pairs from consecutive steps
+    const edgePairs: Array<{ source: string; target: string }> = [];
+    for (let i = 0; i < tailSteps.length - 1; i++) {
+      const source = tailSteps[i].nodeId;
+      const target = tailSteps[i + 1].nodeId;
+      // Only add if not a duplicate (we want unique edges for visualization)
+      if (!edgePairs.some(e => e.source === source && e.target === target)) {
+        edgePairs.push({ source, target });
+      }
+    }
+    
+    this.crashPathData = {
+      nodeIds,
+      edgePairs,
+      tailSteps
+    };
+  }
+  
+  // Get crash path data for visualization (null if no crash)
+  getCrashPathData(): CrashPathData | null {
+    return this.crashPathData;
+  }
+  
+  // Check if there's an active crash path
+  hasCrashPath(): boolean {
+    return this.crashPathData !== null;
   }
   
   private collectSteps(statements: any[], depth: number = 0): any {

@@ -10,7 +10,7 @@ import { VariableWatch } from '@/components/ide/VariableWatch';
 import { NodeEditDialog } from '@/components/ide/NodeEditDialog';
 import { NodeLabelDialog } from '@/components/ide/NodeLabelDialog';
 import { parseCodeToFlow, FlowNode } from '@/lib/parser';
-import { Interpreter, ExecutionState } from '@/lib/interpreter';
+import { Interpreter, ExecutionState, CrashPathData } from '@/lib/interpreter';
 import { patchCode, extractCode } from '@/lib/codePatcher';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import type { ImperativePanelHandle } from "react-resizable-panels";
@@ -147,6 +147,7 @@ export default function Workbench() {
   const [diffNodes, setDiffNodes] = useState<DiffNode[]>([]);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
+  const [crashPath, setCrashPath] = useState<CrashPathData | null>(null);
   const [bookmarks, setBookmarks] = useState<Array<{ step: number; label: string }>>([]);
   const [breakpoints, setBreakpoints] = useState<Set<string>>(new Set());
   const [variableHistory, setVariableHistory] = useState<Array<{ step: number; variables: Record<string, unknown> }>>([]);
@@ -824,6 +825,9 @@ export default function Workbench() {
   }, [flowData.nodeMap]);
 
   const initializeInterpreter = () => {
+    // Clear any previous crash path
+    setCrashPath(null);
+    
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
 
     // Prepare the first function found in the code (no specific function name required)
@@ -835,17 +839,36 @@ export default function Workbench() {
       return true;
     }
 
-    // Check for step limit/recursion depth errors and show helpful message
+    // Check for step limit/recursion depth errors and show crash path
     if (interpreterRef.current.isStepLimitError()) {
-      const friendlyError = interpreterRef.current.getUserFriendlyError();
-      toast.warning('Algorithm too complex for autoplay', {
-        description: friendlyError || 'Try using Step mode (S key) to step through manually.',
-        duration: 8000,
-        action: {
-          label: 'Got it',
-          onClick: () => { }
-        }
-      });
+      const crashPathData = interpreterRef.current.getCrashPathData();
+      
+      if (crashPathData) {
+        // Set crash path for visualization
+        setCrashPath(crashPathData);
+        
+        // Show toast notification with crash path info
+        toast.error('Infinite Loop Detected', {
+          description: `Highlighting the crash path. Found ${crashPathData.nodeIds.size} nodes involved in the loop.`,
+          duration: 10000,
+          action: {
+            label: 'Clear',
+            onClick: () => setCrashPath(null)
+          }
+        });
+      } else {
+        // Fallback for cases without crash path data
+        const friendlyError = interpreterRef.current.getUserFriendlyError();
+        toast.warning('Algorithm too complex for autoplay', {
+          description: friendlyError || 'Try using Step mode (S key) to step through manually.',
+          duration: 8000,
+          action: {
+            label: 'Got it',
+            onClick: () => { }
+          }
+        });
+      }
+      
       // Clear the interpreter so user can retry
       interpreterRef.current = null;
     }
@@ -1395,6 +1418,8 @@ export default function Workbench() {
     adapter.writeFile(newCode);
     // Mark as saved immediately to prevent file watcher from treating this as external
     markAsSaved();
+    // Clear crash path when code changes (user is editing to fix the issue)
+    setCrashPath(null);
     // Only save code - parser will regenerate nodes from the code
     saveToFile({ code: newCode });
   };
@@ -3186,6 +3211,7 @@ export default function Workbench() {
                   breakpoints={effectiveBreakpoints}
                   runtimeState={runtimeState}
                   handshakeNodeId={handshakeNodeId}
+                  crashPath={crashPath}
                 />
               )}
 
@@ -3516,6 +3542,7 @@ ${code}
                 breakpoints={effectiveBreakpoints}
                 runtimeState={runtimeState}
                 handshakeNodeId={handshakeNodeId}
+                crashPath={crashPath}
               />
             )}
           </div>

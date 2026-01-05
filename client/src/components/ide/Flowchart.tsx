@@ -26,6 +26,11 @@ const VIEW_LEVELS = [
   { name: '100ft', zoom: 1.0, description: 'Statement-level detail' },
 ] as const;
 
+interface CrashPathData {
+  nodeIds: Set<string>;
+  edgePairs: Array<{ source: string; target: string }>;
+}
+
 interface FlowchartProps {
   nodes: FlowNode[];
   edges: FlowEdge[];
@@ -39,6 +44,7 @@ interface FlowchartProps {
   breakpoints?: Set<string>;
   runtimeState?: RuntimeState;
   handshakeNodeId?: string | null;
+  crashPath?: CrashPathData | null;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -50,7 +56,7 @@ const nodeTypes = {
   output: LabeledNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, onAddLabel, onRemoveLabel, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, onAddLabel, onRemoveLabel, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId, crashPath }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -124,11 +130,15 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       const isHighlighted = highlightedNodes && highlightedNodes.has(node.id);
       const hasBreakpoint = breakpoints && breakpoints.has(node.id);
       const isHandshaking = node.id === handshakeNodeId;
+      const isInCrashPath = crashPath?.nodeIds.has(node.id);
       
       // Preserve existing className (including diff styling) and add state classes
       let className = node.className || '';
       
-      if (isActive) {
+      if (isInCrashPath) {
+        // Crash path gets highest priority - red glow
+        className += ' crash-path-node ring-4 ring-red-500 ring-offset-2 ring-offset-background animate-pulse';
+      } else if (isActive) {
         className += ' active-node ring-4 ring-green-500 ring-offset-2 ring-offset-background';
       } else if (isHandshaking) {
         className += ' handshake-node ring-4 ring-amber-400 ring-offset-2 ring-offset-background animate-pulse';
@@ -163,8 +173,30 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
       } as unknown as Node;
     });
     setNodes(updatedNodes);
-    setEdges(initialEdges as unknown as Edge[]);
-  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, breakpoints, handshakeNodeId, setNodes, setEdges, getNodes]);
+    
+    // Apply crash path styling to edges
+    const updatedEdges = initialEdges.map(edge => {
+      const isInCrashPath = crashPath?.edgePairs.some(
+        pair => pair.source === edge.source && pair.target === edge.target
+      );
+      
+      if (isInCrashPath) {
+        return {
+          ...edge,
+          style: { 
+            stroke: '#ef4444', 
+            strokeWidth: 3,
+            filter: 'drop-shadow(0 0 6px #ef4444)'
+          },
+          animated: true,
+          className: 'crash-path-edge',
+        } as unknown as Edge;
+      }
+      return edge as unknown as Edge;
+    });
+    
+    setEdges(updatedEdges);
+  }, [initialNodes, initialEdges, activeNodeId, highlightedNodes, breakpoints, handshakeNodeId, crashPath, setNodes, setEdges, getNodes]);
   
   // Fit view and center when graph topology changes
   useEffect(() => {
