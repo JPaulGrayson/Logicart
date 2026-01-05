@@ -45,6 +45,7 @@ import { VisualizationPanel, DEFAULT_SORTING_STATE, DEFAULT_PATHFINDING_STATE, D
 import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, generateMazeSolverSteps, generateCalculatorSteps, generateQuizSteps, generateTicTacToeSteps, generateFibonacciSteps, generateSnakeSteps, type AnimationStep } from '@/lib/visualizationAnimation';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { TutorialSidebar } from '@/components/ide/TutorialSidebar';
+import { ComplexityBadge } from '@/components/ui/complexity-badge';
 
 // Use sessionStorage for Ghost Diff - persists within browser session
 const STORAGE_KEY = '__logigo_original_snapshot';
@@ -2563,6 +2564,9 @@ export default function Workbench() {
             <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
               {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
             </span>
+          )}
+          {flowData.nodes.length > 0 && (
+            <ComplexityBadge nodes={flowData.nodes} edges={flowData.edges} />
           )}
           {remoteSessionId && (
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${remoteConnectionStatus === 'connected'

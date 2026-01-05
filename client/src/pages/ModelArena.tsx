@@ -13,6 +13,7 @@ import { Loader2, Play, RotateCcw, ArrowLeft, Code2, GitBranch, FileCode, Bug, S
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import MiniFlowchart from "@/components/arena/MiniFlowchart";
+import { ComplexityScoreBadge, calculateComplexityFromArenaFlow } from "@/components/ui/complexity-badge";
 import SettingsModal, { getStoredAPIKeys } from "@/components/arena/SettingsModal";
 import { useLicense } from "@/hooks/useLicense";
 import type { ArenaSession } from "@shared/schema";
@@ -687,9 +688,17 @@ export default function ModelArena() {
                         </Badge>
                         <span className="text-sm text-gray-400">{result.model}</span>
                       </CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        {result.latencyMs}ms
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const flowchart = flowcharts[result.provider];
+                          const score = flowchart?.summary?.complexityScore ?? 
+                            (flowchart?.flow ? calculateComplexityFromArenaFlow(flowchart.flow) : undefined);
+                          return score !== undefined && <ComplexityScoreBadge score={score} />;
+                        })()}
+                        <Badge variant="outline" className="text-xs">
+                          {result.latencyMs}ms
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
