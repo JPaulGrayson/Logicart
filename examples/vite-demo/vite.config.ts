@@ -1,12 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
-      manifestPath: 'logigo-manifest.json',
+    logicartPlugin({
+      manifestPath: 'logicart-manifest.json',
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**']
     })

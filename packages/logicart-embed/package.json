@@ -1,5 +1,5 @@
 {
-  "name": "logigo-embed",
+  "name": "logicart-embed",
   "version": "0.1.0",
   "type": "module",
   "description": "Embeddable code-to-flowchart visualization for JavaScript",
@@ -46,8 +46,9 @@
     "javascript",
     "code-analysis",
     "debugging",
-    "react"
+    "react",
+    "logicart"
   ],
-  "author": "LogiGo",
+  "author": "LogicArt",
   "license": "MIT"
 }

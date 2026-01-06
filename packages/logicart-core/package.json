@@ -1,14 +1,14 @@
 {
-  "name": "logigo-core",
+  "name": "logicart-core",
   "version": "1.0.0",
-  "description": "LogiGo runtime library for checkpoint-based debugging and live code visualization",
+  "description": "LogicArt runtime library for checkpoint-based debugging and live code visualization",
   "type": "module",
-  "author": "LogiGo",
+  "author": "LogicArt",
   "repository": {
     "type": "git",
-    "url": "https://github.com/logigo/logigo-core"
+    "url": "https://github.com/logicart/logicart-core"
   },
-  "homepage": "https://github.com/logigo/logigo-core#readme",
+  "homepage": "https://github.com/logicart/logicart-core#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -31,7 +31,7 @@
     "typescript": "^5.0.0"
   },
   "keywords": [
-    "logigo",
+    "logicart",
     "debugging",
     "visualization",
     "checkpoint"

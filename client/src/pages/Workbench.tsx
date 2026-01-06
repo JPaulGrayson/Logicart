@@ -263,7 +263,7 @@ export default function Workbench() {
     }
   }, []);
 
-  // Runtime Mode state (logigo-core integration)
+  // Runtime Mode state (logicart-core integration)
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     isConnected: false,
     mode: 'static',
@@ -752,7 +752,7 @@ export default function Workbench() {
     };
   }, [code, isReady]);
 
-  // Listen for logigo-core runtime events via postMessage (Reporter API)
+  // Listen for logicart-core runtime events via postMessage (Reporter API)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Security: Only accept messages from same origin

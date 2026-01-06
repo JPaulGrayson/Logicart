@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import * as acorn from 'acorn';
-import { LogiGoEmbedProps, EmbedState, LogiGoManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
+import { LogicArtEmbedProps, EmbedState, LogicArtManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
 
 interface FlowNode {
   id: string;
@@ -170,7 +170,7 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
 
     return { nodes, edges };
   } catch (error) {
-    console.error('[LogiGo] Parse error:', error);
+    console.error('[LogicArt] Parse error:', error);
     return {
       nodes: [{ id: 'error', type: 'output' as const, data: { label: `Parse Error: ${(error as Error).message}` }, position: { x: 0, y: 0 } }],
       edges: []
@@ -178,7 +178,7 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
   }
 }
 
-function convertManifestToFlowData(manifest: LogiGoManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
+function convertManifestToFlowData(manifest: LogicArtManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
   const nodes: FlowNode[] = manifest.nodes.map(n => ({
     id: n.id,
     type: (n.type === 'decision' ? 'decision' : n.type === 'input' ? 'input' : n.type === 'output' ? 'output' : 'default') as FlowNode['type'],
@@ -267,7 +267,7 @@ function FlowchartPanel({ nodes, edges, activeNodeId, onNodeClick }: {
   );
 }
 
-export function LogiGoEmbed({
+export function LogicArtEmbed({
   code,
   manifestUrl,
   manifestHash,
@@ -282,7 +282,7 @@ export function LogiGoEmbed({
   onManifestLoad,
   onReady,
   onError
-}: LogiGoEmbedProps) {
+}: LogicArtEmbedProps) {
   const [state, setState] = useState<EmbedState>({
     isOpen: defaultOpen,
     size: defaultSize,
@@ -291,7 +291,7 @@ export function LogiGoEmbed({
     checkpointHistory: []
   });
   
-  const [manifest, setManifest] = useState<LogiGoManifest | null>(null);
+  const [manifest, setManifest] = useState<LogicArtManifest | null>(null);
   const [manifestNodes, setManifestNodes] = useState<FlowNode[]>([]);
   const [manifestEdges, setManifestEdges] = useState<FlowEdge[]>([]);
   const [parsedNodes, setParsedNodes] = useState<FlowNode[]>([]);
@@ -351,10 +351,10 @@ export function LogiGoEmbed({
         const response = await fetch(manifestUrl!);
         if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
         
-        const data: LogiGoManifest = await response.json();
+        const data: LogicArtManifest = await response.json();
         
         if (manifestHash && data.hash !== manifestHash) {
-          console.warn('[LogiGo] Manifest hash mismatch, may be stale');
+          console.warn('[LogicArt] Manifest hash mismatch, may be stale');
         }
         
         setManifest(data);
@@ -366,9 +366,9 @@ export function LogiGoEmbed({
         setIsLiveMode(true);
         
         onManifestLoad?.(data);
-        console.log(`[LogiGo] Loaded manifest with ${nodes.length} nodes`);
+        console.log(`[LogicArt] Loaded manifest with ${nodes.length} nodes`);
       } catch (error) {
-        console.error('[LogiGo] Failed to load manifest:', error);
+        console.error('[LogicArt] Failed to load manifest:', error);
         onError?.(error as Error);
       }
     }
@@ -386,10 +386,10 @@ export function LogiGoEmbed({
         
         // If hash changed (HMR), fetch new manifest immediately to sync UI
         if (manifest && manifest.hash !== newHash) {
-          console.log('[LogiGo] Code changed (HMR). Refreshing manifest...');
+          console.log('[LogicArt] Code changed (HMR). Refreshing manifest...');
           fetch(url)
             .then(res => res.json())
-            .then((data: LogiGoManifest) => {
+            .then((data: LogicArtManifest) => {
               setManifest(data);
               setSessionHash(newHash);
               const { nodes, edges } = convertManifestToFlowData(data);
@@ -399,7 +399,7 @@ export function LogiGoEmbed({
               // Reset history so we don't show stale state
               setState(prev => ({ ...prev, checkpointHistory: [], activeNodeId: null }));
             })
-            .catch(err => console.error('[LogiGo] Failed to refresh manifest:', err));
+            .catch(err => console.error('[LogicArt] Failed to refresh manifest:', err));
         } else {
            // First load or same hash
            setSessionHash(newHash);
@@ -468,7 +468,7 @@ export function LogiGoEmbed({
           zIndex: 9999,
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
         }}
-        data-testid="logigo-toggle"
+        data-testid="logicart-toggle"
       >
         ◈
       </button>
@@ -491,7 +491,7 @@ export function LogiGoEmbed({
         flexDirection: 'column',
         boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
       }}
-      data-testid="logigo-embed-panel"
+      data-testid="logicart-embed-panel"
     >
       <div
         style={{
@@ -510,7 +510,7 @@ export function LogiGoEmbed({
             fontSize: 12,
             fontFamily: 'system-ui, sans-serif'
           }}>
-            LogiGo
+            LogicArt
           </span>
           <span style={{
             fontSize: 9,
@@ -536,7 +536,7 @@ export function LogiGoEmbed({
             cursor: 'pointer',
             fontSize: 14
           }}
-          data-testid="logigo-close"
+          data-testid="logicart-close"
         >
           ×
         </button>
@@ -601,4 +601,5 @@ export function LogiGoEmbed({
   );
 }
 
-export default LogiGoEmbed;
+export default LogicArtEmbed;
+export { LogicArtEmbed as LogiGoEmbed };

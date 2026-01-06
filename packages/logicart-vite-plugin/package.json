@@ -1,14 +1,14 @@
 {
-  "name": "logigo-vite-plugin",
+  "name": "logicart-vite-plugin",
   "version": "1.0.0",
-  "description": "Vite plugin for LogiGo build-time code instrumentation and flowchart generation",
+  "description": "Vite plugin for LogicArt build-time code instrumentation and flowchart generation",
   "type": "module",
-  "author": "LogiGo",
+  "author": "LogicArt",
   "repository": {
     "type": "git",
-    "url": "https://github.com/logigo/logigo-vite-plugin"
+    "url": "https://github.com/logicart/logicart-vite-plugin"
   },
-  "homepage": "https://github.com/logigo/logigo-vite-plugin#readme",
+  "homepage": "https://github.com/logicart/logicart-vite-plugin#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -41,7 +41,7 @@
   "keywords": [
     "vite",
     "vite-plugin",
-    "logigo",
+    "logicart",
     "flowchart",
     "visualization",
     "debugging"

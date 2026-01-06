@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function bubbleSort(arr: number[]): number[] {
@@ -36,8 +36,8 @@ function App() {
 
   return (
     <div style={{ padding: 20, fontFamily: 'system-ui, sans-serif' }}>
-      <h1>LogiGo Vite Demo</h1>
-      <p>This demo shows the LogiGo Embed component with live instrumentation.</p>
+      <h1>LogicArt Vite Demo</h1>
+      <p>This demo shows the LogicArt Embed component with live instrumentation.</p>
       
       <div style={{ marginBottom: 20 }}>
         <h3>Bubble Sort Algorithm</h3>
@@ -52,8 +52,8 @@ function App() {
         </button>
       </div>
 
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
         defaultOpen={true}
         showVariables={true}

@@ -1,7 +1,7 @@
 {
-  "name": "logigo-remote",
+  "name": "logicart-remote",
   "version": "1.0.0",
-  "description": "Send checkpoints from any app to LogiGo for real-time visualization",
+  "description": "Send checkpoints from any app to LogicArt for real-time visualization",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -20,13 +20,13 @@
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
   "keywords": [
-    "logigo",
+    "logicart",
     "flowchart",
     "visualization",
     "debugging",
     "checkpoint"
   ],
-  "author": "",
+  "author": "LogicArt",
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.0",

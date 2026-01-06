@@ -10,8 +10,8 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "logigo-embed": "file:../../packages/logigo-embed",
-    "logigo-vite-plugin": "file:../../packages/logigo-vite-plugin"
+    "logicart-embed": "file:../../packages/logicart-embed",
+    "logicart-vite-plugin": "file:../../packages/logicart-vite-plugin"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",

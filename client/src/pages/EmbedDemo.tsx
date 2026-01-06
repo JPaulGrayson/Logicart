@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogiGoEmbed } from '../../../packages/logigo-embed/src';
+import { LogicArtEmbed } from '../../../packages/logicart-embed/src';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
@@ -117,13 +117,13 @@ export default function EmbedDemo() {
         <div className="bg-card border rounded-lg p-4">
           <h2 className="text-lg font-semibold mb-4">Usage</h2>
           <pre className="bg-muted p-4 rounded-md overflow-auto text-sm font-mono">
-{`import { LogiGoEmbed } from 'logigo-embed';
+{`import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
       <YourApp />
-      <LogiGoEmbed 
+      <LogicArtEmbed 
         code={yourCode}
         position="${position}"
       />
@@ -140,13 +140,13 @@ function App() {
         </div>
       </div>
 
-      <LogiGoEmbed 
+      <LogicArtEmbed 
         code={code}
         position={position}
         defaultOpen={true}
         defaultSize={{ width: 450, height: 400 }}
         onReady={() => console.log('[Demo] LogicArt ready!')}
-        onNodeClick={(nodeId) => console.log('[Demo] Node clicked:', nodeId)}
+        onNodeClick={(nodeId: string) => console.log('[Demo] Node clicked:', nodeId)}
       />
     </div>
   );

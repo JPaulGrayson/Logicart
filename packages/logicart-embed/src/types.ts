@@ -1,4 +1,4 @@
-export interface LogiGoEmbedProps {
+export interface LogicArtEmbedProps {
   code?: string;
   
   manifestUrl?: string;
@@ -21,10 +21,12 @@ export interface LogiGoEmbedProps {
   
   onNodeClick?: (nodeId: string) => void;
   onCheckpoint?: (checkpoint: CheckpointPayload) => void;
-  onManifestLoad?: (manifest: LogiGoManifest) => void;
+  onManifestLoad?: (manifest: LogicArtManifest) => void;
   onReady?: () => void;
   onError?: (error: Error) => void;
 }
+
+export type LogiGoEmbedProps = LogicArtEmbedProps;
 
 export interface CheckpointPayload {
   id: string;
@@ -33,7 +35,7 @@ export interface CheckpointPayload {
   manifestVersion?: string;
 }
 
-export interface LogiGoManifest {
+export interface LogicArtManifest {
   version: '1.0';
   hash: string;
   generatedAt: number;
@@ -52,6 +54,8 @@ export interface LogiGoManifest {
     [nodeId: string]: CheckpointMetadata;
   };
 }
+
+export type LogiGoManifest = LogicArtManifest;
 
 export interface FlowNode {
   id: string;

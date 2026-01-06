@@ -1906,7 +1906,7 @@ self.addEventListener('fetch', (event) => {
   // Zero-Code Auto-Discovery & Function Wrapping
   // ============================================
   // NOTE: This feature works with traditional global scripts.
-  // For ES module/Vite apps, use the logigo-vite-plugin for build-time instrumentation.
+  // For ES module/Vite apps, use the logicart-vite-plugin for build-time instrumentation.
   
   var discoveredCode = [];
   var discoveredSrcSet = new Set();
@@ -2154,6 +2154,9 @@ self.addEventListener('fetch', (event) => {
     window.open(window.LogiGo.studioUrl, "_blank", "noopener,noreferrer");
     if (linkText) linkText.textContent = "View in LogiGo";
   }
+  
+  // Add window.LogicArt as an alias for backward compatibility during rebranding
+  window.LogicArt = window.LogiGo;
   
   // Show a persistent clickable badge (stays until closed)
   // Skip if ?hideBadge=true was set (recommended for React/Vite apps)
