@@ -362,30 +362,53 @@ export default function Workbench() {
   }, [flowData]);
 
   // Load shared code from URL parameter on mount
+  // Supports two formats:
+  // 1. Base64 encoded (legacy): ?code=base64EncodedString
+  // 2. URL encoded (VibePost/external apps): ?code=urlEncodedString
+  // Also supports ?autorun=true to auto-start playback and ?popup=true for minimal UI
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const encodedCode = urlParams.get('code');
     const isPopup = urlParams.get('popup') === 'true';
+    const autorun = urlParams.get('autorun') === 'true';
 
     if (encodedCode && isReady) {
+      let decoded: string | null = null;
+      
+      // Try base64 decode first (legacy format)
       try {
-        // Decode: first atob (base64 decode), then decodeURIComponent
-        const decoded = decodeURIComponent(atob(encodedCode));
-        if (decoded.trim()) {
-          adapter.writeFile(decoded);
-          // Clear the URL parameter to avoid reloading on refresh
-          const url = new URL(window.location.href);
-          url.searchParams.delete('code');
-          url.searchParams.delete('popup');
-          window.history.replaceState({}, '', url.toString());
-
-          // If popup mode, auto-apply Flow Only layout
-          if (isPopup) {
-            setTimeout(() => applyLayoutPreset('flow-only'), 200);
-          }
+        decoded = decodeURIComponent(atob(encodedCode));
+      } catch {
+        // If base64 fails, try simple URL decoding (VibePost format)
+        try {
+          decoded = decodeURIComponent(encodedCode);
+        } catch (e) {
+          console.warn('Failed to decode code parameter:', e);
         }
-      } catch (e) {
-        console.warn('Failed to decode shared code:', e);
+      }
+      
+      if (decoded && decoded.trim()) {
+        console.log('[LogicArt] Code loaded from URL parameter');
+        adapter.writeFile(decoded);
+        
+        // Clear the URL parameter to avoid reloading on refresh
+        const url = new URL(window.location.href);
+        url.searchParams.delete('code');
+        url.searchParams.delete('popup');
+        url.searchParams.delete('autorun');
+        window.history.replaceState({}, '', url.toString());
+
+        // If popup mode, auto-apply Flow Only layout
+        if (isPopup) {
+          setTimeout(() => applyLayoutPreset('flow-only'), 200);
+        }
+        
+        // If autorun mode, start playback after parsing completes
+        if (autorun) {
+          setTimeout(() => {
+            setPlayQueued(true);
+          }, 600);
+        }
       }
     }
   }, [isReady, adapter]);
