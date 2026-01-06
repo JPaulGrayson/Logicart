@@ -162,14 +162,14 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
       return (
         <div className="space-y-6 pr-4 text-sm text-muted-foreground">
           <section>
-            <h3 className="text-lg font-semibold text-foreground mb-2">LogiGo Studio</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">LogicArt Studio</h3>
             <p>
               A bidirectional code-to-flowchart visualization tool designed for "Vibe Coders" who benefit from visual learning and debugging.
             </p>
           </section>
           <section>
             <h3 className="text-lg font-semibold text-foreground mb-2">Version</h3>
-            <p><strong>LogiGo Studio:</strong> v1.2.0-stable</p>
+            <p><strong>LogicArt Studio:</strong> v1.2.0-stable</p>
           </section>
           <section>
             <h3 className="text-lg font-semibold text-foreground mb-2">Key Features</h3>
@@ -291,7 +291,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                   L
                 </div>
-                <h2 className="font-bold text-lg tracking-tight">LogiGo Doc</h2>
+                <h2 className="font-bold text-lg tracking-tight">LogicArt Doc</h2>
               </div>
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] opacity-60">Documentation Center v1.3</p>
             </div>
@@ -350,7 +350,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                       )}
                     >
                       <Info className="w-4 h-4" />
-                      <span className="font-medium">About LogiGo</span>
+                      <span className="font-medium">About LogicArt</span>
                     </button>
                   </div>
                 </div>
@@ -379,7 +379,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
 
             <div className="p-4 bg-muted/20 border-t border-white/5">
               <a
-                href="https://github.com/JPaulGrayson/LogiGo"
+                href="https://github.com/JPaulGrayson/LogicArt"
                 target="_blank"
                 rel="noopener"
                 className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-white transition-colors"
@@ -397,7 +397,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 <h2 className="text-lg font-bold tracking-tight capitalize">
                   {VISIBLE_DOCS.find(d => d.id === activeSection)?.title ||
                     (activeSection === 'shortcuts' ? 'Shortcuts' :
-                      activeSection === 'about' ? 'About LogiGo' :
+                      activeSection === 'about' ? 'About LogicArt' :
                         activeSection === 'gallery' ? 'Showcase Gallery' : '')}
                 </h2>
               </div>

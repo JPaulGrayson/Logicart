@@ -64,9 +64,9 @@ export default function EmbedDemo() {
           </Link>
         </div>
 
-        <h1 className="text-3xl font-bold mb-2">LogiGo Embed Demo</h1>
+        <h1 className="text-3xl font-bold mb-2">LogicArt Embed Demo</h1>
         <p className="text-muted-foreground mb-8">
-          This page demonstrates the embeddable LogiGo component that can be added to any React app.
+          This page demonstrates the embeddable LogicArt component that can be added to any React app.
         </p>
 
         <div className="grid gap-6 md:grid-cols-2 mb-8">
@@ -135,7 +135,7 @@ function App() {
 
         <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
           <p className="text-sm text-blue-400">
-            Look at the <strong>{position}</strong> corner of your screen to see the LogiGo Embed panel!
+            Look at the <strong>{position}</strong> corner of your screen to see the LogicArt Embed panel!
           </p>
         </div>
       </div>
@@ -145,7 +145,7 @@ function App() {
         position={position}
         defaultOpen={true}
         defaultSize={{ width: 450, height: 400 }}
-        onReady={() => console.log('[Demo] LogiGo ready!')}
+        onReady={() => console.log('[Demo] LogicArt ready!')}
         onNodeClick={(nodeId) => console.log('[Demo] Node clicked:', nodeId)}
       />
     </div>

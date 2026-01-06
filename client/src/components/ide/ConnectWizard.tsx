@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logicart-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
 
-const AGENT_PROMPT = `Add LogiGo code visualization to this project.
+const AGENT_PROMPT = `Add LogicArt code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
+<script src="https://logicart-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
 
 2. Create a visualization handler:
 const handleVisualize = (code, name) => {
@@ -23,12 +23,12 @@ handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 4. Connect the handler to a "View Flowchart" button.
 
-5. TEST: Click the button - LogiGo should open with a clean flowchart.
+5. TEST: Click the button - LogicArt should open with a clean flowchart.
 
-Available LogiGo methods:
-- visualize(code, name) - One-shot: registers code and opens LogiGo (recommended)
+Available LogicArt methods:
+- visualize(code, name) - One-shot: registers code and opens LogicArt (recommended)
 - registerCode(code, name) - Just registers code without opening
-- openStudio() - Opens LogiGo in a new tab
+- openStudio() - Opens LogicArt in a new tab
 
 The project name is auto-detected from your app's hostname.`;
 
@@ -58,7 +58,7 @@ export function ConnectWizard() {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Integration Wizard</h2>
-                    <p className="text-muted-foreground text-sm">Connect your external app to LogiGo in seconds.</p>
+                    <p className="text-muted-foreground text-sm">Connect your external app to LogicArt in seconds.</p>
                 </div>
             </div>
 

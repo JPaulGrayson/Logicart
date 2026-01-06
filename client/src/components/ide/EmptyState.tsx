@@ -46,7 +46,7 @@ export function EmptyState({ onLoadSample }: EmptyStateProps) {
           
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome to LogiGo
+              Welcome to LogicArt
             </h1>
             <p className="text-lg text-muted-foreground">
               Visualize your code as interactive flowcharts with step-by-step execution

@@ -155,7 +155,7 @@ export default function ZeroClickDemo() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">1</span>
-                Load LogiGo Script
+                Load LogicArt Script
               </CardTitle>
               <CardDescription className="text-gray-400">
                 In a real app, your AI agent adds this script tag to index.html
@@ -195,7 +195,7 @@ export default function ZeroClickDemo() {
               <CardDescription className="text-gray-400">
                 {demoMode === 'debug' 
                   ? 'Simulates a function with checkpoints at every decision point'
-                  : 'Click to fire a checkpoint - LogiGo will auto-open!'
+                  : 'Click to fire a checkpoint - LogicArt will auto-open!'
                 }
               </CardDescription>
             </CardHeader>
@@ -214,7 +214,7 @@ export default function ZeroClickDemo() {
               </Button>
               {checkpointsFired > 0 && (
                 <p className="mt-2 text-sm text-purple-400">
-                  {checkpointsFired} checkpoint(s) fired! LogiGo should have opened.
+                  {checkpointsFired} checkpoint(s) fired! LogicArt should have opened.
                 </p>
               )}
             </CardContent>
@@ -228,17 +228,17 @@ export default function ZeroClickDemo() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <span className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm">3</span>
-                View in LogiGo
+                View in LogicArt
               </CardTitle>
               <CardDescription className="text-gray-400">
-                LogiGo opens automatically with your execution trace
+                LogicArt opens automatically with your execution trace
               </CardDescription>
             </CardHeader>
             <CardContent className="text-gray-300">
               {step >= 2 ? (
                 <div className="space-y-2">
-                  <p className="text-green-400">LogiGo should have opened in a new tab!</p>
-                  <p className="text-sm">If it was blocked, click the "View in LogiGo" badge or use:</p>
+                  <p className="text-green-400">LogicArt should have opened in a new tab!</p>
+                  <p className="text-sm">If it was blocked, click the "View in LogicArt" badge or use:</p>
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -246,7 +246,7 @@ export default function ZeroClickDemo() {
                     className="border-green-600 text-green-400 hover:bg-green-900"
                     data-testid="button-open-manual"
                   >
-                    Open LogiGo Manually
+                    Open LogicArt Manually
                   </Button>
                 </div>
               ) : (
@@ -258,7 +258,7 @@ export default function ZeroClickDemo() {
 
         <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
-            <CardTitle className="text-lg text-white">How AI Agents Use LogiGo for Debugging</CardTitle>
+            <CardTitle className="text-lg text-white">How AI Agents Use LogicArt for Debugging</CardTitle>
           </CardHeader>
           <CardContent className="text-gray-400 text-sm space-y-3">
             {demoMode === 'debug' ? (
@@ -276,8 +276,8 @@ export default function ZeroClickDemo() {
             ) : (
               <>
                 <p>1. The script tag loads <code className="text-blue-400">/remote.js</code> which auto-creates a session</p>
-                <p>2. When <code className="text-purple-400">checkpoint()</code> is called, data streams to LogiGo</p>
-                <p>3. On the first checkpoint, LogiGo auto-opens in a new tab (if not blocked)</p>
+                <p>2. When <code className="text-purple-400">checkpoint()</code> is called, data streams to LogicArt</p>
+                <p>3. On the first checkpoint, LogicArt auto-opens in a new tab (if not blocked)</p>
                 <p>4. The flowchart updates in real-time as checkpoints arrive</p>
               </>
             )}
@@ -295,9 +295,9 @@ export default function ZeroClickDemo() {
             <CardContent className="text-gray-300 text-sm space-y-2">
               <p>Copy this prompt and paste it into your AI agent's chat:</p>
               <div className="p-3 bg-gray-900 rounded-lg font-mono text-xs text-gray-400">
-                "Debug my processOrder function - add LogiGo checkpoints at every if/else branch and return point so I can see exactly what path the code takes"
+                "Debug my processOrder function - add LogicArt checkpoints at every if/else branch and return point so I can see exactly what path the code takes"
               </div>
-              <p className="text-gray-500 text-xs">The agent will add checkpoints like the ones in this demo, and LogiGo will auto-open showing the execution flow.</p>
+              <p className="text-gray-500 text-xs">The agent will add checkpoints like the ones in this demo, and LogicArt will auto-open showing the execution flow.</p>
             </CardContent>
           </Card>
         )}

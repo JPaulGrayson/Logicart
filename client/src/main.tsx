@@ -10,7 +10,7 @@ window.addEventListener('error', (event) => {
     // Prevent the default error handling
     event.preventDefault();
     // Log the non-Error value for debugging
-    console.warn('[LogiGo] Caught non-Error exception:', event.error);
+    console.warn('[LogicArt] Caught non-Error exception:', event.error);
     // Don't show the error modal for these false positives
     return true;
   }
@@ -23,7 +23,7 @@ window.addEventListener('unhandledrejection', (event) => {
     // Prevent the default handling
     event.preventDefault();
     // Log for debugging
-    console.warn('[LogiGo] Caught non-Error promise rejection:', event.reason);
+    console.warn('[LogicArt] Caught non-Error promise rejection:', event.reason);
     return true;
   }
 });

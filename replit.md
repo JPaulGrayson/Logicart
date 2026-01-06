@@ -1,7 +1,10 @@
-# LogiGo - Code-to-Flowchart Visualization Tool
+# LogicArt - Code-to-Flowchart Visualization Tool
 
 ## Overview
-LogiGo is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
+LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
+
+## Recent Changes
+- **January 2026**: Rebranding from LogiGo to LogicArt in progress. UI elements, meta tags, and user-facing text updated. Voyai URL parameters (app=logigo) require coordination with Voyai to update to app=logicart.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -12,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 The frontend employs a workbench-style IDE with a 2-panel, flowchart-first layout. It features a "Technical, Clean, Blueprint-like" aesthetic, dark mode, blue accent, JetBrains Mono font for code, and Inter for UI. Resizable panels are used for flexible workspace configuration, with layout presets (50/50, 30/70, Flow Only) and hierarchical navigation via breadcrumbs and zoom presets.
 
 ### Technical Implementations
-LogiGo is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Core libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui.
+LogicArt is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Core libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui.
 The system supports a three-tier hybrid model:
 - **Static Mode**: Instant flowchart generation from pasted code via Acorn parsing.
 - **Live Mode**: Runtime overlay showing execution data from instrumented code.
@@ -34,7 +37,7 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 - **Undo/Redo**: HistoryManager singleton with keyboard shortcuts (Ctrl+Z/Ctrl+Y) and toolbar buttons.
 - **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
 - **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
-- **MCP Server (Model Context Protocol)**: Exposes LogiGo's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
+- **MCP Server (Model Context Protocol)**: Exposes LogicArt's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
 - **Voyai Authentication**: JWT-based authentication via Voyai (voyai.org). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence. Feature flags supported: `history_database`, `rabbit_hole_rescue`, `github_sync`, `managed_allowance`.
 - **Managed AI Proxy**: Pro users with `managed_allowance` feature get server-side API key access for AI models (OpenAI, Gemini, Anthropic, xAI). Usage tracked per-user with monthly auto-reset. Endpoints: `GET /api/ai/usage` (current usage), `POST /api/ai/proxy` (proxied AI calls). Credit Meter UI shows "X/Y" format with remaining credits tooltip. Returns 402 when quota exhausted.
 - **Demo Mode**: Allows users to preview all Pro features without signing in. Toggle via "Try Demo" button in header. Simulates founder-tier user with all features enabled (history_database, rabbit_hole_rescue, github_sync, managed_allowance: 100). Persists across page reloads via localStorage. Exits cleanly and restores any existing Voyai session.

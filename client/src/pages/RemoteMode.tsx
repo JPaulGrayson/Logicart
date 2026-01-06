@@ -217,13 +217,13 @@ function buildTraceGraph(checkpoints: Checkpoint[]): { nodes: Node[]; edges: Edg
 }
 
 // Quick action prompts for the mini-chat - generates zero-click integration
-const LOGIGO_HOST = window.location.origin;
+const LOGICART_HOST = window.location.origin;
 
 const QUICK_ACTIONS = [
-  { label: '🔍 Debug Function', icon: 'bug', prompt: `Help me debug this function by adding LogiGo checkpoints at every decision point.
+  { label: '🔍 Debug Function', icon: 'bug', prompt: `Help me debug this function by adding LogicArt checkpoints at every decision point.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
-<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+<script src="${LOGICART_HOST}/remote.js?project=MyApp"></script>
 
 STEP 2: Add checkpoint() calls to the problematic function to trace execution:
 
@@ -253,13 +253,13 @@ CHECKPOINT PLACEMENT STRATEGY:
 IMPORTANT:
 - Only modify FRONTEND files (React components, client-side code)
 - Do NOT add checkpoints to server/backend files  
-- LogiGo will auto-open showing a flowchart of exactly what happened
+- LogicArt will auto-open showing a flowchart of exactly what happened
 - Each checkpoint becomes a node - the path through them shows execution flow` },
 
-  { label: '⚡ Trace API Calls', icon: 'api', prompt: `Add LogiGo tracing to my frontend API calls.
+  { label: '⚡ Trace API Calls', icon: 'api', prompt: `Add LogicArt tracing to my frontend API calls.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
-<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+<script src="${LOGICART_HOST}/remote.js?project=MyApp"></script>
 
 STEP 2: Add checkpoint() calls before and after all fetch/API calls in frontend files:
 - checkpoint('api-request-start', { url, method })
@@ -268,12 +268,12 @@ STEP 2: Add checkpoint() calls before and after all fetch/API calls in frontend 
 IMPORTANT:
 - Only modify FRONTEND files (React components, client-side code)
 - Do NOT add checkpoints to server/backend files
-- LogiGo will auto-open in a new tab when the first checkpoint fires` },
+- LogicArt will auto-open in a new tab when the first checkpoint fires` },
   
-  { label: '📝 Debug Form Flow', icon: 'form', prompt: `Add LogiGo tracing to my form submission flow.
+  { label: '📝 Debug Form Flow', icon: 'form', prompt: `Add LogicArt tracing to my form submission flow.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
-<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+<script src="${LOGICART_HOST}/remote.js?project=MyApp"></script>
 
 STEP 2: Add checkpoint() calls to trace the form:
 - checkpoint('form-submit-start', { formData })
@@ -283,12 +283,12 @@ STEP 2: Add checkpoint() calls to trace the form:
 IMPORTANT:
 - Only modify FRONTEND files
 - Do NOT add checkpoints to server/backend files
-- LogiGo will auto-open when the first checkpoint fires` },
+- LogicArt will auto-open when the first checkpoint fires` },
   
-  { label: '👆 Track User Actions', icon: 'click', prompt: `Add LogiGo tracing to user interactions.
+  { label: '👆 Track User Actions', icon: 'click', prompt: `Add LogicArt tracing to user interactions.
 
 STEP 1: Add this script tag to index.html (before closing </body>):
-<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+<script src="${LOGICART_HOST}/remote.js?project=MyApp"></script>
 
 STEP 2: Add checkpoint() calls to interaction handlers:
 - checkpoint('button-clicked', { buttonId, action })
@@ -298,14 +298,14 @@ STEP 2: Add checkpoint() calls to interaction handlers:
 IMPORTANT:
 - Only modify FRONTEND files
 - Do NOT add checkpoints to server/backend files
-- LogiGo will auto-open when the first checkpoint fires` },
+- LogicArt will auto-open when the first checkpoint fires` },
 ];
 
 function generateCheckpointPrompt(userRequest: string): string {
-  return `Add LogiGo tracing to: ${userRequest}
+  return `Add LogicArt tracing to: ${userRequest}
 
 STEP 1: Add this script tag to index.html (before closing </body>):
-<script src="${LOGIGO_HOST}/remote.js?project=MyApp"></script>
+<script src="${LOGICART_HOST}/remote.js?project=MyApp"></script>
 
 STEP 2: Add checkpoint() calls at KEY DECISION POINTS to trace execution flow:
 
@@ -321,7 +321,7 @@ IMPORTANT:
 2. Do NOT add checkpoints to server/backend files
 3. Use descriptive IDs in kebab-case (e.g., 'validate-input', 'fetch-complete')
 4. Capture relevant variables - this shows up in the flowchart!
-5. LogiGo auto-opens showing a visual flowchart of exactly what happened
+5. LogicArt auto-opens showing a visual flowchart of exactly what happened
 
 Each checkpoint becomes a flowchart node. The path through them reveals the execution flow.`;
 }
@@ -1031,7 +1031,7 @@ export default function RemoteMode() {
   }, []);
   
   // Agent prompt for vibe coders - paste this into your app's AI agent
-  const agentPrompt = `Add LogiGo checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
+  const agentPrompt = `Add LogicArt checkpoint() calls to my code to track execution. The checkpoint() function is already available globally (no import needed).
 
 Guidelines:
 - Add checkpoint('step-name', { key: value }) calls at key points in the code
@@ -1117,7 +1117,7 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
       const response = await fetch('/api/remote/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'LogiGo Test Session' })
+        body: JSON.stringify({ name: 'LogicArt Test Session' })
       });
       const data = await response.json();
       if (data.sessionId) {
@@ -1303,14 +1303,14 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
   const copyIntegrationCode = () => {
     const protocol = window.location.protocol;
     const host = window.location.host;
-    const code = `// LogiGo Remote Integration
-// Add this to your app to send checkpoints to LogiGo
+    const code = `// LogicArt Remote Integration
+// Add this to your app to send checkpoints to LogicArt
 
-const LOGIGO_URL = '${protocol}//${host}';
+const LOGICART_URL = '${protocol}//${host}';
 const SESSION_ID = '${sessionId}';
 
 async function checkpoint(id, variables = {}) {
-  await fetch(\`\${LOGIGO_URL}/api/remote/checkpoint\`, {
+  await fetch(\`\${LOGICART_URL}/api/remote/checkpoint\`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1404,7 +1404,7 @@ async function checkpoint(id, variables = {}) {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-blue-400">LogiGo Remote Mode</h1>
+            <h1 className="text-2xl font-bold text-blue-400">LogicArt Remote Mode</h1>
             <p className="text-gray-400 text-sm">Connect to external apps and view execution in real-time</p>
           </div>
           <div className="flex items-center gap-2">

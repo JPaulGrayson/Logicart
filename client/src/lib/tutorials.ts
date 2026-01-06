@@ -7,8 +7,8 @@ export const tutorials: Tutorial[] = [
         description: 'Learn how to partner with the Agent to turn natural language into robust flowcharts.',
         steps: [
             {
-                title: 'Welcome to LogiGo',
-                content: "I'm your LogiGo Agent. For the best experience, snap this window to the right and keep our chat window open on the left so you can see both at once!",
+                title: 'Welcome to LogicArt',
+                content: "I'm your LogicArt Agent. For the best experience, snap this window to the right and keep our chat window open on the left so you can see both at once!",
                 position: 'center'
             },
             {

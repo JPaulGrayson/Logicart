@@ -10,7 +10,7 @@
         if (!(event.error instanceof Error) || event.error === null || event.error === undefined) {
           event.stopImmediatePropagation();
           event.preventDefault();
-          console.warn('[LogiGo] Suppressed non-Error exception:', event.error);
+          console.warn('[LogicArt] Suppressed non-Error exception:', event.error);
           return false;
         }
       }, true);
@@ -19,19 +19,19 @@
         if (!(event.reason instanceof Error) || event.reason === null || event.reason === undefined) {
           event.stopImmediatePropagation();
           event.preventDefault();
-          console.warn('[LogiGo] Suppressed non-Error rejection:', event.reason);
+          console.warn('[LogicArt] Suppressed non-Error rejection:', event.reason);
           return false;
         }
       }, true);
     </script>
 
-    <meta property="og:title" content="LogiGo - Visual Code Debugger" />
+    <meta property="og:title" content="LogicArt - The Art of Logic" />
     <meta property="og:description" content="Transform JavaScript into interactive flowcharts with step-by-step execution, time-travel debugging, and natural language search. Perfect for understanding AI-generated code." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://replit.com/public/images/opengraph.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@replit" />
-    <meta name="twitter:title" content="LogiGo - Visual Code Debugger" />
+    <meta name="twitter:title" content="LogicArt - The Art of Logic" />
     <meta name="twitter:description" content="Transform JavaScript into interactive flowcharts with step-by-step execution, time-travel debugging, and natural language search. Perfect for understanding AI-generated code." />
     <meta name="twitter:image" content="https://replit.com/public/images/opengraph.png" />
 
@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>LogiGo - Visual Code Debugger</title>
+    <title>LogicArt - The Art of Logic</title>
   </head>
   <body>
     <div id="root"></div>

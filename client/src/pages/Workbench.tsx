@@ -751,7 +751,7 @@ export default function Workbench() {
 
       if (isSessionStart(message)) {
         // Session Start - switch to Live Mode and reset visualization
-        console.log('[LogiGo Studio] Session started:', message.payload.sessionId);
+        console.log('[LogicArt Studio] Session started:', message.payload.sessionId);
         setRuntimeState({
           isConnected: true,
           mode: 'live',
@@ -771,7 +771,7 @@ export default function Workbench() {
       if (isCheckpoint(message)) {
         // Checkpoint event - process checkpoint data
         const checkpoint = message.payload;
-        console.log('[LogiGo Studio] Checkpoint:', checkpoint.id, checkpoint.variables);
+        console.log('[LogicArt Studio] Checkpoint:', checkpoint.id, checkpoint.variables);
 
         // Add to checkpoints list
         setLiveCheckpoints(prev => [...prev, checkpoint]);
@@ -797,7 +797,7 @@ export default function Workbench() {
               }, 1000);
             }
           } catch (e) {
-            console.warn('[LogiGo Studio] Invalid DOM selector:', checkpoint.domElement);
+            console.warn('[LogicArt Studio] Invalid DOM selector:', checkpoint.domElement);
           }
         }
 
@@ -817,7 +817,7 @@ export default function Workbench() {
         if (prev.mode === 'live' && prev.lastHeartbeat) {
           const inactiveDuration = Date.now() - prev.lastHeartbeat;
           if (inactiveDuration > 15000) { // 15 seconds
-            console.log('[LogiGo Studio] Reverting to Static Mode due to inactivity');
+            console.log('[LogicArt Studio] Reverting to Static Mode due to inactivity');
             return {
               ...prev,
               isConnected: false,
@@ -2310,7 +2310,7 @@ export default function Workbench() {
         quality: 2,
         includeCode: true,
         includeMetadata: true,
-        title: 'LogiGo Code Flowchart',
+        title: 'LogicArt Code Flowchart',
       });
     } catch (error) {
       console.error('PDF export failed:', error);
@@ -2473,7 +2473,7 @@ export default function Workbench() {
       { id: 'for_loop', timestamp: Date.now() + 250, timeSinceStart: 250, domElement: '#loop', variables: { i: 0 } },
     ];
 
-    console.group('📊 LogiGo Reporter API Test');
+    console.group('📊 LogicArt Reporter API Test');
     console.log('Reporter would capture these checkpoints:');
     mockCheckpoints.forEach((cp, index) => {
       console.log(`[${index + 1}]`, cp);
@@ -2579,7 +2579,7 @@ export default function Workbench() {
           <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
             L
           </div>
-          <h1 className="font-semibold tracking-tight text-sm">LogiGo</h1>
+          <h1 className="font-semibold tracking-tight text-sm">LogicArt</h1>
           <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">Beta</span>
           {isAuthenticated && user?.tier && user.tier !== 'free' && (
             <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
@@ -3438,7 +3438,7 @@ export default function Workbench() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const prompt = `Add LogiGo.checkpoint() calls to help debug this code. Add checkpoints at:
+                  const prompt = `Add LogicArt.checkpoint() calls to help debug this code. Add checkpoints at:
 - Function entry (capture input parameters)
 - Before/after if-else branches (capture decision variables)
 - Inside loops (capture iteration state)
@@ -3449,9 +3449,9 @@ First, add this script tag to the HTML:
 <script src="${window.location.origin}/remote.js?project=DebugSession&autoOpen=true"></script>
 
 Then add checkpoint calls like:
-LogiGo.checkpoint('function-start', { param1, param2 });
-LogiGo.checkpoint('loop-iteration', { index: i, value });
-LogiGo.checkpoint('branch-taken', { condition: x > 0 });
+LogicArt.checkpoint('function-start', { param1, param2 });
+LogicArt.checkpoint('loop-iteration', { index: i, value });
+LogicArt.checkpoint('branch-taken', { condition: x > 0 });
 
 Current code to debug:
 \`\`\`javascript
