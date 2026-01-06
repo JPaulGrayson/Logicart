@@ -4,7 +4,7 @@
 LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
 
 ## Recent Changes
-- **January 2026**: Rebranding from LogiGo to LogicArt completed for client-side code. Updates include:
+- **January 2026**: Comprehensive rebranding from LogiGo to LogicArt completed. Updates include:
   - All user-facing UI branding (landing page, workbench, tutorials, help dialogs)
   - HTML meta tags, OpenGraph, and Twitter cards
   - localStorage/sessionStorage keys with migration for existing users
@@ -13,8 +13,11 @@ LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization to
   - Voyai URLs updated to app=logicart (login, upgrade)
   - AppId validation accepts both 'logicart' and 'logigo' for backward compatibility
   - LOGIGO_* API constants preserved for runtime compatibility (noted in reporter-api.ts)
-  - Remaining: window.LogiGo runtime interface and packages (logigo-core, logigo-embed) deferred until package renaming phase
-  - External coordination needed: GitHub repo rename, Voyai app ID registration
+  - **Package renaming completed**: All package directories renamed (logicart-core, logicart-embed, logicart-remote, logicart-vite-plugin)
+  - **Component renaming**: LogicArtEmbed component with backward-compatible exports (LogiGoEmbed, LogiGoEmbedProps, LogiGoManifest aliases)
+  - **Runtime aliasing**: window.LogicArt added as alias while preserving window.LogiGo for backward compatibility
+  - **Examples updated**: vite-demo uses new package imports and manifest URLs
+  - External coordination needed: GitHub repo rename, Voyai app ID registration, npm publish for new package names
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -35,7 +38,7 @@ Parsing and interpretation involve Acorn for AST analysis, converting JavaScript
 
 Cross-Replit Communication (Remote Mode) enables external Replit apps to send checkpoint data for real-time visualization via SSE and a WebSocket control channel for bidirectional debugging (remote breakpoints, pause/resume/step).
 
-The `logicart-embed` package (formerly logigo-embed) offers an embeddable React component for visualization, while `logicart-vite-plugin` provides build-time instrumentation for Live Mode. The `logicart-core` NPM package is a standalone runtime library for manual checkpoint instrumentation. Note: Package directories still use old names pending npm publish.
+The `logicart-embed` package (formerly logigo-embed) offers an embeddable React component for visualization, while `logicart-vite-plugin` provides build-time instrumentation for Live Mode. The `logicart-core` NPM package is a standalone runtime library for manual checkpoint instrumentation. Package directories renamed; npm publish needed to claim new package names.
 
 The application features Zero-Code Auto-Discovery for automatic scanning and instrumentation of global functions from `<script>` tags, and a Zero-Code Reverse Proxy for instrumenting any web application.
 
