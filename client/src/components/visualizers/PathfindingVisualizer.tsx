@@ -68,7 +68,7 @@ export function PathfindingVisualizer({
           key={`${x}-${y}`}
           id={`cell-${x}-${y}`}
           className={cn(
-            "logigo-highlight-target w-5 h-5 min-w-[20px] min-h-[20px] border border-border/50 rounded-sm transition-all duration-150 cursor-pointer",
+            "logicart-highlight-target w-5 h-5 min-w-[20px] min-h-[20px] border border-border/50 rounded-sm transition-all duration-150 cursor-pointer",
             getCellColor(x, y)
           )}
           onClick={() => onCellClick?.({ x, y })}

@@ -103,7 +103,7 @@ export function NodeLabelDialog({
           
           <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-muted-foreground">
             <strong className="text-blue-400">Tip:</strong> This will add a{' '}
-            <code className="bg-muted px-1 rounded">// @logigo: {label || 'your label'}</code>{' '}
+            <code className="bg-muted px-1 rounded">// @logicart: {label || 'your label'}</code>{' '}
             comment above the code.
           </div>
         </div>

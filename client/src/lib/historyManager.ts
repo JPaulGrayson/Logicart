@@ -9,9 +9,20 @@ interface HistoryState {
   currentIndex: number;
 }
 
-const STORAGE_KEY = 'logigo-code-history';
+const STORAGE_KEY = 'logicart-code-history';
+const OLD_STORAGE_KEY = 'logigo-code-history';
 const MAX_HISTORY_SIZE = 50;
 const DEBOUNCE_MS = 1000;
+
+function migrateHistoryStorage() {
+  const oldValue = localStorage.getItem(OLD_STORAGE_KEY);
+  if (oldValue !== null && localStorage.getItem(STORAGE_KEY) === null) {
+    localStorage.setItem(STORAGE_KEY, oldValue);
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  }
+}
+
+migrateHistoryStorage();
 
 export class HistoryManager {
   private history: HistoryEntry[] = [];

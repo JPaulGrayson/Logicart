@@ -1,11 +1,11 @@
 /**
- * Parser module - re-exports from @logigo/bridge
+ * Parser module - re-exports from @logicart/bridge
  * 
  * This module uses the shared bridge package for parsing,
  * ensuring consistency across Replit, VS Code, and Antigravity IDEs.
  * 
  * NOTE: In a production npm setup, this would be:
- * export * from '@logigo/bridge';
+ * export * from '@logicart/bridge';
  * 
  * For now, we re-export from the bridge source directly.
  */

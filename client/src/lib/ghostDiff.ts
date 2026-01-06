@@ -1,5 +1,5 @@
 /**
- * LogiGo Ghost Diff Engine - Premium Feature
+ * LogicArt Ghost Diff Engine - Premium Feature
  * 
  * Compares two code trees and identifies added, removed, and modified nodes.
  * Visualizes code changes as "ghost" nodes in the flowchart.

@@ -1,5 +1,5 @@
 /**
- * LogiGo Grounding Layer Types
+ * LogicArt Grounding Layer Types
  * 
  * Lightweight, high-density JSON representation of flowcharts
  * for LLM consumption. Strips visual data, preserves logic topology.

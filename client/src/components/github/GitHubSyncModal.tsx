@@ -212,7 +212,7 @@ export function GitHubSyncModal({ open, onOpenChange, code, flowchartData, token
                 data-testid="input-filename"
               />
               <p className="text-xs text-muted-foreground">
-                Will be saved as: logigo/{filename}_YYYY-MM-DD.json
+                Will be saved as: logicart/{filename}_YYYY-MM-DD.json
               </p>
             </div>
 

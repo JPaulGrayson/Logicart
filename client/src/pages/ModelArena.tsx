@@ -20,7 +20,18 @@ import type { ArenaSession } from "@shared/schema";
 
 type ChairmanModel = "openai" | "gemini" | "anthropic" | "xai";
 
-const CHAIRMAN_STORAGE_KEY = "logigo_arena_chairman";
+const CHAIRMAN_STORAGE_KEY = "logicart_arena_chairman";
+const OLD_CHAIRMAN_STORAGE_KEY = "logigo_arena_chairman";
+
+function migrateChairmanStorage() {
+  const oldValue = localStorage.getItem(OLD_CHAIRMAN_STORAGE_KEY);
+  if (oldValue !== null && localStorage.getItem(CHAIRMAN_STORAGE_KEY) === null) {
+    localStorage.setItem(CHAIRMAN_STORAGE_KEY, oldValue);
+    localStorage.removeItem(OLD_CHAIRMAN_STORAGE_KEY);
+  }
+}
+
+migrateChairmanStorage();
 
 const CHAIRMAN_OPTIONS: { value: ChairmanModel; label: string; color: string }[] = [
   { value: "openai", label: "GPT-4o (OpenAI)", color: "text-green-400" },
@@ -374,7 +385,7 @@ export default function ModelArena() {
             <Button 
               onClick={() => {
                 setShowUpgradeModal(false);
-                window.open('https://voyai.org/upgrade?app=logigo', '_blank');
+                window.open('https://voyai.org/upgrade?app=logicart', '_blank');
               }}
               className="bg-yellow-600 hover:bg-yellow-700"
             >

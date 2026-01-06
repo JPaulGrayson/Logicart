@@ -1,10 +1,32 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY = 'voyai_token';
-const DEMO_MODE_KEY = 'logigo_demo_mode';
-const DEMO_EXPIRY_KEY = 'logigo_demo_expiry';
-const DEMO_STARTED_KEY = 'logigo_demo_started'; // Permanent - tracks first demo activation
-const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logigo&return_to=';
+const DEMO_MODE_KEY = 'logicart_demo_mode';
+const DEMO_EXPIRY_KEY = 'logicart_demo_expiry';
+const DEMO_STARTED_KEY = 'logicart_demo_started';
+const VOYAI_LOGIN_URL = 'https://voyai.org/login?app=logicart&return_to=';
+
+const OLD_DEMO_MODE_KEY = 'logigo_demo_mode';
+const OLD_DEMO_EXPIRY_KEY = 'logigo_demo_expiry';
+const OLD_DEMO_STARTED_KEY = 'logigo_demo_started';
+
+function migrateLocalStorageKeys() {
+  const migrations = [
+    [OLD_DEMO_MODE_KEY, DEMO_MODE_KEY],
+    [OLD_DEMO_EXPIRY_KEY, DEMO_EXPIRY_KEY],
+    [OLD_DEMO_STARTED_KEY, DEMO_STARTED_KEY],
+  ] as const;
+  
+  for (const [oldKey, newKey] of migrations) {
+    const oldValue = localStorage.getItem(oldKey);
+    if (oldValue !== null && localStorage.getItem(newKey) === null) {
+      localStorage.setItem(newKey, oldValue);
+      localStorage.removeItem(oldKey);
+    }
+  }
+}
+
+migrateLocalStorageKeys();
 const DEFAULT_MANAGED_ALLOWANCE = 50;
 const DEMO_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -60,9 +82,9 @@ function isTokenExpired(payload: VoyaiTokenPayload): boolean {
 
 const DEMO_USER: VoyaiTokenPayload = {
   userId: 'demo-user-123',
-  email: 'demo@logigo.dev',
+  email: 'demo@logicart.dev',
   name: 'Demo User',
-  appId: 'logigo',
+  appId: 'logicart',
   tier: 'founder',
   features: {
     history_database: true,
@@ -130,7 +152,7 @@ export function useLicense() {
     const storedToken = localStorage.getItem(STORAGE_KEY);
     if (storedToken) {
       const payload = decodeJWT(storedToken);
-      if (payload && !isTokenExpired(payload) && (payload.appId === 'logigo' || payload.email)) {
+      if (payload && !isTokenExpired(payload) && (payload.appId === 'logicart' || payload.appId === 'logigo' || payload.email)) {
         console.log('[Voyai] Restored session for:', payload.email);
         setState({
           isAuthenticated: true,
@@ -215,8 +237,8 @@ export function useLicense() {
     const payload = decodeJWT(token);
     console.log('[Voyai] Token payload:', payload);
     if (payload && !isTokenExpired(payload)) {
-      // Accept token if appId is 'logigo' or if it's a valid Voyai token
-      if (payload.appId === 'logigo' || payload.email) {
+      // Accept token if appId is 'logicart' or 'logigo' (legacy) or if it's a valid Voyai token
+      if (payload.appId === 'logicart' || payload.appId === 'logigo' || payload.email) {
         localStorage.setItem(STORAGE_KEY, token);
         setState({
           isAuthenticated: true,

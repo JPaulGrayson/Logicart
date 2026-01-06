@@ -47,7 +47,7 @@ export function SortingVisualizer({
             key={index}
             id={`bar-${index}`}
             className={cn(
-              "logigo-highlight-target flex-1 max-w-12 rounded-t transition-all duration-200 relative group",
+              "logicart-highlight-target flex-1 max-w-12 rounded-t transition-all duration-200 relative group",
               getBarColor(index)
             )}
             style={{ height: `${barHeight}px` }}

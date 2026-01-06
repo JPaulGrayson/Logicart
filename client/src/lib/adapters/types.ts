@@ -18,7 +18,7 @@ export type FileChangeCallback = (content: string, path: string) => void;
 
 /**
  * IDEAdapter interface - abstracts IDE-specific file and editor operations
- * Allows LogiGo to work across different IDE environments (standalone, Replit, VS Code, etc.)
+ * Allows LogicArt to work across different IDE environments (standalone, Replit, VS Code, etc.)
  */
 export interface IDEAdapter {
   /**

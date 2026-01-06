@@ -257,15 +257,15 @@ body:is(.dark *) {
 }
 
 /* Visual Handshake - DOM Element Highlighting */
-.logigo-highlight {
+.logicart-highlight {
   outline: 3px solid hsl(217 91% 60%) !important;
   outline-offset: 2px;
   box-shadow: 0 0 0 4px hsl(217 91% 60% / 0.2) !important;
   transition: all 0.2s ease-in-out;
-  animation: logigo-pulse 1s ease-in-out;
+  animation: logicart-pulse 1s ease-in-out;
 }
 
-@keyframes logigo-pulse {
+@keyframes logicart-pulse {
 
   0%,
   100% {

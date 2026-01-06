@@ -1,5 +1,5 @@
 /**
- * LogiGo Bidirectional Control Channel Types
+ * LogicArt Bidirectional Control Channel Types
  * 
  * WebSocket messages between Studio and remote apps for:
  * - Visual Handshake (highlight DOM elements)

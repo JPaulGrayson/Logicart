@@ -49,7 +49,28 @@ import { TutorialSidebar } from '@/components/ide/TutorialSidebar';
 import { ComplexityBadge } from '@/components/ui/complexity-badge';
 
 // Use sessionStorage for Ghost Diff - persists within browser session
-const STORAGE_KEY = '__logigo_original_snapshot';
+const STORAGE_KEY = '__logicart_original_snapshot';
+const OLD_STORAGE_KEY = '__logigo_original_snapshot';
+
+// Migrate old sessionStorage key
+(() => {
+  const oldValue = sessionStorage.getItem(OLD_STORAGE_KEY);
+  if (oldValue !== null && sessionStorage.getItem(STORAGE_KEY) === null) {
+    sessionStorage.setItem(STORAGE_KEY, oldValue);
+    sessionStorage.removeItem(OLD_STORAGE_KEY);
+  }
+})();
+
+// Migrate ResizablePanelGroup localStorage (react-resizable-panels stores with autoSaveId prefix)
+(() => {
+  const OLD_PANEL_KEY = 'react-resizable-panels:logigo-workbench-panels';
+  const NEW_PANEL_KEY = 'react-resizable-panels:logicart-workbench-panels';
+  const oldPanelData = localStorage.getItem(OLD_PANEL_KEY);
+  if (oldPanelData !== null && localStorage.getItem(NEW_PANEL_KEY) === null) {
+    localStorage.setItem(NEW_PANEL_KEY, oldPanelData);
+    localStorage.removeItem(OLD_PANEL_KEY);
+  }
+})();
 
 const getOriginalSnapshot = (): FlowNode[] => {
   try {
@@ -230,12 +251,12 @@ export default function Workbench() {
     }, 50);
 
     setCurrentLayout(presetKey);
-    localStorage.setItem('logigo-layout-preset', presetKey);
+    localStorage.setItem('logicart-layout-preset', presetKey);
   };
 
   // Load saved layout on mount
   useEffect(() => {
-    const savedLayout = localStorage.getItem('logigo-layout-preset') as keyof typeof layoutPresets | null;
+    const savedLayout = (localStorage.getItem('logicart-layout-preset') || localStorage.getItem('logigo-layout-preset')) as keyof typeof layoutPresets | null;
     if (savedLayout && layoutPresets[savedLayout]) {
       // Small delay to ensure panels are mounted
       setTimeout(() => applyLayoutPreset(savedLayout), 100);
@@ -791,9 +812,9 @@ export default function Workbench() {
           try {
             const element = document.querySelector(checkpoint.domElement);
             if (element) {
-              element.classList.add('logigo-highlight');
+              element.classList.add('logicart-highlight');
               setTimeout(() => {
-                element.classList.remove('logigo-highlight');
+                element.classList.remove('logicart-highlight');
               }, 1000);
             }
           } catch (e) {
@@ -1166,11 +1187,11 @@ export default function Workbench() {
 
     const lines = code.split('\n');
 
-    // Check line above for @logigo comment
+    // Check line above for @logicart or @logigo (legacy) comment
     if (lineNum >= 2) {
       const prevLineIndex = lineNum - 2;
       const prevLine = lines[prevLineIndex];
-      if (prevLine && /\/\/\s*@logigo:/i.test(prevLine)) {
+      if (prevLine && /\/\/\s*@(logicart|logigo):/i.test(prevLine)) {
         // Remove the comment line
         lines.splice(prevLineIndex, 1);
         const newCode = lines.join('\n');
@@ -1212,14 +1233,14 @@ export default function Workbench() {
 
     const lines = code.split('\n');
     const indent = lines[lineNum - 1]?.match(/^(\s*)/)?.[1] || '';
-    const newComment = `${indent}// @logigo: ${labelText}`;
+    const newComment = `${indent}// @logicart: ${labelText}`;
 
-    // Check if there's already a @logigo comment on the line above
+    // Check if there's already a @logicart or @logigo (legacy) comment on the line above
     if (lineNum >= 2) {
       const prevLineIndex = lineNum - 2;
       const prevLine = lines[prevLineIndex];
-      if (prevLine && /\/\/\s*@logigo:/i.test(prevLine)) {
-        // Replace existing comment
+      if (prevLine && /\/\/\s*@(logicart|logigo):/i.test(prevLine)) {
+        // Replace existing comment with new @logicart format
         lines[prevLineIndex] = newComment;
       } else {
         // Insert new comment line before the code
@@ -2285,7 +2306,7 @@ export default function Workbench() {
 
     try {
       await exportToPNG(viewportElement, flowData.nodes as Node[], {
-        filename: 'logigo-flowchart.png',
+        filename: 'logicart-flowchart.png',
         backgroundColor: '#0f172a',
         quality: 2,
       });
@@ -2305,7 +2326,7 @@ export default function Workbench() {
 
     try {
       await exportToPDF(viewportElement, flowData.nodes as Node[], code, {
-        filename: 'logigo-flowchart.pdf',
+        filename: 'logicart-flowchart.pdf',
         backgroundColor: '#0f172a',
         quality: 2,
         includeCode: true,
@@ -2350,7 +2371,7 @@ export default function Workbench() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'logigo-code.js';
+    a.download = 'logicart-code.js';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2552,7 +2573,7 @@ export default function Workbench() {
             <Button
               onClick={() => {
                 setShowUpgradeModal(false);
-                window.open('https://voyai.org/upgrade?app=logigo', '_blank');
+                window.open('https://voyai.org/upgrade?app=logicart', '_blank');
               }}
               className="bg-yellow-600 hover:bg-yellow-700"
               data-testid="button-upgrade-confirm"
@@ -2832,7 +2853,7 @@ export default function Workbench() {
 
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <ResizablePanelGroup direction="horizontal" autoSaveId="logigo-workbench-panels">
+        <ResizablePanelGroup direction="horizontal" autoSaveId="logicart-workbench-panels">
           {/* Left Sidebar - Controls (Resizable) */}
           <ResizablePanel ref={sidebarPanelRef} defaultSize={30} minSize={0} maxSize={100} collapsible>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
@@ -2959,7 +2980,7 @@ export default function Workbench() {
                       const encodedCode = btoa(encodeURIComponent(code));
                       window.open(
                         `/?code=${encodedCode}&popup=true`,
-                        'logigo-flowchart',
+                        'logicart-flowchart',
                         `width=${popupWidth},height=${popupHeight},menubar=no,toolbar=no,location=no,status=no`
                       );
                     }}

@@ -1,10 +1,13 @@
 /**
  * Reporter API Type Definitions
  * 
- * Protocol for communication between LogiGo Studio (static analyzer)
- * and logigo-core (runtime debugger) via window.postMessage
+ * Protocol for communication between LogicArt Studio (static analyzer)
+ * and logicart-core (runtime debugger) via window.postMessage
  * 
- * Based on @logigo/bridge types - synchronized with Antigravity's spec
+ * Based on @logicart/bridge types - synchronized with Antigravity's spec
+ * 
+ * NOTE: LOGIGO_* constants preserved for backward compatibility with
+ * existing runtime clients. New integrations should use LogicArt branding.
  */
 
 export interface SourceLocation {

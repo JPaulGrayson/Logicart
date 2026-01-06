@@ -1,5 +1,5 @@
 /**
- * LogiGo Feature Flags
+ * LogicArt Feature Flags
  * 
  * Controls access to premium features.
  * In production, these will be tied to user subscriptions via Voyai auth.

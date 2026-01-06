@@ -1221,7 +1221,7 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
         pixelRatio: 2
       });
       const link = document.createElement('a');
-      link.download = `logigo-trace-${sessionId || 'flowchart'}.png`;
+      link.download = `logicart-trace-${sessionId || 'flowchart'}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -1246,7 +1246,7 @@ Add checkpoints to the main processing logic, loops, and any async operations. K
         format: [img.width, img.height]
       });
       pdf.addImage(dataUrl, 'PNG', 0, 0, img.width, img.height);
-      pdf.save(`logigo-trace-${sessionId || 'flowchart'}.pdf`);
+      pdf.save(`logicart-trace-${sessionId || 'flowchart'}.pdf`);
     } catch (err) {
       console.error('Export to PDF failed:', err);
     }

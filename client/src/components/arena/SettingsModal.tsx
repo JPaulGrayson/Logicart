@@ -13,7 +13,18 @@ interface APIKeys {
   xai: string;
 }
 
-const STORAGE_KEY = "logigo_arena_api_keys";
+const STORAGE_KEY = "logicart_arena_api_keys";
+const OLD_STORAGE_KEY = "logigo_arena_api_keys";
+
+function migrateArenaKeys() {
+  const oldValue = localStorage.getItem(OLD_STORAGE_KEY);
+  if (oldValue !== null && localStorage.getItem(STORAGE_KEY) === null) {
+    localStorage.setItem(STORAGE_KEY, oldValue);
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  }
+}
+
+migrateArenaKeys();
 
 export function getStoredAPIKeys(): APIKeys {
   try {

@@ -1,5 +1,5 @@
 /**
- * LogiGo Execution Controller - Premium Feature
+ * LogicArt Execution Controller - Premium Feature
  * 
  * Provides checkpoint-based execution control with speed governor.
  * This adds fine-grained control over code execution beyond basic step-through.
