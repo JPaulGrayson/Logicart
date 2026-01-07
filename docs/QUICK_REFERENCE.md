@@ -1,4 +1,4 @@
-# LogiGo Quick Reference Card
+# LogicArt Quick Reference Card
 
 **Print this for your desk!**
 
@@ -11,16 +11,16 @@
    → Static Mode (paste into Studio)
 
 🔧 React app?
-   → npm install logigo-embed
+   → npm install logicart-embed
 
 🏗️ Vite project?
-   → npm install logigo-vite-plugin
+   → npm install logicart-vite-plugin
 
 🐛 Node.js server?
    → Copy checkpoint helper (no npm)
 
 🎯 Fine control?
-   → npm install logigo-core
+   → npm install logicart-core
 ```
 
 ---
@@ -53,7 +53,7 @@ checkpoint('sort', { arr: [...arr] });
 await checkpointAsync('fetch:data');
 
 // Add user labels
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 ```
 
@@ -71,7 +71,7 @@ checkpoint('fetch:data');
 
 // Label after code
 let count = 0;
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 ```
 
 ---
@@ -87,27 +87,27 @@ let count = 0;
 
 ### React Embed
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
-<LogiGoEmbed code={code} theme="dark" />
+<LogicArtEmbed code={code} theme="dark" />
 ```
 
 ### Vite Plugin
 ```bash
-npm install logigo-vite-plugin --save-dev
+npm install logicart-vite-plugin --save-dev
 ```
 ```javascript
 // vite.config.js
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx']
     })
   ]
@@ -116,10 +116,10 @@ export default defineConfig({
 
 ### Backend Logging
 ```javascript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -134,7 +134,7 @@ const LogiGo = {
 | Syntax Error | Remove TypeScript syntax |
 | No variables | Check `captureVariables: true` |
 | CSS not loading | `import '@xyflow/react/dist/style.css'` |
-| Manifest 404 | Use `/logigo-manifest.json` (leading slash) |
+| Manifest 404 | Use `/logicart-manifest.json` (leading slash) |
 
 ---
 
@@ -164,18 +164,18 @@ loop:complete
 ## 🎨 User Labels
 
 ```javascript
-// @logigo: Your label here
+// @logicart: Your label here
 <code statement>
 ```
 
 **Example:**
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if empty
+// @logicart: Check if empty
 if (items.length === 0) {
-  // @logigo: Return zero
+  // @logicart: Return zero
   return 0;
 }
 ```
@@ -188,9 +188,9 @@ if (items.length === 0) {
 
 | Package | Use Case |
 |---------|----------|
-| logigo-core | Manual checkpoints, runtime control |
-| logigo-embed | React component for visualization |
-| logigo-vite-plugin | Build-time auto-instrumentation |
+| logicart-core | Manual checkpoints, runtime control |
+| logicart-embed | React component for visualization |
+| logicart-vite-plugin | Build-time auto-instrumentation |
 
 ---
 
@@ -208,7 +208,7 @@ if (items.length === 0) {
 
 1. **Use descriptive checkpoint IDs** - `auth:login:start` not `cp1`
 2. **Snapshot arrays** - `{ arr: [...arr] }` not `{ arr }`
-3. **Label your code** - `// @logigo: Initialize counter`
+3. **Label your code** - `// @logicart: Initialize counter`
 4. **Set strategic breakpoints** - Before complex logic
 5. **Check the Debug Panel** - See variables in real-time
 

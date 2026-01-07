@@ -1,6 +1,6 @@
-# LogiGo Common Pitfalls
+# LogicArt Common Pitfalls
 
-**Avoid these common mistakes when using LogiGo**
+**Avoid these common mistakes when using LogicArt**
 
 ---
 
@@ -138,10 +138,10 @@ async function fetchData() {
 ### ❌ Wrong: No CSS Import
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
-  return <LogiGoEmbed code={code} />;  // ❌ Flowchart won't render correctly
+  return <LogicArtEmbed code={code} />;  // ❌ Flowchart won't render correctly
 }
 ```
 
@@ -153,11 +153,11 @@ function App() {
 ### ✅ Right: Import Required CSS
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';  // ✅ Required!
 
 function App() {
-  return <LogiGoEmbed code={code} />;
+  return <LogicArtEmbed code={code} />;
 }
 ```
 
@@ -178,7 +178,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()]  // ❌ No LogiGo plugin
+  plugins: [react()]  // ❌ No LogicArt plugin
 });
 ```
 
@@ -193,14 +193,14 @@ export default defineConfig({
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';  // ✅ Import
+import logicartPlugin from 'logicart-vite-plugin';  // ✅ Import
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({  // ✅ Configure
+    logicartPlugin({  // ✅ Configure
       include: ['src/**/*.tsx', 'src/**/*.ts'],
-      manifestPath: 'logigo-manifest.json'
+      manifestPath: 'logicart-manifest.json'
     })
   ]
 });
@@ -297,7 +297,7 @@ function processUser(user) {
 ### ❌ Wrong: TypeScript-Specific Syntax
 
 ```javascript
-// Pasted into LogiGo Studio
+// Pasted into LogicArt Studio
 function processUser(user: User): Result {  // ❌ Type annotations
   const result: Result = {  // ❌ Type annotation
     success: true
@@ -314,7 +314,7 @@ function processUser(user: User): Result {  // ❌ Type annotations
 ### ✅ Right: Remove TypeScript Syntax
 
 ```javascript
-// Pasted into LogiGo Studio
+// Pasted into LogicArt Studio
 function processUser(user) {  // ✅ No type annotation
   const result = {  // ✅ No type annotation
     success: true
@@ -338,15 +338,15 @@ function processUser(user) {  // ✅ No type annotation
 
 ```javascript
 // server.ts
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(options.variables));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(options.variables));
   }
 };
 
 // ❌ Expecting flowchart to appear automatically
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: req.body });
+  LogicArt.checkpoint('order:start', { variables: req.body });
   // ...
 });
 ```
@@ -360,20 +360,20 @@ app.post('/api/order', async (req, res) => {
 
 ```javascript
 // server.ts
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(options.variables));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(options.variables));
   }
 };
 
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: req.body });
+  LogicArt.checkpoint('order:start', { variables: req.body });
   // ...
 });
 
 // ✅ To see flowchart:
 // 1. Copy server code
-// 2. Paste into LogiGo Studio
+// 2. Paste into LogicArt Studio
 // 3. See flowchart structure
 // 4. Correlate with console logs
 ```
@@ -390,7 +390,7 @@ app.post('/api/order', async (req, res) => {
 ### ❌ Wrong: Incorrect Manifest Path
 
 ```javascript
-<LogiGoEmbed manifestUrl="logigo-manifest.json" />  // ❌ Missing leading slash
+<LogicArtEmbed manifestUrl="logicart-manifest.json" />  // ❌ Missing leading slash
 ```
 
 **Problem:**
@@ -401,7 +401,7 @@ app.post('/api/order', async (req, res) => {
 ### ✅ Right: Absolute Path
 
 ```javascript
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />  // ✅ Leading slash
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />  // ✅ Leading slash
 ```
 
 **Benefits:**
@@ -474,7 +474,7 @@ function processArray(arr) {
 
 ```javascript
 let count = 0;
-// @logigo: Initialize counter  // ❌ Label after code
+// @logicart: Initialize counter  // ❌ Label after code
 ```
 
 **Problem:**
@@ -485,7 +485,7 @@ let count = 0;
 ### ✅ Right: Label Before Code
 
 ```javascript
-// @logigo: Initialize counter  // ✅ Label before code
+// @logicart: Initialize counter  // ✅ Label before code
 let count = 0;
 ```
 
@@ -498,7 +498,7 @@ let count = 0;
 
 ## 🎯 Quick Checklist
 
-Before you start using LogiGo, verify:
+Before you start using LogicArt, verify:
 
 - [ ] Checkpoint IDs are hierarchical (`section:action:detail`)
 - [ ] Arrays/objects are snapshotted (`[...arr]`, `{...obj}`)
