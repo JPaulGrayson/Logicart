@@ -210,6 +210,12 @@ export default function Workbench() {
   const [fullscreenMode, setFullscreenMode] = useState<'workspace' | 'presentation' | null>(null);
   const flowchartContainerRef = useRef<HTMLDivElement>(null);
 
+  // Embed mode state - clean fullscreen view with just code editor and flowchart
+  const [embedMode, setEmbedMode] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('embed') === 'true';
+  });
+
   // Layout presets - refs for programmatic resizing
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const flowchartPanelRef = useRef<ImperativePanelHandle>(null);
@@ -392,6 +398,7 @@ export default function Workbench() {
         adapter.writeFile(decoded);
         
         // Clear the URL parameter to avoid reloading on refresh
+        // Note: embed parameter is NOT cleared so the clean UI persists on refresh
         const url = new URL(window.location.href);
         url.searchParams.delete('code');
         url.searchParams.delete('popup');
@@ -2617,7 +2624,8 @@ export default function Workbench() {
         token={token}
       />
 
-      {/* Minimal Header - Just Branding */}
+      {/* Minimal Header - Just Branding (hidden in embed mode) */}
+      {!embedMode && (
       <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
@@ -2873,6 +2881,7 @@ export default function Workbench() {
           </Button>
         </div>
       </header>
+      )}
 
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
       <div className="flex-1 overflow-hidden min-h-0">
