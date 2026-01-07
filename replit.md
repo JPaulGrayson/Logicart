@@ -50,7 +50,8 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 - **Undo/Redo**: HistoryManager singleton with keyboard shortcuts (Ctrl+Z/Ctrl+Y) and toolbar buttons.
 - **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
 - **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
-- **MCP Server (Model Context Protocol)**: Exposes LogicArt's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
+- **MCP Server (Model Context Protocol)**: Exposes LogicArt's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, `count_paths`, and `display_audit`.
+- **Display Audit (AI Agent Tool)**: Detects when multiple code paths render the same component, helping AI agents avoid creating redundant display logic. Available via MCP tool `display_audit` and REST endpoint `POST /api/agent/display-audit`. Analyzes JSX/JS code and flags when >2 different places render the same component. Severity thresholds: 3 render points = info, 4-5 = warning, 6+ = critical. Returns structured findings with component names, line numbers, and consolidation suggestions. Uses acorn-jsx for JSX parsing.
 - **Voyai Authentication**: JWT-based authentication via Voyai (voyai.org). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence. Feature flags supported: `history_database`, `rabbit_hole_rescue`, `github_sync`, `managed_allowance`.
 - **Managed AI Proxy**: Pro users with `managed_allowance` feature get server-side API key access for AI models (OpenAI, Gemini, Anthropic, xAI). Usage tracked per-user with monthly auto-reset. Endpoints: `GET /api/ai/usage` (current usage), `POST /api/ai/proxy` (proxied AI calls). Credit Meter UI shows "X/Y" format with remaining credits tooltip. Returns 402 when quota exhausted.
 - **Demo Mode**: Allows users to preview all Pro features without signing in. Toggle via "Try Demo" button in header. Simulates founder-tier user with all features enabled (history_database, rabbit_hole_rescue, github_sync, managed_allowance: 100). Persists across page reloads via localStorage. Exits cleanly and restores any existing Voyai session.
@@ -74,6 +75,7 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 
 ### Parsing & AST
 - acorn
+- acorn-jsx
 - @jridgewell/trace-mapping
 
 ### Form & Validation
