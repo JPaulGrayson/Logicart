@@ -42,6 +42,7 @@ const VISIBLE_DOCS = [
   { id: 'getting-started', title: 'Getting Started', emoji: '🚀', slug: 'getting-started' },
   { id: 'vibe-coder-guide', title: 'Vibe Coder Guide', emoji: '✨', slug: 'vibe-coder-guide' },
   { id: 'agent-api', title: 'Agent API', emoji: '🤖', slug: 'agent-api' },
+  { id: 'mcp-guide', title: 'MCP Integration', emoji: '🔌', slug: 'mcp-guide' },
   { id: 'integration-wizard', title: 'Integration Wizard', emoji: '🪄', component: true },
   { id: 'common-pitfalls', title: 'Common Pitfalls', emoji: '⚠️', slug: 'common-pitfalls' },
   { id: 'api-reference', title: 'API Reference', emoji: '🔧', slug: 'api-reference' },
