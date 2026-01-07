@@ -24,7 +24,7 @@ import { NaturalLanguageSearch } from '@/components/ide/NaturalLanguageSearch';
 import { TimelineScrubber } from '@/components/ide/TimelineScrubber';
 import type { SearchResult } from '@/lib/naturalLanguageSearch';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown, Sparkles, Wand2 } from 'lucide-react';
+import { Download, FileText, FlaskConical, ChevronLeft, ChevronRight, Code2, Eye, Settings, Search, BookOpen, Share2, HelpCircle, Library, Maximize2, Minimize2, Monitor, Presentation, ZoomIn, Upload, FileCode, Wifi, Radio, X, Copy, Check, Bug, Play, StepForward, Pause, Undo2, Redo2, ExternalLink, Github, Anchor, Lock, Crown, Sparkles, Wand2, Columns } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { historyManager } from '@/lib/historyManager';
@@ -215,6 +215,9 @@ export default function Workbench() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('embed') === 'true';
   });
+
+  // Simple View state - shows only code editor + flowchart (no extra controls)
+  const [simpleView, setSimpleView] = useState(false);
 
   // Layout presets - refs for programmatic resizing
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
@@ -2740,6 +2743,32 @@ export default function Workbench() {
             </Tooltip>
           </TooltipProvider>
 
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={simpleView ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    const newSimpleView = !simpleView;
+                    setSimpleView(newSimpleView);
+                    if (newSimpleView) {
+                      applyLayoutPreset('50-50');
+                    }
+                  }}
+                  className={`h-7 gap-1.5 text-xs ${simpleView ? 'bg-green-600 hover:bg-green-700' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
+                  data-testid="button-simple-view"
+                >
+                  <Columns className="w-3.5 h-3.5" />
+                  Simple
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>50/50 split view with just code editor and flowchart</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Button
             variant="outline"
             size="sm"
@@ -2890,9 +2919,10 @@ export default function Workbench() {
           <ResizablePanel ref={sidebarPanelRef} defaultSize={30} minSize={0} maxSize={100} collapsible>
             <div className="h-full border-r border-border bg-card flex flex-col overflow-y-auto">
 
-              <TutorialSidebar />
+              {!simpleView && <TutorialSidebar />}
 
-              {/* Flow Tools Section - Always Visible at Top */}
+              {/* Flow Tools Section - Hidden in Simple View */}
+              {!simpleView && (
               <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
                 <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                   <Search className="w-3 h-3" />
@@ -3048,8 +3078,10 @@ export default function Workbench() {
                   </div>
                 </div>
               </div>
+              )}
 
-              {/* Execution Controls Section */}
+              {/* Execution Controls Section - Hidden in Simple View */}
+              {!simpleView && (
               <div className="flex-shrink-0">
                 <ExecutionControls
                   isPlaying={isPlaying}
@@ -3067,9 +3099,10 @@ export default function Workbench() {
                   onLoopToggle={handleLoopToggle}
                 />
               </div>
+              )}
 
-              {/* Remote Control Section - Only when connected to remote session */}
-              {remoteSessionId && (
+              {/* Remote Control Section - Only when connected to remote session, hidden in Simple View */}
+              {!simpleView && remoteSessionId && (
                 <div className="border-b border-border p-3 space-y-2 flex-shrink-0">
                   <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
                     <Wifi className="w-3 h-3" />
@@ -3142,7 +3175,8 @@ export default function Workbench() {
                 </div>
               )}
 
-              {/* Compact Code & Export Row */}
+              {/* Compact Code & Export Row - Hidden in Simple View */}
+              {!simpleView && (
               <div className="border-b border-border p-3 flex-shrink-0">
                 <input
                   type="file"
@@ -3241,9 +3275,10 @@ export default function Workbench() {
                   </div>
                 </div>
               </div>
+              )}
 
-              {/* Code Editor Section - At Bottom */}
-              {showCodeEditor && !codeEditorCollapsed && (
+              {/* Code Editor Section - Expanded in Simple View */}
+              {(simpleView || (showCodeEditor && !codeEditorCollapsed)) && (
                 <div id="code-editor-container" className="border-b border-border flex-1 min-h-[200px] overflow-hidden">
                   <div className="h-full">
                     <CodeEditor
@@ -3254,7 +3289,7 @@ export default function Workbench() {
                   </div>
                 </div>
               )}
-              {showCodeEditor && (
+              {!simpleView && showCodeEditor && (
                 <div className="border-b border-border flex-shrink-0">
                   <button
                     onClick={() => setCodeEditorCollapsed(!codeEditorCollapsed)}
