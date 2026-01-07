@@ -13,7 +13,7 @@ import * as acorn from "acorn";
 import { WebSocketServer, WebSocket } from "ws";
 import { registerAIRoutes } from "./ai";
 import { registerArenaRoutes } from "./arena";
-import { handleMCPSSE, handleMCPMessage } from "./mcp";
+import { handleMCPSSE, handleMCPMessage, analyzeDisplayPaths } from "./mcp";
 import { shares, insertShareSchema } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -618,6 +618,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[Agent API] Error analyzing code:", error);
       res.status(500).json({ error: "Failed to analyze code" });
+    }
+  });
+
+  app.post("/api/agent/display-audit", async (req, res) => {
+    try {
+      const { code } = req.body;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Code is required" });
+      }
+
+      const result = analyzeDisplayPaths(code);
+      res.json(result);
+    } catch (error) {
+      console.error("[Agent API] Error in display audit:", error);
+      res.status(500).json({ error: "Failed to audit display paths" });
     }
   });
 

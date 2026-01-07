@@ -5,8 +5,11 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as acorn from "acorn";
+import jsx from "acorn-jsx";
 import crypto from "crypto";
 import type { Request, Response } from "express";
+
+const acornJsx = acorn.Parser.extend(jsx());
 
 interface FlowNode {
   id: string;
@@ -50,7 +53,7 @@ function analyzeCode(code: string): AnalysisResult {
   };
 
   try {
-    const ast = acorn.parse(code, {
+    const ast = acornJsx.parse(code, {
       ecmaVersion: 2020,
       sourceType: 'module',
       locations: true,
@@ -278,6 +281,208 @@ function getComplexityExplanation(score: number): string {
   return "Very high complexity - strongly recommend breaking into smaller, testable units.";
 }
 
+interface DisplayPathInfo {
+  pathId: string;
+  nodeIds: string[];
+  terminalNodeId: string;
+  terminalLabel: string;
+  line: number;
+}
+
+interface DisplayAuditFinding {
+  type: 'duplicate_paths';
+  severity: 'info' | 'warning' | 'critical';
+  componentName: string;
+  message: string;
+  pathCount: number;
+  paths: DisplayPathInfo[];
+  suggestion: string;
+}
+
+interface DisplayAuditResult {
+  summary: {
+    totalNodes: number;
+    displayNodes: number;
+    uniqueComponents: string[];
+    findingsCount: number;
+    recommendation: string;
+  };
+  findings: DisplayAuditFinding[];
+  parseError?: string;
+}
+
+export function analyzeDisplayPaths(code: string): DisplayAuditResult {
+  const analysisResult = analyzeCode(code);
+  const { nodes, edges } = analysisResult;
+  
+  const hasParseError = nodes.some(n => n.type === 'error');
+  if (hasParseError || nodes.length === 0) {
+    const errorNode = nodes.find(n => n.type === 'error');
+    return {
+      summary: {
+        totalNodes: 0,
+        displayNodes: 0,
+        uniqueComponents: [],
+        findingsCount: 0,
+        recommendation: 'Unable to analyze - code parsing failed',
+      },
+      findings: [],
+      parseError: errorNode?.snippet || 'Failed to parse code',
+    };
+  }
+  
+  const displayPatterns = [
+    /return\s*<(\w+)/,
+    /return\s+(\w+)\s*\(/,
+    /render(\w+)\s*\(/,
+    /<(\w+)\s/,
+  ];
+  
+  const displayNodes = nodes.filter(node => {
+    const label = node.label || '';
+    return displayPatterns.some(pattern => pattern.test(label));
+  });
+  
+  const extractComponentName = (label: string): string | null => {
+    for (const pattern of displayPatterns) {
+      const match = label.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+  
+  const nodeById = new Map(nodes.map(n => [n.id, n]));
+  
+  const adjacencyListReverse = new Map<string, { source: string; condition?: string }[]>();
+  for (const edge of edges) {
+    const sources = adjacencyListReverse.get(edge.target) || [];
+    sources.push({ source: edge.source, condition: edge.condition });
+    adjacencyListReverse.set(edge.target, sources);
+  }
+  
+  type BranchSignature = { nodeId: string; outcome: string }[];
+  
+  const traceBranchSignatures = (targetId: string, maxDepth = 15): BranchSignature[] => {
+    const signatures: BranchSignature[] = [];
+    const seenSigs = new Set<string>();
+    
+    const dfs = (currentId: string, signature: BranchSignature, depth: number, visited: Set<string>) => {
+      if (depth > maxDepth) return;
+      if (visited.has(currentId)) return;
+      
+      const newVisited = new Set(visited);
+      newVisited.add(currentId);
+      
+      const parents = adjacencyListReverse.get(currentId) || [];
+      
+      if (parents.length === 0) {
+        const sigKey = signature.map(s => `${s.nodeId}:${s.outcome}`).join('|');
+        if (!seenSigs.has(sigKey)) {
+          seenSigs.add(sigKey);
+          signatures.push([...signature]);
+        }
+        return;
+      }
+      
+      for (const { source, condition } of parents) {
+        const parentNode = nodeById.get(source);
+        let newSignature = signature;
+        
+        if (parentNode?.type === 'decision' && condition) {
+          newSignature = [{ nodeId: source, outcome: condition }, ...signature];
+        }
+        
+        dfs(source, newSignature, depth + 1, newVisited);
+      }
+    };
+    
+    dfs(targetId, [], 0, new Set());
+    return signatures;
+  };
+  
+  const terminalsByComponent = new Map<string, { node: FlowNode; line: number }[]>();
+  
+  for (const displayNode of displayNodes) {
+    const componentName = extractComponentName(displayNode.label);
+    if (!componentName) continue;
+    
+    const existing = terminalsByComponent.get(componentName) || [];
+    existing.push({ node: displayNode, line: displayNode.line });
+    terminalsByComponent.set(componentName, existing);
+  }
+  
+  const findings: DisplayAuditFinding[] = [];
+  
+  for (const [componentName, terminals] of terminalsByComponent.entries()) {
+    const uniqueByLine = new Map<number, { node: FlowNode; signature: BranchSignature }>();
+    
+    for (const { node } of terminals) {
+      if (!uniqueByLine.has(node.line)) {
+        const signatures = traceBranchSignatures(node.id);
+        const bestSig = signatures.reduce((a, b) => a.length >= b.length ? a : b, []);
+        uniqueByLine.set(node.line, { node, signature: bestSig });
+      }
+    }
+    
+    const renderPointCount = uniqueByLine.size;
+    const renderPoints: DisplayPathInfo[] = [];
+    let counter = 0;
+    
+    for (const [line, { node, signature }] of uniqueByLine.entries()) {
+      counter++;
+      renderPoints.push({
+        pathId: `p${counter}`,
+        nodeIds: signature.map(s => s.nodeId),
+        terminalNodeId: node.id,
+        terminalLabel: node.label,
+        line,
+      });
+    }
+    
+    if (renderPointCount > 2) {
+      let severity: 'info' | 'warning' | 'critical';
+      if (renderPointCount <= 3) {
+        severity = 'info';
+      } else if (renderPointCount <= 5) {
+        severity = 'warning';
+      } else {
+        severity = 'critical';
+      }
+      
+      findings.push({
+        type: 'duplicate_paths',
+        severity,
+        componentName,
+        message: `Found ${renderPointCount} different places that render "${componentName}"`,
+        pathCount: renderPointCount,
+        paths: renderPoints,
+        suggestion: `Consider consolidating these ${renderPointCount} render points into a single function or shared component`,
+      });
+    }
+  }
+  
+  const uniqueComponents = [...new Set(
+    displayNodes
+      .map(n => extractComponentName(n.label))
+      .filter((c): c is string => c !== null)
+  )];
+  
+  return {
+    summary: {
+      totalNodes: nodes.length,
+      displayNodes: displayNodes.length,
+      uniqueComponents,
+      findingsCount: findings.length,
+      recommendation: findings.length > 0
+        ? 'Review and consolidate duplicate paths before adding new features'
+        : 'No duplicate display paths detected - safe to proceed',
+    },
+    findings,
+  };
+}
+
 export function createMCPServer() {
   const server = new Server(
     {
@@ -359,6 +564,20 @@ export function createMCPServer() {
               code: {
                 type: "string",
                 description: "The JavaScript or TypeScript code to analyze for paths",
+              },
+            },
+            required: ["code"],
+          },
+        },
+        {
+          name: "display_audit",
+          description: "Analyze code for redundant display logic and duplicate paths. Detects when multiple code branches lead to similar UI outputs (e.g., 3 different paths all rendering the same component). Use this before adding new features to prevent creating additional redundant paths.",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              code: {
+                type: "string",
+                description: "The JavaScript or TypeScript code to audit for duplicate display paths",
               },
             },
             required: ["code"],
@@ -467,6 +686,18 @@ export function createMCPServer() {
                   ? "High path count - comprehensive testing may be challenging."
                   : "Path count is reasonable for thorough testing.",
               }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "display_audit": {
+        const result = analyzeDisplayPaths(code);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
