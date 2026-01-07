@@ -80,7 +80,7 @@ let count = 0;
 
 ### Static Mode
 ```
-1. Open LogiGo Studio
+1. Open LogicArt Studio
 2. Paste code
 3. Press Space
 ```
@@ -200,7 +200,7 @@ if (items.length === 0) {
 - **Install**: [Installation Guide](docs/INSTALLATION_GUIDE.md)
 - **API**: [API Reference](docs/API_REFERENCE.md)
 - **Pitfalls**: [Common Pitfalls](docs/COMMON_PITFALLS.md)
-- **GitHub**: [github.com/JPaulGrayson/LogiGo](https://github.com/JPaulGrayson/LogiGo)
+- **GitHub**: [github.com/JPaulGrayson/LogicArt](https://github.com/JPaulGrayson/LogicArt)
 
 ---
 

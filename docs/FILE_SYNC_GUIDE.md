@@ -39,14 +39,14 @@ To prevent "Sync Loops" where the browser detects its own changes as external up
 
 ## 🚀 Quick Start: Syncing External Projects
 
-You can synchronize any external project (like the **Vibe Task Manager**) with LogicArt using the `sync-to-logigo.js` utility.
+You can synchronize any external project (like the **Vibe Task Manager**) with LogicArt using the `sync-to-logicart.js` utility.
 
 ### 1. The Bridge Utility
-LogicArt provides a lightweight sync script (`sync-to-logigo.js`) that pipes your external source code directly into the LogicArt engine.
+LogicArt provides a lightweight sync script (`sync-to-logicart.js`) that pipes your external source code directly into the LogicArt engine.
 
 ```bash
 # Run the sync script in your project folder
-node sync-to-logigo.js --file app.js --port 5001
+node sync-to-logicart.js --file app.js --port 5001
 ```
 
 ### 2. Live Demo: Vibe Task Manager

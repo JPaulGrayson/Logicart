@@ -33,7 +33,7 @@ By the end of this guide, you'll know how to:
 
 ### Step 1: Open LogicArt Studio
 
-Navigate to [LogicArt Studio](https://logigo.studio) *(or your deployed URL)*
+Navigate to [LogicArt Studio](https://logicart.studio) *(or your deployed URL)*
 
 ### Step 2: Paste Code
 

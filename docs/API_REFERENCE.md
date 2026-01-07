@@ -19,9 +19,9 @@
 - [logicart-core](#logicart-core)
   - [checkpoint()](#checkpoint)
   - [checkpointAsync()](#checkpointasync)
-  - [LogicArtRuntime](#logigoruntime)
+  - [LogicArtRuntime](#logicartruntime)
 - [logicart-embed](#logicart-embed)
-  - [LogicArtEmbed Component](#logigoembed-component)
+  - [LogicArtEmbed Component](#logicart-embed-component)
   - [Props Reference](#props-reference)
 - [logicart-vite-plugin](#logicart-vite-plugin)
   - [Plugin Configuration](#plugin-configuration)
@@ -624,12 +624,12 @@ Add to `vite.config.js`:
 ```javascript
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logicart-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
       manifestPath: 'logicart-manifest.json',
@@ -661,7 +661,7 @@ export default defineConfig({
 Glob patterns for files to instrument.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   include: [
     'src/**/*.tsx',
     'src/**/*.ts',
@@ -686,7 +686,7 @@ logigoPlugin({
 Glob patterns for files to skip.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   exclude: [
     '**/node_modules/**',
     '**/*.test.*',
@@ -711,7 +711,7 @@ logigoPlugin({
 Output path for the generated manifest file.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   manifestPath: 'public/logicart-manifest.json'
 })
 ```
@@ -740,7 +740,7 @@ logigoPlugin({
 Automatically inject checkpoint calls at key points.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   autoInstrument: true
 })
 ```
@@ -787,7 +787,7 @@ function processOrder(order) {
 Capture local variables at each checkpoint.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   captureVariables: true
 })
 ```
@@ -1173,7 +1173,7 @@ declare module 'logicart-vite-plugin' {
     captureVariables?: boolean;
   }
   
-  export default function logigoPlugin(
+  export default function logicartPlugin(
     options?: LogicArtPluginOptions
   ): Plugin;
 }
