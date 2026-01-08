@@ -261,16 +261,55 @@ function parseCodeToGrounding(code: string): GroundingContext {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // First-visit landing page redirect middleware
+  // Redirects users without "logicartLandingSeen" cookie to /landing.html
+  app.use((req, res, next) => {
+    // Only apply to GET requests for the root path
+    if (req.method !== 'GET' || req.path !== '/') {
+      return next();
+    }
+    
+    // Skip if already has the cookie
+    const cookies = req.headers.cookie || '';
+    if (cookies.includes('logicartLandingSeen=')) {
+      return next();
+    }
+    
+    // Skip if this is an API call or asset request
+    if (req.headers.accept && !req.headers.accept.includes('text/html')) {
+      return next();
+    }
+    
+    // Preserve any query params as ?next= for return navigation
+    const queryString = Object.keys(req.query).length > 0 
+      ? `?next=${encodeURIComponent(req.originalUrl)}`
+      : '';
+    
+    res.redirect(302, `/landing.html${queryString}`);
+  });
+
   // Serve LogiGo demo files (must be before Vite middleware)
   app.use("/demo", express.static(path.join(__dirname, "..", "example")));
   app.use("/demo-src", express.static(path.join(__dirname, "..", "src")));
   app.use("/test-app", express.static(path.join(__dirname, "..", "public", "test-app")));
 
-  // Serve the marketing landing page
+  // Serve the marketing landing page and set the "seen" cookie
   app.get("/landing.html", (req, res) => {
+    res.cookie('logicartLandingSeen', '1', {
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
     res.sendFile(path.join(__dirname, "..", "public", "landing.html"));
   });
   app.get("/landing", (req, res) => {
+    res.cookie('logicartLandingSeen', '1', {
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
     res.sendFile(path.join(__dirname, "..", "public", "landing.html"));
   });
 

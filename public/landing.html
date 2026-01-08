@@ -358,6 +358,23 @@
 
     <script>
         lucide.createIcons();
+        
+        // Handle ?next= parameter for return navigation after viewing landing
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            let nextUrl = params.get('next') || '/';
+            
+            // Security: Only allow same-origin paths (must start with "/")
+            // Prevents open redirect attacks via external URLs
+            if (!nextUrl.startsWith('/') || nextUrl.startsWith('//')) {
+                nextUrl = '/';
+            }
+            
+            // Update all CTA links that point to "/" to use the next URL
+            document.querySelectorAll('a[href="/"]').forEach(function(link) {
+                link.href = nextUrl;
+            });
+        })();
     </script>
 </body>
 </html>
