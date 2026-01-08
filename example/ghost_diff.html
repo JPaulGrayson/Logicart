@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Ghost Diff Demo</title>
+    <title>LogicArt - Ghost Diff Demo</title>
     <style>
         * {
             margin: 0;
@@ -236,7 +236,7 @@
 
 <body>
     <div class="container">
-        <h1>👻 LogiGo Ghost Diff Demo</h1>
+        <h1>👻 LogicArt Ghost Diff Demo</h1>
 
         <div class="controls">
             <h2>Scenarios</h2>
@@ -265,9 +265,24 @@
         <div class="stats" id="stats"></div>
     </div>
 
-    <!-- Load LogiGo -->
-    <script src="../src/parser.js"></script>
-    <script src="../src/differ.js"></script>
+    <!-- Load LogicArt parser and differ as ES modules -->
+    <script type="module">
+        import LogiGoParser from '/demo-src/parser.js';
+        import LogiGoDiffer from '/demo-src/differ.js';
+        
+        // Make available globally for the demo
+        window.LogiGoParser = LogiGoParser;
+        window.LogiGoDiffer = LogiGoDiffer;
+        
+        // Initialize and load default scenario after modules are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initDemo();
+        });
+        // If DOMContentLoaded already fired
+        if (document.readyState !== 'loading') {
+            initDemo();
+        }
+    </script>
 
     <script>
         const scenarios = {
@@ -332,10 +347,24 @@ function unusedFunction() {
             }
         };
 
-        const parser = new LogiGoParser({ debug: false });
-        const differ = new LogiGoDiffer({ debug: false });
+        let parser = null;
+        let differ = null;
+
+        function initDemo() {
+            if (!window.LogiGoParser || !window.LogiGoDiffer) {
+                console.error('LogiGoParser or LogiGoDiffer not loaded');
+                return;
+            }
+            parser = new window.LogiGoParser({ debug: false });
+            differ = new window.LogiGoDiffer({ debug: false });
+            loadScenario('refactor');
+        }
 
         function loadScenario(name) {
+            if (!parser || !differ) {
+                console.error('Demo not initialized');
+                return;
+            }
             const scenario = scenarios[name];
 
             // Display code
@@ -401,9 +430,6 @@ function unusedFunction() {
         </div>
       `;
         }
-
-        // Load default scenario
-        loadScenario('refactor');
     </script>
 </body>
 
