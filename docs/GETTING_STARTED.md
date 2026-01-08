@@ -426,6 +426,20 @@ Customize your workspace with layout presets.
 
 **Access:** Click the layout icon (top-right) and select a preset
 
+### Simple Mode
+
+The **Simple** button (green, in the toolbar) toggles a distraction-free view that:
+
+- Hides the flow tools section (zoom, view levels, etc.)
+- Hides execution controls (play/pause, step buttons)
+- Hides remote control section
+- Hides code export/import row
+- Shows only: Code Editor + Flowchart
+
+**Best for:** Clean screenshots, embedding, presentations, or when you just want to focus on the code and visualization without extra UI elements.
+
+**Toggle:** Click the green "Simple" button in the toolbar. Click again to restore full controls.
+
 ---
 
 ## 🎯 Common Workflows
