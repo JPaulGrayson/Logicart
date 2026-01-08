@@ -313,6 +313,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, "..", "public", "landing.html"));
   });
 
+  // Vanity redirect for X/Twitter bio - short URL to VibePost arena
+  app.get("/x", (req, res) => {
+    res.redirect(302, "https://vibepost-jpaulgrayson.replit.app/arena");
+  });
+
   // Serve the test page explicitly
   app.get("/test-antigravity.html", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "example", "test-antigravity.html"));
