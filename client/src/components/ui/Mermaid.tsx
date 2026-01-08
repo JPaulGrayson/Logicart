@@ -49,8 +49,9 @@ const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
 
     return (
         <div 
-            className="flex justify-center py-8 bg-muted/20 rounded-xl my-6 overflow-x-auto"
+            className="flex justify-center py-8 bg-muted/20 rounded-xl my-6 overflow-x-auto outline-none"
             ref={ref}
+            tabIndex={-1}
             dangerouslySetInnerHTML={{ __html: svg }}
         />
     );
