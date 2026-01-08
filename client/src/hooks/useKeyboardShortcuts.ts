@@ -34,11 +34,6 @@ export function useKeyboardShortcuts({ shortcuts, enabled = true }: UseKeyboardS
       ) {
         return;
       }
-      
-      // Don't trigger shortcuts when inside a dialog/modal
-      if (target.closest('[role="dialog"]') || target.closest('[data-radix-dialog-content]')) {
-        return;
-      }
 
       const key = event.key.toLowerCase();
       
