@@ -4,30 +4,29 @@ export const tutorials: Tutorial[] = [
     {
         id: 'agent-nudge',
         name: 'The Agent Bridge',
-        description: 'Learn how to partner with the Agent to turn natural language into robust flowcharts.',
+        description: 'Learn how LogicArt transforms code into interactive flowcharts.',
         steps: [
             {
                 title: 'Welcome to LogicArt',
-                content: "I'm your LogicArt Agent. For the best experience, snap this window to the right and keep our chat window open on the left so you can see both at once!",
+                content: "LogicArt instantly transforms JavaScript code into visual flowcharts. Let's explore how it works!",
                 position: 'center'
             },
             {
                 targetId: 'code-editor-container',
-                title: 'Ask Me Anything',
-                content: 'In our personal chat window (where we are talking now), try saying: "Write a function to optimize a travel route using Dijkstra\'s algorithm."',
-                actionRequired: 'input',
+                title: 'The Code Editor',
+                content: 'This is where your code lives. Try pasting or typing any JavaScript function here. The flowchart updates in real-time as you type.',
                 position: 'right'
             },
             {
                 targetId: 'flow-viewport',
                 title: 'Instant Visualization',
-                content: 'As soon as I write the code, notice how the flowchart appears instantly. You can see the logic paths clearly without reading a single line of text.',
+                content: 'As soon as code appears in the editor, the flowchart renders instantly. You can see the logic paths clearly without reading a single line of text.',
                 position: 'left'
             },
             {
                 targetId: 'editor-toolbar',
-                title: 'Natural Language Labels',
-                content: 'Flowcharts can be dense. Ask me to "Add descriptive labels to this flow" to swap code snippets for human-readable steps.',
+                title: 'Explore the Toolbar',
+                content: 'Use the toolbar to run code step-by-step, export your flowchart, or try sample algorithms from the Examples menu.',
                 position: 'bottom'
             }
         ]
@@ -53,25 +52,24 @@ export const tutorials: Tutorial[] = [
     },
     {
         id: 'coding-without-code',
-        name: 'Coding Without Code',
-        description: 'Experience pure natural language development where the Agent handles the implementation details.',
+        name: 'AI-Assisted Coding',
+        description: 'Use LogicArt with AI assistants for visual code development.',
         steps: [
             {
-                title: 'The Agent Partnership',
-                content: "In this mode, you don't write code. You describe intent. I'll show you how to lead the dance through natural language.",
+                title: 'The Visual Advantage',
+                content: "When working with AI coding assistants, LogicArt helps you verify generated code visually. You can understand the logic shape without reading every line.",
                 position: 'center'
             },
             {
                 targetId: 'code-editor-container',
-                title: 'Intent & Verification',
-                content: 'Describe what you want (e.g., "Build an email validator"). Don\'t read the code I write—look at the flowchart to verify the logic "shape". If it looks right, the code is right.',
-                actionRequired: 'input',
+                title: 'Paste & Verify',
+                content: 'Paste AI-generated code here. Instead of reading every line, look at the flowchart to verify the logic "shape". If the flow looks right, the code is right.',
                 position: 'right'
             },
             {
                 targetId: 'editor-toolbar',
                 title: 'Iterative Refinement',
-                content: 'If you see an issue in the flow, just tell me. "Add a domain check to that." The flow updates instantly. This is "Vibe Coding"—managing architecture, not characters.',
+                content: 'If you spot an issue in the flow, you know exactly what to ask the AI to fix. This is "Vibe Coding"—managing architecture visually, not characters.',
                 position: 'bottom'
             }
         ]
