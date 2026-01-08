@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Library: Sorting Algorithms</title>
+    <title>LogicArt Library: Sorting Algorithms</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -121,7 +121,7 @@
 
     <div class="container">
         <h1>📚 Library of Logic: Sorting</h1>
-        <p>Standard algorithms instrumented with LogiGo for visual debugging and AI verification.</p>
+        <p>Standard algorithms instrumented with LogicArt for visual debugging and AI verification.</p>
 
         <div class="controls">
             <button onclick="resetArray()">🎲 Randomize Array</button>
@@ -162,14 +162,14 @@
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '../../src/overlay.js';
+        import LogiGoOverlay from '/demo-src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt (using LogiGo class for backward compatibility)
+        const logicart = new LogiGoOverlay({
             speed: 2.0, // Faster default speed for sorting
             position: 'bottom-right'
         }).init();
-        window.LogiGo = logigo;
+        // LogiGo is already exposed by the overlay.init()
 
         // State
         let array = [];

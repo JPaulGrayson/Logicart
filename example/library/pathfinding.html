@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Library: Pathfinding (A*)</title>
+    <title>LogicArt Library: Pathfinding (A*)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -170,14 +170,14 @@
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '../../src/overlay.js';
+        import LogiGoOverlay from '/demo-src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt (using LogiGo class for backward compatibility)
+        const logicart = new LogiGoOverlay({
             speed: 5.0, // Fast default
             position: 'bottom-right'
         }).init();
-        window.LogiGo = logigo;
+        // LogiGo is already exposed by the overlay.init()
 
         // Config
         const COLS = 20;
