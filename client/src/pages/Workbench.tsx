@@ -3653,6 +3653,7 @@ ${code}
                 runtimeState={runtimeState}
                 handshakeNodeId={handshakeNodeId}
                 crashPath={crashPath}
+                hideOverlays={true}
               />
             )}
           </div>

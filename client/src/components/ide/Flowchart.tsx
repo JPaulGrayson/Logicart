@@ -45,6 +45,7 @@ interface FlowchartProps {
   runtimeState?: RuntimeState;
   handshakeNodeId?: string | null;
   crashPath?: CrashPathData | null;
+  hideOverlays?: boolean;
 }
 
 // Define nodeTypes outside the component to prevent re-creation on every render
@@ -56,7 +57,7 @@ const nodeTypes = {
   output: LabeledNode,
 };
 
-function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, onAddLabel, onRemoveLabel, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId, crashPath }: FlowchartProps) {
+function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick, onNodeDoubleClick, onBreakpointToggle, onAddLabel, onRemoveLabel, activeNodeId, highlightedNodes, breakpoints, runtimeState, handshakeNodeId, crashPath, hideOverlays }: FlowchartProps) {
   // Use React Flow's internal state management
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes as unknown as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges as unknown as Edge[]);
@@ -261,156 +262,162 @@ function FlowchartInner({ nodes: initialNodes, edges: initialEdges, onNodeClick,
         />
       )}
       
-      {/* Breadcrumb Navigation - Top Left */}
-      <div 
-        className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-card/95 backdrop-blur border border-border rounded-md shadow-lg text-[10px] z-20"
-        data-testid="breadcrumb-nav"
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setBreadcrumbs([{ id: 'root', label: 'Global' }]);
-            handleAutoFit();
-          }}
-          className="h-5 w-5 p-0"
-          title="Go to root"
-          data-testid="button-breadcrumb-home"
+      {/* Breadcrumb Navigation - Top Left (hidden in fullscreen) */}
+      {!hideOverlays && (
+        <div 
+          className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-card/95 backdrop-blur border border-border rounded-md shadow-lg text-[10px] z-20"
+          data-testid="breadcrumb-nav"
         >
-          <Home className="w-3 h-3" />
-        </Button>
-        {breadcrumbs.map((crumb, idx) => (
-          <React.Fragment key={crumb.id}>
-            {idx > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
-            <button
-              onClick={() => setBreadcrumbs(breadcrumbs.slice(0, idx + 1))}
-              className={`px-1.5 py-0.5 rounded text-[10px] hover:bg-accent transition-colors ${
-                idx === breadcrumbs.length - 1 ? 'font-semibold text-primary' : 'text-muted-foreground'
-              }`}
-              data-testid={`breadcrumb-${crumb.id}`}
-            >
-              {crumb.label}
-            </button>
-          </React.Fragment>
-        ))}
-      </div>
-      
-      {/* Floating Status Pill - Top Right */}
-      <div 
-        className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-card/95 backdrop-blur border border-border rounded-full shadow-lg text-[10px] z-20"
-        data-testid="status-pill"
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button 
-              className="flex items-center gap-1 hover:bg-accent/50 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
-              data-testid="view-level-selector"
-            >
-              <span className="text-muted-foreground">View:</span>{' '}
-              <span className="text-primary font-semibold">
-                {currentZoom < 0.4 ? 'Mile-High' : currentZoom < 1.0 ? '1000ft' : '100ft'}
-              </span>
-              <span className="ml-1 text-muted-foreground">
-                ({Math.round(currentZoom * 100)}%)
-              </span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[160px]">
-            {VIEW_LEVELS.map((level) => (
-              <DropdownMenuItem
-                key={level.name}
-                onClick={() => applyZoomPreset(level.zoom)}
-                className="flex flex-col items-start gap-0.5 cursor-pointer"
-                data-testid={`view-level-${level.name.toLowerCase()}`}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setBreadcrumbs([{ id: 'root', label: 'Global' }]);
+              handleAutoFit();
+            }}
+            className="h-5 w-5 p-0"
+            title="Go to root"
+            data-testid="button-breadcrumb-home"
+          >
+            <Home className="w-3 h-3" />
+          </Button>
+          {breadcrumbs.map((crumb, idx) => (
+            <React.Fragment key={crumb.id}>
+              {idx > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
+              <button
+                onClick={() => setBreadcrumbs(breadcrumbs.slice(0, idx + 1))}
+                className={`px-1.5 py-0.5 rounded text-[10px] hover:bg-accent transition-colors ${
+                  idx === breadcrumbs.length - 1 ? 'font-semibold text-primary' : 'text-muted-foreground'
+                }`}
+                data-testid={`breadcrumb-${crumb.id}`}
               >
-                <span className={`font-medium ${
-                  (currentZoom < 0.4 && level.name === 'Mile-High') ||
-                  (currentZoom >= 0.4 && currentZoom < 1.0 && level.name === '1000ft') ||
-                  (currentZoom >= 1.0 && level.name === '100ft')
-                    ? 'text-primary' : ''
-                }`}>
-                  {level.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground">{level.description}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="w-px h-3 bg-border" />
-        <span className="flex items-center gap-1">
-          {runtimeState?.mode === 'live' ? (
-            <>
-              <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-green-500 font-semibold">Live Mode</span>
-              <span className="text-muted-foreground/60">
-                ({runtimeState.checkpointCount} checkpoints)
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="w-1 h-1 rounded-full bg-blue-500"></span>
-              <span className="text-blue-500">Static Mode</span>
-            </>
-          )}
-        </span>
-      </div>
-      
-      {/* Zoom Controls - Bottom Right */}
-      <div className="absolute bottom-3 right-3 flex items-center gap-1 z-20">
-        {/* Zoom Presets */}
-        <div className="flex items-center gap-0.5 mr-1 px-1 py-0.5 bg-card/95 backdrop-blur border border-border rounded-md shadow-md">
-          {ZOOM_PRESETS.map((preset) => (
-            <Button
-              key={preset.name}
-              variant="ghost"
-              size="sm"
-              onClick={() => applyZoomPreset(preset.zoom)}
-              className={`h-6 px-2 text-[10px] ${
-                getActiveZoomPreset(currentZoom) === preset.name 
-                  ? 'bg-primary/20 text-primary' 
-                  : ''
-              }`}
-              title={preset.zoom === -1 ? 'Fit to view' : `Zoom to ${preset.name}`}
-              data-testid={`button-zoom-preset-${preset.name.toLowerCase()}`}
-            >
-              <span className="mr-1">{preset.icon}</span>
-              {preset.name}
-            </Button>
+                {crumb.label}
+              </button>
+            </React.Fragment>
           ))}
         </div>
-        
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => handleAutoFit()}
-          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
-          title="Auto-fit to view (ensures minimum readable zoom)"
-          data-testid="button-auto-fit"
+      )}
+      
+      {/* Floating Status Pill - Top Right (hidden in fullscreen) */}
+      {!hideOverlays && (
+        <div 
+          className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-card/95 backdrop-blur border border-border rounded-full shadow-lg text-[10px] z-20"
+          data-testid="status-pill"
         >
-          <Maximize className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleZoomIn}
-          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
-          title="Zoom in"
-          data-testid="button-zoom-in"
-        >
-          <ZoomIn className="w-3.5 h-3.5" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleZoomOut}
-          className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
-          title="Zoom out"
-          data-testid="button-zoom-out"
-        >
-          <ZoomOut className="w-3.5 h-3.5" />
-        </Button>
-      </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className="flex items-center gap-1 hover:bg-accent/50 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                data-testid="view-level-selector"
+              >
+                <span className="text-muted-foreground">View:</span>{' '}
+                <span className="text-primary font-semibold">
+                  {currentZoom < 0.4 ? 'Mile-High' : currentZoom < 1.0 ? '1000ft' : '100ft'}
+                </span>
+                <span className="ml-1 text-muted-foreground">
+                  ({Math.round(currentZoom * 100)}%)
+                </span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[160px]">
+              {VIEW_LEVELS.map((level) => (
+                <DropdownMenuItem
+                  key={level.name}
+                  onClick={() => applyZoomPreset(level.zoom)}
+                  className="flex flex-col items-start gap-0.5 cursor-pointer"
+                  data-testid={`view-level-${level.name.toLowerCase()}`}
+                >
+                  <span className={`font-medium ${
+                    (currentZoom < 0.4 && level.name === 'Mile-High') ||
+                    (currentZoom >= 0.4 && currentZoom < 1.0 && level.name === '1000ft') ||
+                    (currentZoom >= 1.0 && level.name === '100ft')
+                      ? 'text-primary' : ''
+                  }`}>
+                    {level.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{level.description}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="w-px h-3 bg-border" />
+          <span className="flex items-center gap-1">
+            {runtimeState?.mode === 'live' ? (
+              <>
+                <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+                <span className="text-green-500 font-semibold">Live Mode</span>
+                <span className="text-muted-foreground/60">
+                  ({runtimeState.checkpointCount} checkpoints)
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                <span className="text-blue-500">Static Mode</span>
+              </>
+            )}
+          </span>
+        </div>
+      )}
+      
+      {/* Zoom Controls - Bottom Right (hidden in fullscreen) */}
+      {!hideOverlays && (
+        <div className="absolute bottom-3 right-3 flex items-center gap-1 z-20">
+          {/* Zoom Presets */}
+          <div className="flex items-center gap-0.5 mr-1 px-1 py-0.5 bg-card/95 backdrop-blur border border-border rounded-md shadow-md">
+            {ZOOM_PRESETS.map((preset) => (
+              <Button
+                key={preset.name}
+                variant="ghost"
+                size="sm"
+                onClick={() => applyZoomPreset(preset.zoom)}
+                className={`h-6 px-2 text-[10px] ${
+                  getActiveZoomPreset(currentZoom) === preset.name 
+                    ? 'bg-primary/20 text-primary' 
+                    : ''
+                }`}
+                title={preset.zoom === -1 ? 'Fit to view' : `Zoom to ${preset.name}`}
+                data-testid={`button-zoom-preset-${preset.name.toLowerCase()}`}
+              >
+                <span className="mr-1">{preset.icon}</span>
+                {preset.name}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleAutoFit()}
+            className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+            title="Auto-fit to view (ensures minimum readable zoom)"
+            data-testid="button-auto-fit"
+          >
+            <Maximize className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleZoomIn}
+            className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+            title="Zoom in"
+            data-testid="button-zoom-in"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleZoomOut}
+            className="h-7 w-7 p-0 bg-card/95 backdrop-blur shadow-md"
+            title="Zoom out"
+            data-testid="button-zoom-out"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
