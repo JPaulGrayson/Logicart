@@ -362,7 +362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'REMOTE_SYNC_GUIDE.md',
     'FILE_SYNC_GUIDE.md',
     'AGENT_API.md',
-    'ANTIGRAVITY_V1_FEATURE_REVIEW.md'
+    'ANTIGRAVITY_V1_FEATURE_REVIEW.md',
+    'DEV_VS_PRODUCTION.md'
   ];
 
   // Map URL slugs to documentation files
@@ -379,7 +380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     'remote-sync': 'REMOTE_SYNC_GUIDE.md',
     'file-sync': 'FILE_SYNC_GUIDE.md',
     'agent-api': 'AGENT_API.md',
-    'feature-review': 'ANTIGRAVITY_V1_FEATURE_REVIEW.md'
+    'feature-review': 'ANTIGRAVITY_V1_FEATURE_REVIEW.md',
+    'dev-vs-production': 'DEV_VS_PRODUCTION.md'
   };
 
   app.get("/api/docs", (req, res) => {

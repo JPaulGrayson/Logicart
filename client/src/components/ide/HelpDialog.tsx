@@ -49,6 +49,7 @@ const VISIBLE_DOCS = [
   { id: 'arena-masterclass', title: 'Arena Masterclass', emoji: '🏛', slug: 'arena-masterclass' },
   { id: 'remote-sync', title: 'Remote Sync Guide', emoji: '🛰', slug: 'remote-sync' },
   { id: 'file-sync', title: 'File Sync Guide', emoji: '🔄', slug: 'file-sync' },
+  { id: 'dev-vs-production', title: 'Dev vs Production', emoji: '🌐', slug: 'dev-vs-production' },
 ];
 
 const GALLERY_ITEMS = [

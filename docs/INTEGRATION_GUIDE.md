@@ -39,7 +39,7 @@ function processOrder(order) {
 <script>
   fetch('/main.js')
     .then(r => r.text())
-    .then(code => window.LogiGo.registerCode(code));
+    .then(code => window.LogicArt.registerCode(code));
 </script>
 ```
 
@@ -78,9 +78,9 @@ Add LogicArt visualization to this project.
 ### 1. Need to Manually Add Checkpoints
 **Problem:** Developer must add checkpoint() calls to see execution flow.
 
-**Solution:** This is intentional - checkpoints mark the meaningful moments in code execution. Without them, LogiGo doesn't know what to visualize.
+**Solution:** This is intentional - checkpoints mark the meaningful moments in code execution. Without them, LogicArt doesn't know what to visualize.
 
-**Mitigation:** The Vite plugin (logigo-vite-plugin) can auto-instrument at build time, but requires build config changes.
+**Mitigation:** The Vite plugin (logicart-vite-plugin) can auto-instrument at build time, but requires build config changes.
 
 ### 2. Vite HMR Websocket Errors in Console
 **Problem:** Console shows WebSocket connection errors in Replit environment.
@@ -102,7 +102,7 @@ Add LogicArt visualization to this project.
 ```javascript
 fetch('/app.js')
   .then(r => r.text())
-  .then(code => window.LogiGo.registerCode(code));
+  .then(code => window.LogicArt.registerCode(code));
 ```
 
 ---
@@ -110,21 +110,21 @@ fetch('/app.js')
 ## API Reference
 
 ### checkpoint(id, variables, options)
-Send execution checkpoint to LogiGo (for Live Mode):
+Send execution checkpoint to LogicArt (for Live Mode):
 ```javascript
 checkpoint('step-name', { var1: value1 });
 ```
 
-### window.LogiGo.visualize(code, name)
-One-shot: registers code AND opens LogiGo Studio (recommended for Static Mode):
+### window.LogicArt.visualize(code, name)
+One-shot: registers code AND opens LogicArt (recommended for Static Mode):
 ```javascript
-window.LogiGo.visualize(algorithmCode, 'My Algorithm');
+window.LogicArt.visualize(algorithmCode, 'My Algorithm');
 ```
 
-### window.LogiGo.registerCode(code, name)
-Register source code for flowchart parsing without opening Studio:
+### window.LogicArt.registerCode(code, name)
+Register source code for flowchart parsing without opening LogicArt:
 ```javascript
-window.LogiGo.registerCode(sourceString, 'Optional Name');
+window.LogicArt.registerCode(sourceString, 'Optional Name');
 ```
 
 ### window.LogicArt.openStudio()
@@ -172,13 +172,13 @@ Example (Static Mode for one-shot visualization):
 ## Tested Reference Implementation
 
 See `/test-app/` for a working example:
-- `index.html` - Includes remote.js, registers code, has "Open LogiGo" button
+- `index.html` - Includes remote.js, registers code, has "Open LogicArt" button
 - `game.js` - Number guessing game with checkpoint() calls throughout
 
 To test:
 1. Visit `/test-app/index.html`
 2. Play the game (enter guesses)
-3. Click "Open LogiGo Studio"
+3. Click "Open LogicArt"
 4. See checkpoints flow in real-time with flowchart
 
 ---
