@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logicart-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>`;
 
 const AGENT_PROMPT = `Add LogicArt code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logicart-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
+<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
 2. Create a visualization handler:
 const handleVisualize = (code, name) => {
