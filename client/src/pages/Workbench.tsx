@@ -2692,7 +2692,7 @@ export default function Workbench() {
                 data-testid="button-tutorial-menu"
               >
                 <Sparkles className="w-4 h-4" />
-                <span className="text-xs font-semibold">Tours</span>
+                <span className="text-xs font-semibold">Get Started</span>
                 <ChevronRight className="w-3 h-3 rotate-90 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>

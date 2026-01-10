@@ -358,7 +358,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-white/5">
-                  <div className="px-3 mb-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Interactive Tours</div>
+                  <div className="px-3 mb-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Get Started Guides</div>
                   <div className="space-y-1">
                     <button
                       onClick={() => { onOpenChange(false); startTutorial('agent-nudge'); }}
