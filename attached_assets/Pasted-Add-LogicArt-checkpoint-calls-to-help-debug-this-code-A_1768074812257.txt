@@ -1,0 +1,76 @@
+Add LogicArt.checkpoint() calls to help debug this code. Add checkpoints at:
+- Function entry (capture input parameters)
+- Before/after if-else branches (capture decision variables)
+- Inside loops (capture iteration state)
+- Before return statements (capture return value)
+- In catch blocks (capture error info)
+
+First, add this script tag to the HTML:
+<script src="https://c6286185-f7a0-44fb-b9ef-778ffbfe6e9c-00-3mmchtqux45ry.worf.replit.dev/remote.js?project=DebugSession&autoOpen=true"></script>
+
+Then add checkpoint calls like:
+LogicArt.checkpoint('function-start', { param1, param2 });
+LogicArt.checkpoint('loop-iteration', { index: i, value });
+LogicArt.checkpoint('branch-taken', { condition: x > 0 });
+
+Current code to debug:
+```javascript
+// --- QUIZ STATE ---
+function initializeQuiz(questions) {
+  let state = {
+    questions: questions,
+    currentIndex: 0,
+    score: 0,
+    isComplete: false
+  };
+  return state;
+}
+
+// --- ANSWER CHECKER ---
+function checkAnswer(state, userAnswer) {
+  let currentQuestion = state.questions[state.currentIndex];
+  
+  if (userAnswer === currentQuestion.correct) {
+    state.score = state.score + 10;
+    return { correct: true, score: state.score };
+  }
+  
+  return { correct: false, score: state.score };
+}
+
+// --- QUIZ PROGRESSION ---
+function nextQuestion(state) {
+  state.currentIndex = state.currentIndex + 1;
+  
+  if (state.currentIndex >= state.questions.length) {
+    state.isComplete = true;
+    return { done: true, finalScore: state.score };
+  }
+  
+  return { 
+    done: false, 
+    question: state.questions[state.currentIndex] 
+  };
+}
+
+// --- GAME LOOP ---
+function playRound(state, userAnswer) {
+  let result = checkAnswer(state, userAnswer);
+  
+  if (result.correct) {
+    console.log('Correct! Score:', result.score);
+  } else {
+    console.log('Wrong answer');
+  }
+  
+  return nextQuestion(state);
+}
+
+// Run with sample questions
+const questions = [
+  { text: "What is 2+2?", correct: "4" },
+  { text: "What is the capital of France?", correct: "Paris" }
+];
+let state = initializeQuiz(questions);
+playRound(state, "4");
+```
