@@ -23,7 +23,13 @@ const SAMPLE_CODE = `function calculateRouteDistance(pois) {
   }
   
   return totalDistance;
-}`;
+}
+
+calculateRouteDistance([
+  { latitude: 40.7128, longitude: -74.0060 },
+  { latitude: 34.0522, longitude: -118.2437 },
+  { latitude: 41.8781, longitude: -87.6298 }
+]);`;
 
 interface EmptyStateProps {
   onLoadSample?: () => void;
