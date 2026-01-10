@@ -1,6 +1,6 @@
-# LogiGo Integration Guide
+# LogicArt Integration Guide
 
-This guide documents the tested integration flow for connecting any JavaScript app to LogiGo Studio.
+This guide documents the tested integration flow for connecting any JavaScript app to LogicArt.
 
 ---
 
@@ -11,7 +11,7 @@ This guide documents the tested integration flow for connecting any JavaScript a
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Plain JS apps | ✅ Works | Full support with checkpoints and flowcharts |
-| checkpoint() function | ✅ Works | Sends execution data to Studio in real-time |
+| checkpoint() function | ✅ Works | Sends execution data to LogicArt in real-time |
 | registerCode() | ✅ Works | Enables flowchart generation from source |
 | Session auto-creation | ✅ Works | remote.js handles this automatically |
 | Studio opens and displays | ✅ Works | Shows code, checkpoints, and flowchart |
@@ -20,7 +20,7 @@ This guide documents the tested integration flow for connecting any JavaScript a
 
 **Step 1: Add remote.js to HTML head**
 ```html
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
+<script src="https://logic.art/remote.js?project=MyApp&autoOpen=false"></script>
 ```
 
 **Step 2: Add checkpoint() calls to key functions**
@@ -45,15 +45,15 @@ function processOrder(order) {
 
 ---
 
-## Integration Prompt for Replit Agent
+## Integration Prompt for AI Agent
 
-Copy this prompt and give it to Agent to integrate LogiGo:
+Copy this prompt and give it to your AI agent (Replit Agent, Cursor, Claude, etc.) to integrate LogicArt:
 
 ```
-Add LogiGo visualization to this project.
+Add LogicArt visualization to this project.
 
 1. Add this script to the HTML head (before other scripts):
-   <script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=MyAppName&autoOpen=false"></script>
+   <script src="https://logic.art/remote.js?project=MyAppName&autoOpen=false"></script>
 
 2. Add checkpoint() calls at important points in my JavaScript:
    - At function start: checkpoint('functionName-start', { param1, param2 })
@@ -64,11 +64,11 @@ Add LogiGo visualization to this project.
    <script>
      fetch('/path/to/main.js')
        .then(r => r.text())
-       .then(code => window.LogiGo.registerCode(code));
+       .then(code => window.LogicArt.registerCode(code));
    </script>
 
-4. Add a button to open LogiGo Studio:
-   <button onclick="window.LogiGo.openStudio()">Open LogiGo</button>
+4. Add a button to open LogicArt:
+   <button onclick="window.LogicArt.openStudio()">Open LogicArt</button>
 ```
 
 ---
@@ -127,22 +127,22 @@ Register source code for flowchart parsing without opening Studio:
 window.LogiGo.registerCode(sourceString, 'Optional Name');
 ```
 
-### window.LogiGo.openStudio()
-Open LogiGo Studio in new tab:
+### window.LogicArt.openStudio()
+Open LogicArt in new tab:
 ```javascript
-window.LogiGo.openStudio();
+window.LogicArt.openStudio();
 ```
 
-### window.LogiGo.sessionId
+### window.LogicArt.sessionId
 Get current session ID:
 ```javascript
-console.log(window.LogiGo.sessionId);
+console.log(window.LogicArt.sessionId);
 ```
 
-### window.LogiGo.studioUrl
-Get Studio URL:
+### window.LogicArt.studioUrl
+Get LogicArt URL:
 ```javascript
-console.log(window.LogiGo.studioUrl);
+console.log(window.LogicArt.studioUrl);
 ```
 
 ---
@@ -151,20 +151,20 @@ console.log(window.LogiGo.studioUrl);
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| project | "Remote App" | Name shown in LogiGo Studio |
-| autoOpen | true | Auto-open Studio on first checkpoint |
+| project | "Remote App" | Name shown in LogicArt |
+| autoOpen | true | Auto-open LogicArt on first checkpoint |
 | name | (same as project) | Alias for project |
 | mode | "checkpoint" | Use "push" for static visualization mode |
-| hideBadge | false | Set to "true" to hide the LogiGo badge overlay |
+| hideBadge | false | Set to "true" to hide the LogicArt badge overlay |
 
 Example (Live Mode with checkpoints):
 ```html
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=TodoApp&autoOpen=false"></script>
+<script src="https://logic.art/remote.js?project=TodoApp&autoOpen=false"></script>
 ```
 
 Example (Static Mode for one-shot visualization):
 ```html
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
+<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 ```
 
 ---
@@ -187,7 +187,7 @@ To test:
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐
-│   Your App      │ ─────────────────> │   LogiGo        │
+│   Your App      │ ─────────────────> │   LogicArt      │
 │                 │   /api/remote/     │   Server        │
 │  checkpoint()   │   checkpoint       │                 │
 │  registerCode() │                    │  Stores data    │
@@ -196,8 +196,7 @@ To test:
                                                 │ SSE Stream
                                                 ▼
                                        ┌─────────────────┐
-                                       │   LogiGo        │
-                                       │   Studio        │
+                                       │   LogicArt      │
                                        │                 │
                                        │  Displays:      │
                                        │  - Code         │
@@ -212,6 +211,6 @@ To test:
 
 The current integration requires adding checkpoint() calls. Future enhancements:
 
-1. **Vite Plugin Auto-Instrumentation**: Already exists at `packages/logigo-vite-plugin/`
+1. **Vite Plugin Auto-Instrumentation**: Already exists at `packages/logicart-vite-plugin/`
 2. **Proxy Mode**: Works for plain JS apps, see `/proxy/`
 3. **Browser Extension**: Would enable zero-code injection (not yet built)

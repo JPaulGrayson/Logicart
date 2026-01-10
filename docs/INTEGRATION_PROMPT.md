@@ -1,16 +1,16 @@
-# LogiGo Integration Prompt
+# LogicArt Integration Prompt
 
-Copy and paste this prompt into any Replit Agent to add LogiGo visualization to your app.
+Copy and paste this prompt into any AI agent (Replit Agent, Cursor, Claude, etc.) to add LogicArt visualization to your app.
 
 ---
 
 ## The Prompt
 
 ```
-Add LogiGo code visualization to this project.
+Add LogicArt code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
+<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
 The project name is auto-detected from your hostname. URL Parameters:
 - mode=push: Disables auto-discovery (recommended for React/Vite)
@@ -18,15 +18,15 @@ The project name is auto-detected from your hostname. URL Parameters:
 
 2. Create a visualization handler:
 const handleVisualize = (code, name) => {
-  if (window.LogiGo?.visualize) {
-    window.LogiGo.visualize(code, name);
+  if (window.LogicArt?.visualize) {
+    window.LogicArt.visualize(code, name);
   }
 };
 
 Available methods:
-- visualize(code, name) - One-shot: registers code and opens LogiGo (recommended)
+- visualize(code, name) - One-shot: registers code and opens LogicArt (recommended)
 - registerCode(code, name) - Just registers code without opening
-- openStudio() - Opens LogiGo in a new tab
+- openStudio() - Opens LogicArt in a new tab
 
 3. Call handleVisualize with CLEAN algorithm code (not framework code):
 
@@ -45,12 +45,12 @@ handleVisualize(myFunction.toString(), 'FunctionName');
 - Open the app in the browser
 - Select or enter some code
 - Click the visualization button
-- Verify LogiGo Studio opens in a new tab with a CLEAN flowchart showing only algorithm logic
+- Verify LogicArt opens in a new tab with a CLEAN flowchart showing only algorithm logic
 
 6. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
 - Verify ?mode=push&hideBadge=true are in the script URL
 - Verify you're passing the raw algorithm string, not bundled code
-- The app should PUSH clean code to LogiGo, not let LogiGo auto-discover
+- The app should PUSH clean code to LogicArt, not let LogicArt auto-discover
 
 7. Report what was done and whether the integration is working.
 
@@ -62,7 +62,7 @@ NOTE: Every AI-generated app is unique. The key principle is "clean-in, clean-ou
 ## Key Concepts
 
 ### Push vs Auto-Discovery
-LogiGo has two modes:
+LogicArt has two modes:
 - **Auto-Discovery**: Scans all scripts on the page (captures framework noise in React/Vite)
 - **Push Mode** (`?mode=push`): Your app sends specific clean code via `visualize()` (recommended)
 
@@ -74,13 +74,13 @@ For bundled apps (React, Vue, Vite), always use **Push Mode** with `?mode=push&h
 | `project` | string | Your project/app name (auto-detected from hostname if not set) |
 | `mode` | `auto`, `push` | `push` disables auto-discovery |
 | `hideBadge` | `true`, `false` | Hides the floating badge |
-| `autoOpen` | `true`, `false` | Auto-open Studio on first checkpoint |
+| `autoOpen` | `true`, `false` | Auto-open LogicArt on first checkpoint |
 
 ### The Simple Pattern
 With the new `visualize()` method, integration is straightforward:
 ```javascript
-if (window.LogiGo?.visualize) {
-  window.LogiGo.visualize(code, name);
+if (window.LogicArt?.visualize) {
+  window.LogicArt.visualize(code, name);
 }
 ```
 
@@ -88,22 +88,22 @@ if (window.LogiGo?.visualize) {
 
 ## API Reference
 
-### LogiGo.openWithCode(code, name)
-Creates a session and opens LogiGo Studio with the flowchart:
+### LogicArt.openWithCode(code, name)
+Creates a session and opens LogicArt with the flowchart:
 ```javascript
-window.LogiGo.openWithCode(algorithmCode, 'BubbleSort');
+window.LogicArt.openWithCode(algorithmCode, 'BubbleSort');
 ```
 
-### LogiGo.registerCode(code, name)
-Register code without opening Studio (for deferred visualization):
+### LogicArt.registerCode(code, name)
+Register code without opening LogicArt (for deferred visualization):
 ```javascript
-window.LogiGo.registerCode(algorithmCode, 'BubbleSort');
+window.LogicArt.registerCode(algorithmCode, 'BubbleSort');
 ```
 
-### LogiGo.openStudio()
-Open the current session in LogiGo Studio:
+### LogicArt.openStudio()
+Open the current session in LogicArt:
 ```javascript
-window.LogiGo.openStudio();
+window.LogicArt.openStudio();
 ```
 
 ---
@@ -111,12 +111,12 @@ window.LogiGo.openStudio();
 ## Troubleshooting
 
 **Flowchart shows thousands of nodes / framework code:**
-- Add CSS: `#logigo-badge { display: none !important; }`
+- Add CSS: `#logicart-badge { display: none !important; }`
 - Ensure you're passing raw algorithm strings, not bundled code
 - Use Push Mode, not Auto-Discovery
 
-**LogiGo Studio doesn't open:**
-- Check browser console for `[LogiGo]` messages
+**LogicArt doesn't open:**
+- Check browser console for `[LogicArt]` messages
 - Verify script tag is in `<head>` before other scripts
 - Use the fallback pattern (registerCode + openStudio)
 
@@ -129,7 +129,7 @@ window.LogiGo.openStudio();
 ## Integration Checklist
 
 - [ ] Script tag added to HTML `<head>`
-- [ ] CSS added to hide `#logigo-badge` (for React/Vite apps)
+- [ ] CSS added to hide `#logicart-badge` (for React/Vite apps)
 - [ ] Handler function created with API fallback
 - [ ] "Visualize" button connected to handler
-- [ ] Tested: clicking button opens LogiGo with clean flowchart
+- [ ] Tested: clicking button opens LogicArt with clean flowchart

@@ -7,10 +7,8 @@ Connect LogicArt to any external app **without writing code yourself**. Just two
 Add this single line to your app's `index.html` file, inside the `<head>` section:
 
 ```html
-<script src="YOUR_LOGICART_URL/remote.js?project=MyApp"></script>
+<script src="https://logic.art/remote.js?project=MyApp"></script>
 ```
-
-Replace `YOUR_LOGICART_URL` with your LogicArt app's URL (you can find this in the browser address bar when viewing LogicArt).
 
 **Example:** Complete HTML file
 ```html
@@ -22,7 +20,7 @@ Replace `YOUR_LOGICART_URL` with your LogicArt app's URL (you can find this in t
   <title>My App</title>
   
   <!-- Add LogicArt Remote Mode Script -->
-  <script src="https://your-logicart-app.replit.dev/remote.js?project=MyApp"></script>
+  <script src="https://logic.art/remote.js?project=MyApp"></script>
 </head>
 <body>
   <div id="app"></div>
