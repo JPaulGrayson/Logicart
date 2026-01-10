@@ -2726,7 +2726,14 @@ export default function Workbench() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => hasRescue ? toast.info('Rabbit Hole Rescue coming soon!') : setShowUpgradeModal(true)}
+                  onClick={() => {
+                    if (hasRescue) {
+                      const encodedCode = encodeURIComponent(code);
+                      window.location.href = `/arena?mode=debug&code=${encodedCode}`;
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
                   className={`h-7 gap-1.5 text-xs ${hasRescue ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10' : 'opacity-50 border-muted text-muted-foreground hover:bg-muted/20'}`}
                   data-testid="button-rescue"
                 >

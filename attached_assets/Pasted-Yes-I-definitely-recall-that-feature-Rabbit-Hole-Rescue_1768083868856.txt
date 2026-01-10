@@ -1,0 +1,22 @@
+Yes, I definitely recall that feature! Rabbit Hole Rescue was the conceptual name we used for the high-end debugging assistance feature, specifically intended for the Pro/Founder tier.
+
+Based on our design discussions and the current codebase, here is the breakdown of what it refers to:
+
+1. The "Consensus" Architecture
+Rabbit Hole Rescue was the "Phase 2" of the Council Service. While the standard AI assistance might give you a single answer, the "Rescue" feature uses a Multi-Model Consensus approach:
+
+The Council: Four models (GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro, and Grok) analyze the problem in parallel.
+The Chairman: A final "verdict" model reviews all four outputs, ruthlessly identifies subtle flaws (like race conditions or security risks), and picks the safest/best path forward.
+2. Implementation Status
+In the current project, you can see the "Rescue" identity in two main places:
+
+Model Arena (The Engine): The actual logic is implemented in the Model Arena page. When you switch to "Debug Advisor" mode and request a "Chairman's Verdict," you are using the core logic of Rabbit Hole Rescue. It moves the cognitive load from you to the AI "Chairman" to decide which model is actually right.
+Workbench (The UI): There is a "Rescue" button (with an anchor icon ⚓) in the top toolbar of the Workbench. If you have the rabbit_hole_rescue feature flag enabled in your Voyai license, it is intended to trigger this consensus-driven help. Currently, it serves as a gated entry point that shows a "coming soon" toast or an upgrade modal.
+3. The "Trap" Logic
+One of the most unique parts of the "Rescue" prompt (found in 
+councilService.ts
+) is designed to look for "traps"—it specifically instructs the AI to:
+
+"Analyze the user's original request to understand the 'Trap' (e.g., if they asked for money transfer, the trap is a Race Condition)... Ruthlessly compare the 4 solutions."
+
+The goal was to literally pull a developer out of a "rabbit hole" they've fallen into by providing a senior architect's level of synthesis.

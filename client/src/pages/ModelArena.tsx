@@ -142,6 +142,28 @@ export default function ModelArena() {
   const [, forceUpdate] = useState({});
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
+  // Handle URL parameters for Rescue feature (from Workbench)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const code = params.get('code');
+    
+    if (mode === 'debug') {
+      setArenaMode('debug');
+      if (code) {
+        try {
+          const decodedCode = decodeURIComponent(code);
+          setCodeSnippet(decodedCode);
+          setProblem("Help me understand and debug this code. What potential issues do you see?");
+        } catch (e) {
+          console.error('Failed to decode code parameter:', e);
+        }
+      }
+      // Clean URL after loading
+      window.history.replaceState({}, '', '/arena');
+    }
+  }, []);
+
   const handleKeysChange = useCallback(() => {
     forceUpdate({});
   }, []);
