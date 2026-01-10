@@ -35,7 +35,13 @@ export function AdapterProvider({
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   return 5;
-}`
+}
+
+calculateRouteDistance([
+  { latitude: 40.7128, longitude: -74.0060 },
+  { latitude: 34.0522, longitude: -118.2437 },
+  { latitude: 41.8781, longitude: -87.6298 }
+]);`
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 
     providedAdapter || new StandaloneAdapter(initialCode)
