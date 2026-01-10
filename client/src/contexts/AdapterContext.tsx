@@ -20,28 +20,15 @@ interface AdapterProviderProps {
 export function AdapterProvider({ 
   children, 
   adapter: providedAdapter,
-  initialCode = `function calculateRouteDistance(pois) {
-  if (pois.length < 2) return 0;
-  
-  let totalDistance = 0;
-  for (let i = 0; i < pois.length - 1; i++) {
-    const poi1 = pois[i];
-    const poi2 = pois[i + 1];
-    totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);
+  initialCode = `function calculateAverage(numbers) {
+  let sum = 0;
+  for (let i = 0; i <= numbers.length; i++) {
+    sum += numbers[i];
   }
-  
-  return Math.round(totalDistance);
+  return sum / numbers.length;
 }
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  return 5;
-}
-
-calculateRouteDistance([
-  { latitude: 40.7128, longitude: -74.0060 },
-  { latitude: 34.0522, longitude: -118.2437 },
-  { latitude: 41.8781, longitude: -87.6298 }
-]);`
+calculateAverage([10, 20, 30, 40, 50]);`
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 
     providedAdapter || new StandaloneAdapter(initialCode)
