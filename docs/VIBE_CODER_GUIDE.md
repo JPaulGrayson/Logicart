@@ -8,17 +8,7 @@ Connect LogicArt to any external app **without writing code yourself**. Just cop
 
 ## Step 1: Build Your App First
 
-Ask your AI agent to build your app. **Do NOT mention LogicArt yet.**
-
-Example prompt:
-```
-Build a simple Task Manager app with:
-- An input field to add new tasks
-- A button to add the task to a list  
-- Each task has a checkbox to mark complete
-- A delete button to remove tasks
-- A counter showing total and completed tasks
-```
+Build your app with your AI agent as you normally would. **Do NOT mention LogicArt yet** - this prevents the agent from getting confused by LogicArt-related keywords.
 
 Wait for your agent to finish building the app before moving to Step 2.
 
