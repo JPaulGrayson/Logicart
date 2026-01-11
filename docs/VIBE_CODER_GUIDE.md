@@ -29,27 +29,23 @@ Wait for your agent to finish building the app before moving to Step 2.
 **After** your app is working, use this separate prompt:
 
 ```
-Add a "Visualize in LogicArt" button to this app.
+Add a "View Flowchart" button to this app that opens LogicArt.
 
-Add this script tag to the HTML <head>:
-<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
+Use the LogicArt remote script from https://logic.art/remote.js
 
-Create a button that calls:
-window.LogicArt.visualize(code, name)
-
-where "code" is the main function's source code and "name" is the function name.
+When clicked, it should show a flowchart of the app's main logic.
 
 Test it works by clicking the button.
 ```
 
 ---
 
-## Step 3: Click "Visualize" in Your App
+## Step 3: Click "View Flowchart" in Your App
 
 Once your agent has added the integration:
 1. Run your app
-2. Click the **"Visualize in LogicArt"** button
-3. LogicArt opens in a new tab with your code's flowchart!
+2. Click the **"View Flowchart"** button
+3. LogicArt opens in a new tab with your app's flowchart!
 
 ---
 
@@ -64,24 +60,19 @@ Just copy, paste, and let your AI agent do the work!
 
 ---
 
-## Optional: Add Live Checkpoints
+## Optional: Add Live Tracking
 
-Want to see your code execute in real-time? Ask your agent:
+Want to see your app execute in real-time? Ask your agent:
 
 ```
-Add LogicArt checkpoint() calls to track execution in my FRONTEND code.
+Add LogicArt checkpoints to track when things happen in my app.
 
-The checkpoint() function is globally available (no import needed).
+Track button clicks, form submissions, and important actions.
 
-Add checkpoint('step-name', { key: value }) at key points:
-- User interactions: checkpoint('button-clicked', { action })
-- State changes: checkpoint('state-update', { before, after })
-- API calls: checkpoint('api-call', { endpoint })
-
-Only add to frontend/client-side JavaScript (not server files).
+Only add to frontend code, not server files.
 ```
 
-Now when you interact with your app, you'll see nodes light up in real-time on the LogicArt flowchart!
+Now when you use your app, you'll see the flowchart light up in real-time!
 
 ---
 
