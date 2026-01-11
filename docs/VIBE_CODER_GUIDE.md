@@ -1,86 +1,37 @@
 # LogicArt Remote Mode - Vibe Coder's Guide
 
-Connect LogicArt to any external app **without writing code yourself**. Just two simple steps!
+Connect LogicArt to any external app **without writing code yourself**. Just copy a prompt and let your AI agent do the work!
 
-## Step 1: Add the Script Tag
+## Step 1: Ask Your AI Agent to Add LogicArt
 
-Add this single line to your app's `index.html` file, inside the `<head>` section:
-
-```html
-<script src="https://logic.art/remote.js?project=MyApp"></script>
-```
-
-**Example:** Complete HTML file
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My App</title>
-  
-  <!-- Add LogicArt Remote Mode Script -->
-  <script src="https://logic.art/remote.js?project=MyApp"></script>
-</head>
-<body>
-  <div id="app"></div>
-  
-  <!-- Your app's main script -->
-  <script src="./main.js"></script>
-</body>
-</html>
-```
-
-When your app loads, you'll see a **"View in LogicArt"** badge in the bottom-right corner. Click it to open your flowchart!
-
----
-
-## Step 2: Ask Your AI Agent to Add Checkpoints
-
-Copy this prompt and paste it into your app's AI agent (like Replit Agent):
+Copy this prompt and paste it into your app's AI agent (Replit Agent, Cursor, Windsurf, etc.):
 
 ```
-Add LogicArt checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
+Add LogicArt code visualization to this project.
 
-IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
+Add this script tag to the HTML <head>:
+<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-After adding checkpoints, ALSO register the code for flowchart visualization. Add this call somewhere in the frontend code that runs on page load:
+Then create a "Visualize" button that sends code to LogicArt:
+- Use window.LogicArt.visualize(code, name) to open the flowchart
+- Connect it to whatever code the user is viewing or editing
 
-LogicArt.registerCode(`
-// Paste the main function or component with checkpoints here
-function myMainFunction() {
-  checkpoint('start', {});
-  // ... rest of the function with checkpoints ...
-}
-`);
-
-Guidelines for checkpoints:
-- Add checkpoint('step-name', { key: value }) at key points
-- Track user interactions: checkpoint('button-clicked', { action })
-- Track state changes: checkpoint('state-update', { before, after })
-- Track API calls: checkpoint('api-call', { endpoint, data })
-
-Example:
-function handleUpload(file) {
-  checkpoint('upload-start', { fileName: file.name });
-  // ... upload logic ...
-  checkpoint('upload-complete', { success: true });
-}
+Test it works by clicking the button and verifying LogicArt opens with a flowchart.
 ```
 
 Your AI agent will:
-1. Add checkpoint calls to your frontend code
-2. Register the code with LogicArt so you can see the flowchart
+1. Add the script tag to your HTML
+2. Create a button that opens LogicArt with your code
+3. Test the integration
 
 ---
 
-## Step 3: View Your Flowchart
+## Step 2: Click "Visualize" in Your App
 
+Once your agent has added the integration:
 1. Run your app
-2. Click the **"View in LogicArt"** badge in the bottom-right corner
-3. You'll see two tabs:
-   - **Flowchart** - Visual representation of your code with nodes lighting up as checkpoints fire
-   - **Trace** - List of checkpoints in order they were called
+2. Click the **"Visualize"** button your agent created
+3. LogicArt opens in a new tab with your code's flowchart!
 
 ---
 
@@ -88,32 +39,47 @@ Your AI agent will:
 
 No need to:
 - Find specific files manually
-- Understand code structure
+- Understand code structure  
 - Write any code yourself
 
 Just copy, paste, and let your AI agent do the work!
 
 ---
 
+## Optional: Add Live Checkpoints
+
+Want to see your code execute in real-time? Ask your agent:
+
+```
+Add LogicArt checkpoint() calls to track execution in my FRONTEND code.
+
+The checkpoint() function is globally available (no import needed).
+
+Add checkpoint('step-name', { key: value }) at key points:
+- User interactions: checkpoint('button-clicked', { action })
+- State changes: checkpoint('state-update', { before, after })
+- API calls: checkpoint('api-call', { endpoint })
+
+Only add to frontend/client-side JavaScript (not server files).
+```
+
+Now when you interact with your app, you'll see nodes light up in real-time on the LogicArt flowchart!
+
+---
+
 ## Troubleshooting
 
-**Badge doesn't appear?**
-- Make sure the script tag is in the `<head>` section
+**LogicArt doesn't open?**
+- Ask your agent: "Check that the LogicArt script tag is in the HTML head"
 - Check your browser console for any errors
-- Make sure LogicArt is running
 
-**Only seeing Trace, no Flowchart tab?**
-- The AI agent needs to call `LogicArt.registerCode()` with the code
-- Ask your agent: "Register the instrumented code with LogicArt using LogicArt.registerCode()"
+**Flowchart shows too many nodes (framework code)?**
+- Ask your agent: "Make sure you're using mode=push in the LogicArt script URL"
+- The agent should pass only clean algorithm code, not bundled framework code
 
 **Checkpoints not showing?**
-- Make sure your AI agent added checkpoints to **frontend** code only (not backend/server files)
-- Interact with your app to trigger the code that has checkpoints
-- Check that you're viewing the correct session in LogicArt
-
-**Agent added checkpoints to backend code?**
-- Ask the agent to remove them from server files
-- The `checkpoint()` function only works in the browser, not on the server
+- Make sure checkpoints are in **frontend** code only (not backend/server files)
+- Interact with your app to trigger the code with checkpoints
 
 **Need help?**
 Click the help button (?) in LogicArt's header for more documentation.
