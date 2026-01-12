@@ -19,19 +19,32 @@ Wait for your agent to finish building the app before moving to Step 2.
 **After** your app is working, use this separate prompt:
 
 ```
-Add a "View Flowchart" button to the header.
+Add LogicArt flowchart visualization to this app.
 
-1. Add this script tag to the HTML <head>:
+1. Add this script tag to the HTML <head> BEFORE other scripts:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. When clicked, the button must:
-   - Find the main script file this app uses (check the <script src="..."> tag in the HTML)
-   - Fetch the full, raw source code from that file
-   - Pass that exact string to: window.LogicArt.visualize(code, 'AppCode')
+2. Add a "View Flowchart" button to the header that runs this exact code when clicked:
 
-The flowchart must show the actual live code of the application - state handling, event handlers, DOM updates - not summaries or placeholders.
+async function viewFlowchart() {
+  const scriptTag = document.querySelector('script[src*=".js"]:not([src*="logic.art"])');
+  if (!scriptTag) { alert('No script found'); return; }
+  
+  try {
+    const response = await fetch(scriptTag.src);
+    const code = await response.text();
+    
+    if (window.LogicArt && window.LogicArt.visualize) {
+      window.LogicArt.visualize(code, 'AppCode');
+    } else {
+      alert('LogicArt not loaded');
+    }
+  } catch (err) {
+    alert('Failed to load code: ' + err.message);
+  }
+}
 
-3. Test by clicking the button and verifying LogicArt opens with a complete flowchart.
+3. Test by clicking the button - LogicArt should open showing the app's actual code as a flowchart.
 ```
 
 ---
