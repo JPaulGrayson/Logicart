@@ -4,6 +4,11 @@
 LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
 
 ## Recent Changes
+- **January 2026**: Added file drop and function picker feature:
+  - FileDropZone component for drag-and-drop .js/.ts file upload
+  - FunctionPicker dialog shows discovered functions/classes with selection UI
+  - Selective visualization: choose specific methods to visualize (wraps in minimal class stub preserving inheritance)
+  - getCodeForSelection utility handles multi-line class declarations (extends, implements)
 - **January 2026**: Added class-based JavaScript parsing support:
   - ClassDeclaration now creates a container for each class with all its methods
   - MethodDefinition creates containers for each method (constructor, regular, static, getters/setters)
