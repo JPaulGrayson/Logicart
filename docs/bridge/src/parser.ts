@@ -381,6 +381,9 @@ export function parseCodeToFlow(code: string): FlowData {
       return undefined;
     };
 
+    // Container override stack - when set, nodes are parented to this container instead of using sections
+    let containerOverride: { containerId: string; containerNode: FlowNode } | null = null;
+    
     const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
@@ -401,7 +404,15 @@ export function parseCodeToFlow(code: string): FlowData {
       
       // Determine if this node belongs to a section/container
       let parentNode: string | undefined;
-      if (sections.length > 0 && stmt?.loc) {
+      
+      // Check for container override first (used for method bodies)
+      if (containerOverride) {
+        parentNode = containerOverride.containerId;
+        if (!containerOverride.containerNode.data.children) {
+          containerOverride.containerNode.data.children = [];
+        }
+        containerOverride.containerNode.data.children.push(id);
+      } else if (sections.length > 0 && stmt?.loc) {
         const nodeLine = stmt.loc.start.line;
         for (const section of sections) {
           if (nodeLine >= section.startLine && nodeLine <= section.endLine) {
@@ -417,7 +428,7 @@ export function parseCodeToFlow(code: string): FlowData {
             break;
           }
         }
-      } else if (sections.length === 0) {
+      } else if (sections.length === 0 && !containerOverride) {
         const globalContainer = containerNodes.get('global');
         if (globalContainer) {
           parentNode = globalContainer.id;
@@ -862,40 +873,247 @@ export function parseCodeToFlow(code: string): FlowData {
       return currentParent;
     };
 
+    // Helper to process class declarations
+    const processClass = (classNode: any, parentId: string): string => {
+      const className = classNode.id?.name || 'AnonymousClass';
+      const extendsClause = classNode.superClass?.name ? ` extends ${classNode.superClass.name}` : '';
+      
+      // Create a container for the class
+      const classContainerId = `container-${nodeIdCounter++}`;
+      const classContainer: FlowNode = {
+        id: classContainerId,
+        type: 'container',
+        data: {
+          label: `class ${className}${extendsClause}`,
+          children: [],
+          collapsed: false
+        },
+        position: { x: 0, y: 0 },
+        style: { width: 400, height: 200 }
+      };
+      nodes.push(classContainer);
+      
+      // Create a start node for the class
+      const classStartId = `node-${nodeIdCounter++}`;
+      const classStartNode: FlowNode = {
+        id: classStartId,
+        type: 'input',
+        data: { label: `class ${className}` },
+        position: { x: 0, y: 0 },
+        parentNode: classContainerId,
+        className: 'bg-violet-600 text-white border-none',
+        style: { width: 180, height: 60 }
+      };
+      nodes.push(classStartNode);
+      classContainer.data.children!.push(classStartId);
+      edges.push(createEdge(parentId, classStartId));
+      
+      let lastNodeId = classStartId;
+      
+      // Process class body members
+      const classBody = classNode.body?.body || [];
+      for (const member of classBody) {
+        if (member.type === 'MethodDefinition') {
+          // Get method name and modifiers
+          const methodName = member.key?.name || member.key?.value || 'method';
+          const isConstructor = member.kind === 'constructor';
+          const isStatic = member.static;
+          const isGetter = member.kind === 'get';
+          const isSetter = member.kind === 'set';
+          
+          let methodLabel = methodName;
+          if (isConstructor) methodLabel = 'constructor';
+          if (isStatic) methodLabel = `static ${methodLabel}`;
+          if (isGetter) methodLabel = `get ${methodLabel}`;
+          if (isSetter) methodLabel = `set ${methodLabel}`;
+          methodLabel += '()';
+          
+          // Create a container for this method
+          const methodContainerId = `container-${nodeIdCounter++}`;
+          const methodContainer: FlowNode = {
+            id: methodContainerId,
+            type: 'container',
+            data: {
+              label: methodLabel,
+              children: [],
+              collapsed: true  // Start collapsed for cleaner view
+            },
+            position: { x: 0, y: 0 },
+            style: { width: 350, height: 150 }
+          };
+          nodes.push(methodContainer);
+          classContainer.data.children!.push(methodContainerId);
+          
+          // Create method entry node
+          const methodEntryId = `node-${nodeIdCounter++}`;
+          const methodEntryNode: FlowNode = {
+            id: methodEntryId,
+            type: 'input',
+            data: { label: methodLabel },
+            position: { x: 0, y: 0 },
+            parentNode: methodContainerId,
+            className: isConstructor ? 'bg-amber-600 text-white border-none' : 'bg-blue-600 text-white border-none',
+            style: { width: 160, height: 50 }
+          };
+          nodes.push(methodEntryNode);
+          methodContainer.data.children!.push(methodEntryId);
+          edges.push(createEdge(lastNodeId, methodEntryId));
+          
+          // Process method body if it has one
+          const methodBody = member.value?.body?.body;
+          if (methodBody && methodBody.length > 0) {
+            // Set container override so method body nodes are parented to method container
+            const previousOverride = containerOverride;
+            containerOverride = { containerId: methodContainerId, containerNode: methodContainer };
+            const methodEndId = processBlock(methodBody, methodEntryId);
+            containerOverride = previousOverride; // Restore previous override
+            
+            // Add method exit node
+            const methodExitId = `node-${nodeIdCounter++}`;
+            const methodExitNode: FlowNode = {
+              id: methodExitId,
+              type: 'output',
+              data: { label: `end ${methodName}` },
+              position: { x: 0, y: 0 },
+              parentNode: methodContainerId,
+              className: 'bg-slate-600 text-white border-none',
+              style: { width: 120, height: 40 }
+            };
+            nodes.push(methodExitNode);
+            methodContainer.data.children!.push(methodExitId);
+            if (methodEndId) {
+              edges.push(createEdge(methodEndId, methodExitId));
+            }
+            lastNodeId = methodExitId;
+          } else {
+            // Empty method body
+            const emptyNodeId = `node-${nodeIdCounter++}`;
+            const emptyNode: FlowNode = {
+              id: emptyNodeId,
+              type: 'default',
+              data: { label: '(empty)' },
+              position: { x: 0, y: 0 },
+              parentNode: methodContainerId,
+              className: 'bg-slate-500 text-white border-none opacity-60',
+              style: { width: 80, height: 30 }
+            };
+            nodes.push(emptyNode);
+            methodContainer.data.children!.push(emptyNodeId);
+            edges.push(createEdge(methodEntryId, emptyNodeId));
+            lastNodeId = emptyNodeId;
+          }
+        } else if (member.type === 'PropertyDefinition') {
+          // Class fields/properties
+          const propName = member.key?.name || 'property';
+          const isStatic = member.static;
+          const propLabel = isStatic ? `static ${propName}` : propName;
+          
+          const propNodeId = `node-${nodeIdCounter++}`;
+          const propNode: FlowNode = {
+            id: propNodeId,
+            type: 'default',
+            data: { label: propLabel },
+            position: { x: 0, y: 0 },
+            parentNode: classContainerId,
+            className: 'bg-slate-700 text-white border-none',
+            style: { width: 140, height: 40 }
+          };
+          nodes.push(propNode);
+          classContainer.data.children!.push(propNodeId);
+          edges.push(createEdge(lastNodeId, propNodeId));
+          lastNodeId = propNodeId;
+        }
+      }
+      
+      return lastNodeId;
+    };
+
     // @ts-ignore
     const body = ast.body;
     
-    // Separate function declarations from other statements
+    // Separate function declarations and class declarations from other statements
     // @ts-ignore
     const functionDeclarations = body.filter((stmt: any) => stmt.type === 'FunctionDeclaration');
     // @ts-ignore
-    const topLevelExecutable = body.filter((stmt: any) => stmt.type !== 'FunctionDeclaration');
+    const classDeclarations = body.filter((stmt: any) => stmt.type === 'ClassDeclaration');
+    // @ts-ignore
+    const topLevelExecutable = body.filter((stmt: any) => 
+      stmt.type !== 'FunctionDeclaration' && stmt.type !== 'ClassDeclaration'
+    );
     
     // Check if top-level statements are "trivial" (just variable declarations and simple function calls)
-    // If so, prefer showing function bodies which have the actual algorithm logic
+    // If so, prefer showing function/class bodies which have the actual algorithm logic
     const hasTrivialTopLevel = topLevelExecutable.length > 0 && topLevelExecutable.every((stmt: any) => 
       stmt.type === 'VariableDeclaration' || 
       stmt.type === 'ExpressionStatement'
     );
     
-    let statements;
-    if (functionDeclarations.length > 0 && hasTrivialTopLevel) {
-      // Has function declarations + trivial top-level code (like function calls)
-      // Process the first function's body to show the algorithm logic
-      // @ts-ignore
-      statements = functionDeclarations[0].body.body;
-    } else if (topLevelExecutable.length > 0) {
-      // Has substantial top-level code - process it
-      statements = topLevelExecutable;
-    } else if (body.length > 0 && body[0].type === 'FunctionDeclaration') {
-      // Only function declarations - process first function's body
-      // @ts-ignore
-      statements = body[0].body.body;
-    } else {
-      statements = body;
+    let lastProcessedId = startNode.id;
+    
+    // Process class declarations if present
+    if (classDeclarations.length > 0) {
+      for (const classDecl of classDeclarations) {
+        lastProcessedId = processClass(classDecl, lastProcessedId);
+      }
     }
-
-    processBlock(statements, startNode.id);
+    
+    // Process function declarations - expand their bodies for detailed view
+    if (functionDeclarations.length > 0) {
+      for (const funcDecl of functionDeclarations) {
+        // @ts-ignore
+        const funcBody = funcDecl.body?.body;
+        if (funcBody && funcBody.length > 0) {
+          // @ts-ignore
+          const funcName = funcDecl.id?.name || 'function';
+          
+          // Create a container for the function
+          const funcContainerId = `container-${nodeIdCounter++}`;
+          const funcContainer: FlowNode = {
+            id: funcContainerId,
+            type: 'container',
+            data: {
+              label: `function ${funcName}()`,
+              children: [],
+              collapsed: classDeclarations.length > 0 // Collapse if classes are also present
+            },
+            position: { x: 0, y: 0 },
+            style: { width: 350, height: 150 }
+          };
+          nodes.push(funcContainer);
+          
+          // Create function entry node
+          const funcEntryId = `node-${nodeIdCounter++}`;
+          const funcEntryNode: FlowNode = {
+            id: funcEntryId,
+            type: 'input',
+            data: { label: `${funcName}()` },
+            position: { x: 0, y: 0 },
+            parentNode: funcContainerId,
+            className: 'bg-green-600 text-white border-none',
+            style: { width: 160, height: 50 }
+          };
+          nodes.push(funcEntryNode);
+          funcContainer.data.children!.push(funcEntryId);
+          edges.push(createEdge(lastProcessedId, funcEntryId));
+          
+          // Set container override and process function body
+          const previousOverride: typeof containerOverride = containerOverride;
+          containerOverride = { containerId: funcContainerId, containerNode: funcContainer };
+          const funcEndId = processBlock(funcBody, funcEntryId);
+          containerOverride = previousOverride;
+          
+          lastProcessedId = funcEndId || funcEntryId;
+        }
+      }
+    }
+    
+    // Process remaining top-level executable statements if not trivial
+    if (topLevelExecutable.length > 0 && !hasTrivialTopLevel) {
+      processBlock(topLevelExecutable, lastProcessedId);
+    } else if (classDeclarations.length === 0 && functionDeclarations.length === 0) {
+      // No classes or functions - just process everything
+      processBlock(body, startNode.id);
+    }
 
     // Remove invisible loop exit nodes and redirect their edges
     const exitNodes = nodes.filter(n => n.data.label === 'loop exit');

@@ -1,3 +1,3 @@
 {
-  "code": "function calculateRouteDistance(pois) {\n  if (pois.length < 2) return 0;\n  \n  let totalDistance = 0;\n  for (let i = 0; i < pois.length - 1; i++) {\n    const poi1 = pois[i];\n    const poi2 = pois[i + 1];\n    totalDistance += calculateDistance(poi1.latitude, poi1.longitude, poi2.latitude, poi2.longitude);\n  }\n  \n  return Math.round(totalDistance);\n}\n\nfunction calculateDistance(lat1, lon1, lat2, lon2) {\n  return 5;\n}\ncalculateRouteDistance([\n  {latitude: 40.7128, longitude: -74.0060},\n  {latitude: 34.0522, longitude: -118.2437}\n]);"
+  "code": "class Calculator {\n    constructor() {\n      this.result = 0;\n    }\n    add(a, b) {\n      return a + b;\n    }\n  }\n\n  function multiply(x, y) {\n    let product = x * y;\n    return product;\n  }\n\n  function fibonacci(n) {\n    if (n <= 1) {\n      return n;\n    }\n    return fibonacci(n - 1) + fibonacci(n - 2);\n  }\n    "
 }
