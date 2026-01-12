@@ -1678,7 +1678,8 @@ self.addEventListener('fetch', (event) => {
     var uniqueName = (sessionName || PROJECT_NAME) + "-" + Date.now();
     
     // Open window FIRST (synchronous, within user gesture) to avoid popup blocker
-    var studioWindow = window.open("about:blank", "_blank", "noopener");
+    // NOTE: Cannot use 'noopener' because we need to navigate the window after fetch
+    var studioWindow = window.open("about:blank", "_blank");
     
     // Then register the code and update the window URL
     fetch(LOGIGO_URL + "/api/remote/session", {
@@ -1700,8 +1701,11 @@ self.addEventListener('fetch', (event) => {
       console.log("[LogiGo] Session created: " + data.sessionId.slice(0,8));
       
       // Navigate the already-opened window to the studio
-      if (studioWindow) {
+      if (studioWindow && !studioWindow.closed) {
         studioWindow.location.href = data.studioUrl;
+      } else {
+        // Fallback: open new window if the first one was blocked/closed
+        window.open(data.studioUrl, "_blank");
       }
       
       updateStatus('connected');
@@ -1709,7 +1713,7 @@ self.addEventListener('fetch', (event) => {
       setTimeout(reconnectControlChannel, 100);
     }).catch(function(e) {
       console.error("[LogiGo] Failed to visualize:", e.message);
-      if (studioWindow) {
+      if (studioWindow && !studioWindow.closed) {
         studioWindow.close();
       }
       updateStatus('error');
