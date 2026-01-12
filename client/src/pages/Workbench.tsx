@@ -3323,7 +3323,7 @@ export default function Workbench() {
               {isParsing ? (
                 <FlowchartSkeleton />
               ) : !code.trim() || flowData.nodes.length === 0 ? (
-                <EmptyState onLoadSample={handleLoadSample} />
+                <EmptyState onLoadSample={handleLoadSample} onLoadCode={handleCodeChange} />
               ) : (
                 <Flowchart
                   nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes}
@@ -3644,7 +3644,7 @@ ${code}
             {isParsing ? (
               <FlowchartSkeleton />
             ) : !code.trim() || flowData.nodes.length === 0 ? (
-              <EmptyState onLoadSample={handleLoadSample} />
+              <EmptyState onLoadSample={handleLoadSample} onLoadCode={handleCodeChange} />
             ) : (
               <Flowchart
                 nodes={showDiff && diffNodes.length > 0 ? diffNodes : flowData.nodes}
