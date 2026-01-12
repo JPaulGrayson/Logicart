@@ -23,12 +23,15 @@ remoteRouter.post('/session', (req, res) => {
 
         const protocol = req.headers['x-forwarded-proto'] || 'https';
         const host = req.headers.host || 'localhost:5000';
-        const connectUrl = `${protocol}://${host}/remote/${sessionId}`;
+        const baseUrl = `${protocol}://${host}`;
+        const connectUrl = `${baseUrl}/remote/${sessionId}`;
+        const studioUrl = `${baseUrl}/?session=${sessionId}`;
 
         res.json({
             sessionId,
             connectUrl,
-            message: 'Session created. Open connectUrl in LogiGo to view checkpoints.',
+            studioUrl,
+            message: 'Session created. Open studioUrl to view flowchart.',
         });
     } catch (error: any) {
         console.error('Session creation error:', error);
