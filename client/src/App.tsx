@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import Workbench from "@/pages/Workbench";
 import TestMiniMap from "@/pages/TestMiniMap";
 import EmbedDemo from "@/pages/EmbedDemo";
+import SelfVisualize from "@/pages/SelfVisualize";
 import RemoteMode from "@/pages/RemoteMode";
 import ZeroClickDemo from "@/pages/ZeroClickDemo";
 import ModelArena from "@/pages/ModelArena";
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/arena" component={ModelArena} />
       <Route path="/test" component={TestMiniMap} />
       <Route path="/embed-demo" component={EmbedDemo} />
+      <Route path="/self-visualize" component={SelfVisualize} />
       <Route path="/remote" component={RemoteMode} />
       <Route path="/remote/:sessionId" component={RemoteMode} />
       <Route path="/zero-click-demo" component={ZeroClickDemo} />
