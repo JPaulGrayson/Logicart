@@ -13,9 +13,16 @@ import type { Request, Response } from "express";
 
 function openBrowser(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const cmd = platform() === 'darwin' ? 'open' :
-                platform() === 'win32' ? 'start' : 'xdg-open';
-    exec(`${cmd} "${url}"`, (error) => {
+    let cmd: string;
+    const os = platform();
+    if (os === 'darwin') {
+      cmd = `open "${url}"`;
+    } else if (os === 'win32') {
+      cmd = `start "" "${url}"`;
+    } else {
+      cmd = `xdg-open "${url}"`;
+    }
+    exec(cmd, (error) => {
       if (error) reject(error);
       else resolve();
     });

@@ -136,37 +136,28 @@ This is the **key tool for preventing code bloat** when AI agents iterate on cod
 
 ### 7. `visualize_flow`
 
-**NEW** - Opens an interactive flowchart in your browser.
+Opens an interactive flowchart in your browser.
 
-- **What the AI sees**: Confirmation that the visualizer has opened.
+- **What the AI sees**: Confirmation that the visualizer has opened, plus the URL.
 - **Use case**: *"Show me this code as a visual flowchart."*
 
 This tool is essential for **terminal-based environments** (like Claude Code) where embedded panels aren't available. It automatically opens your default browser with the full LogicArt visualizer.
 
-**Input**: `{ "code": "function Component() { if (a) return <Card />; if (b) return <Card />; return <Card />; }" }`
+**Input**: `{ "code": "function example() { if (x > 0) return 'positive'; return 'other'; }" }`
 
 **Output**:
-```json
-{
-  "hasIssues": true,
-  "pathCount": 3,
-  "severity": "info",
-  "paths": [
-    { "component": "Card", "line": 1 },
-    { "component": "Card", "line": 1 },
-    { "component": "Card", "line": 1 }
-  ],
-  "suggestion": "Consider consolidating these render paths into a single return statement"
-}
+```
+I've opened the LogicArt flowchart visualizer in your browser.
+
+URL: http://localhost:5001/?code=...&autorun=true
+
+You can now see the interactive flowchart with:
+- Step-by-step execution controls
+- Variable state tracking
+- Collapsible function containers
 ```
 
-**Severity Levels**:
-| Count | Severity | Action |
-|-------|----------|--------|
-| 0-2 | `none` | All good |
-| 3 | `info` | Worth reviewing |
-| 4-5 | `warning` | Should consolidate |
-| 6+ | `critical` | Refactor immediately |
+If the browser cannot be opened automatically (e.g., headless server), the URL is provided for manual access.
 
 ---
 
