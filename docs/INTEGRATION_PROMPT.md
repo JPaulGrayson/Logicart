@@ -12,46 +12,41 @@ Add LogicArt code visualization to this project.
 1. Add this script tag to the HTML <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. Scan my project structure and create a COMPONENT PICKER:
-   - Find all pages, features, and major components
-   - Build a dropdown or modal with friendly names (not file paths)
-   - Map each name to its source file path
+2. FIRST, scan my project and LIST all .tsx/.ts/.js files in:
+   - src/pages/
+   - src/components/ 
+   - src/features/
+   Show me what you find before building the picker.
 
-3. Create a visualization handler that fetches SOURCE FILES (not bundled code):
+3. Create a ComponentPicker component with a dropdown. Each option should have:
+   - A friendly display name (e.g., "Tour Page" not "TourPage.tsx")
+   - The source file path (e.g., "/src/pages/TourPage.tsx")
 
-// Component picker data - populate by scanning project structure
-const components = {
-  'Home Page': '/src/pages/HomePage.tsx',
-  'User Profile': '/src/features/user/Profile.tsx',
-  'Search': '/src/components/Search.tsx'
-  // ... add all major components
-};
+4. Visualization handler - fetch SOURCE files, not bundled code:
 
-// Fetch source file and visualize
-async function visualizeComponent(name) {
-  const filePath = components[name];
+async function visualizeComponent(filePath, displayName) {
   const response = await fetch(filePath);
   const code = await response.text();
-  
   if (window.LogicArt?.visualize) {
-    window.LogicArt.visualize(code, name);
+    window.LogicArt.visualize(code, displayName);
   }
 }
 
-4. Add a "View Flowchart" button that opens the component picker.
-   When user selects a component, call visualizeComponent(selectedName).
+// Populate from files found in step 2:
+const components = [
+  { name: 'Home Page', path: '/src/pages/Home.tsx' },
+  { name: 'User Profile', path: '/src/pages/Profile.tsx' },
+];
 
-5. TEST THE INTEGRATION:
-- Click "View Flowchart" button
-- Select a component from the picker
-- Verify LogicArt opens showing that component's logic as a flowchart
+5. Add a "View Flowchart" button that opens the picker dropdown.
+   When user selects, call visualizeComponent(selected.path, selected.name).
 
-6. IF THE FLOWCHART SHOWS BUNDLED/FRAMEWORK CODE:
-- Make sure you're fetching SOURCE files (e.g., /src/pages/Home.tsx)
-- NOT bundled output (e.g., /assets/index-abc123.js)
+6. CRITICAL: Fetch paths must be SOURCE files like /src/pages/Home.tsx
+   NOT bundled paths like /assets/index-abc123.js
 
-NOTE: LogicArt automatically extracts algorithm logic from React hooks 
-(useCallback, useMemo, useEffect) - just pass the whole component file.
+7. Test: Select a component → LogicArt should open showing its flowchart.
+
+NOTE: LogicArt auto-extracts logic from React hooks (useCallback, useMemo, useEffect).
 ```
 
 ---

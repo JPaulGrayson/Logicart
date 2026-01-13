@@ -24,49 +24,41 @@ Add LogicArt flowchart visualization to this app.
 1. Add this script tag to the HTML <head> BEFORE other scripts:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. Scan my project and create a component picker. Find the main components/pages/features 
-   and build a simple modal or dropdown that lets me choose which one to visualize.
-   
-   For example, if my app has these files:
-   - src/pages/HomePage.tsx
-   - src/features/checkout/Cart.tsx
-   - src/components/SearchFilter.tsx
-   
-   Create a picker with friendly names like:
-   - "Home Page"
-   - "Shopping Cart" 
-   - "Search Filter"
+2. FIRST, scan my project and LIST the main .tsx/.ts/.js files you find in:
+   - src/pages/
+   - src/components/
+   - src/features/
+   Show me the list before proceeding.
 
-3. When I select a component from the picker, fetch that SOURCE FILE (not the bundled output)
-   and call window.LogicArt.visualize(code, componentName).
+3. Create a ComponentPicker with a dropdown containing those files as options.
+   Use friendly names (e.g., "TourPage.tsx" → "Tour Page").
 
-4. Here's the pattern to follow:
+4. When user selects a component, fetch the SOURCE FILE and visualize:
 
-// Component picker data - populate this by scanning my project
-const components = {
-  'Home Page': '/src/pages/HomePage.tsx',
-  'Shopping Cart': '/src/features/checkout/Cart.tsx',
-  'Search Filter': '/src/components/SearchFilter.tsx'
-};
-
-// Show picker modal, then visualize selected component
-async function viewFlowchart(componentName) {
-  const filePath = components[componentName];
+async function visualizeComponent(filePath, displayName) {
   const response = await fetch(filePath);
   const code = await response.text();
-  
   if (window.LogicArt?.visualize) {
-    window.LogicArt.visualize(code, componentName);
+    window.LogicArt.visualize(code, displayName);
   }
 }
 
-5. Add a "View Flowchart" button to the header that opens the component picker.
+// Example - replace with actual files from step 2:
+const components = [
+  { name: 'Home Page', path: '/src/pages/Home.tsx' },
+  { name: 'Tour View', path: '/src/pages/TourPage.tsx' },
+];
 
-6. Test by clicking the button, selecting a component, and verifying LogicArt opens 
-   with that component's flowchart.
+5. Add a "View Flowchart" button that opens the ComponentPicker dropdown.
+   When user selects, call visualizeComponent(selected.path, selected.name).
 
-NOTE: LogicArt automatically extracts algorithm logic from React hooks (useCallback, 
-useMemo, useEffect) - just pass the whole component file and it will find the logic.
+6. IMPORTANT: The fetch path must be the SOURCE file path (e.g., /src/pages/Home.tsx),
+   NOT the bundled output path (e.g., /assets/index-abc123.js).
+
+7. Test by selecting a component and verifying LogicArt opens with its flowchart.
+
+NOTE: LogicArt automatically extracts logic from React hooks (useCallback, useMemo, 
+useEffect) - just pass the whole component file.
 ```
 
 ---

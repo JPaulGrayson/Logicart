@@ -55,36 +55,33 @@ Add LogicArt visualization to this project.
 1. Add this script to the HTML head (before other scripts):
    <script src="https://logic.art/remote.js?project=MyAppName&autoOpen=false"></script>
 
-2. Scan my project and build a COMPONENT PICKER:
-   - Find all pages, features, and components with meaningful logic
-   - Create a dropdown or modal with friendly names
-   - Map each name to its source file path
+2. FIRST, scan and LIST all .tsx/.ts/.js files in src/pages/, src/components/, src/features/.
+   Show me what you find before building the picker.
 
-3. Create a visualization function:
+3. Create a ComponentPicker dropdown with those files:
+   - Use friendly names (e.g., "Dashboard" not "Dashboard.tsx")
+   - Store the source file path for each
 
-   // Component map - populate by scanning project
-   const components = {
-     'Dashboard': '/src/pages/Dashboard.tsx',
-     'Checkout Flow': '/src/features/checkout/Checkout.tsx',
-     'Search Filter': '/src/components/SearchFilter.tsx'
-   };
+4. Visualization function - fetch SOURCE files:
 
-   async function visualizeComponent(name) {
-     const response = await fetch(components[name]);
+   const components = [
+     { name: 'Dashboard', path: '/src/pages/Dashboard.tsx' },
+     { name: 'Checkout', path: '/src/features/checkout/Checkout.tsx' },
+   ];
+
+   async function visualizeComponent(filePath, displayName) {
+     const response = await fetch(filePath);
      const code = await response.text();
-     window.LogicArt.visualize(code, name);
+     window.LogicArt.visualize(code, displayName);
    }
 
-4. Add a "View Flowchart" button that opens the picker.
-   When user selects a component, call visualizeComponent(name).
+5. Add a "View Flowchart" button that opens the picker.
+   When user selects, call visualizeComponent(selected.path, selected.name).
 
-5. (Optional) Add checkpoint() calls for live execution tracking:
-   - checkpoint('functionName-start', { param1, param2 })
-   - checkpoint('checking-condition', { value })
-   - checkpoint('functionName-end', { result })
+6. CRITICAL: Fetch SOURCE files like /src/pages/Dashboard.tsx
+   NOT bundled paths like /assets/index-abc123.js
 
-NOTE: LogicArt automatically extracts algorithm logic from React hooks.
-Just pass the whole component file - it finds useCallback/useMemo/useEffect logic.
+NOTE: LogicArt auto-extracts logic from React hooks (useCallback/useMemo/useEffect).
 ```
 
 ---
