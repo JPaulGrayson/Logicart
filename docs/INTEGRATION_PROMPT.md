@@ -7,130 +7,159 @@ Copy and paste this prompt into any AI agent (Replit Agent, Cursor, Claude, etc.
 ## The Prompt
 
 ```
-Add LogicArt code visualization to this project.
+Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic.
 
-1. Add this script tag to the HTML <head>:
+STEP 1: Add script tag to client/index.html <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. FIRST, scan my project and LIST all .tsx/.ts/.js files in:
-   - src/pages/
-   - src/components/ 
-   - src/features/
-   Show me what you find before building the picker.
+STEP 2: Add a backend API to read source files. In your server routes file, add:
 
-3. Create a ComponentPicker component with a dropdown. Each option should have:
-   - A friendly display name (e.g., "Tour Page" not "TourPage.tsx")
-   - The source file path (e.g., "/src/pages/TourPage.tsx")
-
-4. Visualization handler - fetch SOURCE files, not bundled code:
-
-async function visualizeComponent(filePath, displayName) {
-  const response = await fetch(filePath);
-  const code = await response.text();
-  // Use LogiGo (the runtime API name)
-  const api = window.LogiGo || window.LogicArt;
-  if (api?.visualize) {
-    api.visualize(code, displayName);
+app.get('/api/source/*', (req, res) => {
+  const filePath = req.params[0];
+  const fullPath = path.join(process.cwd(), 'client', filePath);
+  
+  if (!fullPath.startsWith(path.join(process.cwd(), 'client'))) {
+    return res.status(403).send('Forbidden');
   }
-}
+  
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).send('File not found');
+  }
+  
+  res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
+});
 
-// Populate from files found in step 2:
-const components = [
-  { name: 'Home Page', path: '/src/pages/Home.tsx' },
-  { name: 'User Profile', path: '/src/pages/Profile.tsx' },
+Make sure to import: import fs from 'fs'; import path from 'path';
+
+STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
+- client/src/pages/
+- client/src/components/
+- client/src/features/
+Show me the file list before proceeding.
+
+STEP 4: Create a FlowchartButton component. Here's the complete code:
+
+import { useState } from 'react';
+
+const COMPONENTS = [
+  // REPLACE with actual files from step 3:
+  { name: 'Home Page', path: 'src/pages/Home.tsx' },
+  { name: 'Dashboard', path: 'src/pages/Dashboard.tsx' },
 ];
 
-5. Add a "View Flowchart" button to an EXISTING navbar or header component.
-   - Find your Header.tsx, Navbar.tsx, or shared nav component
-   - Add the button there - do NOT create a floating button with position:fixed
-   - Floating buttons get hidden behind full-screen backgrounds
-   When user selects, call visualizeComponent(selected.path, selected.name).
-
-6. CRITICAL - Fetch SOURCE files, NOT bundled code:
-   - App MUST run via dev server (npm run dev), not production
-   - Fetch: /src/pages/Home.tsx or /src/features/Component.tsx  
-   - NOT: /assets/index-abc123.js or /.vite/deps/...
-   - If response contains "__vite" or "jsxDEV", you got bundled code - wrong!
-   - Create a backend API endpoint to read files from disk if needed
-
-7. Test: Select a component → LogicArt should open showing its flowchart.
-
-NOTE: LogicArt auto-extracts logic from React hooks (useCallback, useMemo, useEffect).
-```
-
----
-
-## Key Concepts
-
-### Push vs Auto-Discovery
-LogicArt has two modes:
-- **Auto-Discovery**: Scans all scripts on the page (captures framework noise in React/Vite)
-- **Push Mode** (`?mode=push`): Your app sends specific clean code via `visualize()` (recommended)
-
-For bundled apps (React, Vue, Vite), always use **Push Mode** with `?mode=push&hideBadge=true`.
-
-### URL Parameters
-| Parameter | Values | Description |
-|-----------|--------|-------------|
-| `project` | string | Your project/app name (auto-detected from hostname if not set) |
-| `mode` | `auto`, `push` | `push` disables auto-discovery |
-| `hideBadge` | `true`, `false` | Hides the floating badge |
-| `autoOpen` | `true`, `false` | Auto-open LogicArt on first checkpoint |
-
-### The Simple Pattern
-With the new `visualize()` method, integration is straightforward:
-```javascript
-if (window.LogicArt?.visualize) {
-  window.LogicArt.visualize(code, name);
+export function FlowchartButton() {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  async function visualize(component) {
+    setIsOpen(false);
+    try {
+      const response = await fetch('/api/source/' + component.path);
+      if (!response.ok) throw new Error('Failed to load file');
+      const code = await response.text();
+      
+      const api = window.LogiGo || window.LogicArt;
+      if (api?.visualize) {
+        api.visualize(code, component.name);
+      } else {
+        alert('LogicArt not loaded. Check script tag in index.html');
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  }
+  
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setIsOpen(!isOpen)}>
+        View Flowchart
+      </button>
+      
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          right: 0,
+          background: 'white',
+          border: '1px solid #ccc',
+          borderRadius: 4,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          minWidth: 200,
+        }}>
+          {COMPONENTS.map((c, i) => (
+            <div
+              key={i}
+              onClick={() => visualize(c)}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                borderBottom: i < COMPONENTS.length - 1 ? '1px solid #eee' : 'none',
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#f0f0f0'}
+              onMouseLeave={(e) => e.target.style.background = 'white'}
+            >
+              {c.name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
+
+STEP 5: Add <FlowchartButton /> to an EXISTING header/navbar component.
+- Find Header.tsx, Navbar.tsx, or similar shared navigation component
+- Import and add the button there
+- Do NOT create a floating button with position:fixed (gets hidden behind backgrounds)
+
+STEP 6: Test it:
+1. Run the app (npm run dev)
+2. Click "View Flowchart" button
+3. Select a component from the dropdown
+4. LogicArt should open in a new tab showing the flowchart
+
+If flowchart shows sample code instead of your component:
+- Check browser Network tab - is /api/source/... returning 200?
+- Check browser console for errors
+- Verify the file path in COMPONENTS matches actual file location
 ```
 
 ---
 
-## API Reference
+## How It Works
 
-### LogicArt.openWithCode(code, name)
-Creates a session and opens LogicArt with the flowchart:
-```javascript
-window.LogicArt.openWithCode(algorithmCode, 'BubbleSort');
-```
-
-### LogicArt.registerCode(code, name)
-Register code without opening LogicArt (for deferred visualization):
-```javascript
-window.LogicArt.registerCode(algorithmCode, 'BubbleSort');
-```
-
-### LogicArt.openStudio()
-Open the current session in LogicArt:
-```javascript
-window.LogicArt.openStudio();
-```
+1. **Backend API** reads source files directly from disk (avoids bundling issues)
+2. **Component picker** lets users choose which file to visualize
+3. **LogicArt API** (`visualize()`) sends code and opens the flowchart
 
 ---
 
 ## Troubleshooting
 
-**Flowchart shows thousands of nodes / framework code:**
-- Add CSS: `#logicart-badge { display: none !important; }`
-- Ensure you're passing raw algorithm strings, not bundled code
-- Use Push Mode, not Auto-Discovery
+**API returns 404:**
+- Check file path matches actual location (client/src/... vs src/...)
+- Try: `curl http://localhost:5000/api/source/src/pages/Home.tsx`
 
-**LogicArt doesn't open:**
-- Check browser console for `[LogicArt]` messages
-- Verify script tag is in `<head>` before other scripts
-- Use the fallback pattern (registerCode + openStudio)
+**Flowchart shows sample code:**
+- API might be returning error HTML instead of code
+- Check Network tab for actual response content
 
-**Flowchart is empty:**
-- Verify the code is readable JavaScript (not minified)
-- Code should contain function declarations
+**LogicArt not loaded error:**
+- Verify script tag is in `<head>` section
+- Check browser console for script loading errors
 
 ---
 
-## Integration Checklist
+## API Reference
 
-- [ ] Script tag added to HTML `<head>`
-- [ ] CSS added to hide `#logicart-badge` (for React/Vite apps)
-- [ ] Handler function created with API fallback
-- [ ] "Visualize" button connected to handler
-- [ ] Tested: clicking button opens LogicArt with clean flowchart
+### LogicArt.visualize(code, name)
+Sends code and opens LogicArt with the flowchart:
+```javascript
+window.LogicArt.visualize(algorithmCode, 'MyComponent');
+```
+
+### LogicArt.openWithCode(code, name)  
+Alternative method (same behavior):
+```javascript
+window.LogicArt.openWithCode(algorithmCode, 'MyComponent');
+```
