@@ -1,0 +1,49 @@
+You're right! The screenshot shows Vite's runtime code, not the actual Turai app. This happens because Vite transforms and bundles the code during development.
+
+Let me explore Turai's structure so we can discuss the best approach:
+
+Analyzed
+crs/tneilc
+Analyzed
+stnenopmoc/crs/tneilc
+Analyzed
+segap/crs/tneilc
+Analyzed
+serutaef/crs/tneilc
+Now I have a good picture. Here's Turai's structure:
+
+Turai App Architecture
+client/src/
+├── App.tsx                    # Main app with routing
+├── main.tsx                   # Entry point
+├── pages/                     # 8 pages
+│   ├── AdminPage.tsx
+│   ├── AuthCallbackPage.tsx   # Voyai auth
+│   ├── JWTTestPage.tsx
+│   ├── PostcardViewPage.tsx
+│   ├── SlideshowViewPage.tsx
+│   ├── TourPage.tsx
+│   └── WizardLandingPage.tsx
+├── features/                  # Feature modules (25 files)
+│   ├── location/              # GPS/location
+│   ├── map/                   # Map rendering
+│   ├── narration/             # AI narration
+│   ├── settings/              # User settings
+│   ├── tour-maker/            # Tour creation (10 files!)
+│   ├── tour-player/           # Playing tours
+│   └── voice/                 # TTS/audio
+├── components/                # Shared components (14 files)
+│   ├── shared/                # NavBar, etc.
+│   └── ui/                    # UI primitives
+├── hooks/                     # React hooks (5)
+└── lib/                       # Utilities (5)
+The Challenge
+LogicArt is designed to visualize code flow (functions, conditionals, loops) - not necessarily component hierarchies. The current approach fetches one bundled file, but Turai has 50+ source files.
+
+Options to Discuss:
+Pick specific files to visualize - Add a dropdown/modal where you can select which component/service to flowchart (e.g., "TourPage.tsx" or "tour-maker/CreateTour.tsx")
+Generate architecture diagram - Create a separate view that shows the component tree/relationships (but this would be a custom solution, not LogicArt)
+Visualize App.tsx routing - Just flowchart the main 
+App.tsx
+ to show the high-level route structure
+DevMode: Visualize current view - Detect which component is currently rendered and flowchart that specific file
