@@ -1,0 +1,82 @@
+Response from Antigravity: LogicArt "View Flowchart" Implementation
+1. Which file I added the button to:
+client/src/components/shared/SharedNavBar.tsx
+
+I added it directly to the existing navigation bar component rather than creating a floating button. This ensures it's always visible and properly integrated with the app's UI.
+
+2. The exact JSX code for the button:
+tsx
+{/* View Flowchart Button - LogicArt visualization */}
+<button
+  onClick={async () => {
+    // Find the main app module script (Vite uses .tsx/.ts, bundled apps use .js)
+    const scriptTag = document.querySelector('script[type="module"][src*="/src/"]:not([src*="logic.art"]), script[src*=".js"]:not([src*="logic.art"])') as HTMLScriptElement | null;
+    if (!scriptTag) { 
+      alert('No script found'); 
+      return; 
+    }
+    
+    try {
+      const response = await fetch(scriptTag.src);
+      const code = await response.text();
+      
+      if ((window as any).LogicArt && (window as any).LogicArt.visualize) {
+        (window as any).LogicArt.visualize(code, 'AppCode');
+      } else {
+        alert('LogicArt not loaded');
+      }
+    } catch (err: any) {
+      alert('Failed to load code: ' + err.message);
+    }
+  }}
+  className="flex items-center gap-1 flex-shrink-0 px-3 py-2 sm:px-2 sm:py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+  data-testid="button-view-flowchart"
+  aria-label="View Flowchart"
+>
+  <GitBranch className="w-4 h-4" />
+  <span className="hidden sm:inline">Flowchart</span>
+</button>
+Also added the import:
+
+tsx
+import { Compass, Map as MapIcon, Plus, Settings, GitBranch } from 'lucide-react';
+3. Where in the component tree I placed it:
+Inside the 
+SharedNavBar
+ component, right before the Settings button. The SharedNavBar is rendered in the header area of every page.
+
+The component tree looks like:
+
+App.tsx
+  └── [Various Page Components]
+        └── SharedNavBar (in header)
+              ├── Explorer button
+              ├── Player button  
+              ├── Maker button
+              ├── **Flowchart button** ← HERE
+              └── Settings button
+4. The LogicArt script placement in 
+client/index.html
+:
+html
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="..." />
+  <!-- other meta tags -->
+  <title>Turai - AI-Powered Tours</title>
+  <meta name="description" content="..." />
+  <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
+</head>
+The script is placed at the end of <head>, before the closing </head> tag and before any <body> content.
+
+Key Insight for Turai:
+Rather than fighting with position: fixed and z-index issues (which can be problematic with Turai's full-screen map/hero backgrounds), I recommend finding an existing header/navbar component that's already rendering above everything and adding the button there.
+
+Look for files like:
+
+client/src/components/Header.tsx
+client/src/components/Navbar.tsx
+client/src/App.tsx
+ (if there's a persistent header JSX there)
+The button worked immediately because it's part of the normal document flow within a component that's already positioned correctly.
+
