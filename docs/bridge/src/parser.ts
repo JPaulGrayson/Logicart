@@ -4,6 +4,43 @@ import dagre from 'dagre';
 import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
 
 /**
+ * Extracts a balanced brace block starting from a position.
+ * Returns the content between the braces (excluding the braces themselves).
+ */
+function extractBalancedBraces(code: string, startPos: number): { content: string; endPos: number } | null {
+  let braceCount = 0;
+  let inString = false;
+  let stringChar = '';
+  let start = -1;
+  
+  for (let i = startPos; i < code.length; i++) {
+    const char = code[i];
+    const prevChar = i > 0 ? code[i - 1] : '';
+    
+    // Handle string literals
+    if (!inString && (char === '"' || char === "'" || char === '`')) {
+      inString = true;
+      stringChar = char;
+    } else if (inString && char === stringChar && prevChar !== '\\') {
+      inString = false;
+    }
+    
+    if (!inString) {
+      if (char === '{') {
+        if (braceCount === 0) start = i + 1;
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0 && start !== -1) {
+          return { content: code.slice(start, i), endPos: i };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Preprocesses React component code to extract algorithm logic.
  * Detects useCallback/useMemo hooks and extracts their bodies as named functions.
  * This allows visualization of algorithm logic embedded in React components.
@@ -24,60 +61,63 @@ function preprocessReactCode(code: string): string {
   const extractedFunctions: string[] = [];
   let functionCounter = 0;
   
-  // Extract useCallback bodies
-  // Pattern: const name = useCallback(() => { ... }, [...])
-  const callbackPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  // Find useCallback declarations
+  const callbackDeclPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\([^)]*\)\s*=>/g;
   let match;
   
-  while ((match = callbackPattern.exec(code)) !== null) {
-    const funcName = match[1].toUpperCase();
-    const funcBody = match[2].trim();
+  while ((match = callbackDeclPattern.exec(code)) !== null) {
+    const funcName = match[1];
+    // Find the opening brace after the arrow
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
     
-    // Skip empty bodies or trivial ones
-    if (funcBody.length > 10) {
-      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}() {\n${funcBody}\n}`);
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted && extracted.content.trim().length > 10) {
+        const sectionName = funcName.toUpperCase();
+        extractedFunctions.push(`// --- ${sectionName} ---\nfunction ${sectionName}() {\n${extracted.content.trim()}\n}`);
+      }
     }
   }
   
-  // Also extract arrow function callbacks: const name = useCallback((params) => { ... }, [...])
-  const arrowCallbackPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\(([^)]*)\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  // Find useMemo declarations
+  const memoDeclPattern = /const\s+(\w+)\s*=\s*useMemo\s*\(\s*\(\s*\)\s*=>/g;
   
-  while ((match = arrowCallbackPattern.exec(code)) !== null) {
-    const funcName = match[1].toUpperCase();
-    const params = match[2].trim();
-    const funcBody = match[3].trim();
+  while ((match = memoDeclPattern.exec(code)) !== null) {
+    const funcName = match[1];
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
     
-    // Skip if already extracted or empty
-    if (funcBody.length > 10 && !extractedFunctions.some(f => f.includes(`function ${funcName}(`))) {
-      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}(${params}) {\n${funcBody}\n}`);
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted && extracted.content.trim().length > 10 && extracted.content.includes('return')) {
+        const sectionName = funcName.toUpperCase();
+        if (!extractedFunctions.some(f => f.includes(`function ${sectionName}(`))) {
+          extractedFunctions.push(`// --- ${sectionName} ---\nfunction ${sectionName}() {\n${extracted.content.trim()}\n}`);
+        }
+      }
     }
   }
   
-  // Extract useMemo bodies with computation logic
-  const memoPattern = /const\s+(\w+)\s*=\s*useMemo\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  // Find useEffect with algorithm logic
+  const effectDeclPattern = /useEffect\s*\(\s*\(\s*\)\s*=>/g;
   
-  while ((match = memoPattern.exec(code)) !== null) {
-    const funcName = match[1].toUpperCase();
-    const funcBody = match[2].trim();
+  while ((match = effectDeclPattern.exec(code)) !== null) {
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
     
-    if (funcBody.length > 10 && funcBody.includes('return')) {
-      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}() {\n${funcBody}\n}`);
-    }
-  }
-  
-  // Extract useEffect bodies that contain algorithm logic (loops, conditionals)
-  const effectPattern = /useEffect\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
-  
-  while ((match = effectPattern.exec(code)) !== null) {
-    const funcBody = match[1].trim();
-    
-    // Only extract effects with meaningful logic (loops, conditionals, multiple statements)
-    const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(funcBody);
-    const hasMultipleStatements = (funcBody.match(/;/g) || []).length > 2;
-    
-    if (funcBody.length > 20 && (hasControlFlow || hasMultipleStatements)) {
-      functionCounter++;
-      extractedFunctions.push(`// --- EFFECT_${functionCounter} ---\nfunction effect_${functionCounter}() {\n${funcBody}\n}`);
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted) {
+        const funcBody = extracted.content.trim();
+        const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(funcBody);
+        const hasMultipleStatements = (funcBody.match(/;/g) || []).length > 2;
+        
+        if (funcBody.length > 20 && (hasControlFlow || hasMultipleStatements)) {
+          functionCounter++;
+          extractedFunctions.push(`// --- EFFECT_${functionCounter} ---\nfunction effect_${functionCounter}() {\n${funcBody}\n}`);
+        }
+      }
     }
   }
   
@@ -88,15 +128,19 @@ function preprocessReactCode(code: string): string {
   
   // No hooks found - try to extract the main component body
   // Look for algorithm logic in the component's main body (before return statement)
-  const componentBodyPattern = /(?:export\s+(?:default\s+)?)?function\s+\w+\s*\([^)]*\)\s*\{([\s\S]*?)(?:return\s*\(?[\s\S]*?<)/;
-  const componentMatch = code.match(componentBodyPattern);
-  
+  const componentMatch = code.match(/(?:export\s+(?:default\s+)?)?function\s+\w+\s*\([^)]*\)\s*\{/);
   if (componentMatch) {
-    const bodyBeforeReturn = componentMatch[1].trim();
-    const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(bodyBeforeReturn);
-    
-    if (bodyBeforeReturn.length > 50 && hasControlFlow) {
-      return `// --- COMPONENT_LOGIC ---\nfunction componentLogic() {\n${bodyBeforeReturn}\n}`;
+    const extracted = extractBalancedBraces(code, componentMatch.index! + componentMatch[0].length - 1);
+    if (extracted) {
+      const returnMatch = extracted.content.match(/return\s*\(?\s*</);
+      if (returnMatch) {
+        const bodyBeforeReturn = extracted.content.slice(0, returnMatch.index).trim();
+        const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(bodyBeforeReturn);
+        
+        if (bodyBeforeReturn.length > 50 && hasControlFlow) {
+          return `// --- COMPONENT_LOGIC ---\nfunction componentLogic() {\n${bodyBeforeReturn}\n}`;
+        }
+      }
     }
   }
   

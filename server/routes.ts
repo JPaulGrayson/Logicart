@@ -27,8 +27,145 @@ import { sessionManager } from "./services/session-manager";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Extracts a balanced brace block starting from a position.
+ */
+function extractBalancedBraces(code: string, startPos: number): { content: string; endPos: number } | null {
+  let braceCount = 0;
+  let inString = false;
+  let stringChar = '';
+  let start = -1;
+  
+  for (let i = startPos; i < code.length; i++) {
+    const char = code[i];
+    const prevChar = i > 0 ? code[i - 1] : '';
+    
+    if (!inString && (char === '"' || char === "'" || char === '`')) {
+      inString = true;
+      stringChar = char;
+    } else if (inString && char === stringChar && prevChar !== '\\') {
+      inString = false;
+    }
+    
+    if (!inString) {
+      if (char === '{') {
+        if (braceCount === 0) start = i + 1;
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0 && start !== -1) {
+          return { content: code.slice(start, i), endPos: i };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Preprocesses React component code to extract algorithm logic from hooks.
+ */
+function preprocessReactCode(code: string): string {
+  const hasReactImport = /import\s+.*from\s+['"]react['"]/.test(code);
+  const hasUseCallback = /useCallback\s*\(/.test(code);
+  const hasUseMemo = /useMemo\s*\(/.test(code);
+  const hasUseState = /useState\s*[<(]/.test(code);
+  const hasJSX = /<[A-Z][a-zA-Z]*[\s/>]/.test(code) || /return\s*\(?\s*</.test(code);
+  
+  if (!hasReactImport && !hasUseCallback && !hasUseMemo && !hasUseState && !hasJSX) {
+    return code;
+  }
+  
+  const extractedFunctions: string[] = [];
+  let functionCounter = 0;
+  
+  // Find useCallback declarations
+  const callbackDeclPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\([^)]*\)\s*=>/g;
+  let match;
+  
+  while ((match = callbackDeclPattern.exec(code)) !== null) {
+    const funcName = match[1];
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
+    
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted && extracted.content.trim().length > 10) {
+        const sectionName = funcName.toUpperCase();
+        extractedFunctions.push(`// --- ${sectionName} ---\nfunction ${sectionName}() {\n${extracted.content.trim()}\n}`);
+      }
+    }
+  }
+  
+  // Find useMemo declarations
+  const memoDeclPattern = /const\s+(\w+)\s*=\s*useMemo\s*\(\s*\(\s*\)\s*=>/g;
+  
+  while ((match = memoDeclPattern.exec(code)) !== null) {
+    const funcName = match[1];
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
+    
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted && extracted.content.trim().length > 10 && extracted.content.includes('return')) {
+        const sectionName = funcName.toUpperCase();
+        if (!extractedFunctions.some(f => f.includes(`function ${sectionName}(`))) {
+          extractedFunctions.push(`// --- ${sectionName} ---\nfunction ${sectionName}() {\n${extracted.content.trim()}\n}`);
+        }
+      }
+    }
+  }
+  
+  // Find useEffect with algorithm logic
+  const effectDeclPattern = /useEffect\s*\(\s*\(\s*\)\s*=>/g;
+  
+  while ((match = effectDeclPattern.exec(code)) !== null) {
+    const arrowEnd = match.index + match[0].length;
+    const braceStart = code.indexOf('{', arrowEnd);
+    
+    if (braceStart !== -1 && braceStart - arrowEnd < 10) {
+      const extracted = extractBalancedBraces(code, braceStart);
+      if (extracted) {
+        const funcBody = extracted.content.trim();
+        const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(funcBody);
+        const hasMultipleStatements = (funcBody.match(/;/g) || []).length > 2;
+        
+        if (funcBody.length > 20 && (hasControlFlow || hasMultipleStatements)) {
+          functionCounter++;
+          extractedFunctions.push(`// --- EFFECT_${functionCounter} ---\nfunction effect_${functionCounter}() {\n${funcBody}\n}`);
+        }
+      }
+    }
+  }
+  
+  if (extractedFunctions.length > 0) {
+    return extractedFunctions.join('\n\n');
+  }
+  
+  // Try to extract main component body before JSX return
+  const componentMatch = code.match(/(?:export\s+(?:default\s+)?)?function\s+\w+\s*\([^)]*\)\s*\{/);
+  if (componentMatch) {
+    const extracted = extractBalancedBraces(code, componentMatch.index! + componentMatch[0].length - 1);
+    if (extracted) {
+      const returnMatch = extracted.content.match(/return\s*\(?\s*</);
+      if (returnMatch) {
+        const bodyBeforeReturn = extracted.content.slice(0, returnMatch.index).trim();
+        const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(bodyBeforeReturn);
+        
+        if (bodyBeforeReturn.length > 50 && hasControlFlow) {
+          return `// --- COMPONENT_LOGIC ---\nfunction componentLogic() {\n${bodyBeforeReturn}\n}`;
+        }
+      }
+    }
+  }
+  
+  return code;
+}
+
 // Helper: Parse JavaScript code to GroundingContext (server-side)
-function parseCodeToGrounding(code: string): GroundingContext {
+function parseCodeToGrounding(rawCode: string): GroundingContext {
+  // Preprocess React code to extract algorithm logic
+  const code = preprocessReactCode(rawCode);
   interface SimpleNode {
     id: string;
     type: GroundingNodeType;
