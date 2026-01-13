@@ -27,8 +27,10 @@ Add LogicArt code visualization to this project.
 async function visualizeComponent(filePath, displayName) {
   const response = await fetch(filePath);
   const code = await response.text();
-  if (window.LogicArt?.visualize) {
-    window.LogicArt.visualize(code, displayName);
+  // Use LogiGo (the runtime API name)
+  const api = window.LogiGo || window.LogicArt;
+  if (api?.visualize) {
+    api.visualize(code, displayName);
   }
 }
 

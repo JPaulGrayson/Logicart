@@ -72,7 +72,9 @@ Add LogicArt visualization to this project.
    async function visualizeComponent(filePath, displayName) {
      const response = await fetch(filePath);
      const code = await response.text();
-     window.LogicArt.visualize(code, displayName);
+     // Use LogiGo (the runtime API name)
+     const api = window.LogiGo || window.LogicArt;
+     api.visualize(code, displayName);
    }
 
 5. Add a "View Flowchart" button to an EXISTING navbar or header component.
