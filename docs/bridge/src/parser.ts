@@ -5,35 +5,73 @@ import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
 
 /**
  * Extracts a balanced brace block starting from a position.
- * Returns the content between the braces (excluding the braces themselves).
+ * Handles strings, single-line comments (//), and multi-line comments.
  */
 function extractBalancedBraces(code: string, startPos: number): { content: string; endPos: number } | null {
   let braceCount = 0;
   let inString = false;
   let stringChar = '';
+  let inSingleLineComment = false;
+  let inMultiLineComment = false;
   let start = -1;
   
   for (let i = startPos; i < code.length; i++) {
     const char = code[i];
+    const nextChar = i < code.length - 1 ? code[i + 1] : '';
     const prevChar = i > 0 ? code[i - 1] : '';
     
-    // Handle string literals
-    if (!inString && (char === '"' || char === "'" || char === '`')) {
-      inString = true;
-      stringChar = char;
-    } else if (inString && char === stringChar && prevChar !== '\\') {
-      inString = false;
+    // Handle single-line comment end (newline)
+    if (inSingleLineComment) {
+      if (char === '\n') {
+        inSingleLineComment = false;
+      }
+      continue;
     }
     
+    // Handle multi-line comment end
+    if (inMultiLineComment) {
+      if (char === '*' && nextChar === '/') {
+        inMultiLineComment = false;
+        i++; // Skip the '/'
+      }
+      continue;
+    }
+    
+    // Handle string literals
     if (!inString) {
-      if (char === '{') {
-        if (braceCount === 0) start = i + 1;
-        braceCount++;
-      } else if (char === '}') {
-        braceCount--;
-        if (braceCount === 0 && start !== -1) {
-          return { content: code.slice(start, i), endPos: i };
-        }
+      // Check for comment starts
+      if (char === '/' && nextChar === '/') {
+        inSingleLineComment = true;
+        i++; // Skip the second '/'
+        continue;
+      }
+      if (char === '/' && nextChar === '*') {
+        inMultiLineComment = true;
+        i++; // Skip the '*'
+        continue;
+      }
+      // Check for string starts
+      if (char === '"' || char === "'" || char === '`') {
+        inString = true;
+        stringChar = char;
+        continue;
+      }
+    } else {
+      // In string - check for end
+      if (char === stringChar && prevChar !== '\\') {
+        inString = false;
+      }
+      continue;
+    }
+    
+    // Count braces (only outside strings and comments)
+    if (char === '{') {
+      if (braceCount === 0) start = i + 1;
+      braceCount++;
+    } else if (char === '}') {
+      braceCount--;
+      if (braceCount === 0 && start !== -1) {
+        return { content: code.slice(start, i), endPos: i };
       }
     }
   }
