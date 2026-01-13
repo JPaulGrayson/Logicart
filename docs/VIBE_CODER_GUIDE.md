@@ -27,24 +27,31 @@ Add LogicArt flowchart visualization to this app.
 2. Add a "View Flowchart" button to the header that runs this exact code when clicked:
 
 async function viewFlowchart() {
-  const scriptTag = document.querySelector('script[src*=".js"]:not([src*="logic.art"])');
-  if (!scriptTag) { alert('No script found'); return; }
+  // For React apps: pass the component file containing your algorithm
+  // LogicArt automatically extracts logic from useCallback, useMemo, and useEffect hooks
   
-  try {
-    const response = await fetch(scriptTag.src);
-    const code = await response.text();
-    
-    if (window.LogicArt && window.LogicArt.visualize) {
-      window.LogicArt.visualize(code, 'AppCode');
-    } else {
-      alert('LogicArt not loaded');
-    }
-  } catch (err) {
-    alert('Failed to load code: ' + err.message);
+  // Option A: Fetch a specific component file (recommended for React)
+  const response = await fetch('/src/components/MyAlgorithm.tsx');
+  const code = await response.text();
+  
+  // Option B: For plain JS apps, auto-detect the main script
+  // const scriptTag = document.querySelector('script[src*=".js"]:not([src*="logic.art"])');
+  // const response = await fetch(scriptTag.src);
+  // const code = await response.text();
+  
+  if (window.LogicArt && window.LogicArt.visualize) {
+    window.LogicArt.visualize(code, 'AppCode');
+  } else {
+    alert('LogicArt not loaded');
   }
 }
 
-3. Test by clicking the button - LogicArt should open showing the app's actual code as a flowchart.
+3. Test by clicking the button - LogicArt should open showing the algorithm as a flowchart.
+
+NOTE: LogicArt is platform-agnostic. It automatically handles:
+- Plain JavaScript functions
+- React components with useCallback/useMemo/useEffect hooks
+- Both Replit Agent and Antigravity code patterns
 ```
 
 ---

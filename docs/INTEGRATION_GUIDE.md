@@ -62,13 +62,17 @@ Add LogicArt visualization to this project.
 
 3. Register the source code for flowchart generation:
    <script>
-     fetch('/path/to/main.js')
+     // For React apps: fetch your component file
+     // LogicArt automatically extracts logic from useCallback/useMemo/useEffect hooks
+     fetch('/src/components/MyAlgorithm.tsx')
        .then(r => r.text())
        .then(code => window.LogicArt.registerCode(code));
    </script>
 
 4. Add a button to open LogicArt:
    <button onclick="window.LogicArt.openStudio()">Open LogicArt</button>
+
+NOTE: LogicArt is platform-agnostic. It automatically handles plain JS functions and React components with hooks.
 ```
 
 ---
