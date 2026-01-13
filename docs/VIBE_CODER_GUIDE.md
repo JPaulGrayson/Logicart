@@ -24,34 +24,49 @@ Add LogicArt flowchart visualization to this app.
 1. Add this script tag to the HTML <head> BEFORE other scripts:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. Add a "View Flowchart" button to the header that runs this exact code when clicked:
+2. Scan my project and create a component picker. Find the main components/pages/features 
+   and build a simple modal or dropdown that lets me choose which one to visualize.
+   
+   For example, if my app has these files:
+   - src/pages/HomePage.tsx
+   - src/features/checkout/Cart.tsx
+   - src/components/SearchFilter.tsx
+   
+   Create a picker with friendly names like:
+   - "Home Page"
+   - "Shopping Cart" 
+   - "Search Filter"
 
-async function viewFlowchart() {
-  // For React apps: pass the component file containing your algorithm
-  // LogicArt automatically extracts logic from useCallback, useMemo, and useEffect hooks
-  
-  // Option A: Fetch a specific component file (recommended for React)
-  const response = await fetch('/src/components/MyAlgorithm.tsx');
+3. When I select a component from the picker, fetch that SOURCE FILE (not the bundled output)
+   and call window.LogicArt.visualize(code, componentName).
+
+4. Here's the pattern to follow:
+
+// Component picker data - populate this by scanning my project
+const components = {
+  'Home Page': '/src/pages/HomePage.tsx',
+  'Shopping Cart': '/src/features/checkout/Cart.tsx',
+  'Search Filter': '/src/components/SearchFilter.tsx'
+};
+
+// Show picker modal, then visualize selected component
+async function viewFlowchart(componentName) {
+  const filePath = components[componentName];
+  const response = await fetch(filePath);
   const code = await response.text();
   
-  // Option B: For plain JS apps, auto-detect the main script
-  // const scriptTag = document.querySelector('script[src*=".js"]:not([src*="logic.art"])');
-  // const response = await fetch(scriptTag.src);
-  // const code = await response.text();
-  
-  if (window.LogicArt && window.LogicArt.visualize) {
-    window.LogicArt.visualize(code, 'AppCode');
-  } else {
-    alert('LogicArt not loaded');
+  if (window.LogicArt?.visualize) {
+    window.LogicArt.visualize(code, componentName);
   }
 }
 
-3. Test by clicking the button - LogicArt should open showing the algorithm as a flowchart.
+5. Add a "View Flowchart" button to the header that opens the component picker.
 
-NOTE: LogicArt is platform-agnostic. It automatically handles:
-- Plain JavaScript functions
-- React components with useCallback/useMemo/useEffect hooks
-- Both Replit Agent and Antigravity code patterns
+6. Test by clicking the button, selecting a component, and verifying LogicArt opens 
+   with that component's flowchart.
+
+NOTE: LogicArt automatically extracts algorithm logic from React hooks (useCallback, 
+useMemo, useEffect) - just pass the whole component file and it will find the logic.
 ```
 
 ---

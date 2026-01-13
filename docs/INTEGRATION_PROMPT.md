@@ -12,55 +12,46 @@ Add LogicArt code visualization to this project.
 1. Add this script tag to the HTML <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-The project name is auto-detected from your hostname. URL Parameters:
-- mode=push: Disables auto-discovery (recommended for React/Vite)
-- hideBadge=true: Hides the floating badge (prevents UI conflicts)
+2. Scan my project structure and create a COMPONENT PICKER:
+   - Find all pages, features, and major components
+   - Build a dropdown or modal with friendly names (not file paths)
+   - Map each name to its source file path
 
-2. Create a visualization handler:
-const handleVisualize = (code, name) => {
+3. Create a visualization handler that fetches SOURCE FILES (not bundled code):
+
+// Component picker data - populate by scanning project structure
+const components = {
+  'Home Page': '/src/pages/HomePage.tsx',
+  'User Profile': '/src/features/user/Profile.tsx',
+  'Search': '/src/components/Search.tsx'
+  // ... add all major components
+};
+
+// Fetch source file and visualize
+async function visualizeComponent(name) {
+  const filePath = components[name];
+  const response = await fetch(filePath);
+  const code = await response.text();
+  
   if (window.LogicArt?.visualize) {
     window.LogicArt.visualize(code, name);
   }
-};
+}
 
-Available methods:
-- visualize(code, name) - One-shot: registers code and opens LogicArt (recommended)
-- registerCode(code, name) - Just registers code without opening
-- openStudio() - Opens LogicArt in a new tab
-
-3. Call handleVisualize with your code - LogicArt automatically extracts algorithm logic:
-
-// FOR ALGORITHM VISUALIZERS (stored code strings):
-handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
-
-// FOR CODE EDITORS (user-typed code):
-handleVisualize(editor.getValue(), 'UserCode');
-
-// FOR REACT COMPONENTS with useCallback/useMemo hooks:
-// LogicArt automatically extracts algorithm logic from hooks!
-handleVisualize(componentCode, 'ComponentName');
-
-// FOR APPS WITH EXISTING FUNCTIONS:
-handleVisualize(myFunction.toString(), 'FunctionName');
-
-4. Connect the handler to a "View Flowchart" or "Visualize" button in your UI.
+4. Add a "View Flowchart" button that opens the component picker.
+   When user selects a component, call visualizeComponent(selectedName).
 
 5. TEST THE INTEGRATION:
-- Open the app in the browser
-- Select or enter some code
-- Click the visualization button
-- Verify LogicArt opens in a new tab with a flowchart
+- Click "View Flowchart" button
+- Select a component from the picker
+- Verify LogicArt opens showing that component's logic as a flowchart
 
-6. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
-- Verify ?mode=push&hideBadge=true are in the script URL
-- Avoid passing entire bundled builds - pass specific component/function code
+6. IF THE FLOWCHART SHOWS BUNDLED/FRAMEWORK CODE:
+- Make sure you're fetching SOURCE files (e.g., /src/pages/Home.tsx)
+- NOT bundled output (e.g., /assets/index-abc123.js)
 
-7. Report what was done and whether the integration is working.
-
-NOTE: LogicArt is platform-agnostic. It automatically handles:
-- Plain JavaScript functions
-- React components with useCallback/useMemo/useEffect hooks
-- Code with comments containing brace characters
+NOTE: LogicArt automatically extracts algorithm logic from React hooks 
+(useCallback, useMemo, useEffect) - just pass the whole component file.
 ```
 
 ---

@@ -55,24 +55,36 @@ Add LogicArt visualization to this project.
 1. Add this script to the HTML head (before other scripts):
    <script src="https://logic.art/remote.js?project=MyAppName&autoOpen=false"></script>
 
-2. Add checkpoint() calls at important points in my JavaScript:
-   - At function start: checkpoint('functionName-start', { param1, param2 })
-   - At decisions: checkpoint('checking-condition', { value })
-   - At function end: checkpoint('functionName-end', { result })
+2. Scan my project and build a COMPONENT PICKER:
+   - Find all pages, features, and components with meaningful logic
+   - Create a dropdown or modal with friendly names
+   - Map each name to its source file path
 
-3. Register the source code for flowchart generation:
-   <script>
-     // For React apps: fetch your component file
-     // LogicArt automatically extracts logic from useCallback/useMemo/useEffect hooks
-     fetch('/src/components/MyAlgorithm.tsx')
-       .then(r => r.text())
-       .then(code => window.LogicArt.registerCode(code));
-   </script>
+3. Create a visualization function:
 
-4. Add a button to open LogicArt:
-   <button onclick="window.LogicArt.openStudio()">Open LogicArt</button>
+   // Component map - populate by scanning project
+   const components = {
+     'Dashboard': '/src/pages/Dashboard.tsx',
+     'Checkout Flow': '/src/features/checkout/Checkout.tsx',
+     'Search Filter': '/src/components/SearchFilter.tsx'
+   };
 
-NOTE: LogicArt is platform-agnostic. It automatically handles plain JS functions and React components with hooks.
+   async function visualizeComponent(name) {
+     const response = await fetch(components[name]);
+     const code = await response.text();
+     window.LogicArt.visualize(code, name);
+   }
+
+4. Add a "View Flowchart" button that opens the picker.
+   When user selects a component, call visualizeComponent(name).
+
+5. (Optional) Add checkpoint() calls for live execution tracking:
+   - checkpoint('functionName-start', { param1, param2 })
+   - checkpoint('checking-condition', { value })
+   - checkpoint('functionName-end', { result })
+
+NOTE: LogicArt automatically extracts algorithm logic from React hooks.
+Just pass the whole component file - it finds useCallback/useMemo/useEffect logic.
 ```
 
 ---
