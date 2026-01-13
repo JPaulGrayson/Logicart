@@ -46,8 +46,12 @@ const components = [
    - Floating buttons get hidden behind full-screen backgrounds
    When user selects, call visualizeComponent(selected.path, selected.name).
 
-6. CRITICAL: Fetch paths must be SOURCE files like /src/pages/Home.tsx
-   NOT bundled paths like /assets/index-abc123.js
+6. CRITICAL - Fetch SOURCE files, NOT bundled code:
+   - App MUST run via dev server (npm run dev), not production
+   - Fetch: /src/pages/Home.tsx or /src/features/Component.tsx  
+   - NOT: /assets/index-abc123.js or /.vite/deps/...
+   - If response contains "__vite" or "jsxDEV", you got bundled code - wrong!
+   - Create a backend API endpoint to read files from disk if needed
 
 7. Test: Select a component → LogicArt should open showing its flowchart.
 

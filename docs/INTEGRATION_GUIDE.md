@@ -82,8 +82,12 @@ Add LogicArt visualization to this project.
    - Add the button there - NOT a floating button with position:fixed
    When user selects, call visualizeComponent(selected.path, selected.name).
 
-6. CRITICAL: Fetch SOURCE files like /src/pages/Dashboard.tsx
-   NOT bundled paths like /assets/index-abc123.js
+6. CRITICAL - Fetch SOURCE files, NOT bundled code:
+   - App MUST run via dev server (npm run dev), not production
+   - Fetch: /src/pages/Dashboard.tsx (Vite serves source files at /src/...)
+   - NOT: /assets/... or /.vite/deps/...
+   - If response has "__vite" or "jsxDEV", you got bundled code - create a 
+     backend API to read files from disk instead
 
 NOTE: LogicArt auto-extracts logic from React hooks (useCallback/useMemo/useEffect).
 ```
