@@ -1,7 +1,35 @@
 import * as acorn from 'acorn';
 import dagre from 'dagre';
+import { transform } from 'sucrase';
 
 import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
+
+/**
+ * Strips TypeScript syntax from code using sucrase transpiler.
+ * Converts TypeScript/TSX to plain JavaScript safely.
+ */
+function stripTypeScript(code: string): string {
+  // Check if code contains TypeScript syntax
+  const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
+    /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
+    /import\s+type\s+/.test(code);
+  
+  if (!hasTypeScript) {
+    return code;
+  }
+  
+  try {
+    // Use sucrase to transpile TypeScript/TSX to JavaScript
+    const result = transform(code, {
+      transforms: ['typescript', 'jsx'],
+      disableESTransforms: true,
+    });
+    return result.code;
+  } catch {
+    // If sucrase fails, return original code and let Acorn try
+    return code;
+  }
+}
 
 /**
  * Extracts a balanced brace block starting from a position.
@@ -487,8 +515,9 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 
 export function parseCodeToFlow(code: string): FlowData {
   try {
-    // Preprocess React code to extract algorithm logic from hooks
-    const processedCode = preprocessReactCode(code);
+    // Strip TypeScript syntax first, then preprocess React code
+    const tsStripped = stripTypeScript(code);
+    const processedCode = preprocessReactCode(tsStripped);
     
     let ast;
     try {

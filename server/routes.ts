@@ -27,6 +27,35 @@ import { sessionManager } from "./services/session-manager";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+import { transform } from 'sucrase';
+
+/**
+ * Strips TypeScript syntax from code using sucrase transpiler.
+ * Converts TypeScript/TSX to plain JavaScript safely.
+ */
+function stripTypeScript(code: string): string {
+  // Check if code contains TypeScript syntax
+  const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
+    /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
+    /import\s+type\s+/.test(code);
+  
+  if (!hasTypeScript) {
+    return code;
+  }
+  
+  try {
+    // Use sucrase to transpile TypeScript/TSX to JavaScript
+    const result = transform(code, {
+      transforms: ['typescript', 'jsx'],
+      disableESTransforms: true,
+    });
+    return result.code;
+  } catch {
+    // If sucrase fails, return original code and let Acorn try
+    return code;
+  }
+}
+
 /**
  * Extracts a balanced brace block starting from a position.
  * Handles strings, single-line comments (//), and multi-line comments.
@@ -204,8 +233,9 @@ function preprocessReactCode(code: string): string {
 
 // Helper: Parse JavaScript code to GroundingContext (server-side)
 function parseCodeToGrounding(rawCode: string): GroundingContext {
-  // Preprocess React code to extract algorithm logic
-  const code = preprocessReactCode(rawCode);
+  // Strip TypeScript syntax, then preprocess React code
+  const tsStripped = stripTypeScript(rawCode);
+  const code = preprocessReactCode(tsStripped);
   interface SimpleNode {
     id: string;
     type: GroundingNodeType;
@@ -238,6 +268,15 @@ function parseCodeToGrounding(rawCode: string): GroundingContext {
       if (!node) return null;
 
       switch (node.type) {
+        case 'ExportNamedDeclaration':
+        case 'ExportDefaultDeclaration': {
+          // Drill into the declaration inside exports
+          if (node.declaration) {
+            return processNode(node.declaration, parentId);
+          }
+          return parentId;
+        }
+
         case 'FunctionDeclaration':
         case 'FunctionExpression':
         case 'ArrowFunctionExpression': {
