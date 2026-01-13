@@ -28,13 +28,17 @@ Available methods:
 - registerCode(code, name) - Just registers code without opening
 - openStudio() - Opens LogicArt in a new tab
 
-3. Call handleVisualize with CLEAN algorithm code (not framework code):
+3. Call handleVisualize with your code - LogicArt automatically extracts algorithm logic:
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):
 handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 // FOR CODE EDITORS (user-typed code):
 handleVisualize(editor.getValue(), 'UserCode');
+
+// FOR REACT COMPONENTS with useCallback/useMemo hooks:
+// LogicArt automatically extracts algorithm logic from hooks!
+handleVisualize(componentCode, 'ComponentName');
 
 // FOR APPS WITH EXISTING FUNCTIONS:
 handleVisualize(myFunction.toString(), 'FunctionName');
@@ -45,16 +49,18 @@ handleVisualize(myFunction.toString(), 'FunctionName');
 - Open the app in the browser
 - Select or enter some code
 - Click the visualization button
-- Verify LogicArt opens in a new tab with a CLEAN flowchart showing only algorithm logic
+- Verify LogicArt opens in a new tab with a flowchart
 
 6. IF THE FLOWCHART SHOWS FRAMEWORK CODE (thousands of nodes):
 - Verify ?mode=push&hideBadge=true are in the script URL
-- Verify you're passing the raw algorithm string, not bundled code
-- The app should PUSH clean code to LogicArt, not let LogicArt auto-discover
+- Avoid passing entire bundled builds - pass specific component/function code
 
 7. Report what was done and whether the integration is working.
 
-NOTE: Every AI-generated app is unique. The key principle is "clean-in, clean-out" - push only the algorithm code you want visualized.
+NOTE: LogicArt is platform-agnostic. It automatically handles:
+- Plain JavaScript functions
+- React components with useCallback/useMemo/useEffect hooks
+- Code with comments containing brace characters
 ```
 
 ---

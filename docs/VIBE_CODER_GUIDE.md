@@ -93,7 +93,8 @@ Now when you use your app, you'll see the flowchart light up in real-time!
 
 **Flowchart shows too many nodes (framework code)?**
 - Ask your agent: "Make sure you're using mode=push in the LogicArt script URL"
-- The agent should pass only clean algorithm code, not bundled framework code
+- LogicArt automatically extracts algorithm logic from React hooks (useCallback, useMemo, useEffect)
+- Avoid passing entire bundled builds - pass specific component/function code
 
 **Checkpoints not showing?**
 - Make sure checkpoints are in **frontend** code only (not backend/server files)
