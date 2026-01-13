@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "logicart": {
+      "type": "sse",
+      "url": "http://localhost:5001/api/mcp/sse"
+    }
+  }
+}

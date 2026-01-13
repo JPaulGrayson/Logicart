@@ -7,7 +7,20 @@ import {
 import * as acorn from "acorn";
 import jsx from "acorn-jsx";
 import crypto from "crypto";
+import { exec } from "child_process";
+import { platform } from "os";
 import type { Request, Response } from "express";
+
+function openBrowser(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const cmd = platform() === 'darwin' ? 'open' :
+                platform() === 'win32' ? 'start' : 'xdg-open';
+    exec(`${cmd} "${url}"`, (error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
 
 const acornJsx = acorn.Parser.extend(jsx());
 
@@ -583,6 +596,20 @@ export function createMCPServer() {
             required: ["code"],
           },
         },
+        {
+          name: "visualize_flow",
+          description: "Open the LogicArt visual flowchart in a browser window. Use this when working in a terminal-based environment (like Claude Code) to see the flowchart visually. The browser will open with an interactive flowchart of the code.",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              code: {
+                type: "string",
+                description: "The JavaScript or TypeScript code to visualize as a flowchart",
+              },
+            },
+            required: ["code"],
+          },
+        },
       ],
     };
   });
@@ -701,6 +728,33 @@ export function createMCPServer() {
             },
           ],
         };
+      }
+
+      case "visualize_flow": {
+        const encodedCode = encodeURIComponent(code);
+        const baseUrl = process.env.LOGICART_URL || "http://localhost:5001";
+        const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
+        
+        try {
+          await openBrowser(visualizerUrl);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `I've opened the LogicArt flowchart visualizer in your browser.\n\nURL: ${visualizerUrl}\n\nYou can now see the interactive flowchart with:\n- Step-by-step execution controls\n- Variable state tracking\n- Collapsible function containers`,
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Could not open browser automatically. Please open this URL manually:\n\n${visualizerUrl}`,
+              },
+            ],
+          };
+        }
       }
 
       default:

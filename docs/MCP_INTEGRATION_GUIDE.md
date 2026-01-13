@@ -12,9 +12,34 @@ With MCP, LogicArt can act as a **visual logic engine** for AI agents. Instead o
 
 ---
 
+## Quick Start: Connect to Claude Code
+
+Claude Code uses MCP for tool integration. Register LogicArt with a single command:
+
+```bash
+claude mcp add logicart --transport sse http://localhost:5001/api/mcp/sse
+```
+
+Or create a `.mcp.json` file in your project root:
+
+```json
+{
+  "mcpServers": {
+    "logicart": {
+      "type": "sse",
+      "url": "http://localhost:5001/api/mcp/sse"
+    }
+  }
+}
+```
+
+Since Claude Code is terminal-based, use the `visualize_flow` tool to open flowcharts in your browser.
+
+---
+
 ## Quick Start: Connect to Cursor
 
-Cursor is currently the flagship platform for MCP. Follow these steps to give Cursor "Visual Logic" capabilities:
+Cursor is a popular platform for MCP. Follow these steps to give Cursor "Visual Logic" capabilities:
 
 1. **Start LogicArt**: Ensure your LogicArt server is running (`npm run dev`).
 
@@ -100,12 +125,23 @@ Counts all possible execution paths through the code.
 
 ### 6. `display_audit`
 
-**NEW** - Detects duplicate component rendering.
+Detects duplicate component rendering.
 
 - **What the AI sees**: Whether the same component is rendered from multiple locations.
 - **Use case**: *"Before I add another return statement, are there already too many?"*
 
 This is the **key tool for preventing code bloat** when AI agents iterate on code.
+
+---
+
+### 7. `visualize_flow`
+
+**NEW** - Opens an interactive flowchart in your browser.
+
+- **What the AI sees**: Confirmation that the visualizer has opened.
+- **Use case**: *"Show me this code as a visual flowchart."*
+
+This tool is essential for **terminal-based environments** (like Claude Code) where embedded panels aren't available. It automatically opens your default browser with the full LogicArt visualizer.
 
 **Input**: `{ "code": "function Component() { if (a) return <Card />; if (b) return <Card />; return <Card />; }" }`
 
