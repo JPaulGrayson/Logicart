@@ -19,55 +19,45 @@ Wait for your agent to finish building the app before moving to Step 2.
 **After** your app is working, use this separate prompt:
 
 ```
-Add LogicArt flowchart visualization to this app.
+Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic.
 
-1. Add this script tag to the HTML <head> BEFORE other scripts:
+STEP 1: Add script tag to client/index.html <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. FIRST, scan my project and LIST the main .tsx/.ts/.js files you find in:
-   - src/pages/
-   - src/components/
-   - src/features/
-   Show me the list before proceeding.
+STEP 2: Add a backend API to read source files. In your server routes file, add:
 
-3. Create a ComponentPicker with a dropdown containing those files as options.
-   Use friendly names (e.g., "TourPage.tsx" → "Tour Page").
-
-4. When user selects a component, fetch the SOURCE FILE and visualize:
-
-async function visualizeComponent(filePath, displayName) {
-  const response = await fetch(filePath);
-  const code = await response.text();
-  // Use LogiGo (the runtime API name)
-  const api = window.LogiGo || window.LogicArt;
-  if (api?.visualize) {
-    api.visualize(code, displayName);
+app.get('/api/source/*', (req, res) => {
+  const filePath = req.params[0];
+  const fullPath = path.join(process.cwd(), 'client', filePath);
+  
+  if (!fullPath.startsWith(path.join(process.cwd(), 'client'))) {
+    return res.status(403).send('Forbidden');
   }
-}
+  
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).send('File not found');
+  }
+  
+  res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
+});
 
-// Example - replace with actual files from step 2:
-const components = [
-  { name: 'Home Page', path: '/src/pages/Home.tsx' },
-  { name: 'Tour View', path: '/src/pages/TourPage.tsx' },
-];
+Make sure to import: import fs from 'fs'; import path from 'path';
 
-5. Add a "View Flowchart" button to an EXISTING navbar or header component.
-   - Find your app's Header.tsx, Navbar.tsx, or similar shared nav component
-   - Add the button there - do NOT create a floating button with position:fixed
-   - Floating buttons often get hidden behind full-screen backgrounds
-   When user selects from the picker, call visualizeComponent(selected.path, selected.name).
+STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
+- client/src/pages/
+- client/src/components/
+- client/src/features/
+Show me the file list before proceeding.
 
-6. CRITICAL - Fetch SOURCE files, NOT bundled code:
-   - App MUST be running via dev server (npm run dev), not production build
-   - Fetch paths like: /src/pages/Home.tsx or /src/features/X/Component.tsx
-   - NOT bundled paths like: /assets/index-abc123.js or /.vite/deps/...
-   - If fetch returns code with "__vite" or "jsxDEV", you got bundled code - wrong path!
-   - Vite dev server serves source files at /src/... paths
+STEP 4: Create a FlowchartButton component with a dropdown of the files from step 3.
+When user selects a component:
+1. Fetch the source via: fetch('/api/source/' + component.path)
+2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
 
-7. Test by selecting a component and verifying LogicArt opens with its flowchart.
+STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
+Do NOT create a floating button (gets hidden behind backgrounds).
 
-NOTE: LogicArt automatically extracts logic from React hooks (useCallback, useMemo, 
-useEffect) - just pass the whole component file.
+STEP 6: Test - select a component, LogicArt should open showing its flowchart.
 ```
 
 ---
@@ -75,9 +65,10 @@ useEffect) - just pass the whole component file.
 ## Step 3: Click "View Flowchart" in Your App
 
 Once your agent has added the integration:
-1. Run your app
+1. Run your app (npm run dev)
 2. Click the **"View Flowchart"** button
-3. LogicArt opens in a new tab with your app's flowchart!
+3. Select a component from the dropdown
+4. LogicArt opens in a new tab with your component's flowchart!
 
 ---
 
@@ -114,14 +105,18 @@ Now when you use your app, you'll see the flowchart light up in real-time!
 - Ask your agent: "Check that the LogicArt script tag is in the HTML head"
 - Check your browser console for any errors
 
-**Flowchart shows too many nodes (framework code)?**
-- Ask your agent: "Make sure you're using mode=push in the LogicArt script URL"
-- LogicArt automatically extracts algorithm logic from React hooks (useCallback, useMemo, useEffect)
-- Avoid passing entire bundled builds - pass specific component/function code
+**Flowchart shows sample code instead of your component?**
+- The backend API might not be set up correctly
+- Ask your agent: "Check that /api/source/ endpoint is working"
+- Test: Visit http://your-app/api/source/src/pages/Home.tsx in browser
 
-**Checkpoints not showing?**
-- Make sure checkpoints are in **frontend** code only (not backend/server files)
-- Interact with your app to trigger the code with checkpoints
+**API returns 404?**
+- File path might be wrong (client/src/... vs src/...)
+- Ask your agent to verify the file paths in the component list
+
+**Flowchart shows too many nodes (framework code)?**
+- Make sure you're using mode=push in the LogicArt script URL
+- LogicArt automatically extracts algorithm logic from React hooks
 
 **Need help?**
 Click the help button (?) in LogicArt's header for more documentation.

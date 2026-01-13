@@ -50,44 +50,45 @@ function processOrder(order) {
 Copy this prompt and give it to your AI agent (Replit Agent, Cursor, Claude, etc.) to integrate LogicArt:
 
 ```
-Add LogicArt visualization to this project.
+Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic.
 
-1. Add this script to the HTML head (before other scripts):
-   <script src="https://logic.art/remote.js?project=MyAppName&autoOpen=false"></script>
+STEP 1: Add script tag to client/index.html <head>:
+<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. FIRST, scan and LIST all .tsx/.ts/.js files in src/pages/, src/components/, src/features/.
-   Show me what you find before building the picker.
+STEP 2: Add a backend API to read source files. In your server routes file, add:
 
-3. Create a ComponentPicker dropdown with those files:
-   - Use friendly names (e.g., "Dashboard" not "Dashboard.tsx")
-   - Store the source file path for each
+app.get('/api/source/*', (req, res) => {
+  const filePath = req.params[0];
+  const fullPath = path.join(process.cwd(), 'client', filePath);
+  
+  if (!fullPath.startsWith(path.join(process.cwd(), 'client'))) {
+    return res.status(403).send('Forbidden');
+  }
+  
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).send('File not found');
+  }
+  
+  res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
+});
 
-4. Visualization function - fetch SOURCE files:
+Make sure to import: import fs from 'fs'; import path from 'path';
 
-   const components = [
-     { name: 'Dashboard', path: '/src/pages/Dashboard.tsx' },
-     { name: 'Checkout', path: '/src/features/checkout/Checkout.tsx' },
-   ];
+STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
+- client/src/pages/
+- client/src/components/
+- client/src/features/
+Show me the file list before proceeding.
 
-   async function visualizeComponent(filePath, displayName) {
-     const response = await fetch(filePath);
-     const code = await response.text();
-     // Use LogiGo (the runtime API name)
-     const api = window.LogiGo || window.LogicArt;
-     api.visualize(code, displayName);
-   }
+STEP 4: Create a FlowchartButton component with a dropdown of the files from step 3.
+When user selects a component:
+1. Fetch the source via: fetch('/api/source/' + component.path)
+2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
 
-5. Add a "View Flowchart" button to an EXISTING navbar or header component.
-   - Find Header.tsx, Navbar.tsx, or similar shared nav component
-   - Add the button there - NOT a floating button with position:fixed
-   When user selects, call visualizeComponent(selected.path, selected.name).
+STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
+Do NOT create a floating button (gets hidden behind backgrounds).
 
-6. CRITICAL - Fetch SOURCE files, NOT bundled code:
-   - App MUST run via dev server (npm run dev), not production
-   - Fetch: /src/pages/Dashboard.tsx (Vite serves source files at /src/...)
-   - NOT: /assets/... or /.vite/deps/...
-   - If response has "__vite" or "jsxDEV", you got bundled code - create a 
-     backend API to read files from disk instead
+STEP 6: Test - select a component, LogicArt should open showing its flowchart.
 
 NOTE: LogicArt auto-extracts logic from React hooks (useCallback/useMemo/useEffect).
 ```
