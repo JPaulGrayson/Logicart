@@ -1016,6 +1016,13 @@ export default function RemoteMode() {
   // Active tab state (for controlled Tabs)
   const [activeTab, setActiveTab] = useState('flowchart');
 
+  // Auto-switch to Code View tab when session has code but no checkpoints
+  useEffect(() => {
+    if (sessionInfo?.code && checkpoints.length === 0) {
+      setActiveTab('codeview');
+    }
+  }, [sessionInfo?.code, checkpoints.length]);
+
   // Keyboard shortcuts for fullscreen - use functional setState to avoid stale closure
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
