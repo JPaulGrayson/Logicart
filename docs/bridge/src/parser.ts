@@ -3,6 +3,107 @@ import dagre from 'dagre';
 
 import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
 
+/**
+ * Preprocesses React component code to extract algorithm logic.
+ * Detects useCallback/useMemo hooks and extracts their bodies as named functions.
+ * This allows visualization of algorithm logic embedded in React components.
+ */
+function preprocessReactCode(code: string): string {
+  // Check if this looks like a React component
+  const hasReactImport = /import\s+.*from\s+['"]react['"]/.test(code);
+  const hasUseCallback = /useCallback\s*\(/.test(code);
+  const hasUseMemo = /useMemo\s*\(/.test(code);
+  const hasUseState = /useState\s*[<(]/.test(code);
+  const hasJSX = /<[A-Z][a-zA-Z]*[\s/>]/.test(code) || /return\s*\(?\s*</.test(code);
+  
+  // If it doesn't look like React, return as-is
+  if (!hasReactImport && !hasUseCallback && !hasUseMemo && !hasUseState && !hasJSX) {
+    return code;
+  }
+  
+  const extractedFunctions: string[] = [];
+  let functionCounter = 0;
+  
+  // Extract useCallback bodies
+  // Pattern: const name = useCallback(() => { ... }, [...])
+  const callbackPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  let match;
+  
+  while ((match = callbackPattern.exec(code)) !== null) {
+    const funcName = match[1].toUpperCase();
+    const funcBody = match[2].trim();
+    
+    // Skip empty bodies or trivial ones
+    if (funcBody.length > 10) {
+      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}() {\n${funcBody}\n}`);
+    }
+  }
+  
+  // Also extract arrow function callbacks: const name = useCallback((params) => { ... }, [...])
+  const arrowCallbackPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\(([^)]*)\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  
+  while ((match = arrowCallbackPattern.exec(code)) !== null) {
+    const funcName = match[1].toUpperCase();
+    const params = match[2].trim();
+    const funcBody = match[3].trim();
+    
+    // Skip if already extracted or empty
+    if (funcBody.length > 10 && !extractedFunctions.some(f => f.includes(`function ${funcName}(`))) {
+      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}(${params}) {\n${funcBody}\n}`);
+    }
+  }
+  
+  // Extract useMemo bodies with computation logic
+  const memoPattern = /const\s+(\w+)\s*=\s*useMemo\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  
+  while ((match = memoPattern.exec(code)) !== null) {
+    const funcName = match[1].toUpperCase();
+    const funcBody = match[2].trim();
+    
+    if (funcBody.length > 10 && funcBody.includes('return')) {
+      extractedFunctions.push(`// --- ${funcName} ---\nfunction ${funcName}() {\n${funcBody}\n}`);
+    }
+  }
+  
+  // Extract useEffect bodies that contain algorithm logic (loops, conditionals)
+  const effectPattern = /useEffect\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*,\s*\[/g;
+  
+  while ((match = effectPattern.exec(code)) !== null) {
+    const funcBody = match[1].trim();
+    
+    // Only extract effects with meaningful logic (loops, conditionals, multiple statements)
+    const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(funcBody);
+    const hasMultipleStatements = (funcBody.match(/;/g) || []).length > 2;
+    
+    if (funcBody.length > 20 && (hasControlFlow || hasMultipleStatements)) {
+      functionCounter++;
+      extractedFunctions.push(`// --- EFFECT_${functionCounter} ---\nfunction effect_${functionCounter}() {\n${funcBody}\n}`);
+    }
+  }
+  
+  // If we extracted functions, return them instead of the original React code
+  if (extractedFunctions.length > 0) {
+    return extractedFunctions.join('\n\n');
+  }
+  
+  // No hooks found - try to extract the main component body
+  // Look for algorithm logic in the component's main body (before return statement)
+  const componentBodyPattern = /(?:export\s+(?:default\s+)?)?function\s+\w+\s*\([^)]*\)\s*\{([\s\S]*?)(?:return\s*\(?[\s\S]*?<)/;
+  const componentMatch = code.match(componentBodyPattern);
+  
+  if (componentMatch) {
+    const bodyBeforeReturn = componentMatch[1].trim();
+    const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(bodyBeforeReturn);
+    
+    if (bodyBeforeReturn.length > 50 && hasControlFlow) {
+      return `// --- COMPONENT_LOGIC ---\nfunction componentLogic() {\n${bodyBeforeReturn}\n}`;
+    }
+  }
+  
+  // Return original code if no React patterns could be extracted
+  return code;
+}
+
 // Helper to detect section comments (e.g., // --- AUTH LOGIC ---)
 interface CodeSection {
   name: string;
@@ -304,22 +405,25 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 
 export function parseCodeToFlow(code: string): FlowData {
   try {
+    // Preprocess React code to extract algorithm logic from hooks
+    const processedCode = preprocessReactCode(code);
+    
     let ast;
     try {
-      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
+      ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
     } catch {
-      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+      ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
     }
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
     const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
 
-    // Detect user-defined labels from // @logigo: comments
-    const userLabels = detectUserLabels(code);
+    // Detect user-defined labels from // @logigo: comments (use processed code)
+    const userLabels = detectUserLabels(processedCode);
     
-    // Detect sections from comment markers (or auto-detect functions)
-    const sections = detectSections(code, ast);
+    // Detect sections from comment markers (or auto-detect functions) - use processed code
+    const sections = detectSections(processedCode, ast);
     const containerNodes: Map<string, FlowNode> = new Map();
     
     // Create container nodes for each section
@@ -358,8 +462,8 @@ export function parseCodeToFlow(code: string): FlowData {
       containerNodes.set('global', globalContainer);
     }
 
-    // Helper to extract source code snippet from location
-    const codeLines = code.split('\n');
+    // Helper to extract source code snippet from location (use processed code)
+    const codeLines = processedCode.split('\n');
     const extractSourceSnippet = (loc: SourceLocation | undefined): string | undefined => {
       if (!loc) return undefined;
       try {
