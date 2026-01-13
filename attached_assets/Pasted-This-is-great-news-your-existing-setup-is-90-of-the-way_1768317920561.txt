@@ -1,0 +1,58 @@
+This is great news—your existing setup is 90% of the way there.
+Since you already have a working SSE endpoint (http://localhost:5001/api/mcp/sse) and the tools are defined, you do not need to rewrite your server.
+However, you are correct: Claude Code does not automatically scan localhost ports to find MCP servers. You have to explicitly "introduce" them.
+Here is the missing configuration to bridge your existing LogicArt SSE server into Claude Code.
+1. The Missing Link: .mcp.json
+For Claude Code to recognize LogicArt, you need to create a configuration file. You have two options for where to place this:
+ * Option A (Per Project): Create .mcp.json in the root of your current project.
+ * Option B (Global): Edit ~/.claude.json (Mac/Linux) to make it available everywhere.
+The Config Content:
+{
+  "mcpServers": {
+    "logicart": {
+      "type": "sse",
+      "url": "http://localhost:5001/api/mcp/sse"
+    }
+  }
+}
+
+2. The Quick Fix (Command Line)
+You don't even need to create the file manually. You can run this command in your terminal right now to register it globally:
+claude mcp add logicart --transport sse http://localhost:5001/api/mcp/sse
+
+Note: This command tells Claude Code to treat "logicart" as a remote server using the Server-Sent Events transport.
+3. The "View" Problem (UX Reality Check)
+This is the only place where the experience will differ from Replit or Cursor.
+ * In Cursor/Replit: You likely have a dedicated "pane" or "sidebar" where the flowchart lives.
+ * In Claude Code: The interface is the Terminal. It cannot render your React/flowchart canvas.
+How to handle this:
+Your display_audit or explain_flow tools likely return text or JSON currently. For the "Vibe Coding" experience, you should tweak one tool (or add a new wrapper) to force a browser open.
+Recommended Tweak to your server.ts:
+When Claude calls visualize_flow, instead of just returning "Here is the JSON," your tool should:
+ * Generate the flowchart data.
+ * Open the user's browser to your specific visualization URL.
+ * Return a text confirmation to Claude.
+<!-- end list -->
+// Inside your existing MCP Tool definition
+if (name === "visualize_flow") {
+  // 1. Generate the ID/Data
+  const flowId = await generateFlowData(args.code);
+  
+  // 2. The "Pop-out" Mechanism (Since CLI can't render it)
+  // This uses the system's default browser to open the visualizer
+  const open = (await import('open')).default; 
+  await open(`http://localhost:5001/visualizer/${flowId}`);
+
+  return {
+    content: [{ 
+      type: "text", 
+      text: `I've opened the LogicArt visualizer for this flow in your browser.` 
+    }]
+  };
+}
+
+Summary of Work Required
+ * Zero changes to your core logic (SSE is perfect).
+ * Run the claude mcp add command above.
+ * Minor Tweak: Ensure one of your tools triggers a browser open (open package in Node) so the visualizer pops up automatically, replacing the "embedded pane" you are used to.
+Next Step: Would you like me to write a small script that auto-detects if you are running in "Headless Mode" (Claude Code) vs "Embedded Mode" (Cursor) so your server knows whether to send JSON or pop open a window?
