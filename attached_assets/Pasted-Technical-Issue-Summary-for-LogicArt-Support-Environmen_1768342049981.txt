@@ -1,0 +1,46 @@
+Technical Issue Summary for LogicArt Support
+Environment
+Integration Method: Remote Bridge (https://logic.art/remote.js?mode=push&hideBadge=true)
+Platform: Replit (listed as "Bi-directional" on LogicArt landing page)
+Code Type: React/TypeScript components (.tsx files)
+Browser: Safari on macOS (based on screenshots)
+What Works
+Session Creation: API endpoint POST /api/remote/session successfully creates sessions with our code
+Code Storage: Verified via GET /api/remote/session/{sessionId} that the full React/TypeScript source code is stored correctly
+Connection: Console shows [LogiGo] Session created: {sessionId} and [LogiGo] Control channel connected (bidirectional)
+Studio Opens: New tab opens to https://logic.art/?session={sessionId}
+CODE Panel: The left-side CODE panel in LogicArt Studio correctly displays the React component source code (imports, useState, useEffect, etc.)
+Connection Header: Shows correct session name like "Connected: Tour Maker-1768341209142"
+What Doesn't Work
+Flowchart Visualization: The flowchart diagram always shows the default "CALCULATEAVERAGE" and "FUNCTION CALCULAT..." example instead of parsing and rendering the submitted React/TypeScript code
+This happens consistently for all components we've tested
+API Calls Made
+// Using LogiGo.openWithCode or LogiGo.visualize
+fetch("https://logic.art/api/remote/session", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ 
+    name: "Component Name-" + Date.now(), 
+    code: reactTypescriptSourceCode 
+  })
+});
+Session Data Example
+{
+  "id": "3981c0ec-02e3-4ec2-bc48-77fd7001d980",
+  "name": "React Component Test",
+  "code": "import { useState, useEffect } from 'react';\n\nfunction MyComponent...",
+  "checkpointCount": 0,
+  "viewerCount": 0,
+  "createdAt": "2026-01-13T21:57:02.279Z"
+}
+Comparison
+Antigravity (Native integration): User reports flowcharts render correctly
+Replit Remote Bridge: Code received but flowcharts don't render
+Suspected Issue
+The flowchart parser/renderer in the Studio frontend may not be triggering for code received via Remote Bridge sessions, even though the code is successfully stored and displayed in the CODE panel. Possible causes:
+
+Parser not auto-triggered for remote sessions
+React/TSX syntax not being recognized for flowchart generation in remote mode
+Session state difference between native and remote integrations
+Contact
+Let me know if LogicArt needs access to test this directly on our Replit deployment.
