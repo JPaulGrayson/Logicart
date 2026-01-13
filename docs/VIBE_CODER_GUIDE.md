@@ -49,8 +49,11 @@ const components = [
   { name: 'Tour View', path: '/src/pages/TourPage.tsx' },
 ];
 
-5. Add a "View Flowchart" button that opens the ComponentPicker dropdown.
-   When user selects, call visualizeComponent(selected.path, selected.name).
+5. Add a "View Flowchart" button to an EXISTING navbar or header component.
+   - Find your app's Header.tsx, Navbar.tsx, or similar shared nav component
+   - Add the button there - do NOT create a floating button with position:fixed
+   - Floating buttons often get hidden behind full-screen backgrounds
+   When user selects from the picker, call visualizeComponent(selected.path, selected.name).
 
 6. IMPORTANT: The fetch path must be the SOURCE file path (e.g., /src/pages/Home.tsx),
    NOT the bundled output path (e.g., /assets/index-abc123.js).

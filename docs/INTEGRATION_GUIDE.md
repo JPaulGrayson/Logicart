@@ -75,7 +75,9 @@ Add LogicArt visualization to this project.
      window.LogicArt.visualize(code, displayName);
    }
 
-5. Add a "View Flowchart" button that opens the picker.
+5. Add a "View Flowchart" button to an EXISTING navbar or header component.
+   - Find Header.tsx, Navbar.tsx, or similar shared nav component
+   - Add the button there - NOT a floating button with position:fixed
    When user selects, call visualizeComponent(selected.path, selected.name).
 
 6. CRITICAL: Fetch SOURCE files like /src/pages/Dashboard.tsx
