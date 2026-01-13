@@ -1246,15 +1246,32 @@ export function parseCodeToFlow(code: string): FlowData {
     // @ts-ignore
     const body = ast.body;
     
+    // Helper to unwrap export declarations
+    const unwrapExport = (stmt: any) => {
+      if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
+        return stmt.declaration;
+      }
+      if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
+        return stmt.declaration;
+      }
+      return stmt;
+    };
+    
     // Separate function declarations and class declarations from other statements
+    // Handle both direct declarations and exported declarations
     // @ts-ignore
-    const functionDeclarations = body.filter((stmt: any) => stmt.type === 'FunctionDeclaration');
+    const functionDeclarations = body
+      .map(unwrapExport)
+      .filter((stmt: any) => stmt.type === 'FunctionDeclaration');
     // @ts-ignore
-    const classDeclarations = body.filter((stmt: any) => stmt.type === 'ClassDeclaration');
+    const classDeclarations = body
+      .map(unwrapExport)
+      .filter((stmt: any) => stmt.type === 'ClassDeclaration');
     // @ts-ignore
-    const topLevelExecutable = body.filter((stmt: any) => 
-      stmt.type !== 'FunctionDeclaration' && stmt.type !== 'ClassDeclaration'
-    );
+    const topLevelExecutable = body.filter((stmt: any) => {
+      const unwrapped = unwrapExport(stmt);
+      return unwrapped.type !== 'FunctionDeclaration' && unwrapped.type !== 'ClassDeclaration';
+    });
     
     // Check if top-level statements are "trivial" (just variable declarations and simple function calls)
     // If so, prefer showing function/class bodies which have the actual algorithm logic
