@@ -1,7 +1,7 @@
 {
   "name": "logigo",
-  "displayName": "LogiGo for VS Code",
-  "description": "Visualize code as interactive flowcharts. Step through execution. Time travel debug. Part of the LogiGo family.",
+  "displayName": "LogicArt for VS Code",
+  "description": "Visualize code as interactive flowcharts. Step through execution. Time travel debug. Part of the LogicArt family.",
   "version": "1.0.0",
   "publisher": "logigo",
   "icon": "icon.png",
@@ -32,16 +32,16 @@
     "commands": [
       {
         "command": "logigo.visualize",
-        "title": "LogiGo: Visualize Current File",
+        "title": "LogicArt: Visualize Current File",
         "icon": "$(symbol-structure)"
       },
       {
         "command": "logigo.execute",
-        "title": "LogiGo: Execute Step-by-Step"
+        "title": "LogicArt: Execute Step-by-Step"
       },
       {
         "command": "logigo.copyGroundingContext",
-        "title": "LogiGo: Copy AI Context to Clipboard",
+        "title": "LogicArt: Copy AI Context to Clipboard",
         "icon": "$(json)"
       }
     ],
@@ -100,8 +100,8 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "@logigo/bridge": "file:../bridge",
-    "@logigo/core": "file:../packages/logigo-core",
+    "@logicart/bridge": "file:../bridge",
+    "@logicart/core": "file:../packages/logicart-core",
     "acorn": "^8.15.0",
     "dagre": "^0.8.5",
     "react": "^18.2.0",

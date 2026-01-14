@@ -13,17 +13,17 @@ function stripTypeScriptAndJSX(code: string): string {
   const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
     /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
     /import\s+type\s+/.test(code);
-  
+
   // Check if code contains JSX syntax (tags like <Component or <div)
-  const hasJSX = /<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(code) || 
+  const hasJSX = /<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(code) ||
     /<\/[A-Za-z]/.test(code) ||
     /<>/.test(code);
-  
+
   // If neither TypeScript nor JSX, return as-is
   if (!hasTypeScript && !hasJSX) {
     return code;
   }
-  
+
   try {
     // Use sucrase to transpile TypeScript/TSX/JSX to JavaScript
     const result = transform(code, {
@@ -50,12 +50,12 @@ function extractBalancedBraces(code: string, startPos: number): { content: strin
   let inSingleLineComment = false;
   let inMultiLineComment = false;
   let start = -1;
-  
+
   for (let i = startPos; i < code.length; i++) {
     const char = code[i];
     const nextChar = i < code.length - 1 ? code[i + 1] : '';
     const prevChar = i > 0 ? code[i - 1] : '';
-    
+
     // Handle single-line comment end (newline)
     if (inSingleLineComment) {
       if (char === '\n') {
@@ -63,7 +63,7 @@ function extractBalancedBraces(code: string, startPos: number): { content: strin
       }
       continue;
     }
-    
+
     // Handle multi-line comment end
     if (inMultiLineComment) {
       if (char === '*' && nextChar === '/') {
@@ -72,7 +72,7 @@ function extractBalancedBraces(code: string, startPos: number): { content: strin
       }
       continue;
     }
-    
+
     // Handle string literals
     if (!inString) {
       // Check for comment starts
@@ -99,7 +99,7 @@ function extractBalancedBraces(code: string, startPos: number): { content: strin
       }
       continue;
     }
-    
+
     // Count braces (only outside strings and comments)
     if (char === '{') {
       if (braceCount === 0) start = i + 1;
@@ -126,25 +126,25 @@ function preprocessReactCode(code: string): string {
   const hasUseMemo = /useMemo\s*\(/.test(code);
   const hasUseState = /useState\s*[<(]/.test(code);
   const hasJSX = /<[A-Z][a-zA-Z]*[\s/>]/.test(code) || /return\s*\(?\s*</.test(code);
-  
+
   // If it doesn't look like React, return as-is
   if (!hasReactImport && !hasUseCallback && !hasUseMemo && !hasUseState && !hasJSX) {
     return code;
   }
-  
+
   const extractedFunctions: string[] = [];
   let functionCounter = 0;
-  
+
   // Find useCallback declarations
   const callbackDeclPattern = /const\s+(\w+)\s*=\s*useCallback\s*\(\s*\([^)]*\)\s*=>/g;
   let match;
-  
+
   while ((match = callbackDeclPattern.exec(code)) !== null) {
     const funcName = match[1];
     // Find the opening brace after the arrow
     const arrowEnd = match.index + match[0].length;
     const braceStart = code.indexOf('{', arrowEnd);
-    
+
     if (braceStart !== -1 && braceStart - arrowEnd < 10) {
       const extracted = extractBalancedBraces(code, braceStart);
       if (extracted && extracted.content.trim().length > 10) {
@@ -153,15 +153,15 @@ function preprocessReactCode(code: string): string {
       }
     }
   }
-  
+
   // Find useMemo declarations
   const memoDeclPattern = /const\s+(\w+)\s*=\s*useMemo\s*\(\s*\(\s*\)\s*=>/g;
-  
+
   while ((match = memoDeclPattern.exec(code)) !== null) {
     const funcName = match[1];
     const arrowEnd = match.index + match[0].length;
     const braceStart = code.indexOf('{', arrowEnd);
-    
+
     if (braceStart !== -1 && braceStart - arrowEnd < 10) {
       const extracted = extractBalancedBraces(code, braceStart);
       if (extracted && extracted.content.trim().length > 10 && extracted.content.includes('return')) {
@@ -172,21 +172,21 @@ function preprocessReactCode(code: string): string {
       }
     }
   }
-  
+
   // Find useEffect with algorithm logic
   const effectDeclPattern = /useEffect\s*\(\s*\(\s*\)\s*=>/g;
-  
+
   while ((match = effectDeclPattern.exec(code)) !== null) {
     const arrowEnd = match.index + match[0].length;
     const braceStart = code.indexOf('{', arrowEnd);
-    
+
     if (braceStart !== -1 && braceStart - arrowEnd < 10) {
       const extracted = extractBalancedBraces(code, braceStart);
       if (extracted) {
         const funcBody = extracted.content.trim();
         const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(funcBody);
         const hasMultipleStatements = (funcBody.match(/;/g) || []).length > 2;
-        
+
         if (funcBody.length > 20 && (hasControlFlow || hasMultipleStatements)) {
           functionCounter++;
           extractedFunctions.push(`// --- EFFECT_${functionCounter} ---\nfunction effect_${functionCounter}() {\n${funcBody}\n}`);
@@ -194,30 +194,32 @@ function preprocessReactCode(code: string): string {
       }
     }
   }
-  
+
   // If we extracted functions, return them instead of the original React code
   if (extractedFunctions.length > 0) {
     return extractedFunctions.join('\n\n');
   }
-  
+
   // No hooks found - try to extract the main component body
   // Look for algorithm logic in the component's main body (before return statement)
   const componentMatch = code.match(/(?:export\s+(?:default\s+)?)?function\s+\w+\s*\([^)]*\)\s*\{/);
   if (componentMatch) {
     const extracted = extractBalancedBraces(code, componentMatch.index! + componentMatch[0].length - 1);
     if (extracted) {
-      const returnMatch = extracted.content.match(/return\s*\(?\s*</);
+      // Match both raw JSX (return <...) AND transpiled JSX (return React.createElement(...))
+      // Sucrase transforms JSX to React.createElement before this function runs
+      const returnMatch = extracted.content.match(/return\s*\(?\s*(?:<|React\.createElement\(|_jsxs?\()/);
       if (returnMatch) {
         const bodyBeforeReturn = extracted.content.slice(0, returnMatch.index).trim();
         const hasControlFlow = /\b(if|for|while|switch)\s*\(/.test(bodyBeforeReturn);
-        
+
         if (bodyBeforeReturn.length > 50 && hasControlFlow) {
           return `// --- COMPONENT_LOGIC ---\nfunction componentLogic() {\n${bodyBeforeReturn}\n}`;
         }
       }
     }
   }
-  
+
   // Return original code if no React patterns could be extracted
   return code;
 }
@@ -235,11 +237,11 @@ function detectUserLabels(code: string): Map<number, string> {
   const labels = new Map<number, string>();
   const lines = code.split('\n');
   const labelPattern = /\/\/\s*@logigo:\s*(.+)$/i;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     const match = line.match(labelPattern);
-    
+
     if (match) {
       const label = match[1].trim();
       // The label applies to the next non-empty, non-comment line
@@ -254,7 +256,7 @@ function detectUserLabels(code: string): Map<number, string> {
       }
     }
   }
-  
+
   return labels;
 }
 
@@ -262,19 +264,19 @@ function detectSections(code: string, ast?: any): CodeSection[] {
   const lines = code.split('\n');
   const sections: CodeSection[] = [];
   const sectionPattern = /^\/\/\s*---\s*(.+?)\s*---/;
-  
+
   let currentSection: CodeSection | null = null;
-  
+
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index];
     const match = line.match(sectionPattern);
-    
+
     if (match) {
       if (currentSection) {
         currentSection.endLine = index;
         sections.push(currentSection);
       }
-      
+
       currentSection = {
         name: match[1].trim(),
         startLine: index + 2,
@@ -282,16 +284,16 @@ function detectSections(code: string, ast?: any): CodeSection[] {
       };
     }
   }
-  
+
   if (currentSection) {
     currentSection.endLine = lines.length;
     sections.push(currentSection);
   }
-  
+
   // If no explicit markers found, auto-detect function declarations
   if (sections.length === 0 && ast && ast.body) {
     const functionDeclarations: CodeSection[] = [];
-    
+
     ast.body.forEach((node: any) => {
       // Handle direct function declarations
       if (node.type === 'FunctionDeclaration' && node.id && node.loc) {
@@ -324,12 +326,12 @@ function detectSections(code: string, ast?: any): CodeSection[] {
         }
       }
     });
-    
+
     if (functionDeclarations.length > 0) {
       return functionDeclarations;
     }
   }
-  
+
   return sections;
 }
 
@@ -337,7 +339,7 @@ function applyDagreLayout(nodes: FlowNode[], edges: FlowEdge[]): void {
   // Separate containers from flow nodes
   const containers = nodes.filter(n => n.type === 'container');
   const flowNodes = nodes.filter(n => n.type !== 'container');
-  
+
   // If we have multiple containers, use a two-phase layout:
   // Phase 1: Position containers horizontally at the top
   // Phase 2: Layout each container's children below it
@@ -407,17 +409,17 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
   const START_NODE_Y = 20;
   const CONTAINER_Y = 100;
   const FLOW_START_Y = CONTAINER_Y + CONTAINER_HEIGHT + 30;
-  
+
   // Remove parentNode from all flow nodes to use absolute positioning
   // (React Flow interprets parentNode positions as relative, causing layout issues)
   flowNodes.forEach(node => {
     delete node.parentNode;
   });
-  
+
   // Phase 0: Find and position Start node(s) centered at top
   const startNodes = flowNodes.filter(n => n.type === 'input' || n.data?.label === 'Start');
   const regularFlowNodes = flowNodes.filter(n => n.type !== 'input' && n.data?.label !== 'Start');
-  
+
   // Position Start node centered
   startNodes.forEach((node, index) => {
     const width = 150;
@@ -425,22 +427,22 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
     node.position = { x: -width / 2 + index * 200, y: START_NODE_Y };
     node.style = { width, height };
   });
-  
+
   // Phase 1: Position containers horizontally, centered
   const totalContainersWidth = containers.length * CONTAINER_WIDTH + (containers.length - 1) * CONTAINER_GAP;
   let containerX = -totalContainersWidth / 2;
-  
+
   containers.forEach((container) => {
     container.position = { x: containerX, y: CONTAINER_Y };
     container.style = { width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT };
     containerX += CONTAINER_WIDTH + CONTAINER_GAP;
   });
-  
+
   // Phase 2: Group flow nodes by container using the children array in container data
   const nodesByContainer = new Map<string, FlowNode[]>();
   const nodeIdToNode = new Map<string, FlowNode>();
   regularFlowNodes.forEach(node => nodeIdToNode.set(node.id, node));
-  
+
   // Build groups based on container children arrays
   containers.forEach(container => {
     const childIds = container.data?.children || [];
@@ -454,19 +456,19 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
     });
     nodesByContainer.set(container.id, childNodes);
   });
-  
+
   // Remaining nodes are orphans
   const orphanNodes = Array.from(nodeIdToNode.values());
-  
+
   // Layout each container's children
   containers.forEach((container) => {
     const childNodes = nodesByContainer.get(container.id) || [];
     if (childNodes.length === 0) return;
-    
+
     // Get edges that connect these child nodes
     const childNodeIds = new Set(childNodes.map(n => n.id));
     const childEdges = edges.filter(e => childNodeIds.has(e.source) || childNodeIds.has(e.target));
-    
+
     // Create a sub-graph for this container's nodes
     const g = new dagre.graphlib.Graph();
     g.setGraph({
@@ -477,7 +479,7 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
       marginy: 15
     });
     g.setDefaultEdgeLabel(() => ({}));
-    
+
     childNodes.forEach(node => {
       const isDecision = node.type === 'decision';
       g.setNode(node.id, {
@@ -485,15 +487,15 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
         height: isDecision ? 100 : 50
       });
     });
-    
+
     childEdges.forEach(edge => {
       if (childNodeIds.has(edge.source) && childNodeIds.has(edge.target)) {
         g.setEdge(edge.source, edge.target);
       }
     });
-    
+
     dagre.layout(g);
-    
+
     // Calculate the offset to center this group below its container
     let minX = Infinity, maxX = -Infinity;
     childNodes.forEach(node => {
@@ -503,11 +505,11 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
         maxX = Math.max(maxX, pos.x);
       }
     });
-    
+
     const groupCenterX = (minX + maxX) / 2;
     const containerCenterX = container.position.x + CONTAINER_WIDTH / 2;
     const offsetX = containerCenterX - groupCenterX;
-    
+
     // Apply positions with offset (absolute coordinates)
     childNodes.forEach(node => {
       const pos = g.node(node.id);
@@ -515,7 +517,7 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
         const isDecision = node.type === 'decision';
         const width = isDecision ? 100 : 150;
         const height = isDecision ? 100 : 50;
-        
+
         node.position = {
           x: pos.x - width / 2 + offsetX,
           y: pos.y - height / 2 + FLOW_START_Y
@@ -524,17 +526,17 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
       }
     });
   });
-  
+
   // Handle orphan nodes - position below last container
   if (orphanNodes.length > 0) {
     const lastContainer = containers[containers.length - 1];
     const orphanX = lastContainer.position.x + CONTAINER_WIDTH / 2 - 75;
-    
+
     orphanNodes.forEach((node, index) => {
       const isDecision = node.type === 'decision';
       const width = isDecision ? 100 : 150;
       const height = isDecision ? 100 : 50;
-      
+
       node.position = {
         x: orphanX,
         y: FLOW_START_Y + index * 80
@@ -547,14 +549,14 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 export function parseCodeToFlow(code: string): FlowData {
   try {
     console.log('[Parser] Starting parse, code length:', code.length, 'preview:', code.substring(0, 80));
-    
+
     // Strip TypeScript syntax first, then preprocess React code
     const tsStripped = stripTypeScriptAndJSX(code);
     console.log('[Parser] After stripTypeScript, length:', tsStripped.length);
-    
+
     const processedCode = preprocessReactCode(tsStripped);
     console.log('[Parser] After preprocessReactCode, length:', processedCode.length, 'preview:', processedCode.substring(0, 80));
-    
+
     let ast;
     try {
       ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
@@ -571,12 +573,12 @@ export function parseCodeToFlow(code: string): FlowData {
 
     // Detect user-defined labels from // @logigo: comments (use processed code)
     const userLabels = detectUserLabels(processedCode);
-    
+
     // Detect sections from comment markers (or auto-detect functions) - use processed code
     const sections = detectSections(processedCode, ast);
     console.log('[Parser] Detected sections:', sections.length, sections.map(s => s.name));
     const containerNodes: Map<string, FlowNode> = new Map();
-    
+
     // Create container nodes for each section
     if (sections.length > 0) {
       sections.forEach(section => {
@@ -584,7 +586,7 @@ export function parseCodeToFlow(code: string): FlowData {
         const containerNode: FlowNode = {
           id: containerId,
           type: 'container',
-          data: { 
+          data: {
             label: section.name,
             children: [],
             collapsed: false
@@ -601,7 +603,7 @@ export function parseCodeToFlow(code: string): FlowData {
       const globalContainer: FlowNode = {
         id: globalContainerId,
         type: 'container',
-        data: { 
+        data: {
           label: 'Global Flow',
           children: [],
           collapsed: false
@@ -638,7 +640,7 @@ export function parseCodeToFlow(code: string): FlowData {
 
     // Container override stack - when set, nodes are parented to this container instead of using sections
     let containerOverride: { containerId: string; containerNode: FlowNode } | null = null;
-    
+
     const createNode = (stmt: any, label: string, type: FlowNode['type'] = 'default', className?: string, loc?: SourceLocation): FlowNode => {
       const id = `node-${nodeIdCounter++}`;
       const isDecision = type === 'decision';
@@ -647,19 +649,19 @@ export function parseCodeToFlow(code: string): FlowData {
         const locKey = `${stmt.loc.start.line}:${stmt.loc.start.column}`;
         nodeMap.set(locKey, id);
       }
-      
+
       // Look up user-defined label from // @logigo: comment
       let userLabel: string | undefined;
       if (stmt?.loc) {
         userLabel = userLabels.get(stmt.loc.start.line);
       }
-      
+
       // Extract source code snippet for tooltip display
       const sourceSnippet = extractSourceSnippet(loc);
-      
+
       // Determine if this node belongs to a section/container
       let parentNode: string | undefined;
-      
+
       // Check for container override first (used for method bodies)
       if (containerOverride) {
         parentNode = containerOverride.containerId;
@@ -742,7 +744,26 @@ export function parseCodeToFlow(code: string): FlowData {
 
         if (stmt.type === 'VariableDeclaration') {
           const decl = stmt.declarations[0];
-          const label = `${stmt.kind} ${decl.id.name} = ...`;
+          // Handle destructuring patterns (ArrayPattern, ObjectPattern) common in React hooks
+          let varName: string;
+          if (decl.id.type === 'Identifier') {
+            varName = decl.id.name;
+          } else if (decl.id.type === 'ArrayPattern') {
+            // Extract names from array destructuring: const [a, b] = ... → "[a, b]"
+            const names = decl.id.elements
+              ?.map((el: any) => el?.name || '_')
+              .join(', ') || '...';
+            varName = `[${names}]`;
+          } else if (decl.id.type === 'ObjectPattern') {
+            // Extract names from object destructuring: const { a, b } = ... → "{ a, b }"
+            const names = decl.id.properties
+              ?.map((prop: any) => prop.key?.name || '_')
+              .join(', ') || '...';
+            varName = `{ ${names} }`;
+          } else {
+            varName = 'variable';
+          }
+          const label = `${stmt.kind} ${varName} = ...`;
           const node = createNode(stmt, label, 'default', undefined, loc);
           nodes.push(node);
           edges.push(createEdge(currentParent, node.id));
@@ -750,20 +771,20 @@ export function parseCodeToFlow(code: string): FlowData {
         } else if (stmt.type === 'ExpressionStatement') {
           let label = 'Expression';
           let checkpointId: string | undefined;
-          
+
           if (stmt.expression.type === 'AssignmentExpression') {
             label = `${stmt.expression.left.name} = ...`;
           } else if (stmt.expression.type === 'CallExpression') {
-            const calleeName = stmt.expression.callee?.name || 
-                               (stmt.expression.callee?.property?.name) || 
-                               'fn';
+            const calleeName = stmt.expression.callee?.name ||
+              (stmt.expression.callee?.property?.name) ||
+              'fn';
             label = `${calleeName}(...)`;
-            
+
             // Extract checkpoint ID from checkpoint() or LogiGo.checkpoint() calls
-            const isCheckpoint = calleeName === 'checkpoint' || 
-                                 (stmt.expression.callee?.object?.name === 'LogiGo' && 
-                                  stmt.expression.callee?.property?.name === 'checkpoint');
-            
+            const isCheckpoint = calleeName === 'checkpoint' ||
+              (stmt.expression.callee?.object?.name === 'LogiGo' &&
+                stmt.expression.callee?.property?.name === 'checkpoint');
+
             if (isCheckpoint && stmt.expression.arguments?.length > 0) {
               const firstArg = stmt.expression.arguments[0];
               if (firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
@@ -772,7 +793,7 @@ export function parseCodeToFlow(code: string): FlowData {
               }
             }
           }
-          
+
           const node = createNode(stmt, label, 'default', undefined, loc);
           // Set checkpointId as userLabel for remote session matching
           if (checkpointId && node.data) {
@@ -817,8 +838,8 @@ export function parseCodeToFlow(code: string): FlowData {
             testLabel = stmt.test.name;
           } else if (stmt.test.type === 'BinaryExpression') {
             // Build readable condition from binary expression
-            const left = stmt.test.left.name || stmt.test.left.value || 
-                        (stmt.test.left.object?.name ? `${stmt.test.left.object.name}.${stmt.test.left.property?.name}` : 'expr');
+            const left = stmt.test.left.name || stmt.test.left.value ||
+              (stmt.test.left.object?.name ? `${stmt.test.left.object.name}.${stmt.test.left.property?.name}` : 'expr');
             const op = stmt.test.operator;
             const right = stmt.test.right.name || stmt.test.right.value || 'expr';
             testLabel = `${left} ${op} ${right}`;
@@ -1132,7 +1153,7 @@ export function parseCodeToFlow(code: string): FlowData {
     const processClass = (classNode: any, parentId: string): string => {
       const className = classNode.id?.name || 'AnonymousClass';
       const extendsClause = classNode.superClass?.name ? ` extends ${classNode.superClass.name}` : '';
-      
+
       // Create a container for the class
       const classContainerId = `container-${nodeIdCounter++}`;
       const classContainer: FlowNode = {
@@ -1147,7 +1168,7 @@ export function parseCodeToFlow(code: string): FlowData {
         style: { width: 400, height: 200 }
       };
       nodes.push(classContainer);
-      
+
       // Create a start node for the class
       const classStartId = `node-${nodeIdCounter++}`;
       const classStartNode: FlowNode = {
@@ -1162,9 +1183,9 @@ export function parseCodeToFlow(code: string): FlowData {
       nodes.push(classStartNode);
       classContainer.data.children!.push(classStartId);
       edges.push(createEdge(parentId, classStartId));
-      
+
       let lastNodeId = classStartId;
-      
+
       // Process class body members
       const classBody = classNode.body?.body || [];
       for (const member of classBody) {
@@ -1175,14 +1196,14 @@ export function parseCodeToFlow(code: string): FlowData {
           const isStatic = member.static;
           const isGetter = member.kind === 'get';
           const isSetter = member.kind === 'set';
-          
+
           let methodLabel = methodName;
           if (isConstructor) methodLabel = 'constructor';
           if (isStatic) methodLabel = `static ${methodLabel}`;
           if (isGetter) methodLabel = `get ${methodLabel}`;
           if (isSetter) methodLabel = `set ${methodLabel}`;
           methodLabel += '()';
-          
+
           // Create a container for this method
           const methodContainerId = `container-${nodeIdCounter++}`;
           const methodContainer: FlowNode = {
@@ -1198,7 +1219,7 @@ export function parseCodeToFlow(code: string): FlowData {
           };
           nodes.push(methodContainer);
           classContainer.data.children!.push(methodContainerId);
-          
+
           // Create method entry node
           const methodEntryId = `node-${nodeIdCounter++}`;
           const methodEntryNode: FlowNode = {
@@ -1213,7 +1234,7 @@ export function parseCodeToFlow(code: string): FlowData {
           nodes.push(methodEntryNode);
           methodContainer.data.children!.push(methodEntryId);
           edges.push(createEdge(lastNodeId, methodEntryId));
-          
+
           // Process method body if it has one
           const methodBody = member.value?.body?.body;
           if (methodBody && methodBody.length > 0) {
@@ -1222,7 +1243,7 @@ export function parseCodeToFlow(code: string): FlowData {
             containerOverride = { containerId: methodContainerId, containerNode: methodContainer };
             const methodEndId = processBlock(methodBody, methodEntryId);
             containerOverride = previousOverride; // Restore previous override
-            
+
             // Add method exit node
             const methodExitId = `node-${nodeIdCounter++}`;
             const methodExitNode: FlowNode = {
@@ -1262,7 +1283,7 @@ export function parseCodeToFlow(code: string): FlowData {
           const propName = member.key?.name || 'property';
           const isStatic = member.static;
           const propLabel = isStatic ? `static ${propName}` : propName;
-          
+
           const propNodeId = `node-${nodeIdCounter++}`;
           const propNode: FlowNode = {
             id: propNodeId,
@@ -1279,13 +1300,13 @@ export function parseCodeToFlow(code: string): FlowData {
           lastNodeId = propNodeId;
         }
       }
-      
+
       return lastNodeId;
     };
 
     // @ts-ignore
     const body = ast.body;
-    
+
     // Helper to unwrap export declarations
     const unwrapExport = (stmt: any) => {
       if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
@@ -1296,7 +1317,7 @@ export function parseCodeToFlow(code: string): FlowData {
       }
       return stmt;
     };
-    
+
     // Separate function declarations and class declarations from other statements
     // Handle both direct declarations and exported declarations
     // @ts-ignore
@@ -1312,23 +1333,23 @@ export function parseCodeToFlow(code: string): FlowData {
       const unwrapped = unwrapExport(stmt);
       return unwrapped.type !== 'FunctionDeclaration' && unwrapped.type !== 'ClassDeclaration';
     });
-    
+
     // Check if top-level statements are "trivial" (just variable declarations and simple function calls)
     // If so, prefer showing function/class bodies which have the actual algorithm logic
-    const hasTrivialTopLevel = topLevelExecutable.length > 0 && topLevelExecutable.every((stmt: any) => 
-      stmt.type === 'VariableDeclaration' || 
+    const hasTrivialTopLevel = topLevelExecutable.length > 0 && topLevelExecutable.every((stmt: any) =>
+      stmt.type === 'VariableDeclaration' ||
       stmt.type === 'ExpressionStatement'
     );
-    
+
     let lastProcessedId = startNode.id;
-    
+
     // Process class declarations if present
     if (classDeclarations.length > 0) {
       for (const classDecl of classDeclarations) {
         lastProcessedId = processClass(classDecl, lastProcessedId);
       }
     }
-    
+
     // Process function declarations - expand their bodies for detailed view
     if (functionDeclarations.length > 0) {
       for (const funcDecl of functionDeclarations) {
@@ -1337,7 +1358,7 @@ export function parseCodeToFlow(code: string): FlowData {
         if (funcBody && funcBody.length > 0) {
           // @ts-ignore
           const funcName = funcDecl.id?.name || 'function';
-          
+
           // Create a container for the function
           const funcContainerId = `container-${nodeIdCounter++}`;
           const funcContainer: FlowNode = {
@@ -1352,7 +1373,7 @@ export function parseCodeToFlow(code: string): FlowData {
             style: { width: 350, height: 150 }
           };
           nodes.push(funcContainer);
-          
+
           // Create function entry node
           const funcEntryId = `node-${nodeIdCounter++}`;
           const funcEntryNode: FlowNode = {
@@ -1367,18 +1388,18 @@ export function parseCodeToFlow(code: string): FlowData {
           nodes.push(funcEntryNode);
           funcContainer.data.children!.push(funcEntryId);
           edges.push(createEdge(lastProcessedId, funcEntryId));
-          
+
           // Set container override and process function body
           const previousOverride: typeof containerOverride = containerOverride;
           containerOverride = { containerId: funcContainerId, containerNode: funcContainer };
           const funcEndId = processBlock(funcBody, funcEntryId);
           containerOverride = previousOverride;
-          
+
           lastProcessedId = funcEndId || funcEntryId;
         }
       }
     }
-    
+
     // Process remaining top-level executable statements if not trivial
     if (topLevelExecutable.length > 0 && !hasTrivialTopLevel) {
       processBlock(topLevelExecutable, lastProcessedId);
@@ -1423,7 +1444,7 @@ export function parseCodeToFlow(code: string): FlowData {
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
     console.error('[Parser] PARSE FAILED:', errorMessage);
     console.error('[Parser] Full error:', e);
-    
+
     return {
       nodes: [{
         id: 'error',

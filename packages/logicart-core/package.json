@@ -1,5 +1,5 @@
 {
-  "name": "logicart-core",
+  "name": "@logicart/core",
   "version": "1.0.0",
   "description": "LogicArt runtime library for checkpoint-based debugging and live code visualization",
   "type": "module",

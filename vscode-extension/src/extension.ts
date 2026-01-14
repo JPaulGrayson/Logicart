@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseCodeToFlow } from '@logigo/bridge';
-import { generateGroundingContext } from '@logigo/core';
+import { parseCodeToFlow } from '@logicart/bridge';
+import { generateGroundingContext } from '@logicart/core';
 
 let currentPanel: vscode.WebviewPanel | undefined;
 let currentDocument: vscode.TextDocument | undefined;
 let documentChangeListener: vscode.Disposable | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('LogiGo extension activated');
+  console.log('LogicArt extension activated');
 
   const visualizeCommand = vscode.commands.registerCommand('logigo.visualize', async () => {
     const editor = vscode.window.activeTextEditor;
@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // For untitled or plaintext files, try to parse anyway
     if (!isSupportedLanguage && !isUntitled && languageId !== 'plaintext') {
-      vscode.window.showWarningMessage(`LogiGo works best with JavaScript/TypeScript files (detected: ${languageId})`);
+      vscode.window.showWarningMessage(`LogicArt works best with JavaScript/TypeScript files (detected: ${languageId})`);
       return;
     }
 
@@ -59,10 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       await vscode.env.clipboard.writeText(jsonString);
       vscode.window.showInformationMessage(
-        `LogiGo: AI context copied! (${groundingContext.summary.nodeCount} nodes, complexity: ${groundingContext.summary.complexityScore})`
+        `LogicArt: AI context copied! (${groundingContext.summary.nodeCount} nodes, complexity: ${groundingContext.summary.complexityScore})`
       );
     } catch (error) {
-      vscode.window.showErrorMessage(`LogiGo: Failed to generate context - ${error}`);
+      vscode.window.showErrorMessage(`LogicArt: Failed to generate context - ${error}`);
     }
   });
 
@@ -83,11 +83,11 @@ export function activate(context: vscode.ExtensionContext) {
         }
       });
       context.subscriptions.push(contextProvider);
-      console.log('LogiGo: LM context provider registered');
+      console.log('LogicArt: LM context provider registered');
     }
   } catch (e) {
     // lm.contextProvider not available in this VS Code version
-    console.log('LogiGo: LM context provider not available (requires VS Code 1.90+)');
+    console.log('LogicArt: LM context provider not available (requires VS Code 1.90+)');
   }
 }
 
@@ -103,7 +103,7 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
   } else {
     currentPanel = vscode.window.createWebviewPanel(
       'logigoFlowchart',
-      'LogiGo Flowchart',
+      'LogicArt Flowchart',
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
@@ -151,7 +151,7 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
             break;
 
           case 'insertCode':
-            console.log('[LogiGo] insertCode received, code length:', message.code?.length);
+            console.log('[LogicArt] insertCode received, code length:', message.code?.length);
 
             // Create a new untitled document with the example code
             const newDoc = await vscode.workspace.openTextDocument({
@@ -170,7 +170,7 @@ function showFlowchart(context: vscode.ExtensionContext, code: string, filePath:
             if (currentPanel) {
               await new Promise(resolve => setTimeout(resolve, 100));
               updateWebview(currentPanel, context, message.code, 'Example');
-              console.log('[LogiGo] updateWebview called for example');
+              console.log('[LogicArt] updateWebview called for example');
             }
 
             vscode.window.showInformationMessage('📚 Algorithm example loaded!');

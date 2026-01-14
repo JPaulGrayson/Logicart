@@ -1,5 +1,5 @@
 {
-  "name": "logicart-remote",
+  "name": "@logicart/remote",
   "version": "1.0.0",
   "description": "Send checkpoints from any app to LogicArt for real-time visualization",
   "main": "dist/index.js",

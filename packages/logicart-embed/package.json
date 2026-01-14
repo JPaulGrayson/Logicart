@@ -1,5 +1,5 @@
 {
-  "name": "logicart-embed",
+  "name": "@logicart/embed",
   "version": "0.1.0",
   "type": "module",
   "description": "Embeddable code-to-flowchart visualization for JavaScript",

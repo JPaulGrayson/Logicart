@@ -1,5 +1,5 @@
 {
-  "name": "logicart-vite-plugin",
+  "name": "@logicart/vite-plugin",
   "version": "1.0.0",
   "description": "Vite plugin for LogicArt build-time code instrumentation and flowchart generation",
   "type": "module",

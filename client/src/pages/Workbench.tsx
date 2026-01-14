@@ -383,7 +383,7 @@ export default function Workbench() {
 
     if (encodedCode && isReady) {
       let decoded: string | null = null;
-      
+
       // Try base64 decode first (legacy format)
       try {
         decoded = decodeURIComponent(atob(encodedCode));
@@ -395,11 +395,11 @@ export default function Workbench() {
           console.warn('Failed to decode code parameter:', e);
         }
       }
-      
+
       if (decoded && decoded.trim()) {
         console.log('[LogicArt] Code loaded from URL parameter');
         adapter.writeFile(decoded);
-        
+
         // Clear the URL parameter to avoid reloading on refresh
         // Note: embed parameter is NOT cleared so the clean UI persists on refresh
         const url = new URL(window.location.href);
@@ -412,7 +412,7 @@ export default function Workbench() {
         if (isPopup) {
           setTimeout(() => applyLayoutPreset('flow-only'), 200);
         }
-        
+
         // If autorun mode, start playback after parsing completes
         if (autorun) {
           setTimeout(() => {
@@ -451,6 +451,11 @@ export default function Workbench() {
 
         // Load code into editor if provided
         if (info.code) {
+          // CRITICAL FIX: Clear Ghost Diff snapshot and diffNodes BEFORE writing new code
+          clearOriginalSnapshot();
+          setDiffNodes([]);
+          setShowDiff(false);
+
           adapter.writeFile(info.code);
           // Clear current algorithm so flowchart shows remote code instead of example
           setCurrentAlgorithm(null);
@@ -494,6 +499,11 @@ export default function Workbench() {
 
         // If code is updated, reload it
         if (info.code) {
+          // CRITICAL FIX: Clear Ghost Diff snapshot and diffNodes BEFORE writing new code
+          clearOriginalSnapshot();
+          setDiffNodes([]);
+          setShowDiff(false);
+
           adapter.writeFile(info.code);
           // Clear current algorithm so flowchart shows remote code instead of example
           setCurrentAlgorithm(null);
@@ -512,6 +522,12 @@ export default function Workbench() {
       eventSource.addEventListener('code_update', (e) => {
         const { code: newCode, name } = JSON.parse(e.data);
         if (newCode) {
+          // CRITICAL FIX: Clear Ghost Diff snapshot and diffNodes BEFORE writing new code
+          // This ensures the new remote code gets a fresh parse without stale comparisons
+          clearOriginalSnapshot();
+          setDiffNodes([]);
+          setShowDiff(false);
+
           adapter.writeFile(newCode);
           // Clear current algorithm so flowchart shows remote code instead of example
           setCurrentAlgorithm(null);
@@ -906,7 +922,7 @@ export default function Workbench() {
   const initializeInterpreter = () => {
     // Clear any previous crash path
     setCrashPath(null);
-    
+
     interpreterRef.current = new Interpreter(code, flowData.nodeMap);
 
     // Prepare the first function found in the code (no specific function name required)
@@ -921,11 +937,11 @@ export default function Workbench() {
     // Check for step limit/recursion depth errors and show crash path
     if (interpreterRef.current.isStepLimitError()) {
       const crashPathData = interpreterRef.current.getCrashPathData();
-      
+
       if (crashPathData) {
         // Set crash path for visualization
         setCrashPath(crashPathData);
-        
+
         // Show toast notification with crash path info
         toast.error('Infinite Loop Detected', {
           description: `Highlighting the crash path. Found ${crashPathData.nodeIds.size} nodes involved in the loop.`,
@@ -947,7 +963,7 @@ export default function Workbench() {
           }
         });
       }
-      
+
       // Clear the interpreter so user can retry
       interpreterRef.current = null;
     }
@@ -2641,294 +2657,294 @@ export default function Workbench() {
 
       {/* Minimal Header - Just Branding (hidden in embed mode) */}
       {!embedMode && (
-      <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
-            L
-          </div>
-          <h1 className="font-semibold tracking-tight text-sm">LogicArt</h1>
-          <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">Beta</span>
-          {isAuthenticated && user?.tier && user.tier !== 'free' && (
-            <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
-              {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
-            </span>
-          )}
-          {flowData.nodes.length > 0 && (
-            <ComplexityBadge nodes={flowData.nodes} edges={flowData.edges} />
-          )}
-          {remoteSessionId && (
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${remoteConnectionStatus === 'connected'
-              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-              : remoteConnectionStatus === 'reconnecting'
-                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-              }`}>
-              <Wifi className={`w-3 h-3 ${remoteConnectionStatus === 'reconnecting' ? 'animate-pulse' : ''}`} />
-              {remoteConnectionStatus === 'connected'
-                ? `Connected: ${remoteSessionName || 'Remote App'}`
-                : remoteConnectionStatus === 'reconnecting'
-                  ? 'Reconnecting...'
-                  : 'Connecting...'}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <Button
-            variant={showDebugPane ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              if (!showDebugPane) {
-                // Capture original code for Ghost Diff when opening debug pane
-                setOriginalCodeSnapshot(code);
-                // Also set the sessionStorage snapshot for Ghost Diff to use
-                const originalNodes = parseCodeToFlow(code).nodes;
-                setOriginalSnapshot(originalNodes);
-                setDebugCheckpoints([]);
-                setDebugSessionId(null);
-              }
-              setShowDebugPane(!showDebugPane);
-            }}
-            className={`h-7 gap-1.5 text-xs ${showDebugPane ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10'}`}
-            data-testid="button-debug-with-ai"
-          >
-            <Bug className="w-3.5 h-3.5" />
-            Debug with AI
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-primary hover:text-primary hover:bg-primary/10 gap-1.5"
-                data-testid="button-tutorial-menu"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span className="text-xs font-semibold">Get Started</span>
-                <ChevronRight className="w-3 h-3 rotate-90 ml-0.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                Guided Pathways
-              </div>
-              <DropdownMenuItem onClick={() => startTutorial('agent-nudge')} className="cursor-pointer">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold">The Agent Bridge</span>
-                  <span className="text-[10px] text-muted-foreground">Natural language to flowcharts</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => startTutorial('vibe-master')} className="cursor-pointer">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold">The Vibe Master</span>
-                  <span className="text-[10px] text-muted-foreground">Sections, Containers & Diff</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => startTutorial('coding-without-code')} className="cursor-pointer">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold">Coding Without Code</span>
-                  <span className="text-[10px] text-muted-foreground">Structural intent vs typing</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (hasRescue) {
-                      const encodedCode = encodeURIComponent(code);
-                      window.location.href = `/arena?mode=debug&code=${encodedCode}`;
-                    } else {
-                      setShowUpgradeModal(true);
-                    }
-                  }}
-                  className={`h-7 gap-1.5 text-xs ${hasRescue ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10' : 'opacity-50 border-muted text-muted-foreground hover:bg-muted/20'}`}
-                  data-testid="button-rescue"
-                >
-                  <Anchor className="w-3.5 h-3.5" />
-                  Rescue
-                  {!hasRescue && <Lock className="w-3 h-3 ml-0.5" />}
-                </Button>
-              </TooltipTrigger>
-              {!hasRescue && (
-                <TooltipContent>
-                  <p>Pro Feature. Upgrade to unlock AI rescue assistance.</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={simpleView ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    const newSimpleView = !simpleView;
-                    setSimpleView(newSimpleView);
-                    if (newSimpleView) {
-                      applyLayoutPreset('50-50');
-                    }
-                  }}
-                  className={`h-7 gap-1.5 text-xs ${simpleView ? 'bg-green-600 hover:bg-green-700' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
-                  data-testid="button-simple-view"
-                >
-                  <Columns className="w-3.5 h-3.5" />
-                  Simple
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>50/50 split view with just code editor and flowchart</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setHelpDialogSection('integration-wizard');
-              setHelpDialogOpen(true);
-            }}
-            className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary/10 shadow-[0_0_15px_rgba(37,99,235,0.1)]"
-            data-testid="button-connect-app"
-          >
-            <Wand2 className="w-3.5 h-3.5" />
-            Connect App
-          </Button>
-
-          <ThemeToggle />
-
-          {/* Demo Mode Indicator */}
-          {isDemoMode && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs" data-testid="demo-mode-indicator">
-              <span>Demo Mode</span>
+        <header className="h-10 border-b border-border flex items-center justify-between px-6 bg-card z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-primary rounded flex items-center justify-center font-bold text-primary-foreground font-mono text-sm">
+              L
             </div>
-          )}
+            <h1 className="font-semibold tracking-tight text-sm">LogicArt</h1>
+            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">Beta</span>
+            {isAuthenticated && user?.tier && user.tier !== 'free' && (
+              <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-medium">
+                {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
+              </span>
+            )}
+            {flowData.nodes.length > 0 && (
+              <ComplexityBadge nodes={flowData.nodes} edges={flowData.edges} />
+            )}
+            {remoteSessionId && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${remoteConnectionStatus === 'connected'
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                : remoteConnectionStatus === 'reconnecting'
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                  : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                }`}>
+                <Wifi className={`w-3 h-3 ${remoteConnectionStatus === 'reconnecting' ? 'animate-pulse' : ''}`} />
+                {remoteConnectionStatus === 'connected'
+                  ? `Connected: ${remoteSessionName || 'Remote App'}`
+                  : remoteConnectionStatus === 'reconnecting'
+                    ? 'Reconnecting...'
+                    : 'Connecting...'}
+              </span>
+            )}
+          </div>
 
-          {!licenseLoading && (
-            isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 gap-1.5"
-                    data-testid="button-user-menu"
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="text-xs max-w-24 truncate">{user?.name || user?.email?.split('@')[0]}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <div className="px-2 py-1.5 border-b border-border mb-1">
-                    <p className="text-sm font-medium">{user?.name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-
-                  <div className="px-2 py-2 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Plan</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
-                        user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                        {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Status</span>
-                      <span className="text-green-400">Active</span>
-                    </div>
-
-                    {hasManagedAI && managedAllowance > 0 && (
-                      <div className="flex items-center justify-between text-xs" data-testid="credit-meter">
-                        <span className="text-muted-foreground">AI Credits Used</span>
-                        <span className="text-cyan-400">{currentUsage} / {managedAllowance}</span>
-                      </div>
-                    )}
-
-                    {(hasHistory || hasRescue || hasGitSync) && (
-                      <div className="pt-1 border-t border-border/50">
-                        <p className="text-[10px] text-muted-foreground mb-1">Features</p>
-                        <div className="flex flex-wrap gap-1">
-                          {hasHistory && (
-                            <span className="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">History</span>
-                          )}
-                          {hasRescue && (
-                            <span className="px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px]">Rescue</span>
-                          )}
-                          {hasGitSync && (
-                            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">Git Sync</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <DropdownMenuSeparator />
-                  {isDemoMode ? (
-                    <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
-                      <LogOut className="w-3.5 h-3.5 mr-2" />
-                      Exit Demo Mode
-                      {demoExpiresAt && (
-                        <span className="ml-auto text-[10px] text-amber-400">
-                          {formatDemoTimeRemaining(demoExpiresAt)}
-                        </span>
-                      )}
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem onClick={logout} data-testid="button-logout">
-                      <LogOut className="w-3.5 h-3.5 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                {!demoConsumed && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleDemoMode}
-                    className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
-                    data-testid="button-demo-mode"
-                  >
-                    Try Demo (24h)
-                  </Button>
-                )}
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <Button
+              variant={showDebugPane ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                if (!showDebugPane) {
+                  // Capture original code for Ghost Diff when opening debug pane
+                  setOriginalCodeSnapshot(code);
+                  // Also set the sessionStorage snapshot for Ghost Diff to use
+                  const originalNodes = parseCodeToFlow(code).nodes;
+                  setOriginalSnapshot(originalNodes);
+                  setDebugCheckpoints([]);
+                  setDebugSessionId(null);
+                }
+                setShowDebugPane(!showDebugPane);
+              }}
+              className={`h-7 gap-1.5 text-xs ${showDebugPane ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10'}`}
+              data-testid="button-debug-with-ai"
+            >
+              <Bug className="w-3.5 h-3.5" />
+              Debug with AI
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  onClick={login}
-                  className="h-7 gap-1.5 text-xs border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-                  data-testid="button-login"
+                  className="h-7 px-2 text-primary hover:text-primary hover:bg-primary/10 gap-1.5"
+                  data-testid="button-tutorial-menu"
                 >
-                  <LogIn className="w-3.5 h-3.5" />
-                  Sign In
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-xs font-semibold">Get Started</span>
+                  <ChevronRight className="w-3 h-3 rotate-90 ml-0.5" />
                 </Button>
-              </div>
-            )
-          )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Guided Pathways
+                </div>
+                <DropdownMenuItem onClick={() => startTutorial('agent-nudge')} className="cursor-pointer">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-bold">The Agent Bridge</span>
+                    <span className="text-[10px] text-muted-foreground">Natural language to flowcharts</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => startTutorial('vibe-master')} className="cursor-pointer">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-bold">The Vibe Master</span>
+                    <span className="text-[10px] text-muted-foreground">Sections, Containers & Diff</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => startTutorial('coding-without-code')} className="cursor-pointer">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-bold">Coding Without Code</span>
+                    <span className="text-[10px] text-muted-foreground">Structural intent vs typing</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (hasRescue) {
+                        const encodedCode = encodeURIComponent(code);
+                        window.location.href = `/arena?mode=debug&code=${encodedCode}`;
+                      } else {
+                        setShowUpgradeModal(true);
+                      }
+                    }}
+                    className={`h-7 gap-1.5 text-xs ${hasRescue ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10' : 'opacity-50 border-muted text-muted-foreground hover:bg-muted/20'}`}
+                    data-testid="button-rescue"
+                  >
+                    <Anchor className="w-3.5 h-3.5" />
+                    Rescue
+                    {!hasRescue && <Lock className="w-3 h-3 ml-0.5" />}
+                  </Button>
+                </TooltipTrigger>
+                {!hasRescue && (
+                  <TooltipContent>
+                    <p>Pro Feature. Upgrade to unlock AI rescue assistance.</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setHelpDialogOpen(true)}
-            className="h-7 px-2 flex-shrink-0"
-            data-testid="button-help"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </Button>
-        </div>
-      </header>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={simpleView ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      const newSimpleView = !simpleView;
+                      setSimpleView(newSimpleView);
+                      if (newSimpleView) {
+                        applyLayoutPreset('50-50');
+                      }
+                    }}
+                    className={`h-7 gap-1.5 text-xs ${simpleView ? 'bg-green-600 hover:bg-green-700' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
+                    data-testid="button-simple-view"
+                  >
+                    <Columns className="w-3.5 h-3.5" />
+                    Simple
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>50/50 split view with just code editor and flowchart</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setHelpDialogSection('integration-wizard');
+                setHelpDialogOpen(true);
+              }}
+              className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary/10 shadow-[0_0_15px_rgba(37,99,235,0.1)]"
+              data-testid="button-connect-app"
+            >
+              <Wand2 className="w-3.5 h-3.5" />
+              Connect App
+            </Button>
+
+            <ThemeToggle />
+
+            {/* Demo Mode Indicator */}
+            {isDemoMode && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs" data-testid="demo-mode-indicator">
+                <span>Demo Mode</span>
+              </div>
+            )}
+
+            {!licenseLoading && (
+              isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 gap-1.5"
+                      data-testid="button-user-menu"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="text-xs max-w-24 truncate">{user?.name || user?.email?.split('@')[0]}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <div className="px-2 py-1.5 border-b border-border mb-1">
+                      <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+
+                    <div className="px-2 py-2 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Plan</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${user?.tier === 'founder' ? 'bg-purple-500/20 text-purple-400' :
+                          user?.tier === 'pro' ? 'bg-blue-500/20 text-blue-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                          {user?.tier ? user.tier.charAt(0).toUpperCase() + user.tier.slice(1) : 'Free'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Status</span>
+                        <span className="text-green-400">Active</span>
+                      </div>
+
+                      {hasManagedAI && managedAllowance > 0 && (
+                        <div className="flex items-center justify-between text-xs" data-testid="credit-meter">
+                          <span className="text-muted-foreground">AI Credits Used</span>
+                          <span className="text-cyan-400">{currentUsage} / {managedAllowance}</span>
+                        </div>
+                      )}
+
+                      {(hasHistory || hasRescue || hasGitSync) && (
+                        <div className="pt-1 border-t border-border/50">
+                          <p className="text-[10px] text-muted-foreground mb-1">Features</p>
+                          <div className="flex flex-wrap gap-1">
+                            {hasHistory && (
+                              <span className="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">History</span>
+                            )}
+                            {hasRescue && (
+                              <span className="px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px]">Rescue</span>
+                            )}
+                            {hasGitSync && (
+                              <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">Git Sync</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <DropdownMenuSeparator />
+                    {isDemoMode ? (
+                      <DropdownMenuItem onClick={toggleDemoMode} data-testid="button-exit-demo">
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        Exit Demo Mode
+                        {demoExpiresAt && (
+                          <span className="ml-auto text-[10px] text-amber-400">
+                            {formatDemoTimeRemaining(demoExpiresAt)}
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={logout} data-testid="button-logout">
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  {!demoConsumed && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleDemoMode}
+                      className="h-7 gap-1.5 text-xs text-amber-400 hover:bg-amber-500/10"
+                      data-testid="button-demo-mode"
+                    >
+                      Try Demo (24h)
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={login}
+                    className="h-7 gap-1.5 text-xs border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    data-testid="button-login"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    Sign In
+                  </Button>
+                </div>
+              )
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setHelpDialogOpen(true)}
+              className="h-7 px-2 flex-shrink-0"
+              data-testid="button-help"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+          </div>
+        </header>
       )}
 
       {/* New 2-Panel Layout: Resizable Sidebar + Flowchart Canvas */}
@@ -2942,182 +2958,182 @@ export default function Workbench() {
 
               {/* Flow Tools Section - Hidden in Simple View */}
               {!simpleView && (
-              <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
-                <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
-                  <Search className="w-3 h-3" />
-                  Flow Tools
-                </h3>
+                <div className="border-b border-border p-3 space-y-2 flex-shrink-0 sticky top-0 bg-card z-10">
+                  <h3 className="text-xs font-semibold flex items-center gap-1.5 text-foreground/80 uppercase tracking-wide">
+                    <Search className="w-3 h-3" />
+                    Flow Tools
+                  </h3>
 
-                {/* Natural Language Search - Premium Feature */}
-                {features.hasFeature('naturalLanguageSearch') && (
-                  <div className="mb-2">
-                    <NaturalLanguageSearch
-                      nodes={flowData.nodes}
-                      onSearchResults={handleSearchResults}
-                      onClear={handleClearSearch}
-                      inputRef={searchInputRef}
-                    />
-                  </div>
-                )}
+                  {/* Natural Language Search - Premium Feature */}
+                  {features.hasFeature('naturalLanguageSearch') && (
+                    <div className="mb-2">
+                      <NaturalLanguageSearch
+                        nodes={flowData.nodes}
+                        onSearchResults={handleSearchResults}
+                        onClear={handleClearSearch}
+                        inputRef={searchInputRef}
+                      />
+                    </div>
+                  )}
 
-                <div className="space-y-1">
-                  {/* Ghost Diff Toggle */}
-                  {features.hasFeature('ghostDiff') && (
-                    <div className="flex gap-1">
+                  <div className="space-y-1">
+                    {/* Ghost Diff Toggle */}
+                    {features.hasFeature('ghostDiff') && (
+                      <div className="flex gap-1">
+                        <Button
+                          id="ghost-diff-toggle"
+                          variant={showDiff ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setShowDiff(!showDiff)}
+                          className="flex-1 justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                          data-testid="button-ghost-diff"
+                        >
+                          <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            clearOriginalSnapshot();
+                            setDiffNodes([]);
+                            setShowDiff(false);
+                          }}
+                          className="h-7 px-2 text-xs cursor-pointer hover:bg-destructive/20"
+                          title="Reset diff baseline to current code"
+                          data-testid="button-reset-diff"
+                        >
+                          ↺
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Share */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShareDialogOpen(true)}
+                      disabled={!code.trim()}
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      data-testid="button-share"
+                    >
+                      <span className="text-sm">🔗</span> Share Flowchart
+                    </Button>
+
+                    {/* Remote Mode */}
+                    <Link href="/remote">
                       <Button
-                        id="ghost-diff-toggle"
-                        variant={showDiff ? "default" : "outline"}
+                        variant="outline"
                         size="sm"
-                        onClick={() => setShowDiff(!showDiff)}
-                        className="flex-1 justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                        data-testid="button-ghost-diff"
+                        className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                        data-testid="button-remote-mode"
                       >
-                        <span className="text-sm">👻</span> {showDiff ? 'Hide Diff' : 'Show Diff'}
+                        <span className="text-sm">📡</span> Remote Mode
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* Compact Layout, Views & History Row */}
+                  <div className="pt-2 border-t border-border/50 flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">View</span>
+                    <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
+                      <SelectTrigger className="h-7 text-sm text-foreground flex-1" data-testid="select-layout">
+                        <SelectValue placeholder="Layout" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(layoutPresets) as Array<keyof typeof layoutPresets>).map((key) => (
+                          <SelectItem key={key} value={key} className="text-xs" data-testid={`layout-option-${key}`}>
+                            {layoutPresets[key].label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={showFloatingVariables ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setShowFloatingVariables(!showFloatingVariables)}
+                            className={`h-7 w-7 p-0 ${!(executionState || progress.total > 0) ? 'opacity-50' : ''}`}
+                            data-testid="button-toggle-variables"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{executionState || progress.total > 0
+                            ? (showFloatingVariables ? 'Hide Debug Panel' : 'Show Debug Panel')
+                            : 'Debug Panel (Run code to see variables)'
+                          }</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const popupWidth = Math.min(1920, window.screen.availWidth);
+                        const popupHeight = Math.min(1080, window.screen.availHeight);
+                        const encodedCode = btoa(encodeURIComponent(code));
+                        window.open(
+                          `/?code=${encodedCode}&popup=true`,
+                          'logicart-flowchart',
+                          `width=${popupWidth},height=${popupHeight},menubar=no,toolbar=no,location=no,status=no`
+                        );
+                      }}
+                      className="h-7 w-7 p-0"
+                      title="Pop Out Flowchart (Dual Screen)"
+                      data-testid="button-popout"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Button>
+                    <div className="flex gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleUndo}
+                        disabled={!canUndo}
+                        className="h-7 w-7 p-0"
+                        title="Undo (Ctrl+Z)"
+                        data-testid="button-undo"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          clearOriginalSnapshot();
-                          setDiffNodes([]);
-                          setShowDiff(false);
-                        }}
-                        className="h-7 px-2 text-xs cursor-pointer hover:bg-destructive/20"
-                        title="Reset diff baseline to current code"
-                        data-testid="button-reset-diff"
+                        onClick={handleRedo}
+                        disabled={!canRedo}
+                        className="h-7 w-7 p-0"
+                        title="Redo (Ctrl+Y)"
+                        data-testid="button-redo"
                       >
-                        ↺
+                        <Redo2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
-                  )}
-
-                  {/* Share */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShareDialogOpen(true)}
-                    disabled={!code.trim()}
-                    className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    data-testid="button-share"
-                  >
-                    <span className="text-sm">🔗</span> Share Flowchart
-                  </Button>
-
-                  {/* Remote Mode */}
-                  <Link href="/remote">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                      data-testid="button-remote-mode"
-                    >
-                      <span className="text-sm">📡</span> Remote Mode
-                    </Button>
-                  </Link>
-                </div>
-
-                {/* Compact Layout, Views & History Row */}
-                <div className="pt-2 border-t border-border/50 flex items-center gap-2">
-                  <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">View</span>
-                  <Select value={currentLayout} onValueChange={(value) => applyLayoutPreset(value as keyof typeof layoutPresets)}>
-                    <SelectTrigger className="h-7 text-sm text-foreground flex-1" data-testid="select-layout">
-                      <SelectValue placeholder="Layout" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(layoutPresets) as Array<keyof typeof layoutPresets>).map((key) => (
-                        <SelectItem key={key} value={key} className="text-xs" data-testid={`layout-option-${key}`}>
-                          {layoutPresets[key].label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={showFloatingVariables ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setShowFloatingVariables(!showFloatingVariables)}
-                          className={`h-7 w-7 p-0 ${!(executionState || progress.total > 0) ? 'opacity-50' : ''}`}
-                          data-testid="button-toggle-variables"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{executionState || progress.total > 0
-                          ? (showFloatingVariables ? 'Hide Debug Panel' : 'Show Debug Panel')
-                          : 'Debug Panel (Run code to see variables)'
-                        }</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const popupWidth = Math.min(1920, window.screen.availWidth);
-                      const popupHeight = Math.min(1080, window.screen.availHeight);
-                      const encodedCode = btoa(encodeURIComponent(code));
-                      window.open(
-                        `/?code=${encodedCode}&popup=true`,
-                        'logicart-flowchart',
-                        `width=${popupWidth},height=${popupHeight},menubar=no,toolbar=no,location=no,status=no`
-                      );
-                    }}
-                    className="h-7 w-7 p-0"
-                    title="Pop Out Flowchart (Dual Screen)"
-                    data-testid="button-popout"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Button>
-                  <div className="flex gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleUndo}
-                      disabled={!canUndo}
-                      className="h-7 w-7 p-0"
-                      title="Undo (Ctrl+Z)"
-                      data-testid="button-undo"
-                    >
-                      <Undo2 className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRedo}
-                      disabled={!canRedo}
-                      className="h-7 w-7 p-0"
-                      title="Redo (Ctrl+Y)"
-                      data-testid="button-redo"
-                    >
-                      <Redo2 className="w-3.5 h-3.5" />
-                    </Button>
                   </div>
                 </div>
-              </div>
               )}
 
               {/* Execution Controls Section - Hidden in Simple View */}
               {!simpleView && (
-              <div className="flex-shrink-0">
-                <ExecutionControls
-                  isPlaying={isPlaying}
-                  canStep={canExecute}
-                  onPlay={handlePlay}
-                  onPause={handlePause}
-                  onStepForward={handleStepForward}
-                  onStepBackward={handleStepBackward}
-                  onReset={handleReset}
-                  onStop={handleStop}
-                  progress={progress}
-                  speed={speed}
-                  onSpeedChange={handleSpeedChange}
-                  loop={loop}
-                  onLoopToggle={handleLoopToggle}
-                />
-              </div>
+                <div className="flex-shrink-0">
+                  <ExecutionControls
+                    isPlaying={isPlaying}
+                    canStep={canExecute}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                    onStepForward={handleStepForward}
+                    onStepBackward={handleStepBackward}
+                    onReset={handleReset}
+                    onStop={handleStop}
+                    progress={progress}
+                    speed={speed}
+                    onSpeedChange={handleSpeedChange}
+                    loop={loop}
+                    onLoopToggle={handleLoopToggle}
+                  />
+                </div>
               )}
 
               {/* Remote Control Section - Only when connected to remote session, hidden in Simple View */}
@@ -3196,104 +3212,104 @@ export default function Workbench() {
 
               {/* Compact Code & Export Row - Hidden in Simple View */}
               {!simpleView && (
-              <div className="border-b border-border p-3 flex-shrink-0">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept=".js,.ts,.jsx,.tsx,.mjs"
-                  className="hidden"
-                  data-testid="input-import-file"
-                />
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">Code</span>
-                  <Select onValueChange={handleLoadExample}>
-                    <SelectTrigger id="editor-toolbar" className="h-7 text-sm text-foreground flex-1" data-testid="select-example">
-                      <SelectValue placeholder="📚 Examples..." />
-                    </SelectTrigger>
-                    <SelectContent position="popper" className="max-h-[300px]" sideOffset={4}>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
-                      {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
-                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                          {example.name}
-                        </SelectItem>
-                      ))}
-                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Pathfinding</div>
-                      {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
-                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                          {example.name}
-                        </SelectItem>
-                      ))}
-                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Games & Logic</div>
-                      {algorithmExamples.filter(e => e.category === 'other').map(example => (
-                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                          {example.name}
-                        </SelectItem>
-                      ))}
-                      <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70 border-t border-border mt-1 pt-2">Integration</div>
-                      {algorithmExamples.filter(e => e.category === 'integration').map(example => (
-                        <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
-                          {example.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleImportCode}
-                      className="h-7 w-7 p-0"
-                      title="Import Code (Ctrl+O)"
-                      data-testid="button-import-code"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExportCode}
-                      disabled={!code.trim()}
-                      className="h-7 w-7 p-0"
-                      title="Export Code (Ctrl+S)"
-                      data-testid="button-export-code"
-                    >
-                      <FileCode className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExportPNG}
-                      className="h-7 w-7 p-0"
-                      title="Export as PNG"
-                      data-testid="button-export-png"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </Button>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => hasGitSync ? setShowGitHubSyncModal(true) : setShowUpgradeModal(true)}
-                            className={`h-7 w-7 p-0 ${!hasGitSync ? 'opacity-50' : ''}`}
-                            title={hasGitSync ? "Sync Flowchart to GitHub" : "Pro Feature: GitHub Sync"}
-                            data-testid="button-git-sync"
-                          >
-                            <Github className="w-3.5 h-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        {!hasGitSync && (
-                          <TooltipContent>
-                            <p>GitHub Sync (Pro). Backup and version your flowcharts to GitHub.</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+                <div className="border-b border-border p-3 flex-shrink-0">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".js,.ts,.jsx,.tsx,.mjs"
+                    className="hidden"
+                    data-testid="input-import-file"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide whitespace-nowrap">Code</span>
+                    <Select onValueChange={handleLoadExample}>
+                      <SelectTrigger id="editor-toolbar" className="h-7 text-sm text-foreground flex-1" data-testid="select-example">
+                        <SelectValue placeholder="📚 Examples..." />
+                      </SelectTrigger>
+                      <SelectContent position="popper" className="max-h-[300px]" sideOffset={4}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Sorting</div>
+                        {algorithmExamples.filter(e => e.category === 'sorting').map(example => (
+                          <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                            {example.name}
+                          </SelectItem>
+                        ))}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Pathfinding</div>
+                        {algorithmExamples.filter(e => e.category === 'pathfinding').map(example => (
+                          <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                            {example.name}
+                          </SelectItem>
+                        ))}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70">Games & Logic</div>
+                        {algorithmExamples.filter(e => e.category === 'other').map(example => (
+                          <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                            {example.name}
+                          </SelectItem>
+                        ))}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-foreground/70 border-t border-border mt-1 pt-2">Integration</div>
+                        {algorithmExamples.filter(e => e.category === 'integration').map(example => (
+                          <SelectItem key={example.id} value={example.id} data-testid={`example-${example.id}`}>
+                            {example.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleImportCode}
+                        className="h-7 w-7 p-0"
+                        title="Import Code (Ctrl+O)"
+                        data-testid="button-import-code"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleExportCode}
+                        disabled={!code.trim()}
+                        className="h-7 w-7 p-0"
+                        title="Export Code (Ctrl+S)"
+                        data-testid="button-export-code"
+                      >
+                        <FileCode className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleExportPNG}
+                        className="h-7 w-7 p-0"
+                        title="Export as PNG"
+                        data-testid="button-export-png"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => hasGitSync ? setShowGitHubSyncModal(true) : setShowUpgradeModal(true)}
+                              className={`h-7 w-7 p-0 ${!hasGitSync ? 'opacity-50' : ''}`}
+                              title={hasGitSync ? "Sync Flowchart to GitHub" : "Pro Feature: GitHub Sync"}
+                              data-testid="button-git-sync"
+                            >
+                              <Github className="w-3.5 h-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          {!hasGitSync && (
+                            <TooltipContent>
+                              <p>GitHub Sync (Pro). Backup and version your flowcharts to GitHub.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
 
               {/* Code Editor Section - Expanded in Simple View */}
