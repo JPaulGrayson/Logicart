@@ -26,16 +26,21 @@ STEP 1: Add script tag to client/index.html <head>:
 
 STEP 2: Add a backend API to read source files. In your server routes file, add:
 
-app.get('/api/source/*', (req, res) => {
-  const filePath = req.params[0];
-  const fullPath = path.join(process.cwd(), 'client', filePath);
+app.get('/api/source', (req, res) => {
+  const filePath = req.query.file;
+  if (!filePath) {
+    return res.status(400).send('Missing file parameter');
+  }
   
-  if (!fullPath.startsWith(path.join(process.cwd(), 'client'))) {
+  const fullPath = path.resolve(process.cwd(), filePath);
+  const projectRoot = process.cwd();
+  
+  if (!fullPath.startsWith(projectRoot)) {
     return res.status(403).send('Forbidden');
   }
   
   if (!fs.existsSync(fullPath)) {
-    return res.status(404).send('File not found');
+    return res.status(404).send('File not found: ' + filePath);
   }
   
   res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
@@ -43,24 +48,27 @@ app.get('/api/source/*', (req, res) => {
 
 Make sure to import: import fs from 'fs'; import path from 'path';
 
-STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
-- client/src/pages/
-- client/src/components/
-- client/src/features/
-Show me the file list before proceeding.
+STEP 3: Scan this project for ALL component files. Search these directories:
+- src/pages/, client/src/pages/
+- src/components/, client/src/components/
+- src/features/, client/src/features/
+- src/lib/, client/src/lib/
+- Any other directories containing .tsx/.ts/.jsx/.js files
+
+IMPORTANT: List EVERY file you find. The architecture view needs ALL files to show the complete dependency graph.
 
 STEP 4: Create a FlowchartButton component with:
-- "View Full Architecture" option at the top (calls LogicArt.openArchitecture)
+- "View Full Architecture" option at the top (calls LogicArt.openArchitecture with ALL files)
 - Dropdown of individual files from step 3 (calls LogicArt.visualize)
 
 When user clicks "View Full Architecture":
   Call: (window.LogiGo || window.LogicArt).openArchitecture(
     window.location.origin + '/api/source',
-    [/* array of all file paths from step 3 */]
+    [/* array of ALL file paths from step 3 */]
   )
 
 When user selects a single component:
-1. Fetch the source via: fetch('/api/source/' + component.path)
+1. Fetch the source via: fetch('/api/source?file=' + encodeURIComponent(component.path))
 2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
 
 STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
@@ -125,16 +133,18 @@ Now when you use your app, you'll see the flowchart light up in real-time!
 
 **Flowchart shows sample code instead of your component?**
 - The backend API might not be set up correctly
-- Ask your agent: "Check that /api/source/ endpoint is working"
-- Test: Visit http://your-app/api/source/src/pages/Home.tsx in browser
+- Ask your agent: "Check that /api/source endpoint is working"
+- Test: Visit http://your-app/api/source?file=client/src/App.tsx in browser
 
 **API returns 404?**
 - File path might be wrong (client/src/... vs src/...)
-- Ask your agent to verify the file paths in the component list
+- Ask your agent to verify the file paths match actual project structure
+- Paths should be relative to project root
 
-**Architecture view shows 0 components?**
-- Make sure the ALL_FILES array contains valid file paths
+**Architecture view shows fewer components than expected?**
+- Make sure the ALL_FILES array contains ALL component file paths
 - Check that /api/source endpoint can access all listed files
+- Test each file: http://your-app/api/source?file=path/to/file.tsx
 
 **Flowchart shows too many nodes (framework code)?**
 - Make sure you're using mode=push in the LogicArt script URL

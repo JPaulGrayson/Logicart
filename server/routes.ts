@@ -1241,13 +1241,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Fetch all files from the source URL
+      // Fetch all files from the source URL using query parameter format
+      // Expected format: /api/source?file=path/to/file.tsx
       const files: Record<string, string> = {};
       const fetchErrors: string[] = [];
 
       await Promise.all(filePaths.map(async (filePath: string) => {
         try {
-          const url = `${sourceUrl.replace(/\/$/, '')}/${filePath.replace(/^\//, '')}`;
+          // Use query parameter format: /api/source?file=path/to/file.tsx
+          const baseUrl = sourceUrl.replace(/\/$/, '');
+          const url = `${baseUrl}?file=${encodeURIComponent(filePath)}`;
           const response = await fetch(url, { 
             headers: { 'Accept': 'text/plain' },
             signal: AbortSignal.timeout(5000)

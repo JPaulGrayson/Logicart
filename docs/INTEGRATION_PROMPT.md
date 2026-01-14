@@ -9,21 +9,26 @@ Copy and paste this prompt into any AI agent (Replit Agent, Cursor, Claude, Tura
 ```
 Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic AND view the full project architecture.
 
-STEP 1: Add script tag to client/index.html <head>:
+STEP 1: Add script tag to client/index.html (or your main HTML file) <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
 STEP 2: Add a backend API to read source files. In your server routes file, add:
 
-app.get('/api/source/*', (req, res) => {
-  const filePath = req.params[0];
-  const fullPath = path.join(process.cwd(), 'client', filePath);
+app.get('/api/source', (req, res) => {
+  const filePath = req.query.file;
+  if (!filePath) {
+    return res.status(400).send('Missing file parameter');
+  }
   
-  if (!fullPath.startsWith(path.join(process.cwd(), 'client'))) {
+  const fullPath = path.resolve(process.cwd(), filePath);
+  const projectRoot = process.cwd();
+  
+  if (!fullPath.startsWith(projectRoot)) {
     return res.status(403).send('Forbidden');
   }
   
   if (!fs.existsSync(fullPath)) {
-    return res.status(404).send('File not found');
+    return res.status(404).send('File not found: ' + filePath);
   }
   
   res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
@@ -31,20 +36,29 @@ app.get('/api/source/*', (req, res) => {
 
 Make sure to import: import fs from 'fs'; import path from 'path';
 
-STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
-- client/src/pages/
-- client/src/components/
-- client/src/features/
-Show me the file list before proceeding.
+STEP 3: Scan this project for ALL component files. Search these directories:
+- src/pages/, client/src/pages/
+- src/components/, client/src/components/
+- src/features/, client/src/features/
+- src/lib/, client/src/lib/
+- Any other directories containing .tsx/.ts/.jsx/.js files
 
-STEP 4: Create a FlowchartButton component with BOTH individual component views AND full architecture view:
+IMPORTANT: List EVERY file you find. The architecture view needs ALL files to show the complete dependency graph. Do not skip any files.
+
+STEP 4: Create a FlowchartButton component with BOTH individual component views AND full architecture view.
+
+IMPORTANT: Replace the COMPONENTS array with ALL files from step 3. Every file must be included for the architecture view to work correctly.
 
 import { useState } from 'react';
 
 const COMPONENTS = [
-  // REPLACE with actual files from step 3:
-  { name: 'Home Page', path: 'src/pages/Home.tsx' },
-  { name: 'Dashboard', path: 'src/pages/Dashboard.tsx' },
+  // REPLACE THIS WITH ALL FILES FROM STEP 3
+  // Example format - use actual paths from your project:
+  { name: 'App', path: 'client/src/App.tsx' },
+  { name: 'Home Page', path: 'client/src/pages/Home.tsx' },
+  { name: 'Dashboard', path: 'client/src/pages/Dashboard.tsx' },
+  { name: 'Header', path: 'client/src/components/Header.tsx' },
+  // ... ADD EVERY FILE FOUND IN STEP 3
 ];
 
 // Get all file paths for architecture view
@@ -57,7 +71,7 @@ export function FlowchartButton() {
   async function visualize(component) {
     setIsOpen(false);
     try {
-      const response = await fetch('/api/source/' + component.path);
+      const response = await fetch('/api/source?file=' + encodeURIComponent(component.path));
       if (!response.ok) throw new Error('Failed to load file');
       const code = await response.text();
       
@@ -200,7 +214,8 @@ Shows how all components connect to each other:
 
 **API returns 404:**
 - Check file path matches actual location (client/src/... vs src/...)
-- Try: `curl http://localhost:5000/api/source/src/pages/Home.tsx`
+- Try: `curl "http://localhost:5000/api/source?file=client/src/pages/Home.tsx"`
+- Paths should be relative to project root
 
 **Flowchart shows sample code:**
 - API might be returning error HTML instead of code
@@ -210,9 +225,11 @@ Shows how all components connect to each other:
 - Verify script tag is in `<head>` section
 - Check browser console for script loading errors
 
-**Architecture view shows 0 components:**
-- Verify ALL_FILES array contains valid file paths
+**Architecture view shows fewer components than expected:**
+- Verify ALL_FILES array contains ALL file paths from step 3
+- Test each file: `curl "http://localhost:5000/api/source?file=path/to/file.tsx"`
 - Check that /api/source endpoint can read all files
+- Ensure paths are relative to project root (e.g., client/src/... or src/...)
 
 ---
 
