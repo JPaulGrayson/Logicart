@@ -62,10 +62,18 @@ STEP 4: Create a FlowchartButton component with:
 - Dropdown of individual files from step 3 (calls LogicArt.visualize)
 
 When user clicks "View Full Architecture":
-  Call: (window.LogiGo || window.LogicArt).openArchitecture(
-    window.location.origin + '/api/source',
-    [/* array of ALL file paths from step 3 */]
-  )
+  Option A - If you have a /api/source endpoint:
+    Call: (window.LogiGo || window.LogicArt).openArchitecture(
+      window.location.origin + '/api/source',
+      [/* array of ALL file paths from step 3 */]
+    )
+  
+  Option B - Send file contents directly (preferred):
+    Call: (window.LogiGo || window.LogicArt).openArchitectureWithCode({
+      'path/to/App.tsx': fileContents,
+      'path/to/Home.tsx': fileContents,
+      // ... all files with their contents
+    })
 
 When user selects a single component:
 1. Fetch the source via: fetch('/api/source?file=' + encodeURIComponent(component.path))

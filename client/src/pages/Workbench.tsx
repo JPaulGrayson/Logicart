@@ -492,6 +492,46 @@ export default function Workbench() {
         window.history.replaceState({}, '', url.toString());
       }
     }
+    
+    // Handle arch-session mode: fetch nodes/edges from server session
+    // This is used by openArchitectureWithCode() to avoid URL length limits
+    if (mode === 'arch-session' && isReady) {
+      const archSessionId = urlParams.get('archSession');
+      
+      if (archSessionId) {
+        console.log('[LogicArt] Architecture session mode triggered:', archSessionId);
+        setArchitectureLoading(true);
+        
+        fetch(`/api/agent/architecture-session/${archSessionId}`)
+          .then(res => {
+            if (!res.ok) throw new Error('Session not found');
+            return res.json();
+          })
+          .then(data => {
+            if (data.nodes && data.nodes.length > 0) {
+              setArchitectureComponents(data.nodes);
+              setArchitectureConnections(data.edges || []);
+              setArchitectureMode(true);
+              toast.success(`Loaded ${data.nodes.length} components`);
+            } else {
+              toast.error('No components found in architecture data');
+            }
+          })
+          .catch(error => {
+            console.error('Failed to load architecture session:', error);
+            toast.error('Architecture session expired or not found');
+          })
+          .finally(() => {
+            setArchitectureLoading(false);
+          });
+        
+        // Clear URL parameters
+        const url = new URL(window.location.href);
+        url.searchParams.delete('mode');
+        url.searchParams.delete('archSession');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
   }, [isReady]);
 
   // Connect to remote session if ?session= URL parameter is present

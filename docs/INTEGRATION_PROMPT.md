@@ -248,7 +248,7 @@ window.LogicArt.openWithCode(algorithmCode, 'MyComponent');
 ```
 
 ### LogicArt.openArchitecture(sourceUrl, files)
-Opens the full architecture view showing component dependencies:
+Opens the full architecture view showing component dependencies (requires /api/source endpoint):
 ```javascript
 // sourceUrl is your app's source API base URL
 // files is an array of file paths to scan
@@ -257,6 +257,18 @@ window.LogicArt.openArchitecture(
   ['src/pages/Home.tsx', 'src/components/Header.tsx', 'src/components/Footer.tsx']
 );
 ```
+
+### LogicArt.openArchitectureWithCode(filesData)
+Opens architecture view with file contents directly (no /api/source endpoint needed):
+```javascript
+// filesData is an object mapping file paths to their contents
+window.LogicArt.openArchitectureWithCode({
+  'src/App.tsx': 'import React from "react";\nexport function App() {...}',
+  'src/pages/Home.tsx': 'import { Header } from "../components/Header";\n...',
+  'src/components/Header.tsx': 'export function Header() {...}'
+});
+```
+This is the preferred method when the host app already has access to file contents.
 
 ### URL Parameters (Alternative)
 Open LogicArt directly via URL:

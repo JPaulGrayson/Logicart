@@ -121,6 +121,21 @@ function applyLayout(nodes: Node[], edges: Edge[]): Node[] {
 function ArchitectureViewInner({ components, connections, onComponentClick, onClose }: ArchitectureViewProps) {
   const { fitView } = useReactFlow();
   
+  // Create a map for quick component lookup
+  const componentMap = useMemo(() => {
+    const map = new Map<string, ArchitectureComponent>();
+    components.forEach(comp => map.set(comp.id, comp));
+    return map;
+  }, [components]);
+  
+  // Handle node click via React Flow's onNodeClick
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    const component = componentMap.get(node.id);
+    if (component && onComponentClick) {
+      onComponentClick(component);
+    }
+  }, [componentMap, onComponentClick]);
+  
   // Convert to React Flow format
   const initialNodes: Node[] = useMemo(() => {
     return components.map((comp) => ({
@@ -129,10 +144,9 @@ function ArchitectureViewInner({ components, connections, onComponentClick, onCl
       position: { x: 0, y: 0 },
       data: {
         ...comp,
-        onClick: () => onComponentClick?.(comp),
       },
     }));
-  }, [components, onComponentClick]);
+  }, [components]);
 
   const initialEdges: Edge[] = useMemo(() => {
     return connections.map((conn, idx) => ({
@@ -168,6 +182,7 @@ function ArchitectureViewInner({ components, connections, onComponentClick, onCl
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         fitView
         minZoom={0.1}

@@ -968,6 +968,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Architecture session storage (in-memory, expires after 5 minutes)
+  const architectureSessions = new Map<string, { nodes: any[]; edges: any[]; createdAt: number }>();
+  
+  // Cleanup expired sessions every minute
+  setInterval(() => {
+    const now = Date.now();
+    for (const [id, session] of architectureSessions.entries()) {
+      if (now - session.createdAt > 5 * 60 * 1000) {
+        architectureSessions.delete(id);
+      }
+    }
+  }, 60 * 1000);
+  
+  // Create architecture session (stores nodes/edges server-side, returns session ID)
+  app.post("/api/agent/architecture-session", (req, res) => {
+    try {
+      const { nodes, edges } = req.body;
+      
+      if (!nodes || !Array.isArray(nodes)) {
+        return res.status(400).json({ error: "Nodes array is required" });
+      }
+      
+      const sessionId = crypto.randomUUID();
+      architectureSessions.set(sessionId, {
+        nodes,
+        edges: edges || [],
+        createdAt: Date.now()
+      });
+      
+      console.log(`[Architecture] Created session ${sessionId.slice(0, 8)} with ${nodes.length} nodes`);
+      
+      res.json({ sessionId });
+    } catch (error) {
+      console.error("[Architecture] Error creating session:", error);
+      res.status(500).json({ error: "Failed to create architecture session" });
+    }
+  });
+  
+  // Get architecture session data
+  app.get("/api/agent/architecture-session/:sessionId", (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = architectureSessions.get(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Architecture session not found or expired" });
+      }
+      
+      res.json({
+        nodes: session.nodes,
+        edges: session.edges,
+        componentCount: session.nodes.length
+      });
+    } catch (error) {
+      console.error("[Architecture] Error getting session:", error);
+      res.status(500).json({ error: "Failed to get architecture session" });
+    }
+  });
+
   // Architecture View - Component dependency graph
   app.post("/api/agent/architecture", async (req, res) => {
     try {
@@ -2349,8 +2408,66 @@ self.addEventListener('fetch', (event) => {
     console.log("[LogiGo] Opening architecture view with " + files.length + " files");
   };
   
+  // Open architecture view with file contents directly (no URL fetch needed)
+  // filesData: object mapping file paths to their contents
+  // Example: { "src/App.tsx": "import React...", "src/pages/Home.tsx": "..." }
+  window.LogiGo.openArchitectureWithCode = function(filesData) {
+    if (!filesData || typeof filesData !== 'object' || Object.keys(filesData).length === 0) {
+      console.error("[LogiGo] openArchitectureWithCode requires filesData object with file contents");
+      return;
+    }
+    
+    var fileCount = Object.keys(filesData).length;
+    console.log("[LogiGo] Building architecture from " + fileCount + " files...");
+    
+    // Open window immediately for better UX
+    var archWindow = window.open("about:blank", "_blank");
+    if (archWindow) {
+      archWindow.document.write('<html><head><title>LogicArt - Loading...</title><style>body{background:#0f172a;color:white;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}div{text-align:center;}.spinner{width:40px;height:40px;border:3px solid #334155;border-top:3px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}@keyframes spin{to{transform:rotate(360deg);}}</style></head><body><div><div class="spinner"></div><p>Building architecture graph...</p></div></body></html>');
+    }
+    
+    // Step 1: Build architecture from file contents
+    fetch(LOGIGO_URL + "/api/agent/architecture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ files: filesData }),
+      mode: "cors"
+    }).then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }).then(function(data) {
+      // Step 2: Create session to store the architecture data (avoids URL length limits)
+      return fetch(LOGIGO_URL + "/api/agent/architecture-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nodes: data.nodes || [], edges: data.edges || [] }),
+        mode: "cors"
+      }).then(function(sessionRes) {
+        if (!sessionRes.ok) throw new Error("Failed to create session");
+        return sessionRes.json();
+      }).then(function(sessionData) {
+        console.log("[LogiGo] Architecture built: " + (data.componentCount || 0) + " components");
+        
+        // Navigate to LogicArt with session ID
+        var url = LOGIGO_URL + "/?mode=arch-session&archSession=" + sessionData.sessionId;
+        
+        if (archWindow && !archWindow.closed) {
+          archWindow.location.href = url;
+        } else {
+          window.open(url, "_blank");
+        }
+      });
+    }).catch(function(e) {
+      console.error("[LogiGo] Failed to build architecture:", e.message);
+      if (archWindow && !archWindow.closed) {
+        archWindow.document.body.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px;"><h2>Error</h2><p>' + e.message + '</p></div>';
+      }
+    });
+  };
+  
   // Alias for LogicArt branding
   window.LogicArt.openArchitecture = window.LogiGo.openArchitecture;
+  window.LogicArt.openArchitectureWithCode = window.LogiGo.openArchitectureWithCode;
   
   // ============================================
   // Bidirectional Control Channel (WebSocket)
