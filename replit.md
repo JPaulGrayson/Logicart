@@ -16,6 +16,11 @@ LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization to
   - Interactive UI with click-to-drill-down: click any component to view its flowchart
   - Uses dagre layout for automatic graph positioning with React Flow
   - ArchitectureView component with color-coded nodes (arrow/function/class types)
+- **January 2026**: Enhanced parser with advanced destructuring support:
+  - ArrayPattern/ObjectPattern handling for React hooks: `const [count, setCount] = useState(0)`
+  - RestElement support: `const [first, ...rest]` and `const { name, ...others }`
+  - AssignmentPattern for default values and object aliasing
+  - Both `bridge/src/parser.ts` and `docs/bridge/src/parser.ts` kept in sync
 - **January 2026**: Added platform-agnostic React preprocessing:
   - Parser automatically extracts algorithm logic from React hooks (useCallback, useMemo, useEffect)
   - Same integration works for all vibe coding platforms (Replit Agent, Antigravity, Cursor, etc.)
