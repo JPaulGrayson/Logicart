@@ -10,19 +10,19 @@
  * For now, we re-export from the bridge source directly.
  */
 
-// Re-export types from bridge
+// Re-export types from bridge (the actual production bridge, not docs)
 export type { 
   SourceLocation, 
   FlowNode, 
   FlowEdge, 
   FlowData 
-} from '../../../docs/bridge/src/types';
+} from '../../../bridge/src/types';
 
-// Re-export the parser function from bridge
-export { parseCodeToFlow } from '../../../docs/bridge/src/parser';
+// Re-export the parser function from bridge (the actual production bridge)
+export { parseCodeToFlow } from '../../../bridge/src/parser';
 
 // Import types for grounding
-import type { FlowNode, FlowEdge } from '../../../docs/bridge/src/types';
+import type { FlowNode, FlowEdge } from '../../../bridge/src/types';
 import type { GroundingContext, GroundingNode, GroundingNodeType } from '@shared/grounding-types';
 
 /**
