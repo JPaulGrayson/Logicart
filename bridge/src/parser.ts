@@ -108,6 +108,41 @@ function detectSections(code: string, ast?: any): CodeSection[] {
   if (sections.length === 0 && ast && ast.body) {
     const functionDeclarations: CodeSection[] = [];
     
+    // Helper to check if an expression is a function (arrow, function expr, or HOC-wrapped)
+    const isFunctionLike = (expr: any): boolean => {
+      if (!expr) return false;
+      if (expr.type === 'ArrowFunctionExpression' || expr.type === 'FunctionExpression') {
+        return true;
+      }
+      // Handle HOC wrappers: memo(() => {}), forwardRef(() => {}), React.memo(() => {})
+      if (expr.type === 'CallExpression') {
+        const callee = expr.callee;
+        const calleeName = callee.name || (callee.property && callee.property.name);
+        if (['memo', 'forwardRef', 'observer', 'withRouter', 'connect'].includes(calleeName)) {
+          // Check if first argument is a function
+          return expr.arguments && expr.arguments[0] && isFunctionLike(expr.arguments[0]);
+        }
+      }
+      return false;
+    };
+    
+    // Helper to extract function from variable declaration
+    const extractFromVariableDeclaration = (decl: any) => {
+      if (decl.type === 'VariableDeclaration' && decl.declarations) {
+        decl.declarations.forEach((declarator: any) => {
+          if (declarator.id && declarator.id.name && declarator.init && declarator.loc) {
+            if (isFunctionLike(declarator.init)) {
+              functionDeclarations.push({
+                name: declarator.id.name,
+                startLine: declarator.loc.start.line,
+                endLine: declarator.loc.end.line
+              });
+            }
+          }
+        });
+      }
+    };
+    
     ast.body.forEach((node: any) => {
       // Handle direct function declarations
       if (node.type === 'FunctionDeclaration' && node.id && node.loc) {
@@ -116,6 +151,10 @@ function detectSections(code: string, ast?: any): CodeSection[] {
           startLine: node.loc.start.line,
           endLine: node.loc.end.line
         });
+      }
+      // Handle variable declarations: const Foo = () => {}
+      else if (node.type === 'VariableDeclaration') {
+        extractFromVariableDeclaration(node);
       }
       // Handle exported functions: export function QAModal() { ... }
       else if (node.type === 'ExportNamedDeclaration' && node.declaration) {
@@ -127,6 +166,10 @@ function detectSections(code: string, ast?: any): CodeSection[] {
             endLine: decl.loc.end.line
           });
         }
+        // Handle: export const Foo = () => {} or export const Foo = memo(() => {})
+        else if (decl.type === 'VariableDeclaration') {
+          extractFromVariableDeclaration(decl);
+        }
       }
       // Handle default exports: export default function QAModal() { ... }
       else if (node.type === 'ExportDefaultDeclaration' && node.declaration) {
@@ -134,6 +177,14 @@ function detectSections(code: string, ast?: any): CodeSection[] {
         if (decl.type === 'FunctionDeclaration' && decl.loc) {
           functionDeclarations.push({
             name: decl.id?.name || 'default',
+            startLine: decl.loc.start.line,
+            endLine: decl.loc.end.line
+          });
+        }
+        // Handle: export default () => {} or export default memo(() => {})
+        else if (isFunctionLike(decl) && decl.loc) {
+          functionDeclarations.push({
+            name: 'default',
             startLine: decl.loc.start.line,
             endLine: decl.loc.end.line
           });
