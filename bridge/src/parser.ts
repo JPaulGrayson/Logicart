@@ -588,11 +588,42 @@ export function parseCodeToFlow(code: string): FlowData {
 
         if (stmt.type === 'VariableDeclaration') {
           const decl = stmt.declarations[0];
-          const label = `${stmt.kind} ${decl.id.name} = ...`;
-          const node = createNode(stmt, label, 'default', undefined, loc);
-          nodes.push(node);
-          edges.push(createEdge(currentParent, node.id));
-          currentParent = node.id;
+          
+          // Check if this is an arrow function or function expression
+          const isFunctionLike = (expr: any): boolean => {
+            if (!expr) return false;
+            if (expr.type === 'ArrowFunctionExpression' || expr.type === 'FunctionExpression') {
+              return true;
+            }
+            // Handle HOC wrappers: memo(() => {}), forwardRef(() => {})
+            if (expr.type === 'CallExpression') {
+              const callee = expr.callee;
+              const calleeName = callee?.name || callee?.property?.name;
+              if (['memo', 'forwardRef', 'observer', 'withRouter', 'connect', 'styled', 'createContext'].includes(calleeName)) {
+                if (expr.arguments?.[0]) {
+                  return isFunctionLike(expr.arguments[0]);
+                }
+              }
+            }
+            return false;
+          };
+          
+          if (decl.init && isFunctionLike(decl.init)) {
+            // This is a nested function declaration (arrow function inside another function)
+            // Show it as a single node - don't inline its body
+            const label = `${stmt.kind} ${decl.id.name} = () => {...}`;
+            const node = createNode(stmt, label, 'default', undefined, loc);
+            nodes.push(node);
+            edges.push(createEdge(currentParent, node.id));
+            currentParent = node.id;
+          } else {
+            // Regular variable declaration
+            const label = `${stmt.kind} ${decl.id.name} = ...`;
+            const node = createNode(stmt, label, 'default', undefined, loc);
+            nodes.push(node);
+            edges.push(createEdge(currentParent, node.id));
+            currentParent = node.id;
+          }
         } else if (stmt.type === 'ExpressionStatement') {
           let label = 'Expression';
           let checkpointId: string | undefined;
@@ -977,6 +1008,62 @@ export function parseCodeToFlow(code: string): FlowData {
     // @ts-ignore
     const body = ast.body;
     
+    // Helper to get function body from any function-like construct
+    const extractFunctionBody = (stmt: any): any[] | null => {
+      // FunctionDeclaration: function foo() { ... }
+      if (stmt.type === 'FunctionDeclaration' && stmt.body?.body) {
+        return stmt.body.body;
+      }
+      
+      // Check for arrow function in VariableDeclaration or export
+      const getArrowBody = (expr: any): any[] | null => {
+        if (!expr) return null;
+        if ((expr.type === 'ArrowFunctionExpression' || expr.type === 'FunctionExpression') && expr.body?.type === 'BlockStatement') {
+          return expr.body.body;
+        }
+        // Handle HOC wrappers: memo(() => {}), forwardRef(() => {})
+        if (expr.type === 'CallExpression') {
+          const callee = expr.callee;
+          const calleeName = callee?.name || callee?.property?.name;
+          if (['memo', 'forwardRef', 'observer', 'withRouter', 'connect', 'styled'].includes(calleeName)) {
+            if (expr.arguments?.[0]) {
+              return getArrowBody(expr.arguments[0]);
+            }
+          }
+        }
+        return null;
+      };
+      
+      // VariableDeclaration: const foo = () => { ... }
+      if (stmt.type === 'VariableDeclaration' && stmt.declarations?.[0]?.init) {
+        return getArrowBody(stmt.declarations[0].init);
+      }
+      
+      // ExportNamedDeclaration: export const foo = () => { ... } or export function foo() { ... }
+      if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
+        return extractFunctionBody(stmt.declaration);
+      }
+      
+      // ExportDefaultDeclaration: export default () => { ... } or export default function() { ... }
+      if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
+        if (stmt.declaration.type === 'FunctionDeclaration' && stmt.declaration.body?.body) {
+          return stmt.declaration.body.body;
+        }
+        return getArrowBody(stmt.declaration);
+      }
+      
+      return null;
+    };
+    
+    // Find all function-like declarations (traditional and arrow functions)
+    const functionBodies: any[][] = [];
+    for (const stmt of body) {
+      const funcBody = extractFunctionBody(stmt);
+      if (funcBody) {
+        functionBodies.push(funcBody);
+      }
+    }
+    
     // Separate function declarations from other statements
     // @ts-ignore
     const functionDeclarations = body.filter((stmt: any) => stmt.type === 'FunctionDeclaration');
@@ -987,11 +1074,18 @@ export function parseCodeToFlow(code: string): FlowData {
     // If so, prefer showing function bodies which have the actual algorithm logic
     const hasTrivialTopLevel = topLevelExecutable.length > 0 && topLevelExecutable.every((stmt: any) => 
       stmt.type === 'VariableDeclaration' || 
-      stmt.type === 'ExpressionStatement'
+      stmt.type === 'ExpressionStatement' ||
+      stmt.type === 'ExportNamedDeclaration' ||
+      stmt.type === 'ExportDefaultDeclaration' ||
+      stmt.type === 'ImportDeclaration'
     );
     
     let statements;
-    if (functionDeclarations.length > 0 && hasTrivialTopLevel) {
+    if (functionBodies.length > 0 && hasTrivialTopLevel) {
+      // Has function bodies (including arrow functions) + trivial top-level code
+      // Process the first function's body to show the algorithm logic
+      statements = functionBodies[0];
+    } else if (functionDeclarations.length > 0 && hasTrivialTopLevel) {
       // Has function declarations + trivial top-level code (like function calls)
       // Process the first function's body to show the algorithm logic
       // @ts-ignore
