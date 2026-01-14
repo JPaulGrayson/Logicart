@@ -5,28 +5,36 @@ import { transform } from 'sucrase';
 import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
 
 /**
- * Strips TypeScript syntax from code using sucrase transpiler.
- * Converts TypeScript/TSX to plain JavaScript safely.
+ * Strips TypeScript and JSX syntax from code using sucrase transpiler.
+ * Converts TypeScript/TSX/JSX to plain JavaScript safely.
  */
-function stripTypeScript(code: string): string {
+function stripTypeScriptAndJSX(code: string): string {
   // Check if code contains TypeScript syntax
   const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
     /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
     /import\s+type\s+/.test(code);
   
-  if (!hasTypeScript) {
+  // Check if code contains JSX syntax (tags like <Component or <div)
+  const hasJSX = /<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(code) || 
+    /<\/[A-Za-z]/.test(code) ||
+    /<>/.test(code);
+  
+  // If neither TypeScript nor JSX, return as-is
+  if (!hasTypeScript && !hasJSX) {
     return code;
   }
   
   try {
-    // Use sucrase to transpile TypeScript/TSX to JavaScript
+    // Use sucrase to transpile TypeScript/TSX/JSX to JavaScript
     const result = transform(code, {
       transforms: ['typescript', 'jsx'],
       disableESTransforms: true,
     });
+    console.log('[Parser] Sucrase transform succeeded, hasTS:', hasTypeScript, 'hasJSX:', hasJSX);
     return result.code;
-  } catch {
+  } catch (e) {
     // If sucrase fails, return original code and let Acorn try
+    console.error('[Parser] Sucrase transform failed:', e);
     return code;
   }
 }
@@ -541,7 +549,7 @@ export function parseCodeToFlow(code: string): FlowData {
     console.log('[Parser] Starting parse, code length:', code.length, 'preview:', code.substring(0, 80));
     
     // Strip TypeScript syntax first, then preprocess React code
-    const tsStripped = stripTypeScript(code);
+    const tsStripped = stripTypeScriptAndJSX(code);
     console.log('[Parser] After stripTypeScript, length:', tsStripped.length);
     
     const processedCode = preprocessReactCode(tsStripped);
