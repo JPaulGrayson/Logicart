@@ -538,15 +538,23 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 
 export function parseCodeToFlow(code: string): FlowData {
   try {
+    console.log('[Parser] Starting parse, code length:', code.length, 'preview:', code.substring(0, 80));
+    
     // Strip TypeScript syntax first, then preprocess React code
     const tsStripped = stripTypeScript(code);
+    console.log('[Parser] After stripTypeScript, length:', tsStripped.length);
+    
     const processedCode = preprocessReactCode(tsStripped);
+    console.log('[Parser] After preprocessReactCode, length:', processedCode.length, 'preview:', processedCode.substring(0, 80));
     
     let ast;
     try {
       ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
-    } catch {
+      console.log('[Parser] Acorn parse succeeded (module mode)');
+    } catch (moduleError) {
+      console.log('[Parser] Module parse failed, trying script:', (moduleError as Error).message);
       ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+      console.log('[Parser] Acorn parse succeeded (script mode)');
     }
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
@@ -558,6 +566,7 @@ export function parseCodeToFlow(code: string): FlowData {
     
     // Detect sections from comment markers (or auto-detect functions) - use processed code
     const sections = detectSections(processedCode, ast);
+    console.log('[Parser] Detected sections:', sections.length, sections.map(s => s.name));
     const containerNodes: Map<string, FlowNode> = new Map();
     
     // Create container nodes for each section
@@ -1402,19 +1411,10 @@ export function parseCodeToFlow(code: string): FlowData {
     };
 
   } catch (e) {
-    // Silently handle expected parse errors during typing (incomplete code)
-    // Only log unexpected errors for debugging
+    // Log ALL parse errors for debugging remote code issues
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-    const isExpectedTypingError = 
-      errorMessage.includes('Unterminated') ||
-      errorMessage.includes('Unexpected token') ||
-      errorMessage.includes('Unexpected end of input') ||
-      errorMessage.includes('missing )') ||
-      errorMessage.includes('missing }');
-    
-    if (!isExpectedTypingError) {
-      console.error('Parse error:', e);
-    }
+    console.error('[Parser] PARSE FAILED:', errorMessage);
+    console.error('[Parser] Full error:', e);
     
     return {
       nodes: [{
