@@ -608,17 +608,68 @@ export function parseCodeToFlow(code: string): FlowData {
             return false;
           };
           
+          // Handle destructuring patterns (ArrayPattern, ObjectPattern) common in React hooks
+          const getElementName = (el: any): string => {
+            if (!el) return '_';
+            if (el.type === 'Identifier') return el.name;
+            if (el.type === 'RestElement') {
+              return `...${el.argument?.name || 'rest'}`;
+            }
+            if (el.type === 'AssignmentPattern') {
+              // Handle default values: [a = 1] or { x = 5 }
+              return el.left?.name || '_';
+            }
+            return '_';
+          };
+          
+          const getPropertyName = (prop: any): string => {
+            if (!prop) return '_';
+            if (prop.type === 'RestElement') {
+              return `...${prop.argument?.name || 'rest'}`;
+            }
+            // Handle aliasing: { originalName: aliasName }
+            const keyName = prop.key?.name || prop.key?.value || '_';
+            if (prop.value?.type === 'AssignmentPattern') {
+              // Default value: { x = 5 }
+              return keyName;
+            }
+            if (prop.value?.type === 'Identifier' && prop.value.name !== keyName) {
+              // Alias: { original: alias }
+              return `${keyName}: ${prop.value.name}`;
+            }
+            return keyName;
+          };
+          
+          let varName: string;
+          if (decl.id.type === 'Identifier') {
+            varName = decl.id.name;
+          } else if (decl.id.type === 'ArrayPattern') {
+            // Extract names from array destructuring: const [a, b, ...rest] = ...
+            const names = decl.id.elements
+              ?.map(getElementName)
+              .join(', ') || '...';
+            varName = `[${names}]`;
+          } else if (decl.id.type === 'ObjectPattern') {
+            // Extract names from object destructuring: const { a, b, ...rest } = ...
+            const names = decl.id.properties
+              ?.map(getPropertyName)
+              .join(', ') || '...';
+            varName = `{ ${names} }`;
+          } else {
+            varName = 'variable';
+          }
+          
           if (decl.init && isFunctionLike(decl.init)) {
             // This is a nested function declaration (arrow function inside another function)
             // Show it as a single node - don't inline its body
-            const label = `${stmt.kind} ${decl.id.name} = () => {...}`;
+            const label = `${stmt.kind} ${varName} = () => {...}`;
             const node = createNode(stmt, label, 'default', undefined, loc);
             nodes.push(node);
             edges.push(createEdge(currentParent, node.id));
             currentParent = node.id;
           } else {
             // Regular variable declaration
-            const label = `${stmt.kind} ${decl.id.name} = ...`;
+            const label = `${stmt.kind} ${varName} = ...`;
             const node = createNode(stmt, label, 'default', undefined, loc);
             nodes.push(node);
             edges.push(createEdge(currentParent, node.id));

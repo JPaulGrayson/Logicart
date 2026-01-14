@@ -19,7 +19,7 @@ Wait for your agent to finish building the app before moving to Step 2.
 **After** your app is working, use this separate prompt:
 
 ```
-Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic.
+Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic AND view the full project architecture.
 
 STEP 1: Add script tag to client/index.html <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
@@ -49,26 +49,44 @@ STEP 3: Scan my project. List all .tsx/.ts/.jsx/.js files in:
 - client/src/features/
 Show me the file list before proceeding.
 
-STEP 4: Create a FlowchartButton component with a dropdown of the files from step 3.
-When user selects a component:
+STEP 4: Create a FlowchartButton component with:
+- "View Full Architecture" option at the top (calls LogicArt.openArchitecture)
+- Dropdown of individual files from step 3 (calls LogicArt.visualize)
+
+When user clicks "View Full Architecture":
+  Call: (window.LogiGo || window.LogicArt).openArchitecture(
+    window.location.origin + '/api/source',
+    [/* array of all file paths from step 3 */]
+  )
+
+When user selects a single component:
 1. Fetch the source via: fetch('/api/source/' + component.path)
 2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
 
 STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
 Do NOT create a floating button (gets hidden behind backgrounds).
 
-STEP 6: Test - select a component, LogicArt should open showing its flowchart.
+STEP 6: Test - click "View Full Architecture" to see component dependency graph,
+or select a single component to see its flowchart.
 ```
 
 ---
 
-## Step 3: Click "View Flowchart" in Your App
+## Step 3: Use the Features
 
 Once your agent has added the integration:
+
+### View Full Project Architecture
 1. Run your app (npm run dev)
-2. Click the **"View Flowchart"** button
-3. Select a component from the dropdown
-4. LogicArt opens in a new tab with your component's flowchart!
+2. Click **"Flowchart"** button in your app's header
+3. Click **"View Full Architecture"** at the top
+4. LogicArt opens showing how all your components connect to each other!
+5. Click any component node to drill down into its flowchart
+
+### View Single Component Flowchart
+1. Click **"Flowchart"** button
+2. Select a specific component from the list
+3. LogicArt opens showing that component's control flow (if/else, loops, etc.)
 
 ---
 
@@ -113,6 +131,10 @@ Now when you use your app, you'll see the flowchart light up in real-time!
 **API returns 404?**
 - File path might be wrong (client/src/... vs src/...)
 - Ask your agent to verify the file paths in the component list
+
+**Architecture view shows 0 components?**
+- Make sure the ALL_FILES array contains valid file paths
+- Check that /api/source endpoint can access all listed files
 
 **Flowchart shows too many nodes (framework code)?**
 - Make sure you're using mode=push in the LogicArt script URL

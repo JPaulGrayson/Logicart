@@ -1,5 +1,3 @@
 {
-  "code": "export const App = () => {\n  return <div><Header title=\"Hello\" /><Content /></div>;\n  };",
-  "nodes": [],
-  "edges": []
+  "code": "function Demo() {\n    const [first, second, ...rest] = getData();\n    const { name, age, ...others } = getUser();\n    \n    return first + name;\n  }"
 }
