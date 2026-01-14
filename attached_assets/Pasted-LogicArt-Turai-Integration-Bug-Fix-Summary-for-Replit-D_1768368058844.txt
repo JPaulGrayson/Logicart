@@ -1,0 +1,81 @@
+LogicArt + Turai Integration: Bug Fix Summary for Replit
+Date: January 13, 2026
+Issue: Flowchart not updating when remote code is sent from embedded apps (Turai, etc.)
+
+🔍 Root Cause Identified
+Two separate issues were causing the flowchart to show "GLOBAL FLOW" or stale content:
+
+Turai was sending bundled Vite code instead of clean TypeScript source files
+
+The FlowchartButton was fetching the Vite-transformed JavaScript bundle (full of HMR runtime code)
+LogicArt's parser couldn't extract meaningful function structure from bundled code
+LogicArt's Ghost Diff snapshot wasn't being cleared when remote code arrived
+
+When switching from an example (like Bubble Sort) to remote code, the old snapshot persisted in sessionStorage
+This caused stale state comparisons that interfered with flowchart rendering
+✅ Fixes Applied
+LogicArt Repository (commit 8b75115)
+Pull command: git pull origin main
+
+File	Change
+
+client/src/pages/Workbench.tsx
+Clear Ghost Diff state (
+
+clearOriginalSnapshot()
+, setDiffNodes([]), setShowDiff(false)) when remote code arrives via SSE code_update, session_info, or initial session fetch
+
+docs/bridge/src/parser.ts
+Handle array/object destructuring patterns in variable declarations (e.g., const [a, b] = useState())
+
+docs/bridge/src/parser.ts
+Detect transpiled JSX (React.createElement(), _jsx()) in addition to raw JSX
+Turai Repository (commits 3f584f1, 032405c)
+Pull command: git pull origin main
+
+File	Change
+
+server/routes.ts
+Added /api/source/* endpoint to serve clean TypeScript source files from client/src/
+client/src/components/shared/FlowchartButton.tsx	NEW - Dropdown component that fetches clean source via /api/source/* and sends to LogicArt
+client/src/components/shared/SharedNavBar.tsx	Updated to use new FlowchartButton component
+🧪 Test Results
+Tested locally with browser automation. Results:
+
+Component	Status	Notes
+/api/source/* endpoint	✅ Works	Returns clean TypeScript source
+LogicArt script loading	✅ Works	Shows "LogiGo Studio connected!" in console
+LogicArt.visualize() call	✅ Works	Returns success: true
+Flowchart updates	❌ Fails	Still shows old content (because production https://logic.art doesn't have the fix yet)
+Turai UI	❌ Crashes	Separate issue: React hook error at App.tsx:155
+📋 Steps for Replit
+To deploy the fix:
+
+Pull LogicArt changes:
+
+cd /path/to/LogicArt
+git pull origin main
+Pull Turai changes:
+
+cd /path/to/Turai-v1
+git pull origin main
+Restart both applications
+
+Test:
+
+Open Turai in browser
+Click the purple "Flowchart" button in the navbar
+Select a component from the dropdown (e.g., "Explorer (Home)")
+Verify LogicArt opens and shows the actual function structure (not "GLOBAL FLOW")
+⚠️ Known Separate Issue
+Turai UI is crashing with Invalid hook call at App.tsx:155. This prevents the FlowchartButton from being visible. This appears to be a pre-existing issue unrelated to the LogicArt integration but needs to be fixed for testing.
+
+💡 Technical Notes
+The key fix in LogicArt is in Workbench.tsx around lines 455, 503, and 527:
+
+// When remote code arrives, clear stale Ghost Diff state BEFORE parsing
+clearOriginalSnapshot();
+setDiffNodes([]);
+setShowDiff(false);
+adapter.writeFile(info.code);
+This ensures each new remote code session starts with a clean slate, preventing the parser from being influenced by previously loaded examples.
