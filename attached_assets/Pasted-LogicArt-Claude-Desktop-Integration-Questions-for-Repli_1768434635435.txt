@@ -1,0 +1,205 @@
+LogicArt + Claude Desktop Integration - Questions for Replit
+Context: We're implementing Claude Desktop integration for LogicArt so users can visualize code flowcharts directly from Claude conversations. The goal is "zero-code" setup (or as close as possible).
+What we have: Full access to the LogicArt codebase via GitHub. The MCP server code exists in server/mcp.ts with 7 tools already built.
+
+Section 1: Hosted Infrastructure
+Q1.1: MCP Endpoint URL
+The code references process.env.LOGICART_URL || "http://localhost:5001" for the MCP server.
+
+What is the production URL for LogicArt? (e.g., https://logic.art, https://logicart.replit.app, etc.)
+Is the MCP SSE endpoint deployed and accessible? The code expects it at /api/mcp/sse
+If not deployed, what's needed to enable it?
+
+Q1.2: CORS Configuration
+For Claude Desktop to connect to the hosted MCP server:
+
+Are CORS headers configured to allow connections from Claude Desktop?
+What origin does Claude Desktop use? (We may need to whitelist it)
+
+Q1.3: Environment Variables
+
+Is LOGICART_URL set in production? This affects the visualize_flow tool's generated URLs.
+
+
+Section 2: Current MCP Implementation Status
+Q2.1: Routes Registration
+Looking at server/routes.ts, I need to confirm:
+
+Are these MCP routes registered and active in production?
+
+typescript  app.get('/api/mcp/sse', handleMCPSSE);
+  app.post('/api/mcp/messages', handleMCPMessage);
+Q2.2: Testing the Endpoint
+
+Can you test if https://[YOUR_DOMAIN]/api/mcp/sse responds?
+Expected behavior: Should return SSE headers and keep connection open
+
+Q2.3: Tool Availability
+The following MCP tools are defined in server/mcp.ts:
+ToolPurposeanalyze_codeReturns flowchart structureget_complexityComplexity scoringexplain_flowNatural language explanationfind_branchesLists conditionalscount_pathsEstimates execution pathsdisplay_auditDetects duplicate render pathsvisualize_flowOpens browser with flowchart
+Are all these working in production?
+
+Section 3: The visualize_flow Tool
+This is the key tool for Claude integration. It currently:
+
+Encodes code as a URL parameter
+Opens ${baseUrl}/?code=${encodedCode}&autorun=true
+Uses exec() to launch browser (works locally, but...)
+
+Q3.1: Browser Opening in Production
+
+The openBrowser() function uses shell commands (open, start, xdg-open)
+This won't work from a hosted server - the browser needs to open on the USER's machine, not the server
+
+Proposed Solution: Instead of opening the browser server-side, return a URL that Claude can present to the user:
+typescriptcase "visualize_flow": {
+  const encodedCode = encodeURIComponent(code);
+  const baseUrl = process.env.LOGICART_URL || "https://logic.art";
+  const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        action: "open_url",
+        url: visualizerUrl,
+        message: "Click to view interactive flowchart"
+      })
+    }]
+  };
+}
+Does this approach work for your architecture?
+Q3.2: URL Length Limits
+
+Code embedded in URLs can hit length limits (~2000 chars for some browsers)
+Do you have a /api/share or session endpoint that stores code and returns a short URL?
+Looking at the codebase, I see references to sharing functionality
+
+
+Section 4: Missing Features for Full Integration
+Based on Gemini's "Companion HUD" architecture, we identified these gaps:
+Q4.1: File Watching / Hot Reload
+Feature: When Claude edits a file, the LogicArt flowchart auto-updates.
+Current state: The web UI has file sync (chokidar), but it's not exposed via MCP.
+Proposed MCP tool:
+typescript{
+  name: "watch_project",
+  description: "Start watching a project directory for changes. Updates will be pushed via SSE.",
+  inputSchema: {
+    properties: {
+      projectPath: { type: "string" },
+      sessionId: { type: "string" }
+    }
+  }
+}
+Is this feasible with your current architecture?
+Q4.2: Push Updates to Browser
+Feature: When Claude runs display_audit, the results appear as overlays in the open LogicArt browser window.
+This requires:
+
+Browser has an open SSE connection to LogicArt
+MCP tool triggers a broadcast to that connection
+Browser renders the overlay
+
+Do you have SSE broadcast infrastructure for browser clients?
+Q4.3: Session Management
+Feature: Link a Claude conversation to a LogicArt session so multiple tool calls share context.
+Questions:
+
+Does LogicArt have session/workspace concepts?
+Can we associate a session ID with multiple code analyses?
+
+
+Section 5: Claude Desktop Configuration
+Q5.1: MCP Server Format
+Claude Desktop expects MCP servers in this format (based on public docs):
+json{
+  "mcpServers": {
+    "logicart": {
+      "command": "npx",
+      "args": ["-y", "logicart-mcp"]
+    }
+  }
+}
+OR for remote SSE:
+json{
+  "mcpServers": {
+    "logicart": {
+      "transport": "sse",
+      "url": "https://logic.art/api/mcp/sse"
+    }
+  }
+}
+Which approach should we target?
+
+Option A: NPM package that runs locally (more features, requires install)
+Option B: Hosted SSE endpoint (zero install, limited to what's deployed)
+
+Q5.2: Authentication
+
+Does the MCP endpoint require authentication?
+Should it? (Rate limiting, abuse prevention)
+
+
+Section 6: Implementation Plan
+Once we have answers, here's the proposed plan:
+Phase 1: Verify & Fix Hosted MCP
+
+Confirm MCP endpoint is deployed and accessible
+Fix visualize_flow to return URL instead of opening browser
+Test from Claude Desktop
+
+Phase 2: Documentation
+
+Create "Claude Desktop Setup" guide
+Add to LogicArt help system
+Create one-liner setup if possible
+
+Phase 3: Enhanced Features (Gemini's HUD)
+
+Add watch_project tool
+Implement SSE broadcast to browser
+Add overlay rendering for audit results
+
+
+Immediate Action Items
+Please provide:
+
+✅ The production URL for LogicArt
+✅ Confirmation that /api/mcp/sse is deployed (or steps to deploy it)
+✅ Whether the visualize_flow browser-opening approach needs to change
+✅ Any authentication requirements
+
+I can prepare code changes as markdown files for you to review/deploy.
+
+Code Snippets Ready to Implement
+Fix 1: Return URL instead of opening browser (for visualize_flow)
+typescript// In server/mcp.ts, replace the visualize_flow case:
+
+case "visualize_flow": {
+  const encodedCode = encodeURIComponent(code);
+  const baseUrl = process.env.LOGICART_URL || "https://logic.art";
+
+  // For very long code, we should use the share endpoint instead
+  if (encodedCode.length > 1500) {
+    // TODO: Call /api/share to create a short URL
+    // For now, truncate with warning
+  }
+
+  const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
+
+  return {
+    content: [{
+      type: "text" as const,
+      text: `🎯 **LogicArt Flowchart Ready**\n\n` +
+            `[Click here to view interactive flowchart](${visualizerUrl})\n\n` +
+            `The flowchart shows:\n` +
+            `- Step-by-step execution controls\n` +
+            `- Variable state tracking\n` +
+            `- Collapsible function containers\n\n` +
+            `*Tip: Use keyboard shortcuts (Space to play, S to step)*`
+    }]
+  };
+}
+
+Looking forward to your responses so we can move forward with implementation!

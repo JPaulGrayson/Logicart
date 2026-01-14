@@ -927,6 +927,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/share', shareRouter);
   app.get('/s/:id', handleShareView);
 
+  // CORS middleware for Agent API endpoints (allows cross-origin requests from any app)
+  app.use('/api/agent', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Agent API - Programmatic code analysis
   app.post("/api/agent/analyze", async (req, res) => {
     try {
