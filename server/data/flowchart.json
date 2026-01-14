@@ -1,3 +1,5 @@
 {
-  "code": "export const Explorer = () => {\n    const [items, setItems] = useState([]);\n    \n    const handleClick = () => {\n      console.log('clicked');\n    };\n    \n    if (loading) return null;\n    \n    for (const item of items) {\n      console.log(item);\n    }\n    \n    return <div onClick={handleClick} />;\n  }"
+  "code": "export const Header = () => {\n    return <nav><Logo /></nav>;\n  };",
+  "nodes": [],
+  "edges": []
 }

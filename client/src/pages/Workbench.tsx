@@ -47,6 +47,8 @@ import { generateBubbleSortSteps, generateQuickSortSteps, generateAStarSteps, ge
 import { useTutorial } from '@/contexts/TutorialContext';
 import { TutorialSidebar } from '@/components/ide/TutorialSidebar';
 import { ComplexityBadge } from '@/components/ui/complexity-badge';
+import { ArchitectureView, type ArchitectureComponent, type ArchitectureConnection } from '@/components/ide/ArchitectureView';
+import { Layers } from 'lucide-react';
 
 // Use sessionStorage for Ghost Diff - persists within browser session
 const STORAGE_KEY = '__logicart_original_snapshot';
@@ -218,6 +220,12 @@ export default function Workbench() {
 
   // Simple View state - shows only code editor + flowchart (no extra controls)
   const [simpleView, setSimpleView] = useState(false);
+  
+  // Architecture View state - shows component dependency graph
+  const [architectureMode, setArchitectureMode] = useState(false);
+  const [architectureComponents, setArchitectureComponents] = useState<ArchitectureComponent[]>([]);
+  const [architectureConnections, setArchitectureConnections] = useState<ArchitectureConnection[]>([]);
+  const [architectureLoading, setArchitectureLoading] = useState(false);
 
   // Layout presets - refs for programmatic resizing
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
@@ -1698,6 +1706,60 @@ export default function Workbench() {
     setShowVisualization(false);
   };
 
+  // Architecture View - fetch component graph from connected app or current code
+  const fetchArchitectureView = useCallback(async () => {
+    setArchitectureLoading(true);
+    try {
+      // Build files map from current code (single file mode for now)
+      const files: Record<string, string> = {};
+      
+      // Use current code as a single file
+      if (code.trim()) {
+        files['current.tsx'] = code;
+      }
+      
+      const response = await fetch('/api/agent/architecture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch architecture');
+      }
+      
+      const data = await response.json();
+      setArchitectureComponents(data.nodes || []);
+      setArchitectureConnections(data.edges || []);
+      setArchitectureMode(true);
+      
+      toast.success(`Found ${data.componentCount} components`);
+    } catch (error) {
+      console.error('Architecture view error:', error);
+      toast.error('Failed to build architecture view');
+    } finally {
+      setArchitectureLoading(false);
+    }
+  }, [code]);
+
+  // Handle clicking a component in architecture view - switch to its flowchart
+  const handleArchitectureComponentClick = useCallback((component: ArchitectureComponent) => {
+    // Load the component's code into the editor
+    historyManager.push(component.code, `View ${component.label}`, true);
+    adapter.writeFile(component.code);
+    saveToFile({ code: component.code, nodes: [], edges: [] });
+    setCanUndo(historyManager.canUndo());
+    setCanRedo(historyManager.canRedo());
+    
+    // Switch back to flowchart view
+    setArchitectureMode(false);
+    toast.success(`Viewing ${component.label}`);
+  }, [adapter, saveToFile]);
+
+  const handleCloseArchitecture = useCallback(() => {
+    setArchitectureMode(false);
+  }, []);
+
   // Handle cell click in pathfinding grid for setting start/end/walls
   const handleGridCellClick = (node: { x: number; y: number }) => {
     if (!gridEditMode || activeVisualizer !== 'pathfinding') return;
@@ -3030,6 +3092,19 @@ export default function Workbench() {
                         <span className="text-sm">📡</span> Remote Mode
                       </Button>
                     </Link>
+                    
+                    {/* Architecture View */}
+                    <Button
+                      variant={architectureMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={fetchArchitectureView}
+                      disabled={!code.trim() || architectureLoading}
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      data-testid="button-architecture-view"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      {architectureLoading ? 'Scanning...' : 'Architecture View'}
+                    </Button>
                   </div>
 
                   {/* Compact Layout, Views & History Row */}
@@ -3348,7 +3423,14 @@ export default function Workbench() {
           {/* Right Panel - Flowchart Canvas (Maximized) */}
           <ResizablePanel ref={flowchartPanelRef} defaultSize={70} minSize={0} collapsible>
             <div id="flow-viewport" className="h-full w-full overflow-hidden relative">
-              {isParsing ? (
+              {architectureMode ? (
+                <ArchitectureView
+                  components={architectureComponents}
+                  connections={architectureConnections}
+                  onComponentClick={handleArchitectureComponentClick}
+                  onClose={handleCloseArchitecture}
+                />
+              ) : isParsing ? (
                 <FlowchartSkeleton />
               ) : !code.trim() || flowData.nodes.length === 0 ? (
                 <EmptyState onLoadSample={handleLoadSample} onLoadCode={handleCodeChange} />
@@ -3669,7 +3751,14 @@ ${code}
         <div className="fixed inset-0 z-50 bg-background">
           {/* Fullscreen Flowchart */}
           <div className="h-full w-full" ref={flowchartContainerRef}>
-            {isParsing ? (
+            {architectureMode ? (
+              <ArchitectureView
+                components={architectureComponents}
+                connections={architectureConnections}
+                onComponentClick={handleArchitectureComponentClick}
+                onClose={handleCloseArchitecture}
+              />
+            ) : isParsing ? (
               <FlowchartSkeleton />
             ) : !code.trim() || flowData.nodes.length === 0 ? (
               <EmptyState onLoadSample={handleLoadSample} onLoadCode={handleCodeChange} />

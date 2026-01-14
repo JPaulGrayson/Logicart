@@ -968,6 +968,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Architecture View - Component dependency graph
+  app.post("/api/agent/architecture", async (req, res) => {
+    try {
+      const { files } = req.body;
+
+      if (!files || typeof files !== 'object') {
+        return res.status(400).json({ error: "Files object is required (path -> content mapping)" });
+      }
+
+      // Parse each file to find components and their dependencies
+      const components: Map<string, { 
+        name: string; 
+        filePath: string;
+        code: string;
+        type: 'function' | 'class' | 'arrow';
+        exports: boolean;
+        dependencies: string[];
+        lineCount: number;
+      }> = new Map();
+
+      // Use regex-based extraction to avoid position mismatches between original and processed code
+      const extractComponents = (code: string, filePath: string) => {
+        const results: typeof components extends Map<string, infer V> ? V[] : never = [];
+        
+        // Match component patterns using regex on original code
+        // Patterns: export const Name = () => {}, export function Name() {}, const Name = () => {}
+        const componentPatterns = [
+          // export const ComponentName = () => { ... } or export const ComponentName = function() { ... }
+          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*\{/g,
+          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*function/g,
+          // export function ComponentName() { ... }
+          /export\s+function\s+([A-Z][a-zA-Z0-9]*)\s*\(/g,
+          // const ComponentName = () => { ... }
+          /(?:^|\n)\s*const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*\{/g,
+          // function ComponentName() { ... }
+          /(?:^|\n)\s*function\s+([A-Z][a-zA-Z0-9]*)\s*\(/g,
+          // HOC patterns: export const ComponentName = memo(() => { ... })
+          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:memo|forwardRef|observer)\s*\(/g,
+        ];
+        
+        const foundComponents = new Set<string>();
+        
+        for (const pattern of componentPatterns) {
+          let match;
+          while ((match = pattern.exec(code)) !== null) {
+            foundComponents.add(match[1]);
+          }
+        }
+        
+        // For each found component, extract its code block and dependencies
+        for (const name of foundComponents) {
+          // Find the component definition in original code
+          const defPattern = new RegExp(
+            `(export\\s+)?(const|function)\\s+${name}\\s*=?\\s*(?:\\([^)]*\\)|[a-zA-Z_$][a-zA-Z0-9_$]*)?\\s*(?:=>)?\\s*(?:function\\s*)?(?:\\([^)]*\\))?\\s*\\{`,
+            'g'
+          );
+          
+          const defMatch = defPattern.exec(code);
+          if (defMatch) {
+            const startPos = defMatch.index;
+            // Find the matching closing brace
+            let braceCount = 0;
+            let endPos = defMatch.index + defMatch[0].length;
+            let inString = false;
+            let stringChar = '';
+            
+            for (let i = defMatch.index + defMatch[0].length - 1; i < code.length; i++) {
+              const char = code[i];
+              
+              if (inString) {
+                if (char === stringChar && code[i - 1] !== '\\') {
+                  inString = false;
+                }
+                continue;
+              }
+              
+              if (char === '"' || char === "'" || char === '`') {
+                inString = true;
+                stringChar = char;
+                continue;
+              }
+              
+              if (char === '{') braceCount++;
+              if (char === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                  endPos = i + 1;
+                  break;
+                }
+              }
+            }
+            
+            // Look for semicolon after closing brace
+            if (code[endPos] === ';') endPos++;
+            
+            const componentCode = code.slice(startPos, endPos);
+            const lineCount = componentCode.split('\n').length;
+            
+            // Find JSX dependencies in this component's code
+            const deps: string[] = [];
+            const jsxPattern = /<([A-Z][a-zA-Z0-9]*)/g;
+            let jsxMatch;
+            while ((jsxMatch = jsxPattern.exec(componentCode)) !== null) {
+              if (jsxMatch[1] !== name) { // Don't include self-references
+                deps.push(jsxMatch[1]);
+              }
+            }
+            
+            results.push({
+              name,
+              filePath,
+              code: componentCode,
+              type: defMatch[2] === 'function' ? 'function' : 'arrow',
+              exports: !!defMatch[1],
+              dependencies: [...new Set(deps)],
+              lineCount
+            });
+          }
+        }
+        
+        return results;
+      };
+
+      // Process each file
+      for (const [filePath, content] of Object.entries(files)) {
+        if (typeof content === 'string') {
+          const fileComponents = extractComponents(content, filePath);
+          for (const comp of fileComponents) {
+            components.set(comp.name, comp);
+          }
+        }
+      }
+
+      // Build graph nodes and edges
+      const nodes = Array.from(components.values()).map(comp => ({
+        id: comp.name,
+        label: comp.name,
+        filePath: comp.filePath,
+        type: comp.type,
+        exports: comp.exports,
+        lineCount: comp.lineCount,
+        code: comp.code
+      }));
+
+      const edges: { source: string; target: string }[] = [];
+      for (const comp of components.values()) {
+        for (const dep of comp.dependencies) {
+          if (components.has(dep)) {
+            edges.push({ source: comp.name, target: dep });
+          }
+        }
+      }
+
+      res.json({
+        nodes,
+        edges,
+        componentCount: nodes.length,
+        connectionCount: edges.length
+      });
+    } catch (error) {
+      console.error("[Agent API] Error building architecture:", error);
+      res.status(500).json({ error: "Failed to build architecture view" });
+    }
+  });
+
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
     try {
