@@ -1,0 +1,117 @@
+This is a classic "silent failure" pattern in state-driven UI tools. Based on your description, the issue is almost certainly one of two things: **AST Parsing Compatibility** (most likely) or a **React State Race Condition**.
+
+Here is the breakdown of why this is happening and how to fix it for LogicArt.
+
+### The Smoking Gun: TypeScript & JSX vs. Acorn
+
+You mentioned:
+
+> *Remote Code: `QAModal` React component with TypeScript*
+> *Parser: Acorn AST parser*
+
+**This is the mostly likely cause.**
+Standard `acorn` chokes immediately on **JSX tags** (`<div...`) and **TypeScript type assertions** (`: string`, `interface`). It does not support them out of the box.
+
+If your `parser.ts` has a `try/catch` block (which it should, to prevent app crashes), it is likely catching the syntax error, failing silently, and returning the default "GLOBAL FLOW" / "Start" node structure. The "Bubble Sort" example works because it is likely pure JS or simple syntax that Acorn can tolerate.
+
+#### How to verify (The "Debug Probe"):
+
+Go to `docs/bridge/src/parser.ts` (or wherever the `parse()` function is) and find the `try/catch` block. Add a log specifically for the error:
+
+```typescript
+// In your parser logic
+try {
+  const ast = acorn.parse(code, { ecmaVersion: 2020 });
+  // ... logic to build flow
+} catch (error) {
+  console.error("🔥 PARSER CRASHED ON REMOTE CODE:", error); 
+  // I bet this prints "Unexpected token" pointing to a < or :
+  return getDefaultFlow(); 
+}
+
+```
+
+#### The Fix: Switch to Babel Parser
+
+For a tool like LogicArt that needs to visualize modern web code, Acorn is too strict. Switch to `@babel/parser` which handles TS and JSX natively with plugins.
+
+```typescript
+// Replace acorn with this:
+import { parse } from '@babel/parser';
+
+const ast = parse(code, {
+  sourceType: 'module',
+  plugins: ['jsx', 'typescript', 'classProperties'] // logicart needs these!
+});
+
+```
+
+---
+
+### Suspect #2: The State "Staleness" Trap
+
+If the parser isn't crashing, look at **Line 172** in `Workbench.tsx`.
+
+You wrote:
+
+```typescript
+const unsubscribe = adapter.subscribe((newCode) => {
+  setCode(newCode); // 1. Triggers a state update (ASYNC!)
+  
+  // 2. PARSING LOGIC HERE
+  // If your parsing logic looks like this: parse(code) 
+  // It is using the OLD 'code' state, not the 'newCode' that just arrived.
+});
+
+```
+
+React state updates (`setCode`) are not immediate. If you run the parser in the very next line using the variable `code`, it sees the *previous* state.
+
+**The Fix:**
+Ensure you pass the **argument** `newCode` directly to your parser, not the state variable.
+
+```typescript
+const unsubscribe = adapter.subscribe((newCode) => {
+  setCode(newCode); 
+  
+  // CORRECT:
+  const newFlow = parseCodeToFlow(newCode); 
+  setFlowData(newFlow);
+
+  // WRONG (Do not do this):
+  // const newFlow = parseCodeToFlow(code); <--- 'code' is still old here!
+});
+
+```
+
+### Suspect #3: The `useEffect` Conflict
+
+If your parsing logic is actually inside a *separate* `useEffect`:
+
+```typescript
+useEffect(() => {
+  if (code) parseAndRender(code);
+}, [code]);
+
+```
+
+And you *also* have logic inside the `adapter.subscribe` that tries to force things, they might be fighting.
+
+However, since you added:
+
+```typescript
+setCurrentAlgorithm(null); // This triggers a re-render
+setActiveVisualizer(null); // This triggers a re-render
+
+```
+
+React batches these updates. If `currentAlgorithm` is `null`, your renderer *should* be looking at `flowData`. If `flowData` is the "Global Flow", we go back to **Suspect #1 (Parser Failure)**.
+
+### Summary Checklist for You
+
+1. **Check the Console:** Look for "Unexpected token" errors.
+2. **Verify Parser Inputs:** In the subscribe callback, `console.log('Parsing:', newCode.substring(0, 50))`. If it logs the correct QAModal code, the data is arriving fine.
+3. **The "Global Flow" Origin:** Find exactly where in your code the "GLOBAL FLOW" node is defined. Trace back who returns that. It is almost certainly the `catch` block of your parser.
+
+**Next Step:**
+Would you like me to write a `@babel/parser` implementation for `parser.ts` that safely handles the TypeScript/React code you are sending?

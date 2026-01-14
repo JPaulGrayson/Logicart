@@ -285,12 +285,35 @@ function detectSections(code: string, ast?: any): CodeSection[] {
     const functionDeclarations: CodeSection[] = [];
     
     ast.body.forEach((node: any) => {
+      // Handle direct function declarations
       if (node.type === 'FunctionDeclaration' && node.id && node.loc) {
         functionDeclarations.push({
           name: node.id.name,
           startLine: node.loc.start.line,
           endLine: node.loc.end.line
         });
+      }
+      // Handle exported functions: export function QAModal() { ... }
+      else if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+        const decl = node.declaration;
+        if (decl.type === 'FunctionDeclaration' && decl.id && decl.loc) {
+          functionDeclarations.push({
+            name: decl.id.name,
+            startLine: decl.loc.start.line,
+            endLine: decl.loc.end.line
+          });
+        }
+      }
+      // Handle default exports: export default function QAModal() { ... }
+      else if (node.type === 'ExportDefaultDeclaration' && node.declaration) {
+        const decl = node.declaration;
+        if (decl.type === 'FunctionDeclaration' && decl.loc) {
+          functionDeclarations.push({
+            name: decl.id?.name || 'default',
+            startLine: decl.loc.start.line,
+            endLine: decl.loc.end.line
+          });
+        }
       }
     });
     
