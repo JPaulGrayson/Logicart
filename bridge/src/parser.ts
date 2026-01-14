@@ -1,7 +1,42 @@
 import * as acorn from 'acorn';
 import dagre from 'dagre';
+import { transform } from 'sucrase';
 
 import { SourceLocation, FlowNode, FlowEdge, FlowData } from './types';
+
+/**
+ * Strips TypeScript and JSX syntax from code using sucrase transpiler.
+ * Converts TypeScript/TSX/JSX to plain JavaScript safely.
+ */
+function stripTypeScriptAndJSX(code: string): string {
+  // Check if code contains TypeScript syntax
+  const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
+    /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
+    /import\s+type\s+/.test(code);
+  
+  // Check if code contains JSX syntax (tags like <Component or <div)
+  const hasJSX = /<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(code) || 
+    /<\/[A-Za-z]/.test(code) ||
+    /<>/.test(code);
+  
+  // If neither TypeScript nor JSX, return as-is
+  if (!hasTypeScript && !hasJSX) {
+    return code;
+  }
+  
+  try {
+    // Use sucrase to transpile TypeScript/TSX/JSX to JavaScript
+    const result = transform(code, {
+      transforms: ['typescript', 'jsx'],
+      disableESTransforms: true,
+    });
+    return result.code;
+  } catch (e) {
+    // If sucrase fails, return original code and let Acorn try
+    console.error('[Parser] Sucrase transform failed:', e);
+    return code;
+  }
+}
 
 // Helper to detect section comments (e.g., // --- AUTH LOGIC ---)
 interface CodeSection {
@@ -74,12 +109,35 @@ function detectSections(code: string, ast?: any): CodeSection[] {
     const functionDeclarations: CodeSection[] = [];
     
     ast.body.forEach((node: any) => {
+      // Handle direct function declarations
       if (node.type === 'FunctionDeclaration' && node.id && node.loc) {
         functionDeclarations.push({
           name: node.id.name,
           startLine: node.loc.start.line,
           endLine: node.loc.end.line
         });
+      }
+      // Handle exported functions: export function QAModal() { ... }
+      else if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+        const decl = node.declaration;
+        if (decl.type === 'FunctionDeclaration' && decl.id && decl.loc) {
+          functionDeclarations.push({
+            name: decl.id.name,
+            startLine: decl.loc.start.line,
+            endLine: decl.loc.end.line
+          });
+        }
+      }
+      // Handle default exports: export default function QAModal() { ... }
+      else if (node.type === 'ExportDefaultDeclaration' && node.declaration) {
+        const decl = node.declaration;
+        if (decl.type === 'FunctionDeclaration' && decl.loc) {
+          functionDeclarations.push({
+            name: decl.id?.name || 'default',
+            startLine: decl.loc.start.line,
+            endLine: decl.loc.end.line
+          });
+        }
       }
     });
     
@@ -304,22 +362,25 @@ function applyHorizontalContainerLayout(containers: FlowNode[], flowNodes: FlowN
 
 export function parseCodeToFlow(code: string): FlowData {
   try {
+    // Strip TypeScript and JSX syntax before parsing
+    const processedCode = stripTypeScriptAndJSX(code);
+    
     let ast;
     try {
-      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
+      ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'module' });
     } catch {
-      ast = acorn.parse(code, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
+      ast = acorn.parse(processedCode, { ecmaVersion: 2020, locations: true, sourceType: 'script' });
     }
     const nodes: FlowNode[] = [];
     const edges: FlowEdge[] = [];
     const nodeMap = new Map<string, string>();
     let nodeIdCounter = 0;
 
-    // Detect user-defined labels from // @logigo: comments
-    const userLabels = detectUserLabels(code);
+    // Detect user-defined labels from // @logigo: comments (use processed code)
+    const userLabels = detectUserLabels(processedCode);
     
     // Detect sections from comment markers (or auto-detect functions)
-    const sections = detectSections(code, ast);
+    const sections = detectSections(processedCode, ast);
     const containerNodes: Map<string, FlowNode> = new Map();
     
     // Create container nodes for each section
@@ -359,7 +420,7 @@ export function parseCodeToFlow(code: string): FlowData {
     }
 
     // Helper to extract source code snippet from location
-    const codeLines = code.split('\n');
+    const codeLines = processedCode.split('\n');
     const extractSourceSnippet = (loc: SourceLocation | undefined): string | undefined => {
       if (!loc) return undefined;
       try {
