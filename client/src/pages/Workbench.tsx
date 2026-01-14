@@ -452,6 +452,10 @@ export default function Workbench() {
         // Load code into editor if provided
         if (info.code) {
           adapter.writeFile(info.code);
+          // Clear current algorithm so flowchart shows remote code instead of example
+          setCurrentAlgorithm(null);
+          setActiveVisualizer(null);
+          setShowVisualization(false);
           toast.success(`Connected to ${info.name || 'Remote App'}`, {
             description: 'Code loaded and listening for checkpoints'
           });
@@ -491,6 +495,10 @@ export default function Workbench() {
         // If code is updated, reload it
         if (info.code) {
           adapter.writeFile(info.code);
+          // Clear current algorithm so flowchart shows remote code instead of example
+          setCurrentAlgorithm(null);
+          setActiveVisualizer(null);
+          setShowVisualization(false);
         }
       });
 
@@ -502,10 +510,14 @@ export default function Workbench() {
       });
 
       eventSource.addEventListener('code_update', (e) => {
-        const { code: newCode } = JSON.parse(e.data);
+        const { code: newCode, name } = JSON.parse(e.data);
         if (newCode) {
           adapter.writeFile(newCode);
-          toast.info('Code updated from remote app');
+          // Clear current algorithm so flowchart shows remote code instead of example
+          setCurrentAlgorithm(null);
+          setActiveVisualizer(null);
+          setShowVisualization(false);
+          toast.info(name ? `Loaded: ${name}` : 'Code updated from remote app');
         }
       });
 
