@@ -1,0 +1,69 @@
+LogicArt Repo Sync Review — January 14, 2026
+Status: Local Repository Synced ✅
+Successfully pulled 16 commits from origin/main. Local is now at commit 73ddf5f.
+
+Review Summary
+Area	Status	Details
+Git sync	✅ OK	Local matches origin/main
+Workbench.tsx Ghost Diff fix	✅ OK	
+
+clearOriginalSnapshot()
+ called in 4 places (lines 463, 511, 535, 3059)
+ArchitectureView feature	✅ Added	New component dependency visualization (great addition!)
+Parser improvements by Replit	✅ Good	HOC detection, nested arrow functions, exported functions
+⚠️ One Concern: Parser File Divergence
+There are two parser files in the codebase and they have diverged:
+
+1. Production parser: 
+
+bridge/src/parser.ts
+
+Used by the LogicArt client via 
+
+client/src/lib/parser.ts
+Line ~621: const label = \${stmt.kind} ${decl.id.name} = ...``
+Missing ArrayPattern/ObjectPattern destructuring handling
+2. Docs copy: 
+
+docs/bridge/src/parser.ts
+
+Lines 747-766 have the destructuring fix I added
+The issue: When parsing React hooks like const [count, setCount] = useState(0), the production parser tries to access decl.id.name, but decl.id.type is 'ArrayPattern' (not 'Identifier'), so decl.id.name is undefined.
+
+Impact: Variable declaration labels may show as const undefined = ... instead of const [count, setCount] = ... for destructured variables.
+
+Fix needed: Apply the destructuring pattern logic from 
+
+docs/bridge/src/parser.ts
+ (lines 747-766) to 
+
+bridge/src/parser.ts
+ (around line 619-626):
+
+// Before (bridge/src/parser.ts line 621):
+const label = `${stmt.kind} ${decl.id.name} = ...`;
+// After (from docs/bridge/src/parser.ts lines 747-766):
+let varName: string;
+if (decl.id.type === 'Identifier') {
+  varName = decl.id.name;
+} else if (decl.id.type === 'ArrayPattern') {
+  const names = decl.id.elements
+    ?.map((el: any) => el?.name || '_')
+    .join(', ') || '...';
+  varName = `[${names}]`;
+} else if (decl.id.type === 'ObjectPattern') {
+  const names = decl.id.properties
+    ?.map((prop: any) => prop.key?.name || '_')
+    .join(', ') || '...';
+  varName = `{ ${names} }`;
+} else {
+  varName = 'variable';
+}
+const label = `${stmt.kind} ${varName} = ...`;
+Questions for Discussion
+Should I apply the ArrayPattern fix to 
+
+bridge/src/parser.ts
+, or would you prefer to handle this on Replit's side?
+
+Is there a reason for having two parser files (bridge/src/ and docs/bridge/src/)? Should they be consolidated, or is one intended as a reference/documentation copy?
