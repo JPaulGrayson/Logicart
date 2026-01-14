@@ -1230,6 +1230,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Project Scan - Fetch files from remote source and build architecture
+  app.post("/api/agent/scan-project", async (req, res) => {
+    try {
+      const { sourceUrl, files: filePaths } = req.body;
+
+      if (!sourceUrl || !filePaths || !Array.isArray(filePaths)) {
+        return res.status(400).json({ 
+          error: "Required: sourceUrl (base URL) and files (array of file paths)" 
+        });
+      }
+
+      // Fetch all files from the source URL
+      const files: Record<string, string> = {};
+      const fetchErrors: string[] = [];
+
+      await Promise.all(filePaths.map(async (filePath: string) => {
+        try {
+          const url = `${sourceUrl.replace(/\/$/, '')}/${filePath.replace(/^\//, '')}`;
+          const response = await fetch(url, { 
+            headers: { 'Accept': 'text/plain' },
+            signal: AbortSignal.timeout(5000)
+          });
+          
+          if (response.ok) {
+            const content = await response.text();
+            files[filePath] = content;
+          } else {
+            fetchErrors.push(`${filePath}: ${response.status}`);
+          }
+        } catch (err) {
+          fetchErrors.push(`${filePath}: ${err instanceof Error ? err.message : 'fetch failed'}`);
+        }
+      }));
+
+      if (Object.keys(files).length === 0) {
+        return res.status(400).json({ 
+          error: "No files could be fetched",
+          details: fetchErrors
+        });
+      }
+
+      // Now use the existing architecture extraction logic
+      // Forward to the architecture endpoint internally
+      const archResponse = await fetch(`http://localhost:${process.env.PORT || 5000}/api/agent/architecture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files })
+      });
+
+      const archData = await archResponse.json();
+
+      res.json({
+        ...archData,
+        scannedFiles: Object.keys(files).length,
+        failedFiles: fetchErrors.length > 0 ? fetchErrors : undefined
+      });
+    } catch (error) {
+      console.error("[Agent API] Error scanning project:", error);
+      res.status(500).json({ error: "Failed to scan project" });
+    }
+  });
+
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
     try {

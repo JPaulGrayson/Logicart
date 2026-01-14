@@ -48,7 +48,7 @@ import { useTutorial } from '@/contexts/TutorialContext';
 import { TutorialSidebar } from '@/components/ide/TutorialSidebar';
 import { ComplexityBadge } from '@/components/ui/complexity-badge';
 import { ArchitectureView, type ArchitectureComponent, type ArchitectureConnection } from '@/components/ide/ArchitectureView';
-import { Layers } from 'lucide-react';
+import { Layers, FolderTree } from 'lucide-react';
 
 // Use sessionStorage for Ghost Diff - persists within browser session
 const STORAGE_KEY = '__logicart_original_snapshot';
@@ -226,6 +226,9 @@ export default function Workbench() {
   const [architectureComponents, setArchitectureComponents] = useState<ArchitectureComponent[]>([]);
   const [architectureConnections, setArchitectureConnections] = useState<ArchitectureConnection[]>([]);
   const [architectureLoading, setArchitectureLoading] = useState(false);
+  const [showScanDialog, setShowScanDialog] = useState(false);
+  const [scanSourceUrl, setScanSourceUrl] = useState('');
+  const [scanFilePaths, setScanFilePaths] = useState('');
 
   // Layout presets - refs for programmatic resizing
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
@@ -1760,6 +1763,55 @@ export default function Workbench() {
     setArchitectureMode(false);
   }, []);
 
+  // Scan remote project for architecture view
+  const handleScanProject = useCallback(async () => {
+    if (!scanSourceUrl.trim() || !scanFilePaths.trim()) {
+      toast.error('Please enter both source URL and file paths');
+      return;
+    }
+
+    setArchitectureLoading(true);
+    setShowScanDialog(false);
+
+    try {
+      const files = scanFilePaths
+        .split('\n')
+        .map(f => f.trim())
+        .filter(f => f && !f.startsWith('#'));
+
+      const response = await fetch('/api/agent/scan-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sourceUrl: scanSourceUrl.trim(),
+          files 
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to scan project');
+      }
+
+      const data = await response.json();
+      setArchitectureComponents(data.nodes || []);
+      setArchitectureConnections(data.edges || []);
+      setArchitectureMode(true);
+
+      const failedCount = data.failedFiles?.length || 0;
+      if (failedCount > 0) {
+        toast.success(`Found ${data.componentCount} components (${failedCount} files failed)`);
+      } else {
+        toast.success(`Found ${data.componentCount} components from ${data.scannedFiles} files`);
+      }
+    } catch (error) {
+      console.error('Project scan error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to scan project');
+    } finally {
+      setArchitectureLoading(false);
+    }
+  }, [scanSourceUrl, scanFilePaths]);
+
   // Handle cell click in pathfinding grid for setting start/end/walls
   const handleGridCellClick = (node: { x: number; y: number }) => {
     if (!gridEditMode || activeVisualizer !== 'pathfinding') return;
@@ -3105,6 +3157,19 @@ export default function Workbench() {
                       <Layers className="w-3.5 h-3.5" />
                       {architectureLoading ? 'Scanning...' : 'Architecture View'}
                     </Button>
+                    
+                    {/* Scan Project - for remote projects */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowScanDialog(true)}
+                      disabled={architectureLoading}
+                      className="w-full justify-start gap-2 h-7 text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      data-testid="button-scan-project"
+                    >
+                      <FolderTree className="w-3.5 h-3.5" />
+                      Scan Project
+                    </Button>
                   </div>
 
                   {/* Compact Layout, Views & History Row */}
@@ -3597,6 +3662,63 @@ export default function Workbench() {
 
       {/* Share Dialog */}
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} code={code} />
+
+      {/* Scan Project Dialog */}
+      <Dialog open={showScanDialog} onOpenChange={setShowScanDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderTree className="w-5 h-5" />
+              Scan Remote Project
+            </DialogTitle>
+            <DialogDescription>
+              Enter the source URL and list of files to scan for components.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Source URL</label>
+              <input
+                type="text"
+                placeholder="http://localhost:5000/api/source"
+                value={scanSourceUrl}
+                onChange={(e) => setScanSourceUrl(e.target.value)}
+                className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background"
+                data-testid="input-scan-source-url"
+              />
+              <p className="text-xs text-muted-foreground">
+                Base URL for the source file API (from LogicArt integration)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">File Paths</label>
+              <textarea
+                placeholder={`src/pages/Home.tsx\nsrc/components/Header.tsx\nsrc/components/Footer.tsx\n# Lines starting with # are ignored`}
+                value={scanFilePaths}
+                onChange={(e) => setScanFilePaths(e.target.value)}
+                rows={8}
+                className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background font-mono"
+                data-testid="input-scan-file-paths"
+              />
+              <p className="text-xs text-muted-foreground">
+                One file path per line. Tip: Ask your AI agent for the file list.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScanDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleScanProject}
+              disabled={!scanSourceUrl.trim() || !scanFilePaths.trim()}
+              data-testid="button-start-scan"
+            >
+              Scan Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Debug Pane - Slides in from right */}
       {showDebugPane && (
