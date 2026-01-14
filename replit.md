@@ -60,6 +60,16 @@ LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization to
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Publishing Checklist
+**After making changes to integration features, ALWAYS confirm these are updated before publishing:**
+
+1. **remote.js script** - Served from `/api/remote.js` in `server/routes.ts` (search for `generateRemoteScript`)
+2. **ConnectWizard.tsx** - Help system Integration Wizard prompt at `client/src/components/ide/ConnectWizard.tsx`
+3. **VIBE_CODER_GUIDE.md** - Documentation at `docs/VIBE_CODER_GUIDE.md`
+4. **INTEGRATION_PROMPT.md** - Full prompt at `docs/INTEGRATION_PROMPT.md`
+
+**Tell the user:** "I've updated [list files]. You need to republish the app for changes to take effect."
+
 ## System Architecture
 
 ### UI/UX Decisions
