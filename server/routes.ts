@@ -412,6 +412,69 @@ function parseCodeToGrounding(rawCode: string): GroundingContext {
         }
 
         case 'VariableDeclaration': {
+          // Helper to check if expression is a function
+          const isFunctionLike = (expr: any): any => {
+            if (!expr) return null;
+            if (expr.type === 'ArrowFunctionExpression' || expr.type === 'FunctionExpression') {
+              return expr;
+            }
+            // Handle HOC wrappers: memo(() => {}), forwardRef(() => {}), React.memo(() => {})
+            if (expr.type === 'CallExpression') {
+              const callee = expr.callee;
+              const calleeName = callee.name || (callee.property && callee.property.name);
+              if (['memo', 'forwardRef', 'observer', 'withRouter', 'connect', 'styled', 'createContext'].includes(calleeName)) {
+                // Get the first argument (the actual function)
+                if (expr.arguments && expr.arguments[0]) {
+                  return isFunctionLike(expr.arguments[0]);
+                }
+              }
+            }
+            return null;
+          };
+          
+          // Process all declarators (handles: const Foo = () => {}, Bar = () => {})
+          let lastDeclId = parentId;
+          let foundFunction = false;
+          
+          for (const declarator of node.declarations || []) {
+            if (declarator.init) {
+              const init = declarator.init;
+              const varName = declarator.id?.name || 'anonymous';
+              
+              const funcExpr = isFunctionLike(init);
+              if (funcExpr) {
+                foundFunction = true;
+                // This is a function declaration, process it as a FUNCTION node
+                const id = createNodeId();
+                nodes.push({
+                  id,
+                  type: 'FUNCTION',
+                  label: `function ${varName}`,
+                  snippet: code.slice(declarator.start, Math.min(declarator.start + 50, declarator.end)),
+                  line: declarator.loc?.start?.line || 0
+                });
+                if (lastDeclId) edges.push({ source: lastDeclId, target: id });
+                
+                // Process the function body
+                if (funcExpr.body) {
+                  const bodyStatements = funcExpr.body.type === 'BlockStatement' ? funcExpr.body.body : [funcExpr.body];
+                  let lastId = id;
+                  for (const stmt of bodyStatements) {
+                    const stmtId = processNode(stmt, lastId);
+                    if (stmtId) lastId = stmtId;
+                  }
+                }
+                lastDeclId = id;
+              }
+            }
+          }
+          
+          // If we found function declarations, return the last one
+          if (foundFunction) {
+            return lastDeclId;
+          }
+          
+          // Regular variable declaration (not a function)
           const id = createNodeId();
           const declCode = code.slice(node.start, node.end);
           nodes.push({
