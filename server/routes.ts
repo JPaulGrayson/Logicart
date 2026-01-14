@@ -988,104 +988,201 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lineCount: number;
       }> = new Map();
 
-      // Use regex-based extraction to avoid position mismatches between original and processed code
+      // Robust extraction with support for implicit returns, HOCs, and various patterns
       const extractComponents = (code: string, filePath: string) => {
         const results: typeof components extends Map<string, infer V> ? V[] : never = [];
         
-        // Match component patterns using regex on original code
-        // Patterns: export const Name = () => {}, export function Name() {}, const Name = () => {}
+        // Component detection patterns - handles both braced {} and implicit returns ()
         const componentPatterns = [
-          // export const ComponentName = () => { ... } or export const ComponentName = function() { ... }
-          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*\{/g,
-          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*function/g,
-          // export function ComponentName() { ... }
-          /export\s+function\s+([A-Z][a-zA-Z0-9]*)\s*\(/g,
-          // const ComponentName = () => { ... }
-          /(?:^|\n)\s*const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*\{/g,
-          // function ComponentName() { ... }
-          /(?:^|\n)\s*function\s+([A-Z][a-zA-Z0-9]*)\s*\(/g,
-          // HOC patterns: export const ComponentName = memo(() => { ... })
-          /export\s+const\s+([A-Z][a-zA-Z0-9]*)\s*=\s*(?:memo|forwardRef|observer)\s*\(/g,
+          // export const/let Name = () => { or (
+          /export\s+(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*[{(]/g,
+          // export const/let Name = function
+          /export\s+(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*function/g,
+          // export function Name(
+          /export\s+function\s+([A-Z][a-zA-Z0-9]*)\s*[<(]/g,
+          // const/let Name = () => { or (
+          /(?:^|\n)\s*(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*[{(]/g,
+          // function Name(
+          /(?:^|\n)\s*function\s+([A-Z][a-zA-Z0-9]*)\s*[<(]/g,
+          // HOC patterns: export const Name = memo/forwardRef/observer(
+          /export\s+(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:memo|React\.memo|forwardRef|React\.forwardRef|observer)\s*\(/g,
+          // const Name = memo(
+          /(?:^|\n)\s*(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:memo|React\.memo|forwardRef|React\.forwardRef|observer)\s*\(/g,
+          // export default function Name(
+          /export\s+default\s+function\s+([A-Z][a-zA-Z0-9]*)\s*[<(]/g,
+          // Implicit JSX return: () => <JSX
+          /export\s+(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*</g,
+          /(?:^|\n)\s*(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*</g,
+          // Expression body arrows (ternary, function calls, etc.): () => identifier
+          /export\s+(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*[a-zA-Z_$]/g,
+          /(?:^|\n)\s*(?:const|let)\s+([A-Z][a-zA-Z0-9]*)\s*(?::[^=]+)?\s*=\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*[a-zA-Z_$]/g,
         ];
         
         const foundComponents = new Set<string>();
+        const componentStarts = new Map<string, number>();
         
         for (const pattern of componentPatterns) {
           let match;
           while ((match = pattern.exec(code)) !== null) {
-            foundComponents.add(match[1]);
+            const name = match[1];
+            foundComponents.add(name);
+            if (!componentStarts.has(name) || match.index < componentStarts.get(name)!) {
+              componentStarts.set(name, match.index);
+            }
           }
         }
         
-        // For each found component, extract its code block and dependencies
-        for (const name of foundComponents) {
-          // Find the component definition in original code
-          const defPattern = new RegExp(
-            `(export\\s+)?(const|function)\\s+${name}\\s*=?\\s*(?:\\([^)]*\\)|[a-zA-Z_$][a-zA-Z0-9_$]*)?\\s*(?:=>)?\\s*(?:function\\s*)?(?:\\([^)]*\\))?\\s*\\{`,
-            'g'
-          );
+        // Find the body end - skip parameters and find the actual function body
+        const findBodyEnd = (code: string, startIdx: number): number => {
+          let scanStart: number;
           
-          const defMatch = defPattern.exec(code);
-          if (defMatch) {
-            const startPos = defMatch.index;
-            // Find the matching closing brace
-            let braceCount = 0;
-            let endPos = defMatch.index + defMatch[0].length;
-            let inString = false;
-            let stringChar = '';
+          // First, find the end of the parameter list by matching parens
+          let parenCount = 0;
+          let foundParenStart = false;
+          let parenEnd = startIdx;
+          
+          for (let i = startIdx; i < code.length; i++) {
+            if (code[i] === '(') {
+              parenCount++;
+              foundParenStart = true;
+            } else if (code[i] === ')') {
+              parenCount--;
+              if (foundParenStart && parenCount === 0) {
+                parenEnd = i + 1;
+                break;
+              }
+            }
+          }
+          
+          // Now check if this is an arrow function by looking for => between parenEnd and next significant token
+          // Only look within a small window after the closing paren to avoid matching arrows from other functions
+          const searchWindow = code.slice(parenEnd, Math.min(parenEnd + 50, code.length));
+          const arrowMatch = /^\s*(:\s*[^=>{]+)?\s*=>/.exec(searchWindow);
+          
+          if (arrowMatch) {
+            // Arrow function: start after =>
+            scanStart = parenEnd + arrowMatch[0].length;
+          } else {
+            // Regular function: find the opening { of body after parameters
+            const bodyBrace = code.indexOf('{', parenEnd);
+            scanStart = bodyBrace !== -1 ? bodyBrace : startIdx;
+          }
+          
+          // Skip whitespace to find what comes after =>
+          while (scanStart < code.length && /\s/.test(code[scanStart])) {
+            scanStart++;
+          }
+          
+          // Determine body type based on first non-whitespace character
+          const bodyStart = code[scanStart];
+          let braceCount = 0;
+          let bodyParenCount = 0;
+          let inString = false;
+          let stringChar = '';
+          let endPos = scanStart;
+          
+          // For braced bodies {}, track braces
+          // For parenthesized () or JSX < or expressions (identifier), scan to semicolon/statement end
+          const isBracedBody = bodyStart === '{';
+          
+          for (let i = scanStart; i < code.length; i++) {
+            const char = code[i];
+            const prevChar = code[i - 1] || '';
             
-            for (let i = defMatch.index + defMatch[0].length - 1; i < code.length; i++) {
-              const char = code[i];
-              
-              if (inString) {
-                if (char === stringChar && code[i - 1] !== '\\') {
-                  inString = false;
-                }
-                continue;
+            if (inString) {
+              if (char === stringChar && prevChar !== '\\') inString = false;
+              continue;
+            }
+            
+            if (char === '"' || char === "'" || char === '`') {
+              inString = true;
+              stringChar = char;
+              continue;
+            }
+            
+            if (char === '{') braceCount++;
+            if (char === '}') braceCount--;
+            if (char === '(') bodyParenCount++;
+            if (char === ')') bodyParenCount--;
+            
+            if (isBracedBody) {
+              // For braced body, terminate when braces balance
+              if (braceCount === 0) {
+                endPos = i + 1;
+                break;
               }
-              
-              if (char === '"' || char === "'" || char === '`') {
-                inString = true;
-                stringChar = char;
-                continue;
-              }
-              
-              if (char === '{') braceCount++;
-              if (char === '}') {
-                braceCount--;
-                if (braceCount === 0) {
+            } else {
+              // For expression body (implicit returns), terminate at statement end
+              // Statement ends at: semicolon (when balanced), or newline followed by non-continuation
+              if (braceCount === 0 && bodyParenCount === 0) {
+                if (char === ';') {
                   endPos = i + 1;
                   break;
                 }
+                // Also handle case where expression ends at newline + next statement
+                if (char === '\n') {
+                  // Look ahead to see if next line starts a new statement
+                  let nextNonWs = i + 1;
+                  while (nextNonWs < code.length && (code[nextNonWs] === ' ' || code[nextNonWs] === '\t')) {
+                    nextNonWs++;
+                  }
+                  const nextChar = code[nextNonWs];
+                  // If next line starts with export, const, let, function, //, or is blank line, we're done
+                  if (nextChar === '\n' || 
+                      /^(export|const|let|var|function|\/\/|\/\*|class|import)/.test(code.slice(nextNonWs, nextNonWs + 10))) {
+                    endPos = i;
+                    break;
+                  }
+                }
               }
             }
             
-            // Look for semicolon after closing brace
-            if (code[endPos] === ';') endPos++;
-            
-            const componentCode = code.slice(startPos, endPos);
-            const lineCount = componentCode.split('\n').length;
-            
-            // Find JSX dependencies in this component's code
-            const deps: string[] = [];
-            const jsxPattern = /<([A-Z][a-zA-Z0-9]*)/g;
-            let jsxMatch;
-            while ((jsxMatch = jsxPattern.exec(componentCode)) !== null) {
-              if (jsxMatch[1] !== name) { // Don't include self-references
-                deps.push(jsxMatch[1]);
-              }
-            }
-            
-            results.push({
-              name,
-              filePath,
-              code: componentCode,
-              type: defMatch[2] === 'function' ? 'function' : 'arrow',
-              exports: !!defMatch[1],
-              dependencies: [...new Set(deps)],
-              lineCount
-            });
+            endPos = i + 1;
           }
+          
+          // Include trailing semicolon if present
+          while (endPos < code.length && /[\s;]/.test(code[endPos])) {
+            if (code[endPos] === ';') { endPos++; break; }
+            if (code[endPos] !== ' ' && code[endPos] !== '\t') break;
+            endPos++;
+          }
+          
+          return endPos;
+        };
+        
+        for (const name of foundComponents) {
+          const startPos = componentStarts.get(name);
+          if (startPos === undefined) continue;
+          
+          // Find line start for clean extraction
+          let lineStart = startPos;
+          while (lineStart > 0 && code[lineStart - 1] !== '\n') lineStart--;
+          
+          const endPos = findBodyEnd(code, startPos);
+          const componentCode = code.slice(lineStart, endPos).trim();
+          const lineCount = componentCode.split('\n').length;
+          
+          // Find JSX dependencies
+          const deps: string[] = [];
+          const jsxPattern = /<([A-Z][a-zA-Z0-9]*)/g;
+          let jsxMatch;
+          while ((jsxMatch = jsxPattern.exec(componentCode)) !== null) {
+            if (jsxMatch[1] !== name) deps.push(jsxMatch[1]);
+          }
+          
+          const isExported = /^export\s/.test(componentCode);
+          const isFunction = /^(?:export\s+)?function\s/.test(componentCode) || 
+                            /^export\s+default\s+function\s/.test(componentCode);
+          
+          results.push({
+            name,
+            filePath,
+            code: componentCode,
+            type: isFunction ? 'function' : 'arrow',
+            exports: isExported,
+            dependencies: [...new Set(deps)],
+            lineCount
+          });
         }
         
         return results;

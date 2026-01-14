@@ -1,5 +1,5 @@
 {
-  "code": "export const Header = () => {\n    return <nav><Logo /></nav>;\n  };",
+  "code": "export const App = () => {\n  return <div><Header title=\"Hello\" /><Content /></div>;\n  };",
   "nodes": [],
   "edges": []
 }
