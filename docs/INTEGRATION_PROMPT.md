@@ -163,3 +163,19 @@ Alternative method (same behavior):
 ```javascript
 window.LogicArt.openWithCode(algorithmCode, 'MyComponent');
 ```
+
+### LogicArt.openArchitecture(sourceUrl, files)
+Opens the full architecture view showing component dependencies:
+```javascript
+// sourceUrl is your app's source API base URL
+// files is an array of file paths to scan
+window.LogicArt.openArchitecture(
+  'http://localhost:5000/api/source',
+  ['src/pages/Home.tsx', 'src/components/Header.tsx']
+);
+```
+
+Alternatively, open via URL:
+```
+https://logic.art/?mode=architecture&sourceUrl=<encoded-url>&files=<comma-separated-or-json>
+```

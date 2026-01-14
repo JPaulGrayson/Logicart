@@ -2329,6 +2329,26 @@ self.addEventListener('fetch', (event) => {
     });
   };
   
+  // Open full architecture view (component dependency graph)
+  // sourceUrl: base URL for source file API (e.g., "http://localhost:5000/api/source")
+  // files: array of file paths to scan
+  window.LogiGo.openArchitecture = function(sourceUrl, files) {
+    if (!sourceUrl || !files || !files.length) {
+      console.error("[LogiGo] openArchitecture requires sourceUrl and files array");
+      return;
+    }
+    
+    // Build URL with architecture mode parameters
+    var url = LOGIGO_URL + "/?mode=architecture&sourceUrl=" + encodeURIComponent(sourceUrl);
+    url += "&files=" + encodeURIComponent(JSON.stringify(files));
+    
+    window.open(url, "_blank");
+    console.log("[LogiGo] Opening architecture view with " + files.length + " files");
+  };
+  
+  // Alias for LogicArt branding
+  window.LogicArt.openArchitecture = window.LogiGo.openArchitecture;
+  
   // ============================================
   // Bidirectional Control Channel (WebSocket)
   // - Visual Handshake (highlight elements)

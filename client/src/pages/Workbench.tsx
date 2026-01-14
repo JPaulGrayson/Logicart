@@ -434,6 +434,66 @@ export default function Workbench() {
     }
   }, [isReady, adapter]);
 
+  // Handle architecture mode URL parameter: ?mode=architecture&sourceUrl=...&files=...
+  // This allows external apps (Turai, etc.) to open architecture view directly
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+    const sourceUrl = urlParams.get('sourceUrl');
+    const filesParam = urlParams.get('files');
+
+    if (mode === 'architecture' && sourceUrl && filesParam && isReady) {
+      console.log('[LogicArt] Architecture mode triggered from URL');
+      
+      // Parse files - supports comma-separated or JSON array
+      let files: string[] = [];
+      try {
+        // Try JSON first
+        files = JSON.parse(decodeURIComponent(filesParam));
+      } catch {
+        // Fall back to comma-separated
+        files = decodeURIComponent(filesParam).split(',').map(f => f.trim()).filter(Boolean);
+      }
+
+      if (files.length > 0) {
+        setArchitectureLoading(true);
+        
+        fetch('/api/agent/scan-project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            sourceUrl: decodeURIComponent(sourceUrl),
+            files 
+          }),
+        })
+          .then(res => {
+            if (!res.ok) throw new Error('Failed to scan project');
+            return res.json();
+          })
+          .then(data => {
+            setArchitectureComponents(data.nodes || []);
+            setArchitectureConnections(data.edges || []);
+            setArchitectureMode(true);
+            toast.success(`Found ${data.componentCount} components`);
+          })
+          .catch(error => {
+            console.error('Architecture scan error:', error);
+            toast.error('Failed to load architecture view');
+          })
+          .finally(() => {
+            setArchitectureLoading(false);
+          });
+
+        // Clear URL parameters
+        const url = new URL(window.location.href);
+        url.searchParams.delete('mode');
+        url.searchParams.delete('sourceUrl');
+        url.searchParams.delete('files');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [isReady]);
+
   // Connect to remote session if ?session= URL parameter is present
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
