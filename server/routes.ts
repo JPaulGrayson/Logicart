@@ -2400,77 +2400,52 @@ self.addEventListener('fetch', (event) => {
       return;
     }
     
-    console.log("[LogiGo] Fetching " + files.length + " files for architecture view...");
+    console.log("[LogiGo] Architecture view: " + files.length + " files from " + sourceUrl);
     
-    // Open window immediately for better UX
+    // Open LogicArt immediately for better UX - let server fetch the files
     var archWindow = window.open("about:blank", "_blank");
     if (archWindow) {
-      archWindow.document.write('<html><head><title>LogicArt - Loading...</title><style>body{background:#0f172a;color:white;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}div{text-align:center;}.spinner{width:40px;height:40px;border:3px solid #334155;border-top:3px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}@keyframes spin{to{transform:rotate(360deg);}}</style></head><body><div><div class="spinner"></div><p>Loading ' + files.length + ' files...</p></div></body></html>');
+      archWindow.document.write('<html><head><title>LogicArt - Loading...</title><style>body{background:#0f172a;color:white;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}div{text-align:center;}.spinner{width:40px;height:40px;border:3px solid #334155;border-top:3px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;}@keyframes spin{to{transform:rotate(360deg);}}</style></head><body><div><div class="spinner"></div><p>Loading architecture...</p></div></body></html>');
     }
     
-    // Fetch all files from the source URL
-    var filesData = {};
-    var fetchPromises = files.map(function(filePath) {
-      var url = sourceUrl + (sourceUrl.includes('?') ? '&' : '?') + 'file=' + encodeURIComponent(filePath);
-      return fetch(url, { headers: { 'Accept': 'text/plain' } })
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.text();
-        })
-        .then(function(content) {
-          filesData[filePath] = content;
-        })
-        .catch(function(err) {
-          console.warn('[LogiGo] Failed to fetch ' + filePath + ':', err.message);
-        });
-    });
-    
-    Promise.all(fetchPromises).then(function() {
-      var fileCount = Object.keys(filesData).length;
-      if (fileCount === 0) {
-        if (archWindow && !archWindow.closed) {
-          archWindow.document.body.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px;"><h2>Error</h2><p>No files could be fetched. Check that /api/source endpoint exists.</p></div>';
-        }
-        return;
+    // Use LogicArt's server to fetch files (avoids CORS issues)
+    fetch(LOGIGO_URL + "/api/agent/scan-project", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sourceUrl: sourceUrl, files: files }),
+      mode: "cors"
+    }).then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }).then(function(data) {
+      if (!data.nodes || data.nodes.length === 0) {
+        throw new Error("No components found. Check that /api/source endpoint exists in your app.");
       }
       
-      console.log("[LogiGo] Fetched " + fileCount + " files, building architecture...");
-      
-      // Build architecture from file contents
-      return fetch(LOGIGO_URL + "/api/agent/architecture", {
+      // Create session to store the architecture data
+      return fetch(LOGIGO_URL + "/api/agent/architecture-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ files: filesData }),
+        body: JSON.stringify({ nodes: data.nodes || [], edges: data.edges || [] }),
         mode: "cors"
-      }).then(function(response) {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        return response.json();
-      }).then(function(data) {
-        // Create session to store the architecture data
-        return fetch(LOGIGO_URL + "/api/agent/architecture-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nodes: data.nodes || [], edges: data.edges || [] }),
-          mode: "cors"
-        }).then(function(sessionRes) {
-          if (!sessionRes.ok) throw new Error("Failed to create session");
-          return sessionRes.json();
-        }).then(function(sessionData) {
-          console.log("[LogiGo] Architecture built: " + (data.componentCount || 0) + " components");
-          
-          var url = LOGIGO_URL + "/?mode=arch-session&archSession=" + sessionData.sessionId;
-          
-          if (archWindow && !archWindow.closed) {
-            archWindow.location.href = url;
-          } else {
-            window.open(url, "_blank");
-          }
-        });
+      }).then(function(sessionRes) {
+        if (!sessionRes.ok) throw new Error("Failed to create session");
+        return sessionRes.json();
+      }).then(function(sessionData) {
+        console.log("[LogiGo] Architecture built: " + (data.componentCount || 0) + " components");
+        
+        var url = LOGIGO_URL + "/?mode=arch-session&archSession=" + sessionData.sessionId;
+        
+        if (archWindow && !archWindow.closed) {
+          archWindow.location.href = url;
+        } else {
+          window.open(url, "_blank");
+        }
       });
     }).catch(function(e) {
       console.error("[LogiGo] Failed to build architecture:", e.message);
       if (archWindow && !archWindow.closed) {
-        archWindow.document.body.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px;"><h2>Error</h2><p>' + e.message + '</p></div>';
+        archWindow.document.body.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px;"><h2>Error</h2><p>' + e.message + '</p><p style="margin-top:20px;font-size:12px;color:#94a3b8;">Source URL: ' + sourceUrl + '</p></div>';
       }
     });
   };
