@@ -30,16 +30,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { transform } from 'sucrase';
 
 /**
- * Strips TypeScript syntax from code using sucrase transpiler.
- * Converts TypeScript/TSX to plain JavaScript safely.
+ * Strips TypeScript and JSX syntax from code using sucrase transpiler.
+ * Converts TypeScript/TSX/JSX to plain JavaScript safely.
  */
-function stripTypeScript(code: string): string {
+function stripTypeScriptAndJSX(code: string): string {
   // Check if code contains TypeScript syntax
   const hasTypeScript = /\b(interface|type)\s+\w+/.test(code) ||
     /:\s*[\w<>\[\]|&]+\s*[=,)\n{]/.test(code) ||
     /import\s+type\s+/.test(code);
   
-  if (!hasTypeScript) {
+  // Check if code contains JSX syntax (tags like <Component or <div)
+  const hasJSX = /<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(code) || 
+    /<\/[A-Za-z]/.test(code) ||
+    /<>/.test(code);
+  
+  // If neither TypeScript nor JSX, return as-is
+  if (!hasTypeScript && !hasJSX) {
     return code;
   }
   
@@ -234,7 +240,7 @@ function preprocessReactCode(code: string): string {
 // Helper: Parse JavaScript code to GroundingContext (server-side)
 function parseCodeToGrounding(rawCode: string): GroundingContext {
   // Strip TypeScript syntax, then preprocess React code
-  const tsStripped = stripTypeScript(rawCode);
+  const tsStripped = stripTypeScriptAndJSX(rawCode);
   const code = preprocessReactCode(tsStripped);
   interface SimpleNode {
     id: string;
