@@ -6,31 +6,40 @@ import { toast } from 'sonner';
 
 const SCRIPT_TAG = `<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>`;
 
-const AGENT_PROMPT = `Add LogicArt code visualization to this project.
+const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view.
 
-1. Add this script tag to the HTML <head>:
+STEP 1: Add script tag to your main HTML file's <head>:
 <script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
 
-2. Create a visualization handler:
-const handleVisualize = (code, name) => {
-  if (window.LogiGo?.visualize) {
-    window.LogiGo.visualize(code, name);
-  }
-};
+STEP 2: Add a backend API to read source files. In your server routes:
+app.get('/api/source', (req, res) => {
+  const filePath = req.query.file;
+  if (!filePath) return res.status(400).send('Missing file parameter');
+  const fullPath = path.resolve(process.cwd(), filePath);
+  if (!fullPath.startsWith(process.cwd())) return res.status(403).send('Forbidden');
+  if (!fs.existsSync(fullPath)) return res.status(404).send('File not found');
+  res.type('text/plain').send(fs.readFileSync(fullPath, 'utf-8'));
+});
 
-3. Call handleVisualize with CLEAN algorithm code (not framework code):
-handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
+STEP 3: Scan for ALL component files in src/, client/src/pages/, client/src/components/, etc.
 
-4. Connect the handler to a "View Flowchart" button.
+STEP 4: Create a FlowchartButton with architecture view:
+const ALL_FILES = ['client/src/App.tsx', ...]; // All component paths from step 3
 
-5. TEST: Click the button - LogicArt should open with a clean flowchart.
+function viewArchitecture() {
+  const api = window.LogiGo || window.LogicArt;
+  api.openArchitecture(window.location.origin + '/api/source', ALL_FILES);
+}
 
-Available LogicArt methods:
-- visualize(code, name) - One-shot: registers code and opens LogicArt (recommended)
-- registerCode(code, name) - Just registers code without opening
-- openStudio() - Opens LogicArt in a new tab
+async function visualize(path, name) {
+  const code = await fetch('/api/source?file=' + encodeURIComponent(path)).then(r => r.text());
+  (window.LogiGo || window.LogicArt).visualize(code, name);
+}
 
-The project name is auto-detected from your app's hostname.`;
+Available methods:
+- visualize(code, name) - View single component flowchart
+- openArchitecture(sourceUrl, files) - View full project architecture graph
+- openStudio() - Opens LogicArt in a new tab`;
 
 export function ConnectWizard() {
     const [copiedScript, setCopiedScript] = useState(false);
