@@ -1,0 +1,106 @@
+LogicArt Integration Status for Turai
+
+Date: January 15, 2026
+App: Turai (AI-Powered Tour Narration)
+Platform: Replit
+Dev URL: https://21a57f24-e87d-4d4d-a798-702655ececf3-00-vw7qw0ai74e5.picard.replit.dev
+
+Integration Summary
+
+We have integrated LogicArt into Turai to provide code visualization and flowchart capabilities for our React/TypeScript codebase. The integration uses the embedded script approach with a custom /api/source endpoint.
+
+What We Implemented
+
+LogicArt Script Integration
+Added <script src="https://logic.art/logi.js"></script> to client/index.html
+Script loads successfully and creates window.LogiGo API
+Source Code Endpoint (/api/source)
+Returns list of available source files when called without parameters
+Returns file content when called with ?file=path/to/file.tsx
+Includes CORS headers (Access-Control-Allow-Origin: *)
+Disabled in production for security
+Supports 64 TypeScript/TSX files from client/src/ and shared/ directories
+FlowchartButton Component
+Dropdown menu in the navigation bar
+"View Full Architecture" option calls openArchitectureWithCode() with all 38 key component files
+Individual component options call openFlowchart() for single-file visualization
+Current Status
+
+Feature	Status	Notes
+LogicArt script loading	✅ Working	window.LogiGo available
+/api/source file listing	✅ Working	Returns JSON {files: [...]}
+/api/source file content	✅ Working	Returns file content as text
+Single file flowcharts	✅ Working	openFlowchart() works correctly
+Full architecture view	❌ Blocked	CORS error on LogicArt backend
+Issue: Full Architecture View CORS Error
+
+Console Error
+
+Origin https://21a57f24-e87d-4d4d-a798-702655ececf3-00-vw7qw0ai74e5.picard.replit.dev 
+is not allowed by Access-Control-Allow-Origin. Status code: 413
+Fetch API cannot load https://logic.art/api/agent/architecture due to access control checks.
+What's Happening
+
+Our code successfully fetches 38 source files from our /api/source endpoint
+We call LogiGo.openArchitectureWithCode(fileContents) with the file contents
+LogicArt's JavaScript then tries to POST to https://logic.art/api/agent/architecture
+That endpoint rejects the request because Replit domains aren't in the CORS whitelist
+Request to LogicArt Team
+
+Please add the following origins to your CORS allowed origins for /api/agent/architecture:
+
+*.replit.dev
+*.picard.replit.dev
+*.spock.replit.dev
+*.kirk.replit.dev
+Or a wildcard pattern that covers Replit's development URLs:
+
+https://*.replit.dev
+API Endpoint Details
+
+GET /api/source (no parameters)
+
+Returns a list of available source files:
+
+{
+  "files": [
+    "client/src/App.tsx",
+    "client/src/main.tsx",
+    "client/src/features/narration/HomePageNew.tsx",
+    ...
+  ]
+}
+GET /api/source?file=client/src/App.tsx
+
+Returns the raw file content as text/plain.
+
+Code Reference
+
+FlowchartButton.tsx (key snippet)
+
+const handleViewArchitecture = async () => {
+  const api = window.LogiGo || window.LogicArt;
+  
+  // Fetch all file contents
+  const fileContents: Record<string, string> = {};
+  for (const component of COMPONENT_FILES) {
+    const response = await fetch('/api/source?file=' + encodeURIComponent(component.path));
+    if (response.ok) {
+      fileContents[component.path] = await response.text();
+    }
+  }
+  
+  // This works - files are fetched successfully
+  console.log('[FlowchartButton] Fetched', Object.keys(fileContents).length, 'files');
+  
+  // This fails due to CORS on logic.art/api/agent/architecture
+  api.openArchitectureWithCode(fileContents);
+};
+Questions for LogicArt
+
+Can you add Replit domains to your CORS whitelist?
+Is there an alternative API or approach that doesn't require server-side processing?
+Are there any size limits we should be aware of? (We're sending 38 files, ~200KB total)
+Contact
+
+Please reach out if you need any additional information or want to test the integration.
