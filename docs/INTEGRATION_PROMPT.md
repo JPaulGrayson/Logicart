@@ -12,12 +12,25 @@ Add LogicArt code visualization to this project. This lets users see flowcharts 
 STEP 1: Add script tag to client/index.html (or your main HTML file) <head> - place AFTER React loads:
 <script src="https://logic.art/remote.js"></script>
 
-STEP 2: Add a backend API to read source files. In your server routes file, add:
+STEP 2: Add a backend API to read source files (DEVELOPMENT ONLY for security).
+In your server routes file, add:
 
 app.get('/api/source', (req, res) => {
+  // Security: Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).send('Not found');
+  }
+  
   const filePath = req.query.file;
   if (!filePath) {
     return res.status(400).send('Missing file parameter');
+  }
+  
+  // Security: Only serve files from allowed directories
+  const allowedDirs = ['client/src/', 'src/', 'shared/'];
+  const isAllowed = allowedDirs.some(dir => filePath.startsWith(dir));
+  if (!isAllowed) {
+    return res.status(403).send('Forbidden');
   }
   
   const fullPath = path.resolve(process.cwd(), filePath);
@@ -176,9 +189,10 @@ export function FlowchartButton() {
   );
 }
 
-STEP 5: Add <FlowchartButton /> to an EXISTING header/navbar component.
+STEP 5: Add <FlowchartButton /> to an EXISTING header/navbar component (DEV ONLY).
 - Find Header.tsx, Navbar.tsx, or similar shared navigation component
-- Import and add the button there
+- Import and add the button, wrapped in a dev-only check:
+  {import.meta.env.DEV && <FlowchartButton />}
 - Do NOT create a floating button with position:fixed (gets hidden behind backgrounds)
 
 STEP 6: Test it:

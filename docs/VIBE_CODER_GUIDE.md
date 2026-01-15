@@ -24,12 +24,25 @@ Add LogicArt code visualization to this project. This lets users see flowcharts 
 STEP 1: Add script tag to client/index.html <head> (AFTER React loads):
 <script src="https://logic.art/remote.js"></script>
 
-STEP 2: Add a backend API to read source files. In your server routes file, add:
+STEP 2: Add a backend API to read source files (DEVELOPMENT ONLY for security).
+In your server routes file, add:
 
 app.get('/api/source', (req, res) => {
+  // Security: Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).send('Not found');
+  }
+  
   const filePath = req.query.file;
   if (!filePath) {
     return res.status(400).send('Missing file parameter');
+  }
+  
+  // Security: Only serve files from allowed directories
+  const allowedDirs = ['client/src/', 'src/', 'shared/'];
+  const isAllowed = allowedDirs.some(dir => filePath.startsWith(dir));
+  if (!isAllowed) {
+    return res.status(403).send('Forbidden');
   }
   
   const fullPath = path.resolve(process.cwd(), filePath);
@@ -84,7 +97,8 @@ When user selects a single component:
 1. Fetch the source via: fetch('/api/source?file=' + encodeURIComponent(component.path))
 2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
 
-STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
+STEP 5: Add the FlowchartButton to an EXISTING header/navbar component (DEV ONLY).
+Wrap in dev check: {import.meta.env.DEV && <FlowchartButton />}
 Do NOT create a floating button (gets hidden behind backgrounds).
 
 STEP 6: Test - click "View Full Architecture" to see component dependency graph,

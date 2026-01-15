@@ -11,10 +11,13 @@ const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enab
 STEP 1: Add script tag to your main HTML file's <head>:
 <script src="https://logic.art/remote.js"></script>
 
-STEP 2: Add a backend API to read source files. In your server routes:
+STEP 2: Add a backend API (DEV ONLY for security). In your server routes:
 app.get('/api/source', (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).send('Not found');
   const filePath = req.query.file;
   if (!filePath) return res.status(400).send('Missing file parameter');
+  const allowedDirs = ['client/src/', 'src/', 'shared/'];
+  if (!allowedDirs.some(d => filePath.startsWith(d))) return res.status(403).send('Forbidden');
   const fullPath = path.resolve(process.cwd(), filePath);
   if (!fullPath.startsWith(process.cwd())) return res.status(403).send('Forbidden');
   if (!fs.existsSync(fullPath)) return res.status(404).send('File not found');
@@ -26,7 +29,6 @@ STEP 3: Scan for ALL component files in src/, client/src/pages/, client/src/comp
 STEP 4: Create a FlowchartButton with architecture view AND enable bidirectional debugging:
 const ALL_FILES = ['client/src/App.tsx', ...]; // All component paths from step 3
 
-// Enable bidirectional features (call once after React mounts)
 useEffect(() => {
   const api = window.LogiGo || window.LogicArt;
   if (api?.connectControlChannel) api.connectControlChannel();
@@ -37,16 +39,13 @@ function viewArchitecture() {
   api.openArchitecture(window.location.origin + '/api/source', ALL_FILES);
 }
 
-async function visualize(path, name) {
-  const code = await fetch('/api/source?file=' + encodeURIComponent(path)).then(r => r.text());
-  (window.LogiGo || window.LogicArt).visualize(code, name);
-}
+STEP 5: Add FlowchartButton to navbar (DEV ONLY):
+{import.meta.env.DEV && <FlowchartButton />}
 
 Available methods:
 - visualize(code, name) - View single component flowchart
 - openArchitecture(sourceUrl, files) - View full project architecture graph
-- connectControlChannel() - Enable bidirectional debugging (breakpoints, visual sync)
-- openStudio() - Opens LogicArt in a new tab`;
+- connectControlChannel() - Enable bidirectional debugging`;
 
 export function ConnectWizard() {
     const [copiedScript, setCopiedScript] = useState(false);
