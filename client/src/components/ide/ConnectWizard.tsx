@@ -6,12 +6,12 @@ import { toast } from 'sonner';
 
 const SCRIPT_TAG = `<script src="https://logic.art/remote.js"></script>`;
 
-const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view with bidirectional debugging.
+const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view.
 
 STEP 1: Add script tag to your main HTML file's <head>:
 <script src="https://logic.art/remote.js"></script>
 
-STEP 2: Add a backend API (DEV ONLY for security). In your server routes:
+STEP 2: Add a backend API (DEV ONLY). In your server routes:
 app.get('/api/source', (req, res) => {
   if (process.env.NODE_ENV === 'production') return res.status(404).send('Not found');
   const filePath = req.query.file;
@@ -34,6 +34,8 @@ useEffect(() => {
   if (api?.connectControlChannel) api.connectControlChannel();
 }, []);
 
+CRITICAL: For architecture view, you MUST use openArchitecture(). Do NOT implement your own solution.
+
 function viewArchitecture() {
   const api = window.LogiGo || window.LogicArt;
   api.openArchitecture(window.location.origin + '/api/source', ALL_FILES);
@@ -42,7 +44,7 @@ function viewArchitecture() {
 STEP 5: Add FlowchartButton to navbar (DEV ONLY):
 {import.meta.env.DEV && <FlowchartButton />}
 
-Available methods:
+API methods:
 - visualize(code, name) - View single component flowchart
 - openArchitecture(sourceUrl, files) - View full project architecture graph
 - connectControlChannel() - Enable bidirectional debugging`;

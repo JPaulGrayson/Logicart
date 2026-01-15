@@ -58,9 +58,12 @@ STEP 3: Scan this project for ALL component files. Search these directories:
 
 IMPORTANT: List EVERY file you find. The architecture view needs ALL files to show the complete dependency graph. Do not skip any files.
 
-STEP 4: Create a FlowchartButton component with BOTH individual component views AND full architecture view.
+STEP 4: Create a FlowchartButton component. Copy this EXACTLY - do not implement your own solution.
 
-IMPORTANT: Replace the COMPONENTS array with ALL files from step 3. Every file must be included for the architecture view to work correctly.
+CRITICAL: For "View Full Architecture" you MUST use window.LogicArt.openArchitecture(sourceUrl, filesArray).
+Do NOT call /api/remote/session directly or combine files manually - this will not work.
+
+IMPORTANT: Replace the COMPONENTS array with ALL files from step 3.
 
 import { useState, useEffect } from 'react';
 

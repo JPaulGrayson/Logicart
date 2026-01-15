@@ -742,26 +742,14 @@ export function createMCPServer() {
         const baseUrl = process.env.LOGICART_URL || "http://localhost:5001";
         const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
         
-        try {
-          await openBrowser(visualizerUrl);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `I've opened the LogicArt flowchart visualizer in your browser.\n\nURL: ${visualizerUrl}\n\nYou can now see the interactive flowchart with:\n- Step-by-step execution controls\n- Variable state tracking\n- Collapsible function containers`,
-              },
-            ],
-          };
-        } catch (error) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Could not open browser automatically. Please open this URL manually:\n\n${visualizerUrl}`,
-              },
-            ],
-          };
-        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Open this URL to view the flowchart:\n\n${visualizerUrl}\n\nFeatures: Step-by-step execution, Variable tracking, Collapsible containers`,
+            },
+          ],
+        };
       }
 
       default:
