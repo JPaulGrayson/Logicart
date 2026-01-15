@@ -1821,6 +1821,8 @@ export default function Workbench() {
         files['current.tsx'] = code;
       }
       
+      console.log('[Architecture] Code length:', code?.length, 'Files:', Object.keys(files));
+      
       const response = await fetch('/api/agent/architecture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1832,6 +1834,8 @@ export default function Workbench() {
       }
       
       const data = await response.json();
+      console.log('[Architecture] Response:', data.componentCount, 'components,', data.connectionCount, 'connections');
+      
       setArchitectureComponents(data.nodes || []);
       setArchitectureConnections(data.edges || []);
       setArchitectureMode(true);
