@@ -1,5 +1,19 @@
 # LogicArt - Code-to-Flowchart Visualization Tool
 
+## ⚠️ CRITICAL: Publishing Reminder
+**EVERY TIME you modify server code, integration docs, or remote.js, you MUST tell the user:**
+
+> "I've updated [list files]. **You need to republish the app for changes to take effect.**"
+
+Files that require republishing when changed:
+- `server/routes.ts` (remote.js script, API endpoints)
+- `server/app.ts` (server config)
+- `client/src/components/ide/ConnectWizard.tsx`
+- `docs/INTEGRATION_PROMPT.md`
+- `docs/VIBE_CODER_GUIDE.md`
+
+---
+
 ## Overview
 LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
 
@@ -59,16 +73,6 @@ LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization to
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-
-## Publishing Checklist
-**After making changes to integration features, ALWAYS confirm these are updated before publishing:**
-
-1. **remote.js script** - Served from `/api/remote.js` in `server/routes.ts` (search for `generateRemoteScript`)
-2. **ConnectWizard.tsx** - Help system Integration Wizard prompt at `client/src/components/ide/ConnectWizard.tsx`
-3. **VIBE_CODER_GUIDE.md** - Documentation at `docs/VIBE_CODER_GUIDE.md`
-4. **INTEGRATION_PROMPT.md** - Full prompt at `docs/INTEGRATION_PROMPT.md`
-
-**Tell the user:** "I've updated [list files]. You need to republish the app for changes to take effect."
 
 ## System Architecture
 
