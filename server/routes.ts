@@ -2443,17 +2443,27 @@ self.addEventListener('fetch', (event) => {
       // Localhost: fetch files client-side (browser can reach localhost)
       console.log("[LogiGo] Localhost detected - fetching files client-side");
       var filesData = {};
-      var fetchPromises = files.map(function(filePath) {
-        var url = sourceUrl + '?file=' + encodeURIComponent(filePath);
-        return fetch(url).then(function(r) {
-          if (!r.ok) throw new Error('Failed to fetch ' + filePath);
-          return r.text();
+      
+      // Try both URL formats: query param (?file=) and wildcard (/path)
+      function fetchWithFallback(filePath) {
+        var queryUrl = sourceUrl + '?file=' + encodeURIComponent(filePath);
+        var wildcardUrl = sourceUrl + '/' + filePath;
+        
+        return fetch(queryUrl).then(function(r) {
+          if (r.ok) return r.text();
+          // Query param failed, try wildcard format
+          return fetch(wildcardUrl).then(function(r2) {
+            if (!r2.ok) throw new Error('Both formats failed for ' + filePath);
+            return r2.text();
+          });
         }).then(function(content) {
           filesData[filePath] = content;
         }).catch(function(e) {
           console.warn("[LogiGo] Skipping " + filePath + ": " + e.message);
         });
-      });
+      }
+      
+      var fetchPromises = files.map(fetchWithFallback);
       
       Promise.all(fetchPromises).then(function() {
         if (Object.keys(filesData).length === 0) {
