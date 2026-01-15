@@ -22,9 +22,7 @@ Wait for your agent to finish building the app before moving to Step 2.
 Add LogicArt code visualization to this project. This lets users see flowcharts of any component's logic AND view the full project architecture.
 
 STEP 1: Add script tag to client/index.html <head> (AFTER React loads):
-<script src="https://logic.art/remote.js?minimal=true"></script>
-
-⚠️ CRITICAL: Use this EXACT URL. Do NOT use "logi.js" or any other variant - only "remote.js?minimal=true" works.
+<script src="https://logic.art/remote.js"></script>
 
 STEP 2: Add a backend API to read source files. In your server routes file, add:
 
