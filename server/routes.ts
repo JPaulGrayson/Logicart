@@ -1991,6 +1991,15 @@ self.addEventListener('fetch', (event) => {
   // One-Line Bootstrap Script
   // ============================================
 
+  // Alias: /logi.js redirects to /remote.js?minimal=true for backward compatibility
+  // (Some AI agents may use incorrect URL variants)
+  app.get("/logi.js", (req, res) => {
+    const queryString = Object.keys(req.query).length > 0 
+      ? '?' + Object.entries(req.query).map(([k,v]) => `${k}=${v}`).join('&')
+      : '?minimal=true';
+    res.redirect(301, `/remote.js${queryString}`);
+  });
+
   // Serve the bootstrap script - auto-creates session and sets up checkpoint()
   app.get("/remote.js", (req, res) => {
     try {
@@ -2006,7 +2015,8 @@ self.addEventListener('fetch', (event) => {
       // Mode: 'push' disables auto-discovery (recommended for bundled apps)
       const mode = (req.query.mode as string) || 'auto';
       // Minimal mode: ONLY expose API, no automatic behaviors (safest for React)
-      const minimal = req.query.minimal === 'true';
+      // Defaults to TRUE to prevent React crashes from automatic behaviors during page load
+      const minimal = req.query.minimal !== 'false';
 
       // Create a new session using session manager
       const { sessionId } = sessionManager.createSession(String(projectName), sourceCode);
