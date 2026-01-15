@@ -12,6 +12,8 @@ Add LogicArt code visualization to this project. This lets users see flowcharts 
 STEP 1: Add script tag to client/index.html (or your main HTML file) <head> - place AFTER React loads:
 <script src="https://logic.art/remote.js?minimal=true"></script>
 
+⚠️ CRITICAL: Use this EXACT URL. Do NOT use "logi.js" or any other variant - only "remote.js?minimal=true" works.
+
 STEP 2: Add a backend API to read source files. In your server routes file, add:
 
 app.get('/api/source', (req, res) => {

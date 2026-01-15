@@ -10,6 +10,7 @@ const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enab
 
 STEP 1: Add script tag to your main HTML file's <head>:
 <script src="https://logic.art/remote.js?minimal=true"></script>
+(Use this EXACT URL - do NOT use "logi.js" or other variants)
 
 STEP 2: Add a backend API to read source files. In your server routes:
 app.get('/api/source', (req, res) => {
