@@ -60,6 +60,11 @@ IMPORTANT: List EVERY file you find. The architecture view needs ALL files to sh
 STEP 4: Create a FlowchartButton component with:
 - "View Full Architecture" option at the top (calls LogicArt.openArchitecture with ALL files)
 - Dropdown of individual files from step 3 (calls LogicArt.visualize)
+- Enable bidirectional debugging by calling connectControlChannel once after React mounts:
+  useEffect(() => {
+    const api = window.LogiGo || window.LogicArt;
+    if (api?.connectControlChannel) api.connectControlChannel();
+  }, []);
 
 When user clicks "View Full Architecture":
   Option A - If you have a /api/source endpoint:

@@ -49,7 +49,7 @@ STEP 4: Create a FlowchartButton component with BOTH individual component views 
 
 IMPORTANT: Replace the COMPONENTS array with ALL files from step 3. Every file must be included for the architecture view to work correctly.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const COMPONENTS = [
   // REPLACE THIS WITH ALL FILES FROM STEP 3
@@ -66,6 +66,14 @@ const ALL_FILES = COMPONENTS.map(c => c.path);
 
 export function FlowchartButton() {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Enable bidirectional debugging features (breakpoints, visual sync)
+  useEffect(() => {
+    const api = window.LogiGo || window.LogicArt;
+    if (api?.connectControlChannel) {
+      api.connectControlChannel();
+    }
+  }, []);
   
   // View a single component's flowchart
   async function visualize(component) {

@@ -6,9 +6,9 @@ import { toast } from 'sonner';
 
 const SCRIPT_TAG = `<script src="https://logic.art/remote.js?minimal=true"></script>`;
 
-const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view.
+const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view with bidirectional debugging.
 
-STEP 1: Add script tag to your main HTML file's <head> (AFTER React loads):
+STEP 1: Add script tag to your main HTML file's <head>:
 <script src="https://logic.art/remote.js?minimal=true"></script>
 
 STEP 2: Add a backend API to read source files. In your server routes:
@@ -23,8 +23,14 @@ app.get('/api/source', (req, res) => {
 
 STEP 3: Scan for ALL component files in src/, client/src/pages/, client/src/components/, etc.
 
-STEP 4: Create a FlowchartButton with architecture view:
+STEP 4: Create a FlowchartButton with architecture view AND enable bidirectional debugging:
 const ALL_FILES = ['client/src/App.tsx', ...]; // All component paths from step 3
+
+// Enable bidirectional features (call once after React mounts)
+useEffect(() => {
+  const api = window.LogiGo || window.LogicArt;
+  if (api?.connectControlChannel) api.connectControlChannel();
+}, []);
 
 function viewArchitecture() {
   const api = window.LogiGo || window.LogicArt;
@@ -39,6 +45,7 @@ async function visualize(path, name) {
 Available methods:
 - visualize(code, name) - View single component flowchart
 - openArchitecture(sourceUrl, files) - View full project architecture graph
+- connectControlChannel() - Enable bidirectional debugging (breakpoints, visual sync)
 - openStudio() - Opens LogicArt in a new tab`;
 
 export function ConnectWizard() {

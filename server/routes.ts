@@ -2690,10 +2690,12 @@ self.addEventListener('fetch', (event) => {
     if (toast) toast.remove();
   }
   
-  // Expose breakpoint controls
+  // Expose breakpoint controls and control channel
   window.LogiGo.breakpoints = breakpoints;
   window.LogiGo.isPaused = function() { return isPaused; };
   window.LogiGo.resume = resumeExecution;
+  window.LogiGo.connectControlChannel = connectControlChannel;
+  window.LogiGo.reconnectControlChannel = reconnectControlChannel;
   
   // Highlight Overlay Manager
   function createHighlightOverlay() {
