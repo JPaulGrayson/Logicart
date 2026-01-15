@@ -2005,6 +2005,8 @@ self.addEventListener('fetch', (event) => {
       const hideBadge = req.query.hideBadge === 'true';
       // Mode: 'push' disables auto-discovery (recommended for bundled apps)
       const mode = (req.query.mode as string) || 'auto';
+      // Minimal mode: ONLY expose API, no automatic behaviors (safest for React)
+      const minimal = req.query.minimal === 'true';
 
       // Create a new session using session manager
       const { sessionId } = sessionManager.createSession(String(projectName), sourceCode);
@@ -2025,6 +2027,7 @@ self.addEventListener('fetch', (event) => {
   var AUTO_OPEN = ${autoOpen};
   var HIDE_BADGE = ${hideBadge};
   var MODE = "${mode}";
+  var MINIMAL = ${minimal};
   var hasOpenedLogigo = false;
   
   // Auto-detect project name from hostname if not provided
@@ -2074,9 +2077,12 @@ self.addEventListener('fetch', (event) => {
   var registeredCode = null;
   var connectionStatus = 'connected';
   
-  console.log("🔗 LogiGo Studio connected!");
-  console.log("📊 View flowchart at: ${studioUrl}");
-  ${sourceCode ? 'console.log("📝 Source code loaded for visualization");' : ''}
+  // Only log in non-minimal mode
+  if (!MINIMAL) {
+    console.log("🔗 LogiGo Studio connected!");
+    console.log("📊 View flowchart at: ${studioUrl}");
+    ${sourceCode ? 'console.log("📝 Source code loaded for visualization");' : ''}
+  }
   
   // Helper: sleep for exponential backoff
   function sleep(ms) {
@@ -2762,8 +2768,8 @@ self.addEventListener('fetch', (event) => {
     checkpointElements[checkpointId] = element;
   };
   
-  // Start control channel when document is ready
-  if (typeof document !== "undefined") {
+  // Start control channel when document is ready (skip in minimal mode)
+  if (typeof document !== "undefined" && !MINIMAL) {
     if (document.readyState === "complete") {
       connectControlChannel();
     } else {
@@ -2984,11 +2990,11 @@ self.addEventListener('fetch', (event) => {
     });
   };
   
-  // Show hint about auto-discovery in console (skip in push mode)
-  if (MODE !== 'push') {
+  // Show hint about auto-discovery in console (skip in push mode and minimal mode)
+  if (!MINIMAL && MODE !== 'push') {
     console.log('[LogiGo] 💡 For traditional scripts: LogiGo.enableAutoDiscovery()');
     console.log('[LogiGo] 💡 For Vite/React apps: Use LogiGo.visualize(code, name) to push clean code');
-  } else {
+  } else if (!MINIMAL) {
     console.log('[LogiGo] 📦 Push mode enabled. Use LogiGo.visualize(code, name) to send clean code.');
   }
   
@@ -3028,8 +3034,8 @@ self.addEventListener('fetch', (event) => {
   window.LogicArt = window.LogiGo;
   
   // Show a persistent clickable badge (stays until closed)
-  // Skip if ?hideBadge=true was set (recommended for React/Vite apps)
-  if (typeof document !== "undefined" && !HIDE_BADGE) {
+  // Skip if ?hideBadge=true or ?minimal=true was set (recommended for React/Vite apps)
+  if (typeof document !== "undefined" && !HIDE_BADGE && !MINIMAL) {
     function showBadge() {
       if (document.getElementById("logigo-badge")) return;
       var badge = document.createElement("div");

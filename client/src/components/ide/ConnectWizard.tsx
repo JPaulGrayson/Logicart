@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logic.art/remote.js?minimal=true"></script>`;
 
 const AGENT_PROMPT = `Add LogicArt code visualization to this project. This enables flowcharts AND full project architecture view.
 
-STEP 1: Add script tag to your main HTML file's <head>:
-<script src="https://logic.art/remote.js?mode=push&hideBadge=true"></script>
+STEP 1: Add script tag to your main HTML file's <head> (AFTER React loads):
+<script src="https://logic.art/remote.js?minimal=true"></script>
 
 STEP 2: Add a backend API to read source files. In your server routes:
 app.get('/api/source', (req, res) => {
