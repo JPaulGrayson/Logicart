@@ -739,7 +739,7 @@ export function createMCPServer() {
 
       case "visualize_flow": {
         const encodedCode = encodeURIComponent(code);
-        const baseUrl = process.env.LOGICART_URL || "http://logic.art";
+        const baseUrl = process.env.LOGICART_URL || "https://logic.art";
         const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
         
         return {
