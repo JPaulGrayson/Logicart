@@ -3638,8 +3638,8 @@ export default function Workbench() {
                 </div>
               )}
 
-              {/* Algorithm Visualization Panel - Bottom Left */}
-              {showVisualization && activeVisualizer && (
+              {/* Algorithm Visualization Panel - Bottom Left (hidden in architecture mode) */}
+              {showVisualization && activeVisualizer && !architectureMode && (
                 <div className="absolute bottom-4 left-4 w-[420px] z-50">
                   <VisualizationPanel
                     type={activeVisualizer}
@@ -3667,8 +3667,8 @@ export default function Workbench() {
                 </div>
               )}
 
-              {/* Docked Variables Panel - Bottom Right */}
-              {showFloatingVariables && (
+              {/* Docked Variables Panel - Bottom Right (hidden in architecture mode) */}
+              {showFloatingVariables && !architectureMode && (
                 <div className="absolute bottom-4 right-4 w-80 max-h-96 bg-card/95 backdrop-blur border-2 border-border rounded-lg shadow-2xl overflow-hidden">
                   <div className="flex items-center justify-between p-2 border-b border-border bg-accent/50">
                     <h3 className="text-xs font-semibold">Debug Panel</h3>
