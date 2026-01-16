@@ -1,0 +1,99 @@
+LogicArt MCP Fixes for FlowForge Integration
+Instructions for Replit Agent
+Please make these changes to server/mcp.ts in the LogicArt project.
+
+Step 1: Reset the file first
+The file has some broken sed edits. Reset it:
+bashgit checkout server/mcp.ts
+
+Step 2: Find and update the visualize_flow case
+Find the case "visualize_flow": in the switch statement (around line 758-770).
+Current code probably looks like this (opens browser directly):
+typescriptcase "visualize_flow": {
+  const encodedCode = encodeURIComponent(code);
+  const visualizerUrl = `http://localhost:5001/?code=${encodedCode}&autorun=true`;
+  exec(`open "${visualizerUrl}"`);
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: `Opening LogicArt visualizer...`,
+      },
+    ],
+  };
+}
+Replace it with this (returns URL instead):
+typescriptcase "visualize_flow": {
+  const encodedCode = encodeURIComponent(code);
+  const baseUrl = process.env.LOGICART_URL || "https://logic.art";
+  const visualizerUrl = `${baseUrl}/?code=${encodedCode}&autorun=true`;
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: `Open this URL to view the flowchart:\n\n${visualizerUrl}\n\nFeatures: Step-by-step execution, Variable tracking, Collapsible containers`,
+      },
+    ],
+  };
+}
+Key changes:
+
+Remove the exec() call that opens browser
+Use https://logic.art as default base URL
+Return the URL in the response text so Claude Desktop can display it
+
+
+Step 3: Add create_session tool definition
+Find the tools array (around line 600-620) where visualize_flow is defined. Add this new tool definition RIGHT AFTER the visualize_flow tool object:
+typescript        {
+          name: "create_session",
+          description: "Create a persistent LogicArt session for code visualization. Returns a URL that can be shared.",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              code: {
+                type: "string",
+                description: "The JavaScript or TypeScript code to visualize",
+              },
+              name: {
+                type: "string",
+                description: "Optional session name",
+              },
+            },
+            required: ["code"],
+          },
+        },
+
+Step 4: Add create_session case handler
+Find the switch statement that handles tool calls. Add this case RIGHT BEFORE the default: case:
+typescript      case "create_session": {
+        const sessionName = (args as any).name || "Claude Session";
+        const baseUrl = process.env.LOGICART_URL || "https://logic.art";
+        const encodedCode = encodeURIComponent(code);
+        const sessionUrl = `${baseUrl}/?code=${encodedCode}&name=${encodeURIComponent(sessionName)}`;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Session created. Open this URL:\n\n${sessionUrl}`,
+            },
+          ],
+        };
+      }
+
+Step 5: Build and verify
+bashnpm run build
+Should complete with no errors.
+
+Step 6: Commit and push
+bashgit add -A
+git commit -m "Update MCP tools: return URLs instead of exec(), add create_session tool"
+git push
+
+Summary of Changes
+
+visualize_flow: Now returns URL instead of calling exec() to open browser
+create_session: New tool for creating named sessions with shareable URLs
+Base URL: Uses https://logic.art instead of localhost
+
+These changes enable FlowForge (and Claude Desktop) to receive URLs they can display to users, rather than trying to open browsers on the server.

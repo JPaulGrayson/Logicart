@@ -617,6 +617,24 @@ export function createMCPServer() {
             required: ["code"],
           },
         },
+        {
+          name: "create_session",
+          description: "Create a persistent LogicArt session for code visualization. Returns a URL that can be shared. Use this for longer code or when you want a persistent link.",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              code: {
+                type: "string",
+                description: "The JavaScript or TypeScript code to visualize",
+              },
+              name: {
+                type: "string",
+                description: "Optional name for the session",
+              },
+            },
+            required: ["code"],
+          },
+        },
       ],
     };
   });
@@ -747,6 +765,20 @@ export function createMCPServer() {
             {
               type: "text" as const,
               text: `Open this URL to view the flowchart:\n\n${visualizerUrl}\n\nFeatures: Step-by-step execution, Variable tracking, Collapsible containers`,
+            },
+          ],
+        };
+      }
+      case "create_session": {
+        const sessionName = (args as any).name || "Claude Session";
+        const baseUrl = process.env.LOGICART_URL || "https://logic.art";
+        const encodedCode = encodeURIComponent(code);
+        const sessionUrl = `${baseUrl}/?code=${encodedCode}&name=${encodeURIComponent(sessionName)}`;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Session created. Open this URL:\n\n${sessionUrl}`,
             },
           ],
         };
