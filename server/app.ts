@@ -2,6 +2,7 @@ import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { initQuack } from "./quack";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -15,6 +16,9 @@ export function log(message: string, source = "express") {
 }
 
 export const app = express();
+
+// Initialize Quack agent-to-agent messaging
+initQuack('logicart');
 
 declare module 'http' {
   interface IncomingMessage {
