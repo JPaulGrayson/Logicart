@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdapterProvider } from "@/contexts/AdapterContext";
 import NotFound from "@/pages/not-found";
 import Workbench from "@/pages/Workbench";
+import ProcessWorkbench from "@/pages/ProcessWorkbench";
 import TestMiniMap from "@/pages/TestMiniMap";
 import EmbedDemo from "@/pages/EmbedDemo";
 import SelfVisualize from "@/pages/SelfVisualize";
@@ -22,6 +23,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Workbench} />
+      <Route path="/process" component={ProcessWorkbench} />
       <Route path="/arena" component={ModelArena} />
       <Route path="/test" component={TestMiniMap} />
       <Route path="/embed-demo" component={EmbedDemo} />
