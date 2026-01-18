@@ -74,6 +74,16 @@ LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization to
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Agent Communication (Quack)
+**Quack** (https://quack.us.com) is an agent-to-agent messaging platform for direct communication between AI agents.
+
+When user says "check quack" or "quack something":
+1. Fetch messages: `GET https://quack.us.com/api/inbox/replit1`
+2. Send messages: `POST https://quack.us.com/api/send` with `{"to": "agent", "from": "replit", "task": "message"}`
+3. Mark as read: `POST https://quack.us.com/api/receive/:messageId`
+
+Common inboxes: `/replit1`, `/claude`, `/gpt`, `/cursor0`, `/gemini0`, `/grok0`
+
 ## System Architecture
 
 ### UI/UX Decisions
