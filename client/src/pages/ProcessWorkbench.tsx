@@ -47,11 +47,45 @@ export default function ProcessWorkbench() {
   }, [processMap, toast]);
   
   const handleGenerate = useCallback(async () => {
+    if (!processDescription.trim()) {
+      toast({ title: 'No Description', description: 'Please enter a process description first.', variant: 'destructive' });
+      return;
+    }
+    
     setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast({ title: 'AI Generation Coming Soon', description: 'Natural language to diagram generation will be available in Phase 2.' });
-    setIsGenerating(false);
-  }, [toast]);
+    try {
+      const response = await fetch('/api/process/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: processDescription })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate process map');
+      }
+      
+      if (data.success && data.processMap) {
+        setProcessMap(data.processMap);
+        toast({ 
+          title: 'Diagram Generated', 
+          description: `Created "${data.processMap.name}" with ${data.processMap.roles.length} roles and ${data.processMap.steps.length} steps.`
+        });
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast({ 
+        title: 'Generation Failed', 
+        description: error instanceof Error ? error.message : 'Failed to generate diagram',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [processDescription, toast]);
   
   const handleReset = useCallback(() => {
     setProcessMap(SAMPLE_REFUND_PROCESS);

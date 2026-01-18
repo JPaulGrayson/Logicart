@@ -92,7 +92,7 @@ export function ProcessInput({ value, onChange, onGenerate, isGenerating = false
       <div className="px-4 py-2 border-t border-border">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{value.length > 0 ? `${value.split('\n').filter(l => l.trim()).length} lines` : 'Describe your process above'}</span>
-          <span className="text-[10px] opacity-60">AI generation coming in Phase 2</span>
+          <span className="text-[10px] opacity-60">Powered by AI</span>
         </div>
       </div>
     </div>

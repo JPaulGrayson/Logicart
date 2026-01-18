@@ -1366,6 +1366,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Process Map Generation Endpoint
+  app.post("/api/process/generate", async (req, res) => {
+    try {
+      const { description } = req.body;
+
+      if (!description || typeof description !== 'string' || description.trim().length < 10) {
+        return res.status(400).json({
+          error: "Please provide a process description (at least 10 characters)"
+        });
+      }
+
+      // Check for API key availability
+      const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({
+          error: "AI service not configured. Please ensure OpenAI API key is available."
+        });
+      }
+
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey,
+      });
+
+      const systemPrompt = `You are a BPMN process analyst. Convert natural language process descriptions into structured JSON process maps.
+
+Output a valid JSON object with this exact structure:
+{
+  "id": "unique-id",
+  "name": "Process Name",
+  "description": "Brief description",
+  "roles": [
+    { "id": "role-id", "name": "Role Name", "type": "human|system|ai|external", "color": "#hexcolor" }
+  ],
+  "steps": [
+    { "id": "step-id", "roleId": "role-id", "type": "start|end|task|decision|delay|subprocess", "name": "Step Name", "position": { "x": 0, "y": 0 } }
+  ],
+  "connections": [
+    { "id": "conn-id", "sourceId": "step-id", "targetId": "step-id", "label": "optional label" }
+  ]
+}
+
+Rules:
+1. Extract all actors/roles mentioned (people, departments, systems)
+2. Assign appropriate colors: human=#3b82f6, system=#10b981, ai=#a855f7, external=#f59e0b
+3. Create a start step and end step(s)
+4. Use "decision" type for if/then conditions with labeled connections (Yes/No)
+5. Position x is the column index for the step within its lane (usually 0)
+6. Position y is the sequence order (0, 1, 2, etc.)
+7. Connect steps in logical order
+8. Output ONLY valid JSON, no markdown or explanations`;
+
+      const userPrompt = `Convert this process description to a BPMN process map JSON:
+
+${description}
+
+Output only the JSON object:`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+      });
+
+      const content = response.choices[0]?.message?.content?.trim() || '';
+      
+      // Parse the JSON response
+      let processMap;
+      try {
+        // Try to extract JSON from the response (handle markdown code blocks)
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("No JSON object found in response");
+        }
+        processMap = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("[Process API] JSON parse error:", parseError, "Content:", content);
+        return res.status(500).json({
+          error: "Failed to parse AI response as JSON",
+          raw: content.substring(0, 500)
+        });
+      }
+
+      // Validate the structure with detailed checks
+      const validationErrors: string[] = [];
+      
+      if (!Array.isArray(processMap.roles) || processMap.roles.length === 0) {
+        validationErrors.push("Missing or empty roles array");
+      }
+      if (!Array.isArray(processMap.steps) || processMap.steps.length === 0) {
+        validationErrors.push("Missing or empty steps array");
+      }
+      if (!Array.isArray(processMap.connections)) {
+        validationErrors.push("Missing connections array");
+      }
+      
+      if (validationErrors.length > 0) {
+        return res.status(500).json({
+          error: "Invalid process map structure",
+          details: validationErrors
+        });
+      }
+
+      // Validate step types and role references
+      const validStepTypes = ['start', 'end', 'task', 'decision', 'delay', 'subprocess'];
+      const roleIds = new Set(processMap.roles.map((r: any) => r.id));
+      
+      for (const step of processMap.steps) {
+        if (!step.id || !step.name) {
+          validationErrors.push(`Step missing id or name`);
+        }
+        if (!roleIds.has(step.roleId)) {
+          // Auto-fix: assign to first role if roleId is invalid
+          step.roleId = processMap.roles[0]?.id;
+        }
+        if (!validStepTypes.includes(step.type)) {
+          step.type = 'task'; // Default to task if invalid
+        }
+        if (!step.position || typeof step.position.x !== 'number' || typeof step.position.y !== 'number') {
+          step.position = { x: 0, y: 0 };
+        }
+      }
+
+      // Ensure IDs are present
+      if (!processMap.id) {
+        processMap.id = `process-${Date.now()}`;
+      }
+      if (!processMap.name) {
+        processMap.name = 'Generated Process';
+      }
+
+      console.log(`[Process API] Generated process map: ${processMap.name} with ${processMap.roles.length} roles, ${processMap.steps.length} steps`);
+
+      res.json({ success: true, processMap });
+    } catch (error) {
+      console.error("[Process API] Error generating process:", error);
+      res.status(500).json({ error: "Failed to generate process map" });
+    }
+  });
+
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
     try {
