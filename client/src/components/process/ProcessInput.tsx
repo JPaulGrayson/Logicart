@@ -9,21 +9,9 @@ import { Sparkles, FileText, Loader2, ChevronDown, ChevronUp, Info } from 'lucid
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-const PLACEHOLDER_TEXT = `Describe your business process in natural language. For example:
+const PLACEHOLDER_TEXT = `Describe your process in plain English...
 
-"When a customer requests a refund:
-1. Customer submits the refund request form
-2. Support agent reviews the request
-3. System validates the order details
-4. If eligible, finance team approves and processes payment
-5. If not eligible, support sends rejection notice
-6. Customer receives confirmation"
-
-Include:
-• Who performs each step (roles/departments)
-• Decision points (if/then conditions)
-• The sequence of actions
-• Any delays or waiting periods`;
+Example: "When a customer orders food, the waiter takes the order, kitchen prepares it, waiter delivers it, customer pays."`;
 
 interface ProcessInputProps {
   value: string;
