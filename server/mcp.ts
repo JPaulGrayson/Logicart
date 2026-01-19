@@ -847,7 +847,6 @@ export async function handleMCPSSE(req: Request, res: Response) {
 export async function handleMCPMessage(req: Request, res: Response) {
   const sessionId = req.query.sessionId as string;
   console.log(`[MCP] Message received for session: ${sessionId}`);
-  console.log(`[MCP] Message body:`, JSON.stringify(req.body).substring(0, 200));
   console.log(`[MCP] Active sessions: ${Array.from(activeSessions.keys()).join(', ')}`);
   
   const transport = activeSessions.get(sessionId);

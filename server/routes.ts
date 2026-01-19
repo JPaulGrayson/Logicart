@@ -913,14 +913,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/mcp/messages", async (req, res) => {
-    try {
-      await handleMCPMessage(req, res);
-    } catch (error) {
-      console.error("[MCP] Message error:", error);
-      res.status(500).json({ error: "MCP message handling failed" });
-    }
-  });
+  // NOTE: /api/mcp/messages is registered in app.ts BEFORE body-parser middleware
+  // because SSEServerTransport.handlePostMessage needs to read the raw request body
 
   // Share endpoints
   // Register share routes
