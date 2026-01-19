@@ -806,10 +806,15 @@ export async function handleMCPSSE(req: Request, res: Response) {
   const server = createMCPServer();
   const transport = new SSEServerTransport("/api/mcp/messages", res);
   
-  const sessionId = crypto.randomUUID();
+  // Use the transport's auto-generated sessionId, not our own
+  // This ensures the sessionId in the SSE endpoint matches what the client will send back
+  const sessionId = transport.sessionId;
   activeSessions.set(sessionId, transport);
   
+  console.log(`[MCP] New SSE session: ${sessionId}`);
+  
   res.on("close", () => {
+    console.log(`[MCP] Session closed: ${sessionId}`);
     activeSessions.delete(sessionId);
   });
 
