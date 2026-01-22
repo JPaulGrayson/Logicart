@@ -62,7 +62,7 @@
       ]
     },
     "configuration": {
-      "title": "LogiGo",
+      "title": "LogicArt",
       "properties": {
         "logigo.autoRefresh": {
           "type": "boolean",

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Differ - Unit Tests</title>
+    <title>LogicArt Differ - Unit Tests</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -137,7 +137,7 @@
 </head>
 
 <body>
-    <h1>🧪 LogiGo Differ - Unit Tests</h1>
+    <h1>🧪 LogicArt Differ - Unit Tests</h1>
 
     <div class="summary" id="summary">
         <h2>Running tests...</h2>
@@ -145,7 +145,7 @@
 
     <div id="test-results"></div>
 
-    <!-- Load LogiGo Differ -->
+    <!-- Load LogicArt Differ -->
     <script src="../src/differ.js"></script>
 
     <!-- Test Suite -->
@@ -204,16 +204,16 @@
         ];
 
         // Run tests
-        console.log('🧪 Starting LogiGo Differ Unit Tests...\n');
+        console.log('🧪 Starting LogicArt Differ Unit Tests...\n');
 
         test('Differ initializes correctly', () => {
-            const differ = new LogiGoDiffer({ debug: true });
+            const differ = new LogicArtDiffer({ debug: true });
             assert(differ !== null, 'Differ should be created');
             assert(differ.options.debug === true, 'Debug option should be set');
         });
 
         test('diffTrees identifies added nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const added = result.nodes.filter(n => n.diffStatus === 'added');
             assertEqual(added.length, 1, 'Should find 1 added node');
@@ -222,7 +222,7 @@
         });
 
         test('diffTrees identifies deleted nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const deleted = result.nodes.filter(n => n.diffStatus === 'deleted');
             assertEqual(deleted.length, 1, 'Should find 1 deleted node');
@@ -231,7 +231,7 @@
         });
 
         test('diffTrees identifies modified nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const modified = result.nodes.filter(n => n.diffStatus === 'modified');
             assertEqual(modified.length, 1, 'Should find 1 modified node');
@@ -240,7 +240,7 @@
         });
 
         test('diffTrees identifies unchanged nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const unchanged = result.nodes.filter(n => n.diffStatus === 'unchanged');
             assertEqual(unchanged.length, 1, 'Should find 1 unchanged node');
@@ -248,7 +248,7 @@
         });
 
         test('Stats are calculated correctly', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             assertEqual(result.stats.added, 1, 'Should count 1 added');
             assertEqual(result.stats.removed, 1, 'Should count 1 removed');
@@ -257,7 +257,7 @@
         });
 
         test('getSummary generates correct text', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const summary = differ.getSummary(result);
             assert(summary.includes('4 nodes'), 'Summary should mention total nodes');
@@ -266,7 +266,7 @@
         });
 
         test('filterByStatus works correctly', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const added = differ.filterByStatus(result.nodes, 'added');
             assertEqual(added.length, 1, 'Should filter added nodes');
@@ -274,7 +274,7 @@
         });
 
         test('getChanges returns only changed nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const changes = differ.getChanges(result.nodes);
             assertEqual(changes.length, 3, 'Should return 3 changes (added + modified + deleted)');
@@ -282,7 +282,7 @@
         });
 
         test('Empty trees produce empty diff', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees([], []);
             assertEqual(result.nodes.length, 0, 'Empty trees should produce empty result');
             assertEqual(result.stats.added, 0, 'No added nodes');
@@ -290,7 +290,7 @@
         });
 
         test('Identical trees show all unchanged', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, oldTree);
             assertEqual(result.stats.unchanged, oldTree.length, 'All nodes should be unchanged');
             assertEqual(result.stats.added, 0, 'No added nodes');
@@ -334,7 +334,7 @@
     `;
         testContainer.appendChild(demoSection);
 
-        const differ = new LogiGoDiffer();
+        const differ = new LogicArtDiffer();
         const result = differ.diffTrees(oldTree, newTree);
         const visualDemo = document.getElementById('visual-demo');
 

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to LogiGo will be documented in this file.
+All notable changes to LogicArt will be documented in this file.
 
 ## [1.0.0] - 2025-01-01
 
@@ -54,4 +54,4 @@ All notable changes to LogiGo will be documented in this file.
 
 ---
 
-[1.0.0]: https://github.com/JPaulGrayson/LogiGo/releases/tag/v1.0.0
+[1.0.0]: https://github.com/JPaulGrayson/LogicArt/releases/tag/v1.0.0

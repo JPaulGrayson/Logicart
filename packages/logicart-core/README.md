@@ -1,11 +1,11 @@
-# logigo-core
+# logicart-core
 
-LogiGo runtime library for checkpoint-based debugging and live code visualization.
+LogicArt runtime library for checkpoint-based debugging and live code visualization.
 
 ## Installation
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install logigo-core
 ### Manual Instrumentation
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function bubbleSort(arr) {
   checkpoint('sort_start', { arr });
@@ -37,9 +37,9 @@ function bubbleSort(arr) {
 ### Async Checkpoints with Breakpoints
 
 ```javascript
-import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+import { checkpointAsync, LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+const runtime = new LogicArtRuntime({ manifestHash: 'abc123' });
 runtime.setBreakpoint('critical_point', true);
 
 async function processData(data) {
@@ -56,7 +56,7 @@ Synchronously records a checkpoint with optional variable capture.
 ### `checkpointAsync(id, variables?)`
 Records a checkpoint that can pause execution at breakpoints.
 
-### `LogiGoRuntime`
+### `LogicArtRuntime`
 Full runtime class with session management, breakpoints, and queue control.
 
 ### `generateGroundingContext(nodes, edges)`

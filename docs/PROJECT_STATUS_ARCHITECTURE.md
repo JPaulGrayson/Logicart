@@ -1,4 +1,4 @@
-# LogiGo Project Status & Architecture Document
+# LogicArt Project Status & Architecture Document
 
 **Date:** December 23, 2025  
 **Purpose:** Comprehensive audit of implemented vs. planned features  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-LogiGo (formerly Cartographer) is a bidirectional code-to-flowchart visualization tool targeting "Vibe Coders." The project has evolved from a simple flowchart generator to a multi-platform debugging system with runtime instrumentation capabilities.
+LogicArt (formerly Cartographer) is a bidirectional code-to-flowchart visualization tool targeting "Vibe Coders." The project has evolved from a simple flowchart generator to a multi-platform debugging system with runtime instrumentation capabilities.
 
 **Architecture Strategy:** "Factory vs. Showroom" - Antigravity builds the core engine libraries while Replit builds the Studio UI.
 
@@ -63,8 +63,8 @@ diffTrees(oldTree: FlowNode[], newTree: FlowNode[]): DiffResult {
 
 **Locations:**
 - `client/src/lib/executionController.ts` - Client-side controller
-- `packages/logigo-core/src/runtime.ts` - Runtime library
-- `packages/logigo-vite-plugin/src/index.ts` - Build-time injection
+- `packages/logicart-core/src/runtime.ts` - Runtime library
+- `packages/logicart-vite-plugin/src/index.ts` - Build-time injection
 
 **Status:** Core logic exists, integration incomplete
 
@@ -84,10 +84,10 @@ class ExecutionController {
 }
 ```
 
-#### Runtime Library (logigo-core) ✅
+#### Runtime Library (logicart-core) ✅
 ```typescript
-// packages/logigo-core/src/runtime.ts
-class LogiGoRuntime {
+// packages/logicart-core/src/runtime.ts
+class LogicArtRuntime {
   private breakpoints = new Map<string, Breakpoint>();
   
   async checkpointAsync(id, variables): Promise<void> {
@@ -122,7 +122,7 @@ class LogiGoRuntime {
 
 **Locations:**
 - `server/routes.ts` (lines 352-480) - `remote.js` bootstrap script
-- `packages/logigo-core/src/runtime.ts` - postMessage API
+- `packages/logicart-core/src/runtime.ts` - postMessage API
 - `shared/reporter-api.ts` - Message protocol definitions
 
 **Communication Method:** `window.postMessage` with structured messages
@@ -130,16 +130,16 @@ class LogiGoRuntime {
 #### Message Protocol:
 ```typescript
 // Reporter API (Runtime -> Studio)
-interface LogiGoMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_SESSION_START' | 'LOGIGO_CHECKPOINT' | 'LOGIGO_ERROR';
+interface LogicArtMessage {
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_SESSION_START' | 'LOGICART_CHECKPOINT' | 'LOGICART_ERROR';
   payload: CheckpointPayload | SessionStartPayload;
 }
 
 // Control API (Studio -> Runtime)
 interface ControlMessage {
-  source: 'LOGIGO_STUDIO';
-  type: 'LOGIGO_JUMP_TO_LINE' | 'LOGIGO_WRITE_FILE' | 'LOGIGO_REQUEST_FILE';
+  source: 'LOGICART_STUDIO';
+  type: 'LOGICART_JUMP_TO_LINE' | 'LOGICART_WRITE_FILE' | 'LOGICART_REQUEST_FILE';
   payload: JumpToLinePayload | WriteFilePayload;
 }
 ```
@@ -149,14 +149,14 @@ interface ControlMessage {
 // Auto-creates session, exposes window.checkpoint()
 window.checkpoint = function(id, variables, options) {
   // Sends POST to /api/remote/checkpoint
-  // Auto-opens LogiGo on first checkpoint (zero-click)
+  // Auto-opens LogicArt on first checkpoint (zero-click)
 };
 
-window.LogiGo = {
+window.LogicArt = {
   checkpoint: window.checkpoint,
   sessionId: SESSION_ID,
   viewUrl: VIEW_URL,
-  openNow: function() { /* Opens LogiGo manually */ },
+  openNow: function() { /* Opens LogicArt manually */ },
   registerCode: function(code) { /* Registers source for flowchart */ }
 };
 ```
@@ -201,7 +201,7 @@ window.LogiGo = {
 ### 2.1 Package Structure
 
 ```
-logigo/
+logicart/
 ├── client/                    # React Studio UI (Replit)
 │   └── src/
 │       ├── lib/
@@ -214,20 +214,20 @@ logigo/
 │           └── RemoteMode.tsx # Cross-Replit visualization
 │
 ├── packages/
-│   ├── logigo-core/           # Runtime library (Antigravity)
+│   ├── logicart-core/           # Runtime library (Antigravity)
 │   │   └── src/runtime.ts     # Checkpoint API
-│   ├── logigo-embed/          # Embeddable React component
-│   │   └── src/LogiGoEmbed.tsx
-│   ├── logigo-vite-plugin/    # Build-time instrumentation
+│   ├── logicart-embed/          # Embeddable React component
+│   │   └── src/LogicArtEmbed.tsx
+│   ├── logicart-vite-plugin/    # Build-time instrumentation
 │   │   └── src/instrumenter.ts
-│   └── logigo-remote/         # Remote mode client helper
+│   └── logicart-remote/         # Remote mode client helper
 │
 ├── vscode-extension/          # VS Code/Antigravity extension
 │   ├── src/
 │   │   ├── extension.ts       # Activation, commands
 │   │   ├── parser.ts          # Standalone parser
 │   │   └── webview/           # Embedded Studio UI
-│   └── logigo-1.0.0.vsix      # Pre-built extension
+│   └── logicart-1.0.0.vsix      # Pre-built extension
 │
 ├── server/
 │   └── routes.ts              # Remote Mode API, remote.js
@@ -240,10 +240,10 @@ logigo/
 
 ```
 ┌─────────────────┐    postMessage    ┌─────────────────┐
-│  User's App     │ ───────────────── │  LogiGo Studio  │
+│  User's App     │ ───────────────── │  LogicArt Studio  │
 │  (with checkpoints)                 │  (Workbench/    │
 │                 │                   │   RemoteMode)   │
-│  LogiGo.checkpoint()                │                 │
+│  LogicArt.checkpoint()                │                 │
 │       ↓         │                   │                 │
 │  runtime.ts     │                   │  parser.ts      │
 │       ↓         │                   │       ↓         │
@@ -257,7 +257,7 @@ logigo/
 
 ```
 ┌─────────────────┐     POST /checkpoint    ┌─────────────────┐
-│  External Repl  │ ──────────────────────→ │  LogiGo Server  │
+│  External Repl  │ ──────────────────────→ │  LogicArt Server  │
 │  (user's app)   │                         │  (Express)      │
 │                 │                         │                 │
 │  <script src=   │                         │  RemoteSession  │
@@ -268,7 +268,7 @@ logigo/
                                                      │ SSE
                                                      ↓
                                             ┌─────────────────┐
-                                            │  LogiGo Studio  │
+                                            │  LogicArt Studio  │
                                             │  RemoteMode.tsx │
                                             │                 │
                                             │  - Live flowchart
@@ -308,7 +308,7 @@ logigo/
 - `extension.ts` - Activation, command registration
 - `parser.ts` - Standalone JavaScript parser (same as client)
 - `webview/` - Embedded flowchart UI
-- `logigo-1.0.0.vsix` - Pre-packaged extension
+- `logicart-1.0.0.vsix` - Pre-packaged extension
 
 ### Capabilities:
 - Webview panel with flowchart visualization
@@ -328,7 +328,7 @@ logigo/
 ## 5. Antigravity Collaboration Summary
 
 ### Division of Labor:
-- **Antigravity (Factory):** `logigo-core`, `@logigo/bridge` concepts, VS Code extension, runtime instrumentation
+- **Antigravity (Factory):** `logicart-core`, `@logicart/bridge` concepts, VS Code extension, runtime instrumentation
 - **Replit (Showroom):** Studio UI, Remote Mode, user-facing features
 
 ### Key Antigravity Contributions:
@@ -340,7 +340,7 @@ logigo/
 ### Pending Questions for Antigravity:
 1. What hooks are available for `antigravity.execution.onExecutionStart`?
 2. Can we get `antigravity.ai.onCodeGeneration` for auto-show on AI changes?
-3. Should we implement the full `@logigo/bridge` library or continue with postMessage?
+3. Should we implement the full `@logicart/bridge` library or continue with postMessage?
 
 ---
 
@@ -358,7 +358,7 @@ logigo/
 
 ### Priority 3: Visual Handshake (Optional)
 - Inject CSS for DOM element highlighting
-- Add `data-logigo-checkpoint` attributes to instrumented elements
+- Add `data-logicart-checkpoint` attributes to instrumented elements
 - Implement hover synchronization
 
 ---
@@ -370,7 +370,7 @@ For verification, examine these key files:
 | Feature | Primary File | Secondary |
 |---------|--------------|-----------|
 | Ghost Diff Logic | `client/src/lib/ghostDiff.ts` | - |
-| Speed Governor | `client/src/lib/executionController.ts` | `packages/logigo-core/src/runtime.ts` |
+| Speed Governor | `client/src/lib/executionController.ts` | `packages/logicart-core/src/runtime.ts` |
 | Remote Mode API | `server/routes.ts` (lines 133-500) | - |
 | Message Protocol | `shared/reporter-api.ts` | - |
 | VS Code Extension | `vscode-extension/src/extension.ts` | `vscode-extension/src/parser.ts` |
@@ -378,4 +378,4 @@ For verification, examine these key files:
 
 ---
 
-*Document generated by LogiGo Replit Agent - December 23, 2025*
+*Document generated by LogicArt Replit Agent - December 23, 2025*

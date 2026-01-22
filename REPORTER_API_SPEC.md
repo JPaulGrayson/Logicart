@@ -1,28 +1,28 @@
-`# LogiGo Reporter API Specification
+`# LogicArt Reporter API Specification
 
 **Version:** 1.0.0-beta.2
 **Status:** Final Draft
-**Target Audience:** LogiGo Studio Team (Replit)
+**Target Audience:** LogicArt Studio Team (Replit)
 
 ## 📡 Overview
-The Reporter API streams real-time execution data from the user's application (running `logigo-core`) to external tools like the LogiGo Studio.
+The Reporter API streams real-time execution data from the user's application (running `logicart-core`) to external tools like the LogicArt Studio.
 
 Communication happens via `window.postMessage`. The Studio should listen for these messages on the `window` object.
 
 ## 📨 Message Protocol
 
-All messages sent by LogiGo Core follow this standard envelope:
+All messages sent by LogicArt Core follow this standard envelope:
 
 ```typescript
-interface LogiGoMessage {
-  source: 'LOGIGO_CORE';
+interface LogicArtMessage {
+  source: 'LOGICART_CORE';
   type: string; // Event type (see below)
   payload: any; // Event data
 }
 ```
 
-### 1. Checkpoint Event (`LOGIGO_CHECKPOINT`)
-Fired whenever `LogiGo.checkpoint()` is executed in the user's code.
+### 1. Checkpoint Event (`LOGICART_CHECKPOINT`)
+Fired whenever `LogicArt.checkpoint()` is executed in the user's code.
 
 **Payload Schema:**
 ```typescript
@@ -41,8 +41,8 @@ interface CheckpointPayload {
 **Example JSON:**
 ```json
 {
-  "source": "LOGIGO_CORE",
-  "type": "LOGIGO_CHECKPOINT",
+  "source": "LOGICART_CORE",
+  "type": "LOGICART_CHECKPOINT",
   "payload": {
     "id": "astar:process",
     "timestamp": 1716928301234,
@@ -60,8 +60,8 @@ interface CheckpointPayload {
 }
 ```
 
-### 2. Session Start Event (`LOGIGO_SESSION_START`)
-Fired when the page loads or `LogiGo.reset()` is called.
+### 2. Session Start Event (`LOGICART_SESSION_START`)
+Fired when the page loads or `LogicArt.reset()` is called.
 
 **Payload Schema:**
 ```typescript
@@ -74,7 +74,7 @@ interface SessionStartPayload {
 
 ## 🛠️ Implementation Guide for Studio
 
-To listen for these events in the LogiGo Studio, use the following code:
+To listen for these events in the LogicArt Studio, use the following code:
 
 ```javascript
 window.addEventListener('message', (event) => {
@@ -84,15 +84,15 @@ window.addEventListener('message', (event) => {
   const data = event.data;
   
   // 2. Protocol Check
-  if (data?.source !== 'LOGIGO_CORE') return;
+  if (data?.source !== 'LOGICART_CORE') return;
   
   // 3. Handle Events
   switch (data.type) {
-    case 'LOGIGO_CHECKPOINT':
+    case 'LOGICART_CHECKPOINT':
       handleCheckpoint(data.payload);
       break;
       
-    case 'LOGIGO_SESSION_START':
+    case 'LOGICART_SESSION_START':
       resetVisualization();
       break;
   }
@@ -107,4 +107,4 @@ function handleCheckpoint(payload) {
 ```
 
 ## 🔄 The "Handshake" (Future Phase)
-Currently, `logigo-core` broadcasts events blindly. In the future, we will implement a handshake where the Studio sends a `LOGIGO_STUDIO_HELLO` message, and Core replies with `LOGIGO_CORE_ACK` to establish a two-way control channel (allowing the Studio to Pause/Play the user's app).`
+Currently, `logicart-core` broadcasts events blindly. In the future, we will implement a handshake where the Studio sends a `LOGICART_STUDIO_HELLO` message, and Core replies with `LOGICART_CORE_ACK` to establish a two-way control channel (allowing the Studio to Pause/Play the user's app).`

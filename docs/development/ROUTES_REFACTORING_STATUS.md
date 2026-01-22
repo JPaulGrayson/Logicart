@@ -106,7 +106,7 @@ app.use('/api/remote', remoteRouter);
 **Remaining errors** (pre-existing, not related to refactoring):
 - `client/src/lib/flowchartExport.ts` - html-to-image type issues
 - `client/src/pages/TestMiniMap.tsx` - style width/height types
-- `packages/logigo-embed/src/LogiGoEmbed.tsx` - React 19 type issues
+- `packages/logicart-embed/src/LogicArtEmbed.tsx` - React 19 type issues
 
 ### **Runtime Testing:**
 ⏳ **PENDING** - Need to run `npm run dev` and test endpoints

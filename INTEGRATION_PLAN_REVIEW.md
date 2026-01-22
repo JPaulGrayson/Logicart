@@ -1,9 +1,9 @@
-# LogiGo × Antigravity Integration Plan - Review & Status
+# LogicArt × Antigravity Integration Plan - Review & Status
 
 ## Executive Summary
-The proposed integration plan is **excellent** and perfectly aligns with the "Factory vs. Showroom" strategy we have been executing. It correctly identifies the "Overlay Library" as the critical bridge between the LogiGo engine and the Antigravity platform.
+The proposed integration plan is **excellent** and perfectly aligns with the "Factory vs. Showroom" strategy we have been executing. It correctly identifies the "Overlay Library" as the critical bridge between the LogicArt engine and the Antigravity platform.
 
-**Status Update:** We are significantly **ahead of schedule** on the LogiGo Team responsibilities.
+**Status Update:** We are significantly **ahead of schedule** on the LogicArt Team responsibilities.
 
 ---
 
@@ -12,10 +12,10 @@ The plan lists several items as "Phase 1" or "Needs Building" which we have **al
 
 1.  **Overlay Library Mode (Mode 2)**
     *   *Plan:* "Lightweight injectable NPM package"
-    *   *Status:* **DONE.** We built `logigo-core` (NPM package) containing the overlay, runtime, and differ.
+    *   *Status:* **DONE.** We built `logicart-core` (NPM package) containing the overlay, runtime, and differ.
 
 2.  **Checkpoint Runtime**
-    *   *Plan:* `LogiGo.checkpoint(id)` execution tracking
+    *   *Plan:* `LogicArt.checkpoint(id)` execution tracking
     *   *Status:* **DONE.** `src/runtime.js` implements `ExecutionController` with Promise-based checkpoints.
 
 3.  **Visual Handshake**
@@ -37,19 +37,19 @@ The plan lists several items as "Phase 1" or "Needs Building" which we have **al
 ### 1. Architecture (Mode 2)
 The plan proposes:
 ```javascript
-import LogiGo from '@logigo/runtime';
-LogiGo.init({ mode: 'overlay' });
+import LogicArt from '@logicart/runtime';
+LogicArt.init({ mode: 'overlay' });
 ```
 **Our Implementation:**
 ```javascript
-import LogiGoOverlay from 'logigo-core';
-new LogiGoOverlay({ position: 'bottom-right' }).init();
+import LogicArtOverlay from 'logicart-core';
+new LogicArtOverlay({ position: 'bottom-right' }).init();
 ```
 *Feedback:* This is functionally identical. We can alias our export to match the proposed API if strict adherence is required, but our current API is clean and working.
 
 ### 2. Package Structure
-The plan suggests splitting into `@logigo/core`, `@logigo/runtime`, `@logigo/overlay-ui`.
-*Feedback:* For the MVP, a single package `logigo-core` (which we built) is superior. It reduces friction for installation and version management. We should stick to the single package until the bundle size becomes an issue (currently it's very small).
+The plan suggests splitting into `@logicart/core`, `@logicart/runtime`, `@logicart/overlay-ui`.
+*Feedback:* For the MVP, a single package `logicart-core` (which we built) is superior. It reduces friction for installation and version management. We should stick to the single package until the bundle size becomes an issue (currently it's very small).
 
 ### 3. Antigravity APIs (The "Ask")
 The request for `antigravity.execution.onExecutionStart` and `antigravity.ai.onCodeGeneration` is spot on.
@@ -65,13 +65,13 @@ The plan lists Ghost Diff and Time Travel as premium.
 
 ### Immediate Actions (Revised)
 
-1.  **LogiGo Team (Us):**
-    *   **Publish `logigo-core` to NPM.** (Ready to go)
+1.  **LogicArt Team (Us):**
+    *   **Publish `logicart-core` to NPM.** (Ready to go)
     *   **Refine Visual Handshake.** Ensure the DOM highlighting is robust for complex UIs.
     *   **Implement "Hierarchical Views" (Phase 3 in plan).** This is the next logical step for the library now that the core is done.
 
 2.  **Antigravity Team (Platform):**
-    *   **Review the `onCodeGeneration` hook proposal.** This is the integration point for "Gemini generates code -> LogiGo shows flow".
+    *   **Review the `onCodeGeneration` hook proposal.** This is the integration point for "Gemini generates code -> LogicArt shows flow".
 
 ### Strategic Pivot
 Since we have already built the "Phase 1" deliverables (NPM package, Runtime, Overlay), we can **accelerate to Phase 2/3**.
@@ -80,4 +80,4 @@ Since we have already built the "Phase 1" deliverables (NPM package, Runtime, Ov
 *   **Start:** "Week 3-4: Demo overlay prototype" (We have `complete_demo.html` ready today).
 
 ## Conclusion
-The plan is solid. We have effectively "pre-delivered" the first 6 weeks of the LogiGo roadmap. We should accept this plan but note our accelerated status.
+The plan is solid. We have effectively "pre-delivered" the first 6 weeks of the LogicArt roadmap. We should accept this plan but note our accelerated status.

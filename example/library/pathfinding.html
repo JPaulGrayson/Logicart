@@ -170,14 +170,14 @@
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '/demo-src/overlay.js';
+        import LogicArtOverlay from '/demo-src/overlay.js';
 
-        // Initialize LogicArt (using LogiGo class for backward compatibility)
-        const logicart = new LogiGoOverlay({
+        // Initialize LogicArt (using LogicArt class for backward compatibility)
+        const logicart = new LogicArtOverlay({
             speed: 5.0, // Fast default
             position: 'bottom-right'
         }).init();
-        // LogiGo is already exposed by the overlay.init()
+        // LogicArt is already exposed by the overlay.init()
 
         // Config
         const COLS = 20;
@@ -261,7 +261,7 @@
             document.getElementById('stat-status').textContent = 'Running...';
 
             try {
-                await LogiGo.checkpoint('astar:start', {
+                await LogicArt.checkpoint('astar:start', {
                     variables: { start: startNode, end: endNode }
                 });
 
@@ -290,7 +290,7 @@
                     console.log(`[A*] Processing ${key(current)}, fScore: ${fScore.get(key(current))}`);
 
                     // Visual: Highlight current node processing
-                    await LogiGo.checkpoint(`process:${current.x}:${current.y}`, {
+                    await LogicArt.checkpoint(`process:${current.x}:${current.y}`, {
                         domElement: `#cell-${current.x}-${current.y}`,
                         color: '#f1c40f',
                         variables: {
@@ -356,7 +356,7 @@
                                 document.getElementById('stat-visited').textContent = stats.visited;
 
                                 // Visual: Highlight neighbor discovery
-                                await LogiGo.checkpoint(`discover:${neighbor.x}:${neighbor.y}`, {
+                                await LogicArt.checkpoint(`discover:${neighbor.x}:${neighbor.y}`, {
                                     domElement: `#cell-${neighbor.x}-${neighbor.y}`,
                                     color: '#a8e6cf'
                                 });
@@ -366,7 +366,7 @@
                 }
 
                 document.getElementById('stat-status').textContent = 'No Path';
-                await LogiGo.checkpoint('astar:fail', { color: '#e74c3c' });
+                await LogicArt.checkpoint('astar:fail', { color: '#e74c3c' });
 
             } catch (error) {
                 console.error('[A*] Error:', error);
@@ -410,7 +410,7 @@
             }
 
             // Visualize path
-            await LogiGo.checkpoint('astar:path_found', { color: '#2ecc71' });
+            await LogicArt.checkpoint('astar:path_found', { color: '#2ecc71' });
 
             document.getElementById('stat-path').textContent = path.length;
 
@@ -422,7 +422,7 @@
                     grid[node.y][node.x].el.classList.add('path');
 
                     // Animate path drawing
-                    await LogiGo.checkpoint(`path:${node.x}:${node.y}`, {
+                    await LogicArt.checkpoint(`path:${node.x}:${node.y}`, {
                         domElement: `#cell-${node.x}-${node.y}`,
                         color: '#3498db',
                         duration: 100 // Fast path drawing

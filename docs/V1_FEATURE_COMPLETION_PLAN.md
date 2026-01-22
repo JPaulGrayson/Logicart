@@ -1,4 +1,4 @@
-# LogiGo V1 Feature Completion Plan
+# LogicArt V1 Feature Completion Plan
 
 **Date:** December 26, 2025  
 **Goal:** Add all low-hanging fruit features before V1 launch  
@@ -33,8 +33,8 @@ Create REST endpoints for code analysis:
 // POST body: { code: string, language?: string }
 // Returns: GroundingContext (already implemented!)
 
-import { parseCodeToFlow } from '@logigo/bridge';
-import { generateGroundingContext } from '@logigo/core';
+import { parseCodeToFlow } from '@logicart/bridge';
+import { generateGroundingContext } from '@logicart/core';
 
 export async function analyzeCode(code: string) {
   const flowData = parseCodeToFlow(code);
@@ -63,20 +63,20 @@ app.post('/api/agent/analyze', async (req, res) => {
 ```
 
 #### Phase 2: CLI Tool (Day 2)
-**New package:** `packages/logigo-cli/`
+**New package:** `packages/logicart-cli/`
 
 ```bash
-npm install -g @logigo/cli
+npm install -g @logicart/cli
 
 # Usage
-logigo analyze src/auth.js
-logigo analyze src/auth.js --output json > analysis.json
-logigo analyze src/auth.js --format summary
+logicart analyze src/auth.js
+logicart analyze src/auth.js --output json > analysis.json
+logicart analyze src/auth.js --format summary
 ```
 
 **Implementation:**
 ```typescript
-// packages/logigo-cli/src/index.ts
+// packages/logicart-cli/src/index.ts
 import { Command } from 'commander';
 import fs from 'fs';
 import { analyzeCode } from './api-client';
@@ -270,7 +270,7 @@ const applyLayout = (preset: keyof typeof layoutPresets) => {
   setFlowchartPanelSize(flowchart);
   
   // Save to localStorage
-  localStorage.setItem('logigo-layout', preset);
+  localStorage.setItem('logicart-layout', preset);
 };
 
 // Add preset buttons to toolbar
@@ -340,14 +340,14 @@ export class HistoryManager {
   }
   
   save() {
-    localStorage.setItem('logigo-history', JSON.stringify({
+    localStorage.setItem('logicart-history', JSON.stringify({
       history: this.history,
       currentIndex: this.currentIndex
     }));
   }
   
   load() {
-    const saved = localStorage.getItem('logigo-history');
+    const saved = localStorage.getItem('logicart-history');
     if (saved) {
       const { history, currentIndex } = JSON.parse(saved);
       this.history = history;
@@ -449,7 +449,7 @@ app.post('/api/share', async (req, res) => {
   );
   
   res.json({ 
-    url: `https://logigo.replit.app/s/${id}`,
+    url: `https://logicart.replit.app/s/${id}`,
     id 
   });
 });
@@ -561,10 +561,10 @@ app.get('/s/:id', async (req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <meta property="og:title" content="${title || 'LogiGo Flowchart'}" />
+        <meta property="og:title" content="${title || 'LogicArt Flowchart'}" />
         <meta property="og:description" content="${description || 'Interactive code flowchart'}" />
-        <meta property="og:image" content="https://logigo.replit.app/og-image.png" />
-        <meta property="og:url" content="https://logigo.replit.app/s/${id}" />
+        <meta property="og:image" content="https://logicart.replit.app/og-image.png" />
+        <meta property="og:url" content="https://logicart.replit.app/s/${id}" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta http-equiv="refresh" content="0; url=/?code=..." />
       </head>
@@ -598,7 +598,7 @@ app.get('/s/:id', async (req, res) => {
 Each feature must meet these criteria before shipping:
 
 1. ✅ **Replit Agent API**
-   - CLI tool works: `logigo analyze file.js`
+   - CLI tool works: `logicart analyze file.js`
    - API returns valid GroundingContext
    - Documentation with examples
 

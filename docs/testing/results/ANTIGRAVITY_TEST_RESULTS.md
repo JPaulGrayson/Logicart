@@ -1,4 +1,4 @@
-# Antigravity Test Results - LogiGo AI Integration
+# Antigravity Test Results - LogicArt AI Integration
 
 **Date:** December 31, 2025  
 **Tester:** Antigravity AI  
@@ -92,7 +92,7 @@
 - ✅ Exports `requireFounderTier` function
 - ✅ Checks `Authorization: Bearer <token>` header
 - ✅ Verifies JWT with RS256 algorithm
-- ✅ Validates `payload.appId === 'logigo'`
+- ✅ Validates `payload.appId === 'logicart'`
 - ✅ Validates `payload.tier === 'founder'`
 - ✅ Returns 401 for missing/invalid tokens
 - ✅ Returns 403 for wrong appId or tier
@@ -196,7 +196,7 @@ Environment Variables:
 **Features Verified:**
 - ✅ Client-side JWT decoding (no verification, just parsing)
 - ✅ Token expiration checking
-- ✅ `appId` validation (accepts 'logigo' or any valid Voyai token)
+- ✅ `appId` validation (accepts 'logicart' or any valid Voyai token)
 - ✅ Token storage in localStorage (`voyai_token`)
 - ✅ URL token extraction (`?token=...`)
 - ✅ URL cleaning after token extraction

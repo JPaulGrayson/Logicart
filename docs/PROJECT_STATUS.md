@@ -1,4 +1,4 @@
-# LogiGo Project Status & Architecture Document
+# LogicArt Project Status & Architecture Document
 
 **Generated:** December 27, 2025  
 **Purpose:** Reality check before building advanced "Grounding" features
@@ -33,7 +33,7 @@
 |---------|--------|----------|-------|
 | **Ghost Diff** | ✅ Working | `client/src/lib/ghostDiff.ts` | AST-aware comparison, CSS classes (`diff-added`, `diff-removed`, `diff-modified`), UI toggle in Workbench |
 | **Natural Language Search** | ✅ Working | `client/src/lib/naturalLanguageSearch.ts`, `client/src/components/ide/NaturalLanguageSearch.tsx` | Pattern matching for "show conditionals", "find loops", etc. Premium feature. |
-| **Grounding Context** | ✅ Working | `packages/logigo-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
+| **Grounding Context** | ✅ Working | `packages/logicart-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
 | **Visual Handshake** | ✅ Working | `shared/control-types.ts`, `client/src/pages/Workbench.tsx` | Click flowchart node → highlight DOM in remote app. Amber ring feedback in Studio. 3s fallback timeout. |
 
 ### Partially Implemented Features ⚠️
@@ -57,7 +57,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        LogiGo Studio                            │
+│                        LogicArt Studio                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
 │  │ Code Editor  │───▶│ Acorn Parser │───▶│ React Flow   │      │
@@ -110,7 +110,7 @@
 ### Remote Mode Communication
 
 ```
-External Replit App                    LogiGo Studio
+External Replit App                    LogicArt Studio
 ─────────────────                     ──────────────
       │                                     │
       │ ◀─── GET /api/mcp/sse ───────────── │  (AI Agent connects)
@@ -125,17 +125,17 @@ External Replit App                    LogiGo Studio
 **Communication Methods:**
 - **SSE (Server-Sent Events):** Checkpoints flow from remote app → Studio
 - **WebSocket Control Channel:** Bidirectional debugging commands
-- **postMessage:** Used by logigo-embed for iframe communication
-- **Global Variables:** Legacy overlay.js uses `window.LogiGo`
+- **postMessage:** Used by logicart-embed for iframe communication
+- **Global Variables:** Legacy overlay.js uses `window.LogicArt`
 
-### Overlay Injection (packages/logigo-embed)
+### Overlay Injection (packages/logicart-embed)
 
 ```javascript
 // Static Mode: Runtime parsing
-<LogiGoEmbed mode="static" code={sourceCode} />
+<LogicArtEmbed mode="static" code={sourceCode} />
 
 // Live Mode: Build-time instrumentation
-<LogiGoEmbed mode="live" manifestUrl="/logigo-manifest.json" />
+<LogicArtEmbed mode="live" manifestUrl="/logicart-manifest.json" />
 ```
 
 The embed component:
@@ -199,9 +199,9 @@ The embed component:
 
 | Aspect | Current State | Gap |
 |--------|---------------|-----|
-| **Context Generation** | ✅ Full implementation | `generateGroundingContext()` in `packages/logigo-core/src/grounding.ts` |
+| **Context Generation** | ✅ Full implementation | `generateGroundingContext()` in `packages/logicart-core/src/grounding.ts` |
 | **Types** | ✅ Defined | `shared/grounding-types.ts` with `GroundingNode`, `GroundingContext` |
-| **Tests** | ✅ Has tests | `packages/logigo-core/src/grounding.test.ts` |
+| **Tests** | ✅ Has tests | `packages/logicart-core/src/grounding.test.ts` |
 | **AI Agent Integration** | ✅ MCP Server works | MCP tools can return grounding data |
 | **UI Export Button** | ⚠️ Not exposed | Could add "Export Context" button |
 
@@ -250,7 +250,7 @@ The embed component:
 
 | File | Purpose | Completeness |
 |------|---------|--------------|
-| `packages/logigo-embed/` | Embeddable component | ⚠️ Basic |
+| `packages/logicart-embed/` | Embeddable component | ⚠️ Basic |
 | `public/src/runtime.js` | Legacy runtime injection | ⚠️ Basic |
 | `public/src/overlay.js` | Legacy overlay | ⚠️ Basic |
 

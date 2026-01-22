@@ -1,4 +1,4 @@
-# LogiGo Code Review Workflow
+# LogicArt Code Review Workflow
 
 **How to get Replit to perform a comprehensive code review**
 
@@ -8,7 +8,7 @@
 
 ### Step 1: Give Replit the Prompt
 
-1. Open **Replit LogiGo Studio**
+1. Open **Replit LogicArt Studio**
 2. Open the **Replit Agent chat**
 3. Send this message:
 
@@ -160,7 +160,7 @@ The report will include:
 
 1. **Pull the report to local:**
    ```bash
-   cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+   cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
    git pull origin main
    ```
 

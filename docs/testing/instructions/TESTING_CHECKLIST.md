@@ -1,8 +1,8 @@
-# LogiGo AI Integration Testing Checklist
+# LogicArt AI Integration Testing Checklist
 
 **Date Started:** _____________  
 **Tester:** Paul  
-**Goal:** Validate LogiGo works with Antigravity, VS Code, Cursor, and Windsurf
+**Goal:** Validate LogicArt works with Antigravity, VS Code, Cursor, and Windsurf
 
 ---
 

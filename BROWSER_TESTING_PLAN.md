@@ -31,7 +31,7 @@
 ### Replit Agent
 **Capabilities:**
 - ✅ Can open browser in Replit environment
-- ✅ Can interact with LogiGo Studio UI
+- ✅ Can interact with LogicArt Studio UI
 - ✅ Can test all runtime features
 - ✅ Can capture screenshots
 - ✅ Can record sessions
@@ -117,10 +117,10 @@ antigravity_syntax_error_FAIL.webp
 - All dist/ folders generated
 
 **Results:**
-- logigo-core: ✅ PASS
-- logigo-embed: ✅ PASS
-- logigo-vite-plugin: ✅ PASS
-- logigo-remote: ✅ PASS
+- logicart-core: ✅ PASS
+- logicart-embed: ✅ PASS
+- logicart-vite-plugin: ✅ PASS
+- logicart-remote: ✅ PASS
 
 **Evidence:**
 - Screenshot: `build_output.png`
@@ -147,20 +147,20 @@ antigravity_syntax_error_FAIL.webp
 **Setup:**
 ```bash
 # Terminal tests (no browser)
-cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
 npm run build:packages
 npm audit
 # ... other CLI tests
 
 # Browser tests (with recordings)
-# Open browser and navigate to LogiGo Studio
+# Open browser and navigate to LogicArt Studio
 # Record each test scenario
 ```
 
 **Browser Test Scenarios:**
 
 1. **Code Parsing Tests** (Recording: `code_parsing.webp`)
-   - Open LogiGo Studio
+   - Open LogicArt Studio
    - Paste test case 1 (simple function)
    - Verify flowchart renders
    - Repeat for all 5 test cases
@@ -329,7 +329,7 @@ test-results/
 
 ### Replit
 - [ ] Set up dev environment
-- [ ] Open browser to LogiGo Studio
+- [ ] Open browser to LogicArt Studio
 - [ ] Record all V1 feature tests
 - [ ] Record UI/UX tests
 - [ ] Capture screenshots of issues
@@ -371,7 +371,7 @@ test-results/
 **Recording:** `recordings/layout_presets_PASS.webp`
 
 **Test Steps:**
-1. Opened LogiGo Studio
+1. Opened LogicArt Studio
 2. Clicked "Code Focus" preset
 3. Verified layout changed (code panel expanded)
 4. Clicked "Flowchart Focus" preset

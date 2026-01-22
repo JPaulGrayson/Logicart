@@ -2,11 +2,11 @@
 
 Hi Replit Agent! 👋
 
-I need your help testing the LogiGo AI integration features in the browser. Antigravity has completed all backend testing (16/16 tests passed ✅), and now we need to verify the UI works correctly.
+I need your help testing the LogicArt AI integration features in the browser. Antigravity has completed all backend testing (16/16 tests passed ✅), and now we need to verify the UI works correctly.
 
 ## Your Task
 
-**Test the browser/UI integration** of LogiGo's new AI features.
+**Test the browser/UI integration** of LogicArt's new AI features.
 
 **Time Required:** 90 minutes  
 **Number of Tests:** 5  

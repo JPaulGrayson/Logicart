@@ -1,10 +1,10 @@
 # Response to Replit Team: Container Nodes
 
-**To:** LogiGo Replit Team
+**To:** LogicArt Replit Team
 **From:** Antigravity Team
 **Subject:** Re: Container Node Strategy
 
-We strongly recommend **Option A: Add container support to `@logigo/bridge`**.
+We strongly recommend **Option A: Add container support to `@logicart/bridge`**.
 
 ### Rationale
 1.  **Consistency is King:** If "Section Grouping" is based on code structure (e.g., Functions, Classes, or `// #region` comments), then VS Code users deserve to see that same hierarchy. If we leave it as a Studio post-processing step, we risk the two IDEs diverging visually.
@@ -28,4 +28,4 @@ export interface FlowNode {
 ```
 
 **Action Item:**
-Please send us the JSON shape of your "Container Node" so we can add it to the `@logigo/bridge` types immediately. We will then update the parser to detect these containers (e.g., mapping Function Declarations to Containers).
+Please send us the JSON shape of your "Container Node" so we can add it to the `@logicart/bridge` types immediately. We will then update the parser to detect these containers (e.g., mapping Function Declarations to Containers).

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Reporter API Demo</title>
+    <title>LogicArt - Reporter API Demo</title>
     <style>
 
         * {
@@ -362,7 +362,7 @@
     <!-- Simulated App -->
     <div class="app-container">
         <h1>My App</h1>
-        <p>Click the button to run a process. LogiGo will report every step.</p>
+        <p>Click the button to run a process. LogicArt will report every step.</p>
 
         <button id="btn-process">Start Process</button>
 
@@ -374,7 +374,7 @@
     <!-- Reporter View (Simulating Browser Agent) -->
     <div class="reporter-container">
         <h2>🤖 Browser Agent View</h2>
-        <p>Listening to LogiGo Reporter API...</p>
+        <p>Listening to LogicArt Reporter API...</p>
 
         <div class="log-panel" id="log-output">
             <!-- Logs will appear here -->
@@ -403,10 +403,10 @@
 
     <script type="module">
 <<<<<<< HEAD
-        import LogiGoReporter from '../src/reporter.js';
+        import LogicArtReporter from '../src/reporter.js';
 
         // Initialize Reporter
-        const reporter = new LogiGoReporter({ debug: true });
+        const reporter = new LogicArtReporter({ debug: true });
 
         // Subscribe to checkpoint events (simulates AI Agent listening)
         reporter.onCheckpoint((data) => {
@@ -422,7 +422,7 @@
         // Make reporter globally accessible
         window.reporter = reporter;
 
-        console.log('✅ LogiGo Reporter initialized');
+        console.log('✅ LogicArt Reporter initialized');
         console.log('🤖 AI Agent is now listening for checkpoint events');
 
         // Helper function to add events to log
@@ -547,15 +547,15 @@
 </body>
 </html>
 =======
-        import LogiGoOverlay from '../src/overlay.js';
+        import LogicArtOverlay from '../src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt
+        const logigo = new LogicArtOverlay({
             speed: 1.5,
             position: 'bottom-left'
         }).init();
 
-        window.LogiGo = logigo;
+        window.LogicArt = logigo;
 
         // --- REPORTER INTEGRATION ---
         // This is how a Browser Agent would hook in
@@ -600,13 +600,13 @@
             btn.disabled = true;
 
             // Step 1
-            await LogiGo.checkpoint('process_start', {
+            await LogicArt.checkpoint('process_start', {
                 domElement: '#btn-process',
                 variables: { status: 'starting' }
             });
 
             // Step 2
-            await LogiGo.checkpoint('step_1_active', {
+            await LogicArt.checkpoint('step_1_active', {
                 domElement: '#step-1',
                 color: '#e74c3c'
             });
@@ -614,7 +614,7 @@
             document.getElementById('step-1').style.color = 'white';
 
             // Step 3
-            await LogiGo.checkpoint('step_2_active', {
+            await LogicArt.checkpoint('step_2_active', {
                 domElement: '#step-2',
                 color: '#f1c40f'
             });
@@ -622,7 +622,7 @@
             document.getElementById('step-2').style.color = 'black';
 
             // Step 4
-            await LogiGo.checkpoint('step_3_active', {
+            await LogicArt.checkpoint('step_3_active', {
                 domElement: '#step-3',
                 color: '#2ecc71',
                 variables: { result: 'success' }
@@ -631,7 +631,7 @@
             document.getElementById('step-3').style.color = 'white';
 
             // Done
-            await LogiGo.checkpoint('process_complete', {
+            await LogicArt.checkpoint('process_complete', {
                 variables: { itemsProcessed: 3 }
             });
 

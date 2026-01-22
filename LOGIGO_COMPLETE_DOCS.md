@@ -1,4 +1,4 @@
-=== LOGIGO COMPLETE DOCUMENTATION DUMP ===
+=== LOGICART COMPLETE DOCUMENTATION DUMP ===
 Generated: Sun Jan  4 01:28:21 AM UTC 2026
 
 ========================================
@@ -6,9 +6,9 @@ Generated: Sun Jan  4 01:28:21 AM UTC 2026
 ========================================
 
 --- FILE: docs/AGENT_API.md ---
-# LogiGo Agent API
+# LogicArt Agent API
 
-The Agent API provides programmatic access to LogiGo's code analysis capabilities. Use this API to integrate flowchart generation and code analysis into your tools, CI pipelines, or AI agents.
+The Agent API provides programmatic access to LogicArt's code analysis capabilities. Use this API to integrate flowchart generation and code analysis into your tools, CI pipelines, or AI agents.
 
 ## Endpoint
 
@@ -38,7 +38,7 @@ Content-Type: application/json
 ### Example Request
 
 ```bash
-curl -X POST https://your-logigo-instance.com/api/agent/analyze \
+curl -X POST https://your-logicart-instance.com/api/agent/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "code": "function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}",
@@ -183,12 +183,12 @@ Generate flowchart documentation:
 
 ```javascript
 const analysis = await analyzeCode(sourceCode);
-const flowchartUrl = `https://logigo.app/?code=${btoa(sourceCode)}`;
+const flowchartUrl = `https://logicart.app/?code=${btoa(sourceCode)}`;
 ```
 
 ## Rate Limits
 
-Currently no rate limits are enforced. For high-volume usage, please contact the LogiGo team.
+Currently no rate limits are enforced. For high-volume usage, please contact the LogicArt team.
 
 ## Supported Languages
 
@@ -253,9 +253,9 @@ When an AI agent works with a codebase, it typically:
 - Ability to trace execution paths
 - Detection of similar/duplicate patterns
 
-### How LogiGo Solves This
+### How LogicArt Solves This
 
-LogiGo already has:
+LogicArt already has:
 - AST parsing (Acorn) that understands code structure
 - Flow graph generation (nodes, edges, relationships)
 - Step-by-step interpreter for execution tracing
@@ -607,7 +607,7 @@ function buildCallGraph(ast: Node): CallGraph {
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    LogiGo AI APIs (/api/ai/*)                   │
+│                    LogicArt AI APIs (/api/ai/*)                   │
 │                                                                 │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
 │  │  /parse  │  │  /trace  │  │ /similar │  │ /impact  │        │
@@ -615,7 +615,7 @@ function buildCallGraph(ast: Node): CallGraph {
 │       │             │             │             │               │
 │       ▼             ▼             ▼             ▼               │
 │  ┌─────────────────────────────────────────────────────┐       │
-│  │              Core LogiGo Libraries                   │       │
+│  │              Core LogicArt Libraries                   │       │
 │  │                                                      │       │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │       │
 │  │  │ AST Parser  │  │ Interpreter │  │  Analyzer   │  │       │
@@ -830,14 +830,14 @@ const TIMEOUTS = {
 
 ---
 
-*Document created by LogiGo Agent - December 26, 2025*
+*Document created by LogicArt Agent - December 26, 2025*
 
 
 --- FILE: docs/ANTIGRAVITY_REVIEW.md ---
-# Antigravity's Review of LogiGo Embed Design
+# Antigravity's Review of LogicArt Embed Design
 **Date:** December 20, 2025  
 **Reviewer:** Antigravity  
-**Document Reviewed:** LogiGo Embed - Overview for Review
+**Document Reviewed:** LogicArt Embed - Overview for Review
 ---
 ## Overall Assessment: **Strong Design**
 
@@ -883,14 +883,14 @@ Add a "Development Mode" that doesn't require build integration:
 
 ```javascript
 // Option A: Runtime parsing (slower but zero config)
-<LogiGoEmbed 
+<LogicArtEmbed 
   mode="development"
   entryFile="src/App.tsx"  // We fetch and parse at runtime
 />
 
 // Option B: Pre-computed manifest from CLI
-// npx logigo-manifest generate src/ --output public/logigo-manifest.json
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+// npx logicart-manifest generate src/ --output public/logicart-manifest.json
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Recommendation:**
@@ -928,17 +928,17 @@ Source maps would only help if you were trying to correlate minified production 
 
 | Distribution | Purpose |
 |--------------|---------|
-| `logigo-embed` (ESM) | React apps, peer dep on React |
-| `logigo-embed/vanilla` (UMD) | Non-React apps, bundled React |
-| `logigo-embed/vite` | Vite plugin |
-| `logigo-embed/webpack` | Webpack plugin |
+| `logicart-embed` (ESM) | React apps, peer dep on React |
+| `logicart-embed/vanilla` (UMD) | Non-React apps, bundled React |
+| `logicart-embed/vite` | Vite plugin |
+| `logicart-embed/webpack` | Webpack plugin |
 
 **CDN usage:**
 ```html
 <!-- For quick prototypes -->
-<script src="https://unpkg.com/logigo-embed/dist/logigo-embed.umd.js"></script>
+<script src="https://unpkg.com/logicart-embed/dist/logicart-embed.umd.js"></script>
 <script>
-  LogiGoEmbed.init({ container: '#logigo' });
+  LogicArtEmbed.init({ container: '#logicart' });
 </script>
 ```
 ---
@@ -956,9 +956,9 @@ function calculate(x) {
 
 // Instrumented - now async!
 async function calculate(x) {
-  await LogiGo.checkpoint('if_abc123');
+  await LogicArt.checkpoint('if_abc123');
   if (x > 0) {
-    await LogiGo.checkpoint('return_def456');
+    await LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
@@ -975,15 +975,15 @@ async function calculate(x) {
 ```javascript
 // Instrumented - stays synchronous
 function calculate(x) {
-  LogiGo.checkpoint('if_abc123');  // Fire-and-forget
+  LogicArt.checkpoint('if_abc123');  // Fire-and-forget
   if (x > 0) {
-    LogiGo.checkpoint('return_def456');
+    LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
 }
 
-// In logigo-core:
+// In logicart-core:
 checkpoint(id, vars) {
   // Synchronous - just queue the message
   this.queue.push({ id, vars, timestamp: Date.now() });
@@ -993,7 +993,7 @@ checkpoint(id, vars) {
 
 **Recommendation:**
 - Make checkpoints **synchronous** by default
-- Offer `await LogiGo.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
+- Offer `await LogicArt.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
 ---
 ## Additional Suggestions
 
@@ -1002,7 +1002,7 @@ checkpoint(id, vars) {
 For multi-file apps, showing the entire app's flowchart could be overwhelming.
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   focusFile="src/utils/sort.ts"  // Only show this file's flowchart
   // or
   focusFunction="processNextIteration"  // Auto-locate and zoom
@@ -1014,14 +1014,14 @@ For multi-file apps, showing the entire app's flowchart could be overwhelming.
 ```javascript
 // When AI modifies code, trigger refresh
 aiCodeAssistant.onCodeChange((file, newCode) => {
-  LogiGoEmbed.refresh({ file });
+  LogicArtEmbed.refresh({ file });
 });
 ```
 
 ### 3. Export Capability
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   onExport={(snapshot) => {
     // User can export current flowchart state for sharing
     // snapshot = { nodes, edges, variables, timestamp }
@@ -1044,8 +1044,8 @@ aiCodeAssistant.onCodeChange((file, newCode) => {
 
 | Task | Owner |
 |------|-------|
-| Build `logigo-embed` package with synchronous checkpoints | Replit |
-| Create `npx logigo-manifest` CLI tool for MVP | Replit |
+| Build `logicart-embed` package with synchronous checkpoints | Replit |
+| Create `npx logicart-manifest` CLI tool for MVP | Replit |
 | Review `docs/EMBED_STUDIO_DESIGN.md` once pushed | Antigravity |
 | Define exact manifest JSON schema for interoperability | Joint |
 ---
@@ -1060,15 +1060,15 @@ Looking forward to seeing the implementation!
 
 
 --- FILE: docs/ANTIGRAVITY_TESTING_GUIDE.md ---
-# LogiGo Studio Testing Guide for Antigravity (VS Code Extension)
+# LogicArt Studio Testing Guide for Antigravity (VS Code Extension)
 
 ## Overview
 
-This document provides test cases for parallel testing of the VS Code extension using the shared `@logigo/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce identical flowcharts.
+This document provides test cases for parallel testing of the VS Code extension using the shared `@logicart/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce identical flowcharts.
 
 ## Test Environment Setup
 
-1. Ensure VS Code extension imports `parseCodeToFlow` from `@logigo/bridge`
+1. Ensure VS Code extension imports `parseCodeToFlow` from `@logicart/bridge`
 2. Extension should use the same types: `FlowNode`, `FlowEdge`, `FlowData`
 3. Container nodes should render with collapsible UI
 
@@ -1351,9 +1351,9 @@ interface FlowNode {
 
 ```typescript
 // Studio → IDE
-LOGIGO_JUMP_TO_LINE: { path: string, line: number, column?: number }
-LOGIGO_WRITE_FILE: { path: string, content: string }
-LOGIGO_REQUEST_FILE: { path?: string }
+LOGICART_JUMP_TO_LINE: { path: string, line: number, column?: number }
+LOGICART_WRITE_FILE: { path: string, content: string }
+LOGICART_REQUEST_FILE: { path?: string }
 ```
 
 ---
@@ -1377,11 +1377,11 @@ LOGIGO_REQUEST_FILE: { path?: string }
 
 ---
 
-*Generated from LogiGo Studio Replit testing session - December 2024*
+*Generated from LogicArt Studio Replit testing session - December 2024*
 
 
 --- FILE: docs/ANTIGRAVITY_V1_FEATURE_REVIEW.md ---
-# Antigravity's Review of LogiGo V1 Feature Delivery
+# Antigravity's Review of LogicArt V1 Feature Delivery
 
 **Date:** December 26, 2025  
 **Reviewer:** Antigravity  
@@ -1654,7 +1654,7 @@ app.post("/api/agent/analyze", async (req, res) => {
 ### Minor Observations
 
 1. **Missing CLI Tool**
-   - Agent API exists, but no `logigo-cli` package yet
+   - Agent API exists, but no `logicart-cli` package yet
    - **Recommendation:** Add CLI in V1.1 or V2
 
 2. **No File Selection for Arena**
@@ -1809,9 +1809,9 @@ Delivered 6 features in ~1.5 hours with:
 
 
 --- FILE: docs/API_REFERENCE.md ---
-# LogiGo API Reference
+# LogicArt API Reference
 
-**Complete API documentation for LogiGo packages and components**
+**Complete API documentation for LogicArt packages and components**
 
 ---
 
@@ -1819,22 +1819,22 @@ Delivered 6 features in ~1.5 hours with:
 
 | Package | Purpose | Version |
 |---------|---------|---------|
-| **logigo-core** | Runtime library for checkpoint debugging | 1.0.0 |
-| **logigo-embed** | React component for flowchart visualization | 1.0.0 |
-| **logigo-vite-plugin** | Vite plugin for build-time instrumentation | 1.0.0 |
+| **logicart-core** | Runtime library for checkpoint debugging | 1.0.0 |
+| **logicart-embed** | React component for flowchart visualization | 1.0.0 |
+| **logicart-vite-plugin** | Vite plugin for build-time instrumentation | 1.0.0 |
 
 ---
 
 ## Table of Contents
 
-- [logigo-core](#logigo-core)
+- [logicart-core](#logicart-core)
   - [checkpoint()](#checkpoint)
   - [checkpointAsync()](#checkpointasync)
-  - [LogiGoRuntime](#logigoruntime)
-- [logigo-embed](#logigo-embed)
-  - [LogiGoEmbed Component](#logigoembed-component)
+  - [LogicArtRuntime](#logicartruntime)
+- [logicart-embed](#logicart-embed)
+  - [LogicArtEmbed Component](#logicartembed-component)
   - [Props Reference](#props-reference)
-- [logigo-vite-plugin](#logigo-vite-plugin)
+- [logicart-vite-plugin](#logicart-vite-plugin)
   - [Plugin Configuration](#plugin-configuration)
   - [Options Reference](#options-reference)
 - [User Labels](#user-labels)
@@ -1843,14 +1843,14 @@ Delivered 6 features in ~1.5 hours with:
 
 ---
 
-## logigo-core
+## logicart-core
 
 Runtime library for checkpoint-based debugging and execution tracking.
 
 ### Installation
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Compatibility
@@ -1883,7 +1883,7 @@ function checkpoint(
 **Example:**
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function processOrder(order) {
   checkpoint('order:start', { orderId: order.id });
@@ -1945,9 +1945,9 @@ async function checkpointAsync(
 **Example:**
 
 ```javascript
-import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+import { checkpointAsync, LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime();
+const runtime = new LogicArtRuntime();
 runtime.setBreakpoint('critical_point', true);
 
 async function processData(data) {
@@ -1970,7 +1970,7 @@ runtime.resume();
 
 When a breakpoint is set on a checkpoint:
 1. Execution pauses at the checkpoint
-2. Variables are captured and sent to LogiGo Studio
+2. Variables are captured and sent to LogicArt Studio
 3. Execution waits for `runtime.resume()` to be called
 4. Execution continues to next checkpoint
 
@@ -1978,13 +1978,13 @@ When a breakpoint is set on a checkpoint:
 
 ---
 
-### LogiGoRuntime
+### LogicArtRuntime
 
 Runtime controller for managing execution sessions, breakpoints, and checkpoints.
 
 **Signature:**
 ```typescript
-class LogiGoRuntime {
+class LogicArtRuntime {
   constructor(options?: RuntimeOptions);
   
   // Session control
@@ -2016,9 +2016,9 @@ interface RuntimeOptions {
 **Example:**
 
 ```javascript
-import { LogiGoRuntime } from 'logigo-core';
+import { LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime({
+const runtime = new LogicArtRuntime({
   manifestHash: 'abc123',
   debug: true
 });
@@ -2101,14 +2101,14 @@ runtime.resume();
 
 ---
 
-## logigo-embed
+## logicart-embed
 
 React component for embedding flowchart visualization in your applications.
 
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ### Required CSS
@@ -2124,19 +2124,19 @@ import '@xyflow/react/dist/style.css';
 
 ---
 
-### LogiGoEmbed Component
+### LogicArtEmbed Component
 
 Embeddable React component for flowchart visualization.
 
 **Signature:**
 ```typescript
-function LogiGoEmbed(props: LogiGoEmbedProps): JSX.Element
+function LogicArtEmbed(props: LogicArtEmbedProps): JSX.Element
 ```
 
 **Basic Example:**
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -2147,14 +2147,14 @@ function App() {
     }
   `;
   
-  return <LogiGoEmbed code={code} theme="dark" />;
+  return <LogicArtEmbed code={code} theme="dark" />;
 }
 ```
 
 **Advanced Example:**
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import { useState } from 'react';
 
 function AlgorithmVisualizer() {
@@ -2168,7 +2168,7 @@ function AlgorithmVisualizer() {
     <div>
       <textarea onChange={(e) => setCode(e.target.value)} />
       
-      <LogiGoEmbed
+      <LogicArtEmbed
         code={code}
         theme="dark"
         position="bottom-right"
@@ -2229,7 +2229,7 @@ function AlgorithmVisualizer() {
 JavaScript code to visualize in Static Mode.
 
 ```javascript
-<LogiGoEmbed
+<LogicArtEmbed
   code={`
     function bubbleSort(arr) {
       for (let i = 0; i < arr.length; i++) {
@@ -2255,7 +2255,7 @@ JavaScript code to visualize in Static Mode.
 URL to the manifest file for Live Mode.
 
 ```javascript
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Type:** `string`  
@@ -2278,8 +2278,8 @@ URL to the manifest file for Live Mode.
 Color theme for the flowchart.
 
 ```javascript
-<LogiGoEmbed code={code} theme="dark" />
-<LogiGoEmbed code={code} theme="light" />
+<LogicArtEmbed code={code} theme="dark" />
+<LogicArtEmbed code={code} theme="light" />
 ```
 
 **Type:** `'dark' | 'light'`  
@@ -2292,9 +2292,9 @@ Color theme for the flowchart.
 CSS position for the floating panel.
 
 ```javascript
-<LogiGoEmbed code={code} position="bottom-right" />
-<LogiGoEmbed code={code} position="top-left" />
-<LogiGoEmbed code={code} position="fixed" />
+<LogicArtEmbed code={code} position="bottom-right" />
+<LogicArtEmbed code={code} position="top-left" />
+<LogicArtEmbed code={code} position="fixed" />
 ```
 
 **Type:** `string`  
@@ -2314,7 +2314,7 @@ CSS position for the floating panel.
 Show the variable inspector in the Debug Panel.
 
 ```javascript
-<LogiGoEmbed code={code} showVariables={true} />
+<LogicArtEmbed code={code} showVariables={true} />
 ```
 
 **Type:** `boolean`  
@@ -2332,7 +2332,7 @@ Show the variable inspector in the Debug Panel.
 Show the checkpoint history timeline.
 
 ```javascript
-<LogiGoEmbed code={code} showHistory={true} />
+<LogicArtEmbed code={code} showHistory={true} />
 ```
 
 **Type:** `boolean`  
@@ -2350,7 +2350,7 @@ Show the checkpoint history timeline.
 Callback when a flowchart node is clicked.
 
 ```javascript
-<LogiGoEmbed
+<LogicArtEmbed
   code={code}
   onNodeClick={(nodeId) => {
     console.log('Clicked node:', nodeId);
@@ -2372,7 +2372,7 @@ Callback when a flowchart node is clicked.
 Callback when execution step changes.
 
 ```javascript
-<LogiGoEmbed
+<LogicArtEmbed
   code={code}
   onStepChange={(step, totalSteps) => {
     console.log(`Step ${step} of ${totalSteps}`);
@@ -2394,7 +2394,7 @@ Callback when execution step changes.
 Callback when a breakpoint is hit.
 
 ```javascript
-<LogiGoEmbed
+<LogicArtEmbed
   code={code}
   onBreakpoint={(nodeId, variables) => {
     console.log('Breakpoint hit:', nodeId, variables);
@@ -2411,14 +2411,14 @@ Callback when a breakpoint is hit.
 
 ---
 
-## logigo-vite-plugin
+## logicart-vite-plugin
 
 Vite plugin for automatic build-time instrumentation.
 
 ### Installation
 
 ```bash
-npm install logigo-vite-plugin --save-dev
+npm install logicart-vite-plugin --save-dev
 ```
 
 ### Compatibility
@@ -2435,15 +2435,15 @@ Add to `vite.config.js`:
 ```javascript
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
-      manifestPath: 'logigo-manifest.json',
+      manifestPath: 'logicart-manifest.json',
       autoInstrument: true,
       captureVariables: true
     })
@@ -2459,7 +2459,7 @@ export default defineConfig({
 |--------|------|---------|-------------|
 | `include` | string[] | `['**/*.js', '**/*.ts']` | Glob patterns for files to instrument |
 | `exclude` | string[] | `['/node_modules/']` | Glob patterns for files to skip |
-| `manifestPath` | string | `'logigo-manifest.json'` | Output path for manifest file |
+| `manifestPath` | string | `'logicart-manifest.json'` | Output path for manifest file |
 | `autoInstrument` | boolean | `true` | Automatically inject checkpoints |
 | `captureVariables` | boolean | `true` | Capture local variables at checkpoints |
 
@@ -2472,7 +2472,7 @@ export default defineConfig({
 Glob patterns for files to instrument.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   include: [
     'src/**/*.tsx',
     'src/**/*.ts',
@@ -2497,7 +2497,7 @@ logigoPlugin({
 Glob patterns for files to skip.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   exclude: [
     '**/node_modules/**',
     '**/*.test.*',
@@ -2522,13 +2522,13 @@ logigoPlugin({
 Output path for the generated manifest file.
 
 ```javascript
-logigoPlugin({
-  manifestPath: 'public/logigo-manifest.json'
+logicartPlugin({
+  manifestPath: 'public/logicart-manifest.json'
 })
 ```
 
 **Type:** `string`  
-**Default:** `'logigo-manifest.json'`
+**Default:** `'logicart-manifest.json'`
 
 **Manifest structure:**
 ```json
@@ -2551,7 +2551,7 @@ logigoPlugin({
 Automatically inject checkpoint calls at key points.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   autoInstrument: true
 })
 ```
@@ -2579,14 +2579,14 @@ function processOrder(order) {
 **After:**
 ```javascript
 function processOrder(order) {
-  LogiGo.checkpoint('processOrder:entry', { order });
+  LogicArt.checkpoint('processOrder:entry', { order });
   
   if (!order.valid) {
-    LogiGo.checkpoint('processOrder:invalid', { order });
+    LogicArt.checkpoint('processOrder:invalid', { order });
     return null;
   }
   
-  LogiGo.checkpoint('processOrder:return', { order });
+  LogicArt.checkpoint('processOrder:return', { order });
   return order;
 }
 ```
@@ -2598,7 +2598,7 @@ function processOrder(order) {
 Capture local variables at each checkpoint.
 
 ```javascript
-logigoPlugin({
+logicartPlugin({
   captureVariables: true
 })
 ```
@@ -2609,7 +2609,7 @@ logigoPlugin({
 **When enabled:**
 - All local variables are captured
 - Function parameters are captured
-- Variable values are sent to LogiGo Studio
+- Variable values are sent to LogicArt Studio
 
 **When disabled:**
 - Only checkpoint IDs are recorded
@@ -2620,11 +2620,11 @@ logigoPlugin({
 
 ## 🌉 Bridge & Model Integration
 
-Documentation for connecting LogiGo to external AI models and IDE platforms (Cursor, VS Code).
+Documentation for connecting LogicArt to external AI models and IDE platforms (Cursor, VS Code).
 
 ### Model Context Protocol (MCP)
 
-LogiGo serves as a standard MCP server, allowing any AI model (Claude 3.5, GPT-4o) to "see" and "analyze" your code structure through LogiGo's logic engine.
+LogicArt serves as a standard MCP server, allowing any AI model (Claude 3.5, GPT-4o) to "see" and "analyze" your code structure through LogicArt's logic engine.
 
 **Endpoint:** `http://localhost:5001/api/mcp/sse`
 
@@ -2640,14 +2640,14 @@ LogiGo serves as a standard MCP server, allowing any AI model (Claude 3.5, GPT-4
 **Example (Cursor Setup):**
 1. Open Cursor Settings -> Features -> MCP.
 2. Add New MCP Server.
-3. Type: `sse`, Name: `LogiGo`.
+3. Type: `sse`, Name: `LogicArt`.
 4. URL: `http://localhost:5001/api/mcp/sse`.
 
 ---
 
 ### Remote Mode API
 
-Sync local IDE activity to the LogiGo Workbench in real-time.
+Sync local IDE activity to the LogicArt Workbench in real-time.
 
 #### `POST /api/remote/session`
 Create a new telepresence session for an active file.
@@ -2752,12 +2752,12 @@ Determine which model's output is superior using an LLM Chairman.
 
 ## User Labels
 
-Add human-readable labels to flowchart nodes with `// @logigo:` comments.
+Add human-readable labels to flowchart nodes with `// @logicart:` comments.
 
 ### Syntax
 
 ```javascript
-// @logigo: Your label here
+// @logicart: Your label here
 <code statement>
 ```
 
@@ -2766,21 +2766,21 @@ Add human-readable labels to flowchart nodes with `// @logigo:` comments.
 **Basic Labels:**
 
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if array is empty
+// @logicart: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return zero for empty array
+  // @logicart: Return zero for empty array
   return 0;
 }
 
-// @logigo: Sum all items
+// @logicart: Sum all items
 for (const item of items) {
   count += item.value;
 }
 
-// @logigo: Return final sum
+// @logicart: Return final sum
 return count;
 ```
 
@@ -2788,28 +2788,28 @@ return count;
 
 ```javascript
 function processOrder(order) {
-  // @logigo: Validate order data
+  // @logicart: Validate order data
   if (!validateOrder(order)) {
-    // @logigo: Log validation failure
+    // @logicart: Log validation failure
     console.error('Invalid order');
     
-    // @logigo: Return error response
+    // @logicart: Return error response
     return { success: false, error: 'Invalid order' };
   }
   
-  // @logigo: Calculate order total
+  // @logicart: Calculate order total
   const total = calculateTotal(order.items);
   
-  // @logigo: Apply discount if eligible
+  // @logicart: Apply discount if eligible
   if (total > 100) {
-    // @logigo: Reduce total by 10%
+    // @logicart: Reduce total by 10%
     total *= 0.9;
   }
   
-  // @logigo: Process payment
+  // @logicart: Process payment
   const payment = processPayment(total);
   
-  // @logigo: Return success response
+  // @logicart: Return success response
   return { success: true, payment };
 }
 ```
@@ -2827,19 +2827,19 @@ Labeled nodes show a **blue dot** indicator in the flowchart.
 
 ```javascript
 // ✅ Good: Descriptive, explains intent
-// @logigo: Validate email format
+// @logicart: Validate email format
 if (!isValidEmail(email)) { ... }
 
 // ❌ Bad: Just repeats the code
-// @logigo: If not valid email
+// @logicart: If not valid email
 if (!isValidEmail(email)) { ... }
 
 // ✅ Good: Explains business logic
-// @logigo: Apply 10% discount for orders over $100
+// @logicart: Apply 10% discount for orders over $100
 if (total > 100) { total *= 0.9; }
 
 // ❌ Bad: Too vague
-// @logigo: Discount
+// @logicart: Discount
 if (total > 100) { total *= 0.9; }
 ```
 
@@ -2925,8 +2925,8 @@ checkpoint('process', { i });
 ### TypeScript Types
 
 ```typescript
-// logigo-core
-declare module 'logigo-core' {
+// logicart-core
+declare module 'logicart-core' {
   export function checkpoint(
     nodeId: string,
     variables?: Record<string, any>
@@ -2937,7 +2937,7 @@ declare module 'logigo-core' {
     variables?: Record<string, any>
   ): Promise<void>;
   
-  export class LogiGoRuntime {
+  export class LogicArtRuntime {
     constructor(options?: RuntimeOptions);
     start(): void;
     end(): void;
@@ -2954,9 +2954,9 @@ declare module 'logigo-core' {
   }
 }
 
-// logigo-embed
-declare module 'logigo-embed' {
-  export interface LogiGoEmbedProps {
+// logicart-embed
+declare module 'logicart-embed' {
+  export interface LogicArtEmbedProps {
     code?: string;
     manifestUrl?: string;
     manifestHash?: string;
@@ -2971,12 +2971,12 @@ declare module 'logigo-embed' {
     onBreakpoint?: (nodeId: string, variables: Record<string, any>) => void;
   }
   
-  export function LogiGoEmbed(props: LogiGoEmbedProps): JSX.Element;
+  export function LogicArtEmbed(props: LogicArtEmbedProps): JSX.Element;
 }
 
-// logigo-vite-plugin
-declare module 'logigo-vite-plugin' {
-  export interface LogiGoPluginOptions {
+// logicart-vite-plugin
+declare module 'logicart-vite-plugin' {
+  export interface LogicArtPluginOptions {
     include?: string[];
     exclude?: string[];
     manifestPath?: string;
@@ -2984,8 +2984,8 @@ declare module 'logigo-vite-plugin' {
     captureVariables?: boolean;
   }
   
-  export default function logigoPlugin(
-    options?: LogiGoPluginOptions
+  export default function logicartPlugin(
+    options?: LogicArtPluginOptions
   ): Plugin;
 }
 ```
@@ -2996,7 +2996,7 @@ declare module 'logigo-vite-plugin' {
 
 - **[Getting Started Guide](GETTING_STARTED.md)** - Tutorials and examples
 - **[Installation Guide](INSTALLATION_GUIDE.md)** - Platform-specific setup
-- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogicArt)** - Source code
 
 ---
 
@@ -3005,12 +3005,12 @@ declare module 'logigo-vite-plugin' {
 
 --- FILE: docs/ARENA_MASTERCLASS.md ---
 # Arena Masterclass: The Council of 4
-**Mastering multi-model generation and competitive debugging in LogiGo Studio.**
+**Mastering multi-model generation and competitive debugging in LogicArt Studio.**
 
 ---
 
 ## 🏛 The "Council" Concept
-The LogiGo Arena is not just a chat box—it's a **Logic Benchmark**. By prompting four distinct AI architectures (GPT-4o, Gemini 1.5, Claude 3.5, and Grok 4) simultaneously, you can see the "Structural Consensus" of an algorithm.
+The LogicArt Arena is not just a chat box—it's a **Logic Benchmark**. By prompting four distinct AI architectures (GPT-4o, Gemini 1.5, Claude 3.5, and Grok 4) simultaneously, you can see the "Structural Consensus" of an algorithm.
 
 ---
 
@@ -3020,7 +3020,7 @@ Use this mode to generate code from scratch and compare how different models thi
 ### 1. The Power Prompt
 The best Arena results come from **Structural Constraints**. 
 *   **Bad**: *"Write a sorting algorithm."*
-*   **Masterclass**: *"Create a merge sort that uses an in-place buffer. Prioritize shallow recursion and include @logigo labels for each partition step."*
+*   **Masterclass**: *"Create a merge sort that uses an in-place buffer. Prioritize shallow recursion and include @logicart labels for each partition step."*
 
 ### 2. Comparative Visualization
 Once the "Council" responds, don't just read the code—**scroll the flowcharts**.
@@ -3044,7 +3044,7 @@ The Debug Arena is designed to solve "Impossible Bugs" by getting four independe
 For the best debugging advice, provide the "Holy Trinity" of context:
 1.  **The Error**: Paste the raw stack trace.
 2.  **The Logic**: The function that failed.
-3.  **The Environment**: Mention if it's running in Node, a Browser, or LogiGo.
+3.  **The Environment**: Mention if it's running in Node, a Browser, or LogicArt.
 
 ### 2. Multi-Perspective Triage
 *   **Model A** might identify a memory leak.
@@ -3054,7 +3054,7 @@ For the best debugging advice, provide the "Holy Trinity" of context:
 ---
 
 ## 🔑 BYOK (Security & Autonomy)
-LogiGo is a "Client-Side First" platform. 
+LogicArt is a "Client-Side First" platform. 
 *   **Persistence**: Your API keys are stored in your **Local Browser Storage**, never on our database.
 *   **Headers**: Keys are sent directly from your client to the provider via secure headers.
 *   **Flexibility**: You can toggle specific models ON or OFF depending on your available credits.
@@ -3063,8 +3063,8 @@ LogiGo is a "Client-Side First" platform.
 
 ## 💡 Expert Tips
 *   **The 50/50 Rule**: Use the Arena to generate a pattern, then pull the winner into the **Workbench** for granular 1x speed execution tracking.
-*   **Label Injection**: Ask models to include `// @logigo` comments in their responses. This makes the Arena flowcharts instantly readable.
-*   **Complexity Benchmarking**: Before choosing a "Winner," check the complexity score in the LogiGo sidebar for each model's output.
+*   **Label Injection**: Ask models to include `// @logicart` comments in their responses. This makes the Arena flowcharts instantly readable.
+*   **Complexity Benchmarking**: Before choosing a "Winner," check the complexity score in the LogicArt sidebar for each model's output.
 
 ---
 **Lead the Council. Master the Vibe.**
@@ -3081,7 +3081,7 @@ LogiGo is a "Client-Side First" platform.
 
 ## Overview
 
-This plan covers three features that require bidirectional communication between LogiGo Studio and remote applications (like VisionLoop):
+This plan covers three features that require bidirectional communication between LogicArt Studio and remote applications (like VisionLoop):
 
 1. **Remote Mode Pause/Resume** - Breakpoints actually pause remote execution
 2. **Visual Handshake** - Click flowchart node → highlight DOM element (and vice versa)
@@ -3093,12 +3093,12 @@ This plan covers three features that require bidirectional communication between
 
 ### Current State (One-Way)
 ```
-VisionLoop ──POST /checkpoint──> LogiGo Server ──SSE──> LogiGo Studio
+VisionLoop ──POST /checkpoint──> LogicArt Server ──SSE──> LogicArt Studio
 ```
 
 ### Required State (Two-Way)
 ```
-VisionLoop <──WebSocket──> LogiGo Server <──WebSocket──> LogiGo Studio
+VisionLoop <──WebSocket──> LogicArt Server <──WebSocket──> LogicArt Studio
          (commands)              (state sync)           (UI controls)
 ```
 
@@ -3117,12 +3117,12 @@ VisionLoop <──WebSocket──> LogiGo Server <──WebSocket──> LogiGo 
 ## Feature 1: Remote Mode Pause/Resume
 
 ### Goal
-When a breakpoint is set in LogiGo, the remote app actually pauses execution at that checkpoint.
+When a breakpoint is set in LogicArt, the remote app actually pauses execution at that checkpoint.
 
 ### Implementation Steps
 
 1. **Server: Add WebSocket endpoint**
-   - `ws://logigo/api/remote/control/:sessionId`
+   - `ws://logicart/api/remote/control/:sessionId`
    - Handles: `SET_BREAKPOINT`, `REMOVE_BREAKPOINT`, `RESUME`, `STEP`
 
 2. **Server: Breakpoint state management**
@@ -3137,7 +3137,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
 
 3. **Remote.js: Connect to WebSocket**
    ```javascript
-   const ws = new WebSocket(LOGIGO_URL.replace('http', 'ws') + '/api/remote/control/' + SESSION_ID);
+   const ws = new WebSocket(LOGICART_URL.replace('http', 'ws') + '/api/remote/control/' + SESSION_ID);
    ws.onmessage = (event) => {
      const cmd = JSON.parse(event.data);
      if (cmd.type === 'SET_BREAKPOINT') breakpoints.add(cmd.id);
@@ -3149,7 +3149,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    ```javascript
    window.checkpoint = async function(id, variables) {
      // Send checkpoint
-     await fetch(LOGIGO_URL + '/api/remote/checkpoint', {...});
+     await fetch(LOGICART_URL + '/api/remote/checkpoint', {...});
      
      // Check if breakpoint is set
      if (breakpoints.has(id)) {
@@ -3174,7 +3174,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
 
 ### Goal
 - Click flowchart node → Highlight corresponding DOM element in remote app
-- Hover DOM element → Highlight flowchart node in LogiGo
+- Hover DOM element → Highlight flowchart node in LogicArt
 
 ### Implementation Steps
 
@@ -3212,7 +3212,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    
    function showHighlightOverlay(selector, rect) {
      const overlay = document.createElement('div');
-     overlay.className = 'logigo-highlight';
+     overlay.className = 'logicart-highlight';
      overlay.style.cssText = `
        position: fixed;
        left: ${rect.left}px; top: ${rect.top}px;
@@ -3231,7 +3231,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    - Send `HIGHLIGHT_ELEMENT` command via WebSocket
 
 5. **Remote.js: Hover reporting** (optional)
-   - Track mouse over elements with `data-logigo-checkpoint` attribute
+   - Track mouse over elements with `data-logicart-checkpoint` attribute
    - Send `ELEMENT_HOVER` message to highlight node in Studio
 
 ### Files to Modify
@@ -3351,13 +3351,13 @@ Automatic recovery from connection drops, session expiry, and transient errors.
 
 ---
 
-*Document created by LogiGo Agent - December 23, 2025*
+*Document created by LogicArt Agent - December 23, 2025*
 
 
 --- FILE: docs/BRIDGE_INTEGRATION_FILES.md ---
-# LogiGo Studio - Files for @logigo/bridge Integration
+# LogicArt Studio - Files for @logicart/bridge Integration
 
-This document contains the key files from LogiGo Studio that Antigravity needs for `@logigo/bridge` integration.
+This document contains the key files from LogicArt Studio that Antigravity needs for `@logicart/bridge` integration.
 
 ## 1. Reporter API Types (`shared/reporter-api.ts`)
 
@@ -3367,22 +3367,22 @@ These are our current message protocol types for Studio ↔ Runtime communicatio
 /**
  * Reporter API Type Definitions
  * 
- * Protocol for communication between LogiGo Studio (static analyzer)
- * and logigo-core (runtime debugger) via window.postMessage
+ * Protocol for communication between LogicArt Studio (static analyzer)
+ * and logicart-core (runtime debugger) via window.postMessage
  * 
  * Based on Antigravity's Reporter API Specification v1.0.0-beta.2
  */
 
-// Message Envelope (all messages from logigo-core follow this structure)
-export interface LogiGoMessage<T = any> {
-  source: 'LOGIGO_CORE';
+// Message Envelope (all messages from logicart-core follow this structure)
+export interface LogicArtMessage<T = any> {
+  source: 'LOGICART_CORE';
   type: string;
   payload: T;
 }
 
 // Event Types
-export const LOGIGO_CHECKPOINT = 'LOGIGO_CHECKPOINT' as const;
-export const LOGIGO_SESSION_START = 'LOGIGO_SESSION_START' as const;
+export const LOGICART_CHECKPOINT = 'LOGICART_CHECKPOINT' as const;
+export const LOGICART_SESSION_START = 'LOGICART_SESSION_START' as const;
 
 // Checkpoint Event Payload
 export interface CheckpointPayload {
@@ -3402,12 +3402,12 @@ export interface SessionStartPayload {
 }
 
 // Typed Message Types
-export type CheckpointMessage = LogiGoMessage<CheckpointPayload> & {
-  type: typeof LOGIGO_CHECKPOINT;
+export type CheckpointMessage = LogicArtMessage<CheckpointPayload> & {
+  type: typeof LOGICART_CHECKPOINT;
 };
 
-export type SessionStartMessage = LogiGoMessage<SessionStartPayload> & {
-  type: typeof LOGIGO_SESSION_START;
+export type SessionStartMessage = LogicArtMessage<SessionStartPayload> & {
+  type: typeof LOGICART_SESSION_START;
 };
 
 export type ReporterMessage = CheckpointMessage | SessionStartMessage;
@@ -3424,23 +3424,23 @@ export interface RuntimeState {
 }
 
 // Message validator
-export function isLogiGoMessage(message: any): message is LogiGoMessage {
+export function isLogicArtMessage(message: any): message is LogicArtMessage {
   return (
     message &&
     typeof message === 'object' &&
-    message.source === 'LOGIGO_CORE' &&
+    message.source === 'LOGICART_CORE' &&
     typeof message.type === 'string' &&
     'payload' in message
   );
 }
 
 // Message type guards
-export function isCheckpoint(message: LogiGoMessage): message is CheckpointMessage {
-  return message.type === LOGIGO_CHECKPOINT;
+export function isCheckpoint(message: LogicArtMessage): message is CheckpointMessage {
+  return message.type === LOGICART_CHECKPOINT;
 }
 
-export function isSessionStart(message: LogiGoMessage): message is SessionStartMessage {
-  return message.type === LOGIGO_SESSION_START;
+export function isSessionStart(message: LogicArtMessage): message is SessionStartMessage {
+  return message.type === LOGICART_SESSION_START;
 }
 ```
 
@@ -3448,7 +3448,7 @@ export function isSessionStart(message: LogiGoMessage): message is SessionStartM
 
 ## 2. Parser Types & Features (`client/src/lib/parser.ts`)
 
-Our parser has several features that should be merged into `@logigo/bridge`:
+Our parser has several features that should be merged into `@logicart/bridge`:
 
 ### Key Types
 
@@ -3527,9 +3527,9 @@ export interface FlowData {
 
 ```typescript
 // Control messages for IDE integration (extend Reporter API)
-export const LOGIGO_JUMP_TO_LINE = 'LOGIGO_JUMP_TO_LINE' as const;
-export const LOGIGO_WRITE_FILE = 'LOGIGO_WRITE_FILE' as const;
-export const LOGIGO_READ_FILE = 'LOGIGO_READ_FILE' as const;
+export const LOGICART_JUMP_TO_LINE = 'LOGICART_JUMP_TO_LINE' as const;
+export const LOGICART_WRITE_FILE = 'LOGICART_WRITE_FILE' as const;
+export const LOGICART_READ_FILE = 'LOGICART_READ_FILE' as const;
 
 export interface JumpToLinePayload {
   file: string;
@@ -3574,13 +3574,13 @@ Our AI-assisted node editing feature (`NodeEditDialog.tsx`) will use this to pat
 
 ---
 
-*Generated for @logigo/bridge integration - LogiGo Studio Team*
+*Generated for @logicart/bridge integration - LogicArt Studio Team*
 
 
 --- FILE: docs/COMMON_PITFALLS.md ---
-# LogiGo Common Pitfalls
+# LogicArt Common Pitfalls
 
-**Avoid these common mistakes when using LogiGo**
+**Avoid these common mistakes when using LogicArt**
 
 ---
 
@@ -3718,10 +3718,10 @@ async function fetchData() {
 ### ❌ Wrong: No CSS Import
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
-  return <LogiGoEmbed code={code} />;  // ❌ Flowchart won't render correctly
+  return <LogicArtEmbed code={code} />;  // ❌ Flowchart won't render correctly
 }
 ```
 
@@ -3733,11 +3733,11 @@ function App() {
 ### ✅ Right: Import Required CSS
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';  // ✅ Required!
 
 function App() {
-  return <LogiGoEmbed code={code} />;
+  return <LogicArtEmbed code={code} />;
 }
 ```
 
@@ -3758,7 +3758,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()]  // ❌ No LogiGo plugin
+  plugins: [react()]  // ❌ No LogicArt plugin
 });
 ```
 
@@ -3773,14 +3773,14 @@ export default defineConfig({
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';  // ✅ Import
+import logicartPlugin from 'logicart-vite-plugin';  // ✅ Import
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({  // ✅ Configure
+    logicartPlugin({  // ✅ Configure
       include: ['src/**/*.tsx', 'src/**/*.ts'],
-      manifestPath: 'logigo-manifest.json'
+      manifestPath: 'logicart-manifest.json'
     })
   ]
 });
@@ -3877,7 +3877,7 @@ function processUser(user) {
 ### ❌ Wrong: TypeScript-Specific Syntax
 
 ```javascript
-// Pasted into LogiGo Studio
+// Pasted into LogicArt Studio
 function processUser(user: User): Result {  // ❌ Type annotations
   const result: Result = {  // ❌ Type annotation
     success: true
@@ -3894,7 +3894,7 @@ function processUser(user: User): Result {  // ❌ Type annotations
 ### ✅ Right: Remove TypeScript Syntax
 
 ```javascript
-// Pasted into LogiGo Studio
+// Pasted into LogicArt Studio
 function processUser(user) {  // ✅ No type annotation
   const result = {  // ✅ No type annotation
     success: true
@@ -3918,15 +3918,15 @@ function processUser(user) {  // ✅ No type annotation
 
 ```javascript
 // server.ts
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(options.variables));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(options.variables));
   }
 };
 
 // ❌ Expecting flowchart to appear automatically
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: req.body });
+  LogicArt.checkpoint('order:start', { variables: req.body });
   // ...
 });
 ```
@@ -3940,20 +3940,20 @@ app.post('/api/order', async (req, res) => {
 
 ```javascript
 // server.ts
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(options.variables));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(options.variables));
   }
 };
 
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: req.body });
+  LogicArt.checkpoint('order:start', { variables: req.body });
   // ...
 });
 
 // ✅ To see flowchart:
 // 1. Copy server code
-// 2. Paste into LogiGo Studio
+// 2. Paste into LogicArt Studio
 // 3. See flowchart structure
 // 4. Correlate with console logs
 ```
@@ -3970,7 +3970,7 @@ app.post('/api/order', async (req, res) => {
 ### ❌ Wrong: Incorrect Manifest Path
 
 ```javascript
-<LogiGoEmbed manifestUrl="logigo-manifest.json" />  // ❌ Missing leading slash
+<LogicArtEmbed manifestUrl="logicart-manifest.json" />  // ❌ Missing leading slash
 ```
 
 **Problem:**
@@ -3981,7 +3981,7 @@ app.post('/api/order', async (req, res) => {
 ### ✅ Right: Absolute Path
 
 ```javascript
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />  // ✅ Leading slash
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />  // ✅ Leading slash
 ```
 
 **Benefits:**
@@ -4054,7 +4054,7 @@ function processArray(arr) {
 
 ```javascript
 let count = 0;
-// @logigo: Initialize counter  // ❌ Label after code
+// @logicart: Initialize counter  // ❌ Label after code
 ```
 
 **Problem:**
@@ -4065,7 +4065,7 @@ let count = 0;
 ### ✅ Right: Label Before Code
 
 ```javascript
-// @logigo: Initialize counter  // ✅ Label before code
+// @logicart: Initialize counter  // ✅ Label before code
 let count = 0;
 ```
 
@@ -4078,7 +4078,7 @@ let count = 0;
 
 ## 🎯 Quick Checklist
 
-Before you start using LogiGo, verify:
+Before you start using LogicArt, verify:
 
 - [ ] Checkpoint IDs are hierarchical (`section:action:detail`)
 - [ ] Arrays/objects are snapshotted (`[...arr]`, `{...obj}`)
@@ -4106,29 +4106,29 @@ Before you start using LogiGo, verify:
 
 
 --- FILE: docs/CROSS_REPLIT_DESIGN.md ---
-# LogiGo Cross-Replit Communication Design
+# LogicArt Cross-Replit Communication Design
 
 ## The Problem
 
-LogiGo currently uses `window.postMessage` for real-time communication between instrumented code and the flowchart visualization. This only works when both are running in the **same browser tab/window**.
+LogicArt currently uses `window.postMessage` for real-time communication between instrumented code and the flowchart visualization. This only works when both are running in the **same browser tab/window**.
 
 **Real-world scenario:** A user has two Replit apps:
 - **App A** (e.g., "Turai" - a tour creator)
-- **LogiGo** (running in a separate tab)
+- **LogicArt** (running in a separate tab)
 
-When App A executes instrumented code with `LogiGo.checkpoint()` calls, those messages can't reach LogiGo in a different tab. The browser's same-origin policy prevents cross-tab `postMessage` without explicit window references.
+When App A executes instrumented code with `LogicArt.checkpoint()` calls, those messages can't reach LogicArt in a different tab. The browser's same-origin policy prevents cross-tab `postMessage` without explicit window references.
 
 ---
 
 ## The Solution: Remote Mode
 
-Add an API-based communication layer that allows any external Replit app to send checkpoint data to LogiGo over HTTP, with real-time updates via Server-Sent Events (SSE).
+Add an API-based communication layer that allows any external Replit app to send checkpoint data to LogicArt over HTTP, with real-time updates via Server-Sent Events (SSE).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
 │  ┌─────────────────┐          HTTP POST          ┌────────────────┐
-│  │   External App  │ ──────────────────────────► │   LogiGo       │
+│  │   External App  │ ──────────────────────────► │   LogicArt       │
 │  │   (Turai)       │    /api/remote/checkpoint   │   Server       │
 │  │                 │                              │                │
 │  │  checkpoint()   │                              │  Stores in     │
@@ -4138,7 +4138,7 @@ Add an API-based communication layer that allows any external Replit app to send
 │                                                           │ SSE Stream
 │                                                           ▼
 │                                                   ┌────────────────┐
-│                                                   │   LogiGo       │
+│                                                   │   LogicArt       │
 │                                                   │   Frontend     │
 │                                                   │                │
 │                                                   │  Highlights    │
@@ -4169,11 +4169,11 @@ Content-Type: application/json
 Response:
 {
   "sessionId": "abc123",
-  "connectUrl": "https://logigo.replit.app/remote/abc123"
+  "connectUrl": "https://logicart.replit.app/remote/abc123"
 }
 ```
 
-The `connectUrl` is what users open in LogiGo to see the visualization.
+The `connectUrl` is what users open in LogicArt to see the visualization.
 
 ### 2. Send Checkpoint
 
@@ -4213,9 +4213,9 @@ Content-Type: application/json
 }
 ```
 
-### 4. SSE Stream (LogiGo Frontend)
+### 4. SSE Stream (LogicArt Frontend)
 
-LogiGo's frontend subscribes to real-time updates:
+LogicArt's frontend subscribes to real-time updates:
 
 ```
 GET /api/remote/stream/:sessionId
@@ -4233,15 +4233,15 @@ data: {}
 
 ---
 
-## LogiGo UI Changes
+## LogicArt UI Changes
 
 ### Remote Mode Panel
 
-Add a new "Remote" tab/mode in LogiGo:
+Add a new "Remote" tab/mode in LogicArt:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  LogiGo                                    [Local] [Remote]     │
+│  LogicArt                                    [Local] [Remote]     │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Remote Session: abc123                    Status: ● Connected  │
@@ -4270,13 +4270,13 @@ Add a new "Remote" tab/mode in LogiGo:
 One-click copy of integration code for external apps:
 
 ```javascript
-// Add this to your Replit app to send checkpoints to LogiGo
+// Add this to your Replit app to send checkpoints to LogicArt
 
-const LOGIGO_URL = 'https://logigo.replit.app';
+const LOGICART_URL = 'https://logicart.replit.app';
 const SESSION_ID = 'abc123';
 
 async function checkpoint(id, variables = {}) {
-  await fetch(`${LOGIGO_URL}/api/remote/checkpoint`, {
+  await fetch(`${LOGICART_URL}/api/remote/checkpoint`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -4333,7 +4333,7 @@ checkpoint('process-tour', { ... });
 checkpoint('save-result', { ... });
 ```
 
-LogiGo shows these as a linear execution trace, highlighting each step as it arrives. This works even without source code.
+LogicArt shows these as a linear execution trace, highlighting each step as it arrives. This works even without source code.
 
 ### Option B: Line-Based Matching
 
@@ -4343,7 +4343,7 @@ If the external app sends `line` numbers and provides source code:
 checkpoint('step', { line: 42, variables: { ... } });
 ```
 
-LogiGo matches line 42 to the corresponding flowchart node using the same line-based node IDs from the parser.
+LogicArt matches line 42 to the corresponding flowchart node using the same line-based node IDs from the parser.
 
 ### Option C: Hybrid Approach
 
@@ -4408,17 +4408,17 @@ LogiGo matches line 42 to the corresponding flowchart node using the same line-b
 
 2. **Persistence:** Should sessions survive server restarts? (Currently in-memory only)
 
-3. **Multi-user:** Should multiple LogiGo users be able to view the same remote session?
+3. **Multi-user:** Should multiple LogicArt users be able to view the same remote session?
 
-4. **Bidirectional:** Should LogiGo be able to send commands back to the external app (e.g., pause, step)?
+4. **Bidirectional:** Should LogicArt be able to send commands back to the external app (e.g., pause, step)?
 
-5. **NPM Package:** Should we publish a `logigo-remote` package that external apps can install for easier integration?
+5. **NPM Package:** Should we publish a `logicart-remote` package that external apps can install for easier integration?
 
 ---
 
 ## Comparison with Embed Approach
 
-| Feature | Embed (logigo-embed) | Remote Mode |
+| Feature | Embed (logicart-embed) | Remote Mode |
 |---------|---------------------|-------------|
 | Setup complexity | Add React component | Copy snippet |
 | Latency | Instant (same window) | ~50-100ms (HTTP) |
@@ -4427,11 +4427,11 @@ LogiGo matches line 42 to the corresponding flowchart node using the same line-b
 | Flowchart in user's app | Yes | No (separate tab) |
 | Best for | Single-app visualization | Multi-app workflows |
 
-Both approaches complement each other. Embed is best when you want the visualization inside your app. Remote Mode is best when you have multiple apps that need to communicate with a central LogiGo instance.
+Both approaches complement each other. Embed is best when you want the visualization inside your app. Remote Mode is best when you have multiple apps that need to communicate with a central LogicArt instance.
 
 
 --- FILE: docs/DEVELOPMENT_STATUS.md ---
-# LogiGo Studio - Development Status Report
+# LogicArt Studio - Development Status Report
 
 **Date:** December 20, 2025  
 **For:** Antigravity Team (Code Extension & Premium Features)
@@ -4440,7 +4440,7 @@ Both approaches complement each other. Embed is best when you want the visualiza
 
 ## Executive Summary
 
-LogiGo Studio is a bidirectional code-to-flowchart visualization tool. The application now features full interactive algorithm examples, comprehensive keyboard shortcuts, breakpoints, variable history timeline, shareable URLs, Ghost Diff visualization, and dual control systems (Execution Controls + Runtime Controls).
+LogicArt Studio is a bidirectional code-to-flowchart visualization tool. The application now features full interactive algorithm examples, comprehensive keyboard shortcuts, breakpoints, variable history timeline, shareable URLs, Ghost Diff visualization, and dual control systems (Execution Controls + Runtime Controls).
 
 ---
 
@@ -4689,7 +4689,7 @@ App available at `http://localhost:5000`
 
 
 --- FILE: docs/DOCUMENTATION_AUDIT.md ---
-# LogiGo Documentation Audit
+# LogicArt Documentation Audit
 
 **Date:** December 26, 2025  
 **Auditor:** Antigravity  
@@ -4714,7 +4714,7 @@ The documentation is comprehensive, accurate, and well-organized. All 6 newly de
 | Static Mode | ✅ Yes | Documentation tab, lines 144-158 | Excellent |
 | Remote Mode | ✅ Yes | Documentation tab, lines 160-199 | Excellent |
 | Live Mode | ✅ Yes | Documentation tab, lines 201-236 | Excellent |
-| User Labels (@logigo:) | ✅ Yes | Documentation tab, lines 268-295 | Excellent |
+| User Labels (@logicart:) | ✅ Yes | Documentation tab, lines 268-295 | Excellent |
 | Bidirectional Editing | ✅ Yes | Documentation tab, lines 297-311 | Excellent |
 | Model Arena | ✅ Yes | Documentation tab, lines 313-331 | Excellent |
 | Debug Arena | ✅ Yes | Documentation tab, lines 333-351 | Excellent |
@@ -4864,7 +4864,7 @@ Share your flowchart with others using database-backed links:
 1. Click "Share Flowchart" in Flow Tools
 2. (Optional) Add a title and description
 3. Click "Create Share Link"
-4. Copy the short URL (e.g., `logigo.app/s/abc12345`)
+4. Copy the short URL (e.g., `logicart.app/s/abc12345`)
 
 **Features:**
 - **Short URLs:** Easy to share on Twitter, Slack, or email
@@ -5167,7 +5167,7 @@ Create `docs/AGENT_API.md` with full API reference, examples, and use cases.
 
 **Status: READY FOR LAUNCH** (after ~2 hours of documentation updates)
 
-The documentation is excellent overall. The only blockers are the missing V1 feature documentation. Once the critical items are addressed, LogiGo will have production-ready documentation.
+The documentation is excellent overall. The only blockers are the missing V1 feature documentation. Once the critical items are addressed, LogicArt will have production-ready documentation.
 
 **Action Plan:**
 1. **Today:** Complete all 6 critical documentation updates (~55 min)
@@ -5183,7 +5183,7 @@ The documentation is excellent overall. The only blockers are the missing V1 fea
 
 
 --- FILE: docs/DOCUMENTATION_REWRITE_SUMMARY.md ---
-# LogiGo Documentation Rewrite Summary
+# LogicArt Documentation Rewrite Summary
 
 **Complete documentation overhaul for V1 launch**
 
@@ -5243,7 +5243,7 @@ START HERE: What do you want to do?
 ```markdown
 ## 🚀 Quick Start (30 Seconds)
 
-### Step 1: Open LogiGo Studio
+### Step 1: Open LogicArt Studio
 ### Step 2: Paste Code
 ### Step 3: See the Flowchart
 ### Step 4: Step Through Execution
@@ -5266,9 +5266,9 @@ START HERE: What do you want to do?
 
 | Package | Version | React | Vite | Node |
 |---------|---------|-------|------|------|
-| logigo-core | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-embed | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-vite-plugin | 1.0.0 | - | 4+ | 16+ |
+| logicart-core | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-embed | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-vite-plugin | 1.0.0 | - | 4+ | 16+ |
 
 **Impact:** Prevents version compatibility issues
 
@@ -5336,7 +5336,7 @@ function checkpoint(
 
 **Week 2: Integration**
 - [ ] Read Installation Guide
-- [ ] Add LogiGo to personal project
+- [ ] Add LogicArt to personal project
 - [ ] Create custom checkpoints
 
 **Week 3: Advanced**
@@ -5361,7 +5361,7 @@ function checkpoint(
 
 Each with step-by-step instructions.
 
-**Impact:** Users know exactly how to use LogiGo
+**Impact:** Users know exactly how to use LogicArt
 
 ---
 
@@ -5373,7 +5373,7 @@ Each with step-by-step instructions.
 
 **Example:**
 
-**"Module not found: logigo-embed"**
+**"Module not found: logicart-embed"**
 ```bash
 rm -rf node_modules package-lock.json
 npm cache clean --force
@@ -5400,7 +5400,7 @@ npm install
 
 To see flowchart:
 1. Copy server code
-2. Paste into LogiGo Studio  
+2. Paste into LogicArt Studio  
 3. See flowchart structure
 4. Correlate with console logs
 ```
@@ -5493,9 +5493,9 @@ docs/
 │  └─ Troubleshooting
 │
 ├─ API_REFERENCE.md
-│  ├─ logigo-core API
-│  ├─ logigo-embed API
-│  ├─ logigo-vite-plugin API
+│  ├─ logicart-core API
+│  ├─ logicart-embed API
+│  ├─ logicart-vite-plugin API
 │  ├─ User labels syntax
 │  ├─ Checkpoint conventions
 │  └─ TypeScript types
@@ -5638,7 +5638,7 @@ docs/
 
 ## 💬 Summary
 
-The new LogiGo documentation is:
+The new LogicArt documentation is:
 
 - **Comprehensive**: Covers all features and use cases
 - **Clear**: Decision trees and visual hierarchy
@@ -5654,11 +5654,11 @@ The new LogiGo documentation is:
 
 
 --- FILE: docs/EMBED_REVIEW_ANTIGRAVITY.md ---
-# Antigravity's Review of LogiGo Embed Design
+# Antigravity's Review of LogicArt Embed Design
 
 **Date:** December 20, 2025  
 **Reviewer:** Antigravity  
-**Document Reviewed:** LogiGo Embed - Overview for Review
+**Document Reviewed:** LogicArt Embed - Overview for Review
 
 ---
 
@@ -5710,14 +5710,14 @@ Add a "Development Mode" that doesn't require build integration:
 
 ```javascript
 // Option A: Runtime parsing (slower but zero config)
-<LogiGoEmbed 
+<LogicArtEmbed 
   mode="development"
   entryFile="src/App.tsx"  // We fetch and parse at runtime
 />
 
 // Option B: Pre-computed manifest from CLI
-// npx logigo-manifest generate src/ --output public/logigo-manifest.json
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+// npx logicart-manifest generate src/ --output public/logicart-manifest.json
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Recommendation:**
@@ -5761,17 +5761,17 @@ Source maps would only help if you were trying to correlate minified production 
 
 | Distribution | Purpose |
 |--------------|---------|
-| `logigo-embed` (ESM) | React apps, peer dep on React |
-| `logigo-embed/vanilla` (UMD) | Non-React apps, bundled React |
-| `logigo-embed/vite` | Vite plugin |
-| `logigo-embed/webpack` | Webpack plugin |
+| `logicart-embed` (ESM) | React apps, peer dep on React |
+| `logicart-embed/vanilla` (UMD) | Non-React apps, bundled React |
+| `logicart-embed/vite` | Vite plugin |
+| `logicart-embed/webpack` | Webpack plugin |
 
 **CDN usage:**
 ```html
 <!-- For quick prototypes -->
-<script src="https://unpkg.com/logigo-embed/dist/logigo-embed.umd.js"></script>
+<script src="https://unpkg.com/logicart-embed/dist/logicart-embed.umd.js"></script>
 <script>
-  LogiGoEmbed.init({ container: '#logigo' });
+  LogicArtEmbed.init({ container: '#logicart' });
 </script>
 ```
 
@@ -5791,9 +5791,9 @@ function calculate(x) {
 
 // Instrumented - now async!
 async function calculate(x) {
-  await LogiGo.checkpoint('if_abc123');
+  await LogicArt.checkpoint('if_abc123');
   if (x > 0) {
-    await LogiGo.checkpoint('return_def456');
+    await LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
@@ -5810,15 +5810,15 @@ async function calculate(x) {
 ```javascript
 // Instrumented - stays synchronous
 function calculate(x) {
-  LogiGo.checkpoint('if_abc123');  // Fire-and-forget
+  LogicArt.checkpoint('if_abc123');  // Fire-and-forget
   if (x > 0) {
-    LogiGo.checkpoint('return_def456');
+    LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
 }
 
-// In logigo-core:
+// In logicart-core:
 checkpoint(id, vars) {
   // Synchronous - just queue the message
   this.queue.push({ id, vars, timestamp: Date.now() });
@@ -5828,7 +5828,7 @@ checkpoint(id, vars) {
 
 **Recommendation:**
 - Make checkpoints **synchronous** by default
-- Offer `await LogiGo.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
+- Offer `await LogicArt.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
 
 ---
 
@@ -5839,7 +5839,7 @@ checkpoint(id, vars) {
 For multi-file apps, showing the entire app's flowchart could be overwhelming.
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   focusFile="src/utils/sort.ts"  // Only show this file's flowchart
   // or
   focusFunction="processNextIteration"  // Auto-locate and zoom
@@ -5851,14 +5851,14 @@ For multi-file apps, showing the entire app's flowchart could be overwhelming.
 ```javascript
 // When AI modifies code, trigger refresh
 aiCodeAssistant.onCodeChange((file, newCode) => {
-  LogiGoEmbed.refresh({ file });
+  LogicArtEmbed.refresh({ file });
 });
 ```
 
 ### 3. Export Capability
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   onExport={(snapshot) => {
     // User can export current flowchart state for sharing
     // snapshot = { nodes, edges, variables, timestamp }
@@ -5885,8 +5885,8 @@ aiCodeAssistant.onCodeChange((file, newCode) => {
 
 | Task | Owner |
 |------|-------|
-| Build `logigo-embed` package with synchronous checkpoints | Replit |
-| Create `npx logigo-manifest` CLI tool for MVP | Replit |
+| Build `logicart-embed` package with synchronous checkpoints | Replit |
+| Create `npx logicart-manifest` CLI tool for MVP | Replit |
 | Review `docs/EMBED_STUDIO_DESIGN.md` once pushed | Antigravity |
 | Define exact manifest JSON schema for interoperability | Joint |
 
@@ -5904,7 +5904,7 @@ Looking forward to seeing the implementation!
 
 
 --- FILE: docs/EMBED_STUDIO_DESIGN.md ---
-# LogiGo Embeddable Studio - Design Document
+# LogicArt Embeddable Studio - Design Document
 
 **Date:** December 21, 2025  
 **Purpose:** Bring full flowchart visualization into user apps
@@ -5915,40 +5915,40 @@ ue
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| LogiGoEmbed (Static Mode) | ✅ Complete | `packages/logigo-embed/` |
-| LogiGoEmbed (Live Mode) | ✅ Complete | `packages/logigo-embed/` |
-| Vite Plugin | ✅ Complete | `packages/logigo-vite-plugin/` |
-| Manifest Schema | ✅ Complete | `packages/logigo-vite-plugin/src/types.ts` |
-| logigo-core Runtime | ✅ Complete | `packages/logigo-core/` |
+| LogicArtEmbed (Static Mode) | ✅ Complete | `packages/logicart-embed/` |
+| LogicArtEmbed (Live Mode) | ✅ Complete | `packages/logicart-embed/` |
+| Vite Plugin | ✅ Complete | `packages/logicart-vite-plugin/` |
+| Manifest Schema | ✅ Complete | `packages/logicart-vite-plugin/src/types.ts` |
+| logicart-core Runtime | ✅ Complete | `packages/logicart-core/` |
 
 ---
 
 ## Overview
 
-The Embeddable Studio is a self-contained React component that provides the full LogiGo visualization experience as a floating panel within any React application.
+The Embeddable Studio is a self-contained React component that provides the full LogicArt visualization experience as a floating panel within any React application.
 
 ## API Design
 
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 # or
-npx logigo-install
+npx logicart-install
 ```
 
 ### Basic Usage (React) - Production
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
       <YourApp />
       {/* Production: Use build-generated manifest */}
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
       />
     </div>
@@ -5959,11 +5959,11 @@ function App() {
 ### Auto-Initialize (Script Tag) - Production
 
 ```html
-<script src="https://unpkg.com/logigo-embed"></script>
+<script src="https://unpkg.com/logicart-embed"></script>
 <script>
   // Production: Point to build-generated manifest
-  LogiGo.init({
-    manifestUrl: '/logigo-manifest.json',
+  LogicArt.init({
+    manifestUrl: '/logicart-manifest.json',
     position: 'bottom-right'
   });
 </script>
@@ -5973,7 +5973,7 @@ function App() {
 
 ```jsx
 // DEMO ONLY: Runtime parsing for quick prototypes
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  
   position="bottom-right"
 />
@@ -5985,11 +5985,11 @@ function App() {
 ## Configuration Options
 
 ```typescript
-interface LogiGoEmbedProps {
+interface LogicArtEmbedProps {
   // === Data Source (choose ONE) ===
   
   // Option A: Build-time manifest (recommended for production)
-  manifestUrl?: string;        // URL to fetch logigo-manifest.json
+  manifestUrl?: string;        // URL to fetch logicart-manifest.json
   manifestHash?: string;       // Expected hash for cache validation
   
   // Option B: Runtime parsing (simple/demo scenarios only)
@@ -6021,8 +6021,8 @@ interface LogiGoEmbedProps {
   onNodeClick?: (nodeId: string) => void;
   onCheckpoint?: (checkpoint: CheckpointPayload) => void;
   onBreakpointHit?: (nodeId: string) => void;
-  onManifestLoad?: (manifest: LogiGoManifest) => void;
-  onError?: (error: LogiGoError) => void;
+  onManifestLoad?: (manifest: LogicArtManifest) => void;
+  onError?: (error: LogicArtError) => void;
   onReady?: () => void;
 }
 ```
@@ -6031,20 +6031,20 @@ interface LogiGoEmbedProps {
 
 **Production (with manifest):**
 ```jsx
-<LogiGoEmbed 
-  manifestUrl="/logigo-manifest.json"
+<LogicArtEmbed 
+  manifestUrl="/logicart-manifest.json"
   manifestHash="a1b2c3d4..."
   position="bottom-right"
-  onReady={() => console.log('LogiGo ready!')}
+  onReady={() => console.log('LogicArt ready!')}
 />
 ```
 
 **Script tag (standalone UMD):**
 ```html
-<script src="https://unpkg.com/logigo-embed"></script>
+<script src="https://unpkg.com/logicart-embed"></script>
 <script>
-  LogiGo.init({
-    manifestUrl: '/logigo-manifest.json',
+  LogicArt.init({
+    manifestUrl: '/logicart-manifest.json',
     position: 'bottom-right'
   });
 </script>
@@ -6052,10 +6052,10 @@ interface LogiGoEmbedProps {
 
 **Quick demo (no build):**
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={`
     function sort(arr) {
-      LogiGo.checkpoint('sort:start', { arr });
+      LogicArt.checkpoint('sort:start', { arr });
       // ... algorithm
     }
   `}
@@ -6068,10 +6068,10 @@ interface LogiGoEmbedProps {
 ## Component Architecture
 
 ```
-logigo-embed/
+logicart-embed/
 ├── src/
 │   ├── index.ts                 # Package entry point
-│   ├── LogiGoEmbed.tsx          # Main component
+│   ├── LogicArtEmbed.tsx          # Main component
 │   ├── components/
 │   │   ├── FloatingPanel.tsx    # Draggable/resizable container
 │   │   ├── MiniFlowchart.tsx    # React Flow visualization
@@ -6087,9 +6087,9 @@ logigo-embed/
 │   └── styles/
 │       └── embed.css            # Bundled styles
 ├── dist/
-│   ├── logigo-embed.umd.js      # UMD bundle (script tag)
-│   ├── logigo-embed.esm.js      # ESM bundle (imports)
-│   └── logigo-embed.css         # Styles
+│   ├── logicart-embed.umd.js      # UMD bundle (script tag)
+│   ├── logicart-embed.esm.js      # ESM bundle (imports)
+│   └── logicart-embed.css         # Styles
 └── package.json
 ```
 
@@ -6101,7 +6101,7 @@ logigo-embed/
 
 ```
 ┌─────────────────────────────────────────────┐
-│ LogiGo         [_] [□] [×]                  │
+│ LogicArt         [_] [□] [×]                  │
 ├─────────────────────────────────────────────┤
 │  ┌──────────────────────────────────────┐   │
 │  │                                      │   │
@@ -6129,7 +6129,7 @@ logigo-embed/
 ## Key Features
 
 ### 1. Live Flowchart Visualization
-- Uses the same React Flow renderer as LogiGo Studio
+- Uses the same React Flow renderer as LogicArt Studio
 - Supports all node types: decision, loop, statement, function
 - Real-time node highlighting on checkpoint execution
 
@@ -6151,7 +6151,7 @@ logigo-embed/
 - Closeable: Remove panel entirely
 
 ### 5. Checkpoint Integration
-- Listens for `window.LogiGo.checkpoint()` calls
+- Listens for `window.LogicArt.checkpoint()` calls
 - Updates flowchart highlighting in real-time
 - Records variable snapshots at each checkpoint
 
@@ -6184,30 +6184,30 @@ User Code → Bundler (Vite/Webpack) → Transformed Output
 
 ### The Solution: Node Manifest
 
-The `logigo-install` CLI hooks into the build process and generates:
+The `logicart-install` CLI hooks into the build process and generates:
 1. **Instrumented code** with stable checkpoint IDs
 2. **Node manifest JSON** with flowchart structure
 
 ```
-logigo-install
+logicart-install
     ↓
 ┌─────────────────────────────────────────────────┐
 │  Bundler Plugin (Vite/Webpack/Next)             │
 │                                                 │
 │  1. Parse all source files with Acorn           │
 │  2. Assign stable node IDs (hash-based)         │
-│  3. Inject LogiGo.checkpoint() calls            │
-│  4. Generate logigo-manifest.json               │
+│  3. Inject LogicArt.checkpoint() calls            │
+│  4. Generate logicart-manifest.json               │
 │  5. Output instrumented bundle                  │
 └─────────────────────────────────────────────────┘
     ↓                               ↓
- Instrumented Bundle          logigo-manifest.json
+ Instrumented Bundle          logicart-manifest.json
 ```
 
 ### Manifest Schema
 
 ```typescript
-interface LogiGoManifest {
+interface LogicArtManifest {
   version: '1.0';
   hash: string;           // SHA256 of all source files combined
   generatedAt: number;    // Unix timestamp
@@ -6477,7 +6477,7 @@ function injectCheckpoints(
   checkpoints.forEach(cp => {
     // Generate SYNCHRONOUS checkpoint call (per Antigravity's recommendation)
     // No async/await - keeps function signatures unchanged
-    const checkpointCall = `LogiGo.checkpoint('${cp.id}', { ${
+    const checkpointCall = `LogicArt.checkpoint('${cp.id}', { ${
       cp.capturedVariables.map(v => `${v}: ${v}`).join(', ')
     } });\n`;
     
@@ -6498,8 +6498,8 @@ function injectCheckpoints(
 Per Antigravity's review, checkpoints are **synchronous by default** to avoid breaking function signatures:
 
 ```javascript
-// In logigo-core runtime:
-class LogiGoRuntime {
+// In logicart-core runtime:
+class LogicArtRuntime {
   private queue: CheckpointData[] = [];
   private flushScheduled = false;
   
@@ -6534,8 +6534,8 @@ class LogiGoRuntime {
     
     batch.forEach(data => {
       window.postMessage({
-        source: 'LOGIGO_CORE',
-        type: 'LOGIGO_CHECKPOINT',
+        source: 'LOGICART_CORE',
+        type: 'LOGICART_CHECKPOINT',
         payload: { ...data, manifestVersion: this.manifestHash }
       }, '*');
     });
@@ -6549,7 +6549,7 @@ class LogiGoRuntime {
 - TypeScript types remain valid
 - Works in sync-only contexts
 
-**For step debugging:** Use `await LogiGo.checkpointAsync(id)` which pauses at breakpoints.
+**For step debugging:** Use `await LogicArt.checkpointAsync(id)` which pauses at breakpoints.
 
 ### Runtime Contract: MANIFEST_HASH & Session Alignment
 
@@ -6557,7 +6557,7 @@ class LogiGoRuntime {
 
 ```typescript
 // In bundler plugin, at end of build:
-function finalizeManifest(manifest: LogiGoManifest): string {
+function finalizeManifest(manifest: LogicArtManifest): string {
   // Compute hash of all source file checksums
   const allChecksums = Object.values(manifest.files)
     .map(f => f.checksum)
@@ -6570,12 +6570,12 @@ function finalizeManifest(manifest: LogiGoManifest): string {
 
 // Write to output
 const MANIFEST_HASH = finalizeManifest(manifest);
-writeFileSync('dist/logigo-manifest.json', JSON.stringify(manifest));
+writeFileSync('dist/logicart-manifest.json', JSON.stringify(manifest));
 
 // Also inject hash into the runtime bundle:
 const runtimeInit = `
-  window.__LOGIGO_MANIFEST_HASH__ = '${MANIFEST_HASH}';
-  window.__LOGIGO_MANIFEST_URL__ = '/logigo-manifest.json';
+  window.__LOGICART_MANIFEST_HASH__ = '${MANIFEST_HASH}';
+  window.__LOGICART_MANIFEST_URL__ = '/logicart-manifest.json';
 `;
 injectAtBundleStart(runtimeInit);
 ```
@@ -6584,15 +6584,15 @@ injectAtBundleStart(runtimeInit);
 
 ```typescript
 // Injected at bundle start by the bundler plugin:
-(function logigoInit() {
+(function logicartInit() {
   // Read hash/URL from injected globals
-  const MANIFEST_HASH = window.__LOGIGO_MANIFEST_HASH__;
-  const MANIFEST_URL = window.__LOGIGO_MANIFEST_URL__;
+  const MANIFEST_HASH = window.__LOGICART_MANIFEST_HASH__;
+  const MANIFEST_URL = window.__LOGICART_MANIFEST_URL__;
   
   // Emit manifest ready event
   window.postMessage({
-    source: 'LOGIGO_CORE',
-    type: 'LOGIGO_MANIFEST_READY',
+    source: 'LOGICART_CORE',
+    type: 'LOGICART_MANIFEST_READY',
     payload: {
       manifestUrl: `${MANIFEST_URL}?v=${MANIFEST_HASH}`,
       manifestHash: MANIFEST_HASH,
@@ -6614,7 +6614,7 @@ injectAtBundleStart(runtimeInit);
 function handleCheckpoint(payload: CheckpointPayload) {
   if (payload.manifestVersion !== currentManifest.hash) {
     // Manifest has changed - need to reload
-    console.warn('[LogiGo] Manifest version mismatch, session may be stale');
+    console.warn('[LogicArt] Manifest version mismatch, session may be stale');
     // Optionally: refetch manifest and re-render flowchart
   }
   
@@ -6628,8 +6628,8 @@ function handleCheckpoint(payload: CheckpointPayload) {
 ```typescript
 // New message type: Manifest Ready
 interface ManifestReadyMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_MANIFEST_READY';
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_MANIFEST_READY';
   payload: {
     manifestUrl: string;     // URL to fetch manifest JSON
     manifestHash: string;    // For cache validation
@@ -6639,8 +6639,8 @@ interface ManifestReadyMessage {
 
 // Enhanced Checkpoint message
 interface CheckpointMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_CHECKPOINT';
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_CHECKPOINT';
   payload: {
     id: string;
     manifestVersion: string;  // Must match current manifest
@@ -6660,7 +6660,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  1. LOGIGO_MANIFEST_READY                           │
+│  1. LOGICART_MANIFEST_READY                           │
 │     - First event on page load                      │
 │     - Contains manifestUrl and manifestHash         │
 │     - Embed fetches and caches manifest             │
@@ -6668,7 +6668,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  2. LOGIGO_SESSION_START                            │
+│  2. LOGICART_SESSION_START                            │
 │     - Emitted when instrumented code begins         │
 │     - Signals embed to reset state                  │
 │     - Contains sessionId and startTime             │
@@ -6676,7 +6676,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  3. LOGIGO_CHECKPOINT (repeated)                    │
+│  3. LOGICART_CHECKPOINT (repeated)                    │
 │     - Emitted for each checkpoint() call            │
 │     - Contains nodeId, manifestVersion, variables   │
 │     - Embed highlights node, records history        │
@@ -6684,7 +6684,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  4. LOGIGO_SESSION_END (optional)                   │
+│  4. LOGICART_SESSION_END (optional)                   │
 │     - Emitted when execution completes              │
 │     - Embed shows "Execution complete" state        │
 └─────────────────────────────────────────────────────┘
@@ -6697,11 +6697,11 @@ The bundler plugin handles manifest hosting:
 **Vite (development):**
 ```javascript
 // Plugin serves manifest from memory during dev
-export function logigoVitePlugin() {
-  let manifest: LogiGoManifest;
+export function logicartVitePlugin() {
+  let manifest: LogicArtManifest;
   
   return {
-    name: 'logigo',
+    name: 'logicart',
     
     // Generate manifest during build
     transform(code, id) {
@@ -6714,7 +6714,7 @@ export function logigoVitePlugin() {
     
     // Serve manifest via dev server
     configureServer(server) {
-      server.middlewares.use('/logigo-manifest.json', (req, res) => {
+      server.middlewares.use('/logicart-manifest.json', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(manifest));
       });
@@ -6724,7 +6724,7 @@ export function logigoVitePlugin() {
     generateBundle() {
       this.emitFile({
         type: 'asset',
-        fileName: 'logigo-manifest.json',
+        fileName: 'logicart-manifest.json',
         source: JSON.stringify(manifest)
       });
     }
@@ -6738,7 +6738,7 @@ dist/
 ├── index.html
 ├── assets/
 │   └── main.js              # Instrumented bundle
-└── logigo-manifest.json     # Manifest file
+└── logicart-manifest.json     # Manifest file
 ```
 
 ### Cache Invalidation
@@ -6748,10 +6748,10 @@ The manifest hash enables cache-busting:
 ```typescript
 // Runtime: Emit manifest ready with hash
 window.postMessage({
-  source: 'LOGIGO_CORE',
-  type: 'LOGIGO_MANIFEST_READY',
+  source: 'LOGICART_CORE',
+  type: 'LOGICART_MANIFEST_READY',
   payload: {
-    manifestUrl: '/logigo-manifest.json?v=' + MANIFEST_HASH,
+    manifestUrl: '/logicart-manifest.json?v=' + MANIFEST_HASH,
     manifestHash: MANIFEST_HASH,
     sessionId: generateSessionId()
   }
@@ -6773,7 +6773,7 @@ if (cachedManifest && cachedManifest.hash === payload.manifestHash) {
 
 ```typescript
 // 1. Load manifest at startup
-const manifest = await fetch('/logigo-manifest.json').then(r => r.json());
+const manifest = await fetch('/logicart-manifest.json').then(r => r.json());
 
 // 2. Render flowchart from manifest
 setNodes(manifest.nodes);
@@ -6781,22 +6781,22 @@ setEdges(manifest.edges);
 
 // 3. Listen for runtime events
 window.addEventListener('message', (event) => {
-  if (event.data?.source !== 'LOGIGO_CORE') return;
+  if (event.data?.source !== 'LOGICART_CORE') return;
   
   switch (event.data.type) {
-    case 'LOGIGO_MANIFEST_READY':
+    case 'LOGICART_MANIFEST_READY':
       // Hot reload: fetch new manifest if hash changed
       if (event.data.payload.manifestHash !== currentHash) {
         reloadManifest(event.data.payload.manifestUrl);
       }
       break;
       
-    case 'LOGIGO_CHECKPOINT':
+    case 'LOGICART_CHECKPOINT':
       const { id, manifestVersion, variables } = event.data.payload;
       
       // Validate checkpoint matches current manifest
       if (manifestVersion !== manifest.version) {
-        console.warn('[LogiGo] Manifest version mismatch, reloading...');
+        console.warn('[LogicArt] Manifest version mismatch, reloading...');
         reloadManifest();
         return;
       }
@@ -6822,15 +6822,15 @@ No bundler integration required. Users run a CLI command to generate the manifes
 
 ```bash
 # Generate manifest from source files
-npx logigo-manifest generate src/ --output public/logigo-manifest.json
+npx logicart-manifest generate src/ --output public/logicart-manifest.json
 
 # Watch mode for development
-npx logigo-manifest watch src/ --output public/logigo-manifest.json --debounce 300
+npx logicart-manifest watch src/ --output public/logicart-manifest.json --debounce 300
 ```
 
 Usage:
 ```jsx
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Phase 2: Bundler Plugins**
@@ -6840,13 +6840,13 @@ Seamless DX with automatic manifest generation during build:
 **Vite Plugin:**
 ```javascript
 // vite.config.js
-import logigo from 'logigo-embed/vite';
+import logicart from 'logicart-embed/vite';
 
 export default {
   plugins: [
-    logigo({
+    logicart({
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      manifestPath: 'public/logigo-manifest.json'
+      manifestPath: 'public/logicart-manifest.json'
     })
   ]
 }
@@ -6855,13 +6855,13 @@ export default {
 **Webpack Plugin:**
 ```javascript
 // webpack.config.js
-const LogiGoPlugin = require('logigo-embed/webpack');
+const LogicArtPlugin = require('logicart-embed/webpack');
 
 module.exports = {
   plugins: [
-    new LogiGoPlugin({
+    new LogicArtPlugin({
       include: /src\/.*\.(ts|tsx)$/,
-      manifestPath: 'dist/logigo-manifest.json'
+      manifestPath: 'dist/logicart-manifest.json'
     })
   ]
 }
@@ -6889,7 +6889,7 @@ function onFileChange(file: string) {
 ```typescript
 // If manifest changes during active session, notify user
 window.addEventListener('message', (e) => {
-  if (e.data?.type === 'LOGIGO_MANIFEST_READY') {
+  if (e.data?.type === 'LOGICART_MANIFEST_READY') {
     if (activeSession && e.data.payload.manifestHash !== currentHash) {
       showNotification('Code changed - restart session to see updates');
     }
@@ -6902,7 +6902,7 @@ window.addEventListener('message', (e) => {
 For quick prototyping without bundler integration:
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  // Parse at runtime (simple case)
   manifestUrl={null}     // Skip manifest loading
 />
@@ -6911,7 +6911,7 @@ For quick prototyping without bundler integration:
 This works for:
 - Single-file scripts pasted into the embed
 - Quick demos and learning scenarios
-- LogiGo Studio's "paste code" feature
+- LogicArt Studio's "paste code" feature
 
 ---
 
@@ -6939,12 +6939,12 @@ This works for:
 
 ---
 
-## Global API (window.LogiGo)
+## Global API (window.LogicArt)
 
 ```typescript
-interface LogiGoGlobalAPI {
+interface LogicArtGlobalAPI {
   // Initialize embedded studio
-  init(options: LogiGoEmbedProps): void;
+  init(options: LogicArtEmbedProps): void;
   
   // Checkpoint for execution tracking
   checkpoint(id: string, variables?: Record<string, any>): Promise<void>;
@@ -6997,7 +6997,7 @@ interface CheckpointRecord {
 
 **1. ESM Bundle (for React apps)**
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 - React and ReactFlow are **peer dependencies**
 - User's app already has React, no duplication
@@ -7005,12 +7005,12 @@ npm install logigo-embed
 
 **2. UMD Bundle (for script tag)**
 ```html
-<script src="https://unpkg.com/logigo-embed/dist/logigo-embed.umd.js"></script>
+<script src="https://unpkg.com/logicart-embed/dist/logicart-embed.umd.js"></script>
 ```
 - React and ReactFlow are **bundled inside** (standalone)
 - Works without any build system
 - Larger bundle size (~400KB gzipped)
-- Exports to `window.LogiGo`
+- Exports to `window.LogicArt`
 
 ### Build Configuration
 
@@ -7020,7 +7020,7 @@ export default [
   // ESM build (React as peer dep)
   {
     input: 'src/index.ts',
-    output: { file: 'dist/logigo-embed.esm.js', format: 'esm' },
+    output: { file: 'dist/logicart-embed.esm.js', format: 'esm' },
     external: ['react', 'react-dom', '@xyflow/react'],
   },
   
@@ -7028,9 +7028,9 @@ export default [
   {
     input: 'src/index.standalone.ts',
     output: { 
-      file: 'dist/logigo-embed.umd.js', 
+      file: 'dist/logicart-embed.umd.js', 
       format: 'umd',
-      name: 'LogiGo',
+      name: 'LogicArt',
       globals: {}  // No externals
     },
     // Bundle everything including React
@@ -7046,17 +7046,17 @@ The standalone build injects its own React instance:
 // src/index.standalone.ts
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { LogiGoEmbed } from './LogiGoEmbed';
+import { LogicArtEmbed } from './LogicArtEmbed';
 
 // Create isolated React root when init() is called
-window.LogiGo = {
+window.LogicArt = {
   init(options) {
     const container = document.createElement('div');
-    container.id = 'logigo-embed-root';
+    container.id = 'logicart-embed-root';
     document.body.appendChild(container);
     
     const root = ReactDOM.createRoot(container);
-    root.render(<LogiGoEmbed {...options} />);
+    root.render(<LogicArtEmbed {...options} />);
     
     this._root = root;
     this._container = container;
@@ -7067,13 +7067,13 @@ window.LogiGo = {
 
 ---
 
-## File Locations (in LogiGo Studio repo)
+## File Locations (in LogicArt Studio repo)
 
 New files to create:
-- `packages/logigo-embed/` - New package directory
-- `packages/logigo-embed/src/LogiGoEmbed.tsx` - Main component
-- `packages/logigo-embed/rollup.config.js` - Bundle config
-- `packages/logigo-install/` - CLI installer
+- `packages/logicart-embed/` - New package directory
+- `packages/logicart-embed/src/LogicArtEmbed.tsx` - Main component
+- `packages/logicart-embed/rollup.config.js` - Bundle config
+- `packages/logicart-install/` - CLI installer
 
 Files to reuse from Studio:
 - `client/src/components/ide/Flowchart.tsx` → Strip down
@@ -7085,7 +7085,7 @@ Files to reuse from Studio:
 
 ## Next Steps
 
-1. Create `packages/logigo-embed/` directory structure
+1. Create `packages/logicart-embed/` directory structure
 2. Extract and simplify Flowchart component
 3. Build FloatingPanel with drag/resize
 4. Wire up checkpoint listener
@@ -7095,7 +7095,7 @@ Files to reuse from Studio:
 
 
 --- FILE: docs/FEATURE_AUDIT_ANTIGRAVITY.md ---
-# Antigravity's Audit of LogiGo Feature Report
+# Antigravity's Audit of LogicArt Feature Report
 
 **Date:** December 26, 2025  
 **Auditor:** Antigravity  
@@ -7166,7 +7166,7 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 - `userLabel` field exists throughout codebase (28+ references)
 - `DecisionNode.tsx` (line 8): `const userLabel = data.userLabel as string | undefined;`
 - `LabeledNode.tsx` (line 8): Same implementation
-- Parser supports `// @logigo:` annotations (found in `algorithmExamples.ts`)
+- Parser supports `// @logicart:` annotations (found in `algorithmExamples.ts`)
 - Nodes display userLabel with tooltip showing original code
 - Blue dot indicator for user-labeled nodes
 
@@ -7244,7 +7244,7 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 **Actual Status:** ✅ **FULLY IMPLEMENTED**
 
 **Evidence:**
-- `Workbench.tsx` (lines 676-689): DOM element highlighting with `logigo-highlight` class
+- `Workbench.tsx` (lines 676-689): DOM element highlighting with `logicart-highlight` class
 - `checkpoint.domElement` parameter supported
 - WebSocket control channel for bidirectional communication (lines 404-478)
 - `CONFIRM_HIGHLIGHT`, `REMOTE_FOCUS`, `PAUSED_AT` message types
@@ -7262,7 +7262,7 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 
 **Evidence:**
 - `algorithmExamples.ts` contains extensive templates
-- Pre-instrumented with `// @logigo:` annotations
+- Pre-instrumented with `// @logicart:` annotations
 - Categories: sorting, pathfinding, interactive, integration
 
 **Verdict:** Replit was **CORRECT**.
@@ -7325,16 +7325,16 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 
 ---
 
-### 14. Agent-LogiGo Annotation Integration
+### 14. Agent-LogicArt Annotation Integration
 
 **Replit's Claim:** ❌ NOT IMPLEMENTED
 
 **Actual Status:** ✅ **FULLY IMPLEMENTED**
 
 **Evidence:**
-- Parser DOES capture `// @logigo:` annotations
-- `algorithmExamples.ts` (lines 529-752): Extensive use of `// @logigo:` comments
-- Example: `// @logigo: Initialize todo storage` (line 533)
+- Parser DOES capture `// @logicart:` annotations
+- `algorithmExamples.ts` (lines 529-752): Extensive use of `// @logicart:` comments
+- Example: `// @logicart: Initialize todo storage` (line 533)
 - These annotations are parsed and used as `userLabel` in nodes
 - Static flowchart generation from annotations works
 
@@ -7373,12 +7373,12 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 ### Error #2: User Labels
 **Claim:** "No separate annotation layer or persistence for user notes."
 
-**Reality:** `userLabel` field is pervasive throughout the codebase. Nodes display user labels with tooltips. Parser supports `// @logigo:` annotations.
+**Reality:** `userLabel` field is pervasive throughout the codebase. Nodes display user labels with tooltips. Parser supports `// @logicart:` annotations.
 
 ### Error #3: Annotation Parser
 **Claim:** "Parser does not capture code comments."
 
-**Reality:** The codebase extensively uses `// @logigo:` annotations in examples. These are parsed and displayed as `userLabel` on nodes.
+**Reality:** The codebase extensively uses `// @logicart:` annotations in examples. These are parsed and displayed as `userLabel` on nodes.
 
 ---
 
@@ -7410,7 +7410,7 @@ Replit's report contains **several inaccuracies**. After thorough code review, I
 **Date:** December 26, 2025  
 **Reviewer:** Antigravity  
 **Documents Reviewed:** 
-- `LOGIGO_IMPROVEMENT_REPORT.md` (updated)
+- `LOGICART_IMPROVEMENT_REPORT.md` (updated)
 - `DOCUMENTATION_GAP_ANALYSIS.md` (new)
 
 ---
@@ -7443,7 +7443,7 @@ After reviewing the bridge parser code (`docs/bridge/src/parser.ts`) and cross-r
 
 ---
 
-### 2. User Labels (@logigo: annotations)
+### 2. User Labels (@logicart: annotations)
 
 **Replit's Claim:** ✅ FULLY IMPLEMENTED
 
@@ -7451,7 +7451,7 @@ After reviewing the bridge parser code (`docs/bridge/src/parser.ts`) and cross-r
 ```typescript
 // docs/bridge/src/parser.ts lines 15-40
 function detectUserLabels(code: string): Map<number, string> {
-  const labelPattern = /\/\/\s*@logigo:\s*(.+)$/i;
+  const labelPattern = /\/\/\s*@logicart:\s*(.+)$/i;
   // Maps line numbers to user-defined labels
 }
 
@@ -7491,7 +7491,7 @@ function detectSections(code: string, ast?: any): CodeSection[] {
 ```typescript
 // docs/bridge/src/parser.ts lines 496-514
 const isCheckpoint = calleeName === 'checkpoint' || 
-                     (stmt.expression.callee?.object?.name === 'LogiGo' && 
+                     (stmt.expression.callee?.object?.name === 'LogicArt' && 
                       stmt.expression.callee?.property?.name === 'checkpoint');
 
 if (isCheckpoint && stmt.expression.arguments?.length > 0) {
@@ -7531,7 +7531,7 @@ The `DOCUMENTATION_GAP_ANALYSIS.md` is **thorough and accurate**. Key findings:
 | Feature | Previous Claim | Corrected Status | Antigravity Verification |
 |---------|----------------|------------------|--------------------------|
 | Hierarchical Views | "Not implemented" | ✅ IMPLEMENTED | ✅ Verified in code |
-| @logigo: Labels | "Parser doesn't extract" | ✅ IMPLEMENTED | ✅ Verified in parser.ts |
+| @logicart: Labels | "Parser doesn't extract" | ✅ IMPLEMENTED | ✅ Verified in parser.ts |
 
 ---
 
@@ -7560,7 +7560,7 @@ The `DOCUMENTATION_GAP_ANALYSIS.md` is **thorough and accurate**. Key findings:
 
 ## Final Verdict
 
-### LOGIGO_IMPROVEMENT_REPORT.md
+### LOGICART_IMPROVEMENT_REPORT.md
 **Status:** ✅ **ACCURATE**
 
 All implementation claims are now correct and backed by code evidence. The priority matrix is reasonable.
@@ -7590,7 +7590,7 @@ Correctly identifies documentation gaps and provides actionable recommendations.
 
 Replit correctly identified that I may have "overlooked some features related to the bridge parser." After reviewing `docs/bridge/src/parser.ts`, I can confirm:
 
-- The bridge parser **does** extract `// @logigo:` comments (lines 15-40)
+- The bridge parser **does** extract `// @logicart:` comments (lines 15-40)
 - The bridge parser **does** detect section markers (lines 42-92)
 - The bridge parser **does** create container nodes (lines 326-343)
 - The bridge parser **does** extract checkpoint IDs (lines 496-514)
@@ -7605,7 +7605,7 @@ Replit correctly identified that I may have "overlooked some features related to
 
 
 --- FILE: docs/GETTING_STARTED.md ---
-# LogiGo Getting Started Guide
+# LogicArt Getting Started Guide
 
 **Learn to visualize and debug JavaScript code in 5 minutes**
 
@@ -7624,9 +7624,9 @@ By the end of this guide, you'll know how to:
 
 ## 🚀 Quick Start (2 Minutes)
 
-### Step 1: Open LogiGo Studio
+### Step 1: Open LogicArt Studio
 
-Navigate to [LogiGo Studio](https://logigo.studio) *(or your deployed URL)*
+Navigate to [LogicArt Studio](https://logicart.studio) *(or your deployed URL)*
 
 ### Step 2: Paste Code
 
@@ -7688,22 +7688,22 @@ if (items.length === 0) {
 ### With Labels (Better!)
 
 ```javascript
-// @logigo: Initialize running total
+// @logicart: Initialize running total
 let total = 0;
 
-// @logigo: Check if array is empty
+// @logicart: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return zero for empty array
+  // @logicart: Return zero for empty array
   return 0;
 }
 
-// @logigo: Calculate sum of all items
+// @logicart: Calculate sum of all items
 for (let i = 0; i < items.length; i++) {
-  // @logigo: Add current item to total
+  // @logicart: Add current item to total
   total += items[i];
 }
 
-// @logigo: Return final sum
+// @logicart: Return final sum
 return total;
 ```
 
@@ -7719,7 +7719,7 @@ return total;
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  LogiGo Studio                                          │
+│  LogicArt Studio                                          │
 ├──────────────────┬──────────────────────────────────────┤
 │                  │                                      │
 │  Code Editor     │  Flowchart Visualization            │
@@ -7783,7 +7783,7 @@ The floating Debug Panel shows real-time execution state:
 | `Ctrl/Cmd + O` | Import File | Load code from file |
 | `Ctrl/Cmd + S` | Export File | Save code to file |
 
-**💡 Pro Tip:** Press `?` in LogiGo Studio to see the full shortcut reference.
+**💡 Pro Tip:** Press `?` in LogicArt Studio to see the full shortcut reference.
 
 ---
 
@@ -7827,7 +7827,7 @@ function processOrder(order) {
 
 ### Automatic Tracking (Static Mode)
 
-LogiGo automatically tracks variables in your code:
+LogicArt automatically tracks variables in your code:
 
 ```javascript
 function fibonacci(n) {
@@ -7856,10 +7856,10 @@ Variables:
 
 ### Manual Tracking (Live Mode)
 
-For advanced tracking with `logigo-core`:
+For advanced tracking with `logicart-core`:
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function processData(data) {
   checkpoint('process:start', { data });
@@ -7875,7 +7875,7 @@ function processData(data) {
 
 ## 🎓 Try These Examples
 
-LogiGo Studio includes built-in examples. Click the **EXAMPLES** dropdown to try:
+LogicArt Studio includes built-in examples. Click the **EXAMPLES** dropdown to try:
 
 ### 1. Bubble Sort
 **What it teaches:** Nested loops, array manipulation, swapping
@@ -8019,8 +8019,8 @@ Customize your workspace with layout presets.
 
 ### Workflow 1: Understanding New Code
 
-1. Paste code into LogiGo Studio
-2. Add `// @logigo:` labels for clarity
+1. Paste code into LogicArt Studio
+2. Add `// @logicart:` labels for clarity
 3. Press `Space` to auto-step through
 4. Watch variable values in Debug Panel
 5. Set breakpoints on confusing sections
@@ -8028,7 +8028,7 @@ Customize your workspace with layout presets.
 
 ### Workflow 2: Debugging a Bug
 
-1. Paste buggy code into LogiGo Studio
+1. Paste buggy code into LogicArt Studio
 2. Set breakpoints before the suspected bug
 3. Press `Space` to run to breakpoint
 4. Inspect variable values
@@ -8037,7 +8037,7 @@ Customize your workspace with layout presets.
 
 ### Workflow 3: Teaching an Algorithm
 
-1. Write algorithm with clear `// @logigo:` labels
+1. Write algorithm with clear `// @logicart:` labels
 2. Click **Share** to generate link
 3. Send link to students
 4. Students can step through at their own pace
@@ -8046,7 +8046,7 @@ Customize your workspace with layout presets.
 ### Workflow 4: Code Review
 
 1. Paste code to review
-2. Add `// @logigo:` labels explaining intent
+2. Add `// @logicart:` labels explaining intent
 3. Step through to verify logic
 4. Share link with team for discussion
 5. Use Debug Panel to verify edge cases
@@ -8057,13 +8057,13 @@ Customize your workspace with layout presets.
 
 ### For Beginners
 - ✅ Try all built-in examples
-- ✅ Practice adding `// @logigo:` labels
+- ✅ Practice adding `// @logicart:` labels
 - ✅ Learn keyboard shortcuts
 - ✅ Share a flowchart with a friend
 
 ### For Developers
-- ✅ Read the [Installation Guide](INSTALLATION_GUIDE.md) to add LogiGo to your projects
-- ✅ Try the `logigo-embed` React component
+- ✅ Read the [Installation Guide](INSTALLATION_GUIDE.md) to add LogicArt to your projects
+- ✅ Try the `logicart-embed` React component
 - ✅ Explore the [API Reference](API_REFERENCE.md)
 
 ### For Teams
@@ -8103,7 +8103,7 @@ Customize your workspace with layout presets.
 ### Can't find a keyboard shortcut
 
 **Fix:**
-- Press `?` in LogiGo Studio to see all shortcuts
+- Press `?` in LogicArt Studio to see all shortcuts
 - Check the Help dialog (click `?` icon in top-right)
 
 ---
@@ -8139,7 +8139,7 @@ Set breakpoints:
 
 ### Tip 4: Combine Labels and Checkpoints
 ```javascript
-// @logigo: Validate user input
+// @logicart: Validate user input
 if (!isValid(input)) {
   checkpoint('validation:failed', { input, errors });
   return null;
@@ -8150,10 +8150,10 @@ if (!isValid(input)) {
 
 ## 📚 Additional Resources
 
-- **[Installation Guide](INSTALLATION_GUIDE.md)** - Add LogiGo to your projects
+- **[Installation Guide](INSTALLATION_GUIDE.md)** - Add LogicArt to your projects
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code and issues
-- **Help Dialog** - Press `?` in LogiGo Studio
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogicArt)** - Source code and issues
+- **Help Dialog** - Press `?` in LogicArt Studio
 
 ---
 
@@ -8167,7 +8167,7 @@ if (!isValid(input)) {
 
 ### Week 2: Integration
 - [ ] Read the Installation Guide
-- [ ] Add LogiGo to a personal project
+- [ ] Add LogicArt to a personal project
 - [ ] Create custom checkpoints
 - [ ] Use breakpoints for debugging
 
@@ -8181,13 +8181,13 @@ if (!isValid(input)) {
 
 **Made with ❤️ for Vibe Coders who learn by seeing**
 
-**Questions?** Check the [Installation Guide](INSTALLATION_GUIDE.md) or [open an issue](https://github.com/JPaulGrayson/LogiGo/issues).
+**Questions?** Check the [Installation Guide](INSTALLATION_GUIDE.md) or [open an issue](https://github.com/JPaulGrayson/LogicArt/issues).
 
 
 --- FILE: docs/INSTALLATION_GUIDE.md ---
-# LogiGo Installation Guide
+# LogicArt Installation Guide
 
-**Add LogiGo visualization to your JavaScript projects**
+**Add LogicArt visualization to your JavaScript projects**
 
 ---
 
@@ -8198,10 +8198,10 @@ if (!isValid(input)) {
 | Your Goal | Best Method | Installation | Best For |
 |-----------|-------------|--------------|----------|
 | 📖 Just visualize code to understand it | **Static Mode** | None | Learning, code reviews, quick visualization |
-| 🔧 Add flowcharts to my React app | **Embed Component** | `npm install logigo-embed` | Documentation, demos, educational apps |
-| 🏗️ Auto-instrument my Vite project | **Vite Plugin** | `npm install logigo-vite-plugin` | Build-time instrumentation, minimal code changes |
+| 🔧 Add flowcharts to my React app | **Embed Component** | `npm install logicart-embed` | Documentation, demos, educational apps |
+| 🏗️ Auto-instrument my Vite project | **Vite Plugin** | `npm install logicart-vite-plugin` | Build-time instrumentation, minimal code changes |
 | 🐛 Debug my Node.js/Express server | **Backend Logging** | Copy helper function | Server-side debugging, API logic |
-| 🎯 Fine-grained control over checkpoints | **Manual Checkpoints** | `npm install logigo-core` | Complex debugging, precise instrumentation |
+| 🎯 Fine-grained control over checkpoints | **Manual Checkpoints** | `npm install logicart-core` | Complex debugging, precise instrumentation |
 
 ### Detailed Decision Tree
 
@@ -8213,7 +8213,7 @@ START HERE: What do you want to do?
 ├─ 📖 Just visualize code to understand it
 │  │
 │  └─ ✅ STATIC MODE (No Installation)
-│     • Open LogiGo Studio
+│     • Open LogicArt Studio
 │     • Paste your code
 │     • See flowchart instantly
 │     └─ Best for: Learning, code reviews, quick visualization
@@ -8221,15 +8221,15 @@ START HERE: What do you want to do?
 ├─ 🔧 Add flowcharts to my React app
 │  │
 │  └─ ✅ EMBED COMPONENT
-│     • npm install logigo-embed
-│     • Import <LogiGoEmbed /> component
+│     • npm install logicart-embed
+│     • Import <LogicArtEmbed /> component
 │     • Pass code as prop
 │     └─ Best for: Documentation, demos, educational apps
 │
 ├─ 🏗️ Auto-instrument my Vite project
 │  │
 │  └─ ✅ VITE PLUGIN
-│     • npm install logigo-vite-plugin
+│     • npm install logicart-vite-plugin
 │     • Add to vite.config.js
 │     • Automatic checkpoint injection
 │     └─ Best for: Build-time instrumentation, minimal code changes
@@ -8245,7 +8245,7 @@ START HERE: What do you want to do?
 └─ 🎯 Fine-grained control over checkpoints
    │
    └─ ✅ MANUAL CHECKPOINTS
-      • npm install logigo-core
+      • npm install logicart-core
       • Add checkpoint() calls manually
       • Full control over tracking
       └─ Best for: Complex debugging, precise instrumentation
@@ -8278,7 +8278,7 @@ Jump to your chosen method:
 
 ### How to Use
 
-1. **Open** [LogiGo Studio](https://logigo.studio)
+1. **Open** [LogicArt Studio](https://logicart.studio)
 2. **Paste** your JavaScript code into the editor
 3. **Watch** the flowchart appear automatically
 4. **Press** `Space` to step through
@@ -8316,7 +8316,7 @@ function factorial(n) {
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ### Required CSS
@@ -8328,7 +8328,7 @@ import '@xyflow/react/dist/style.css';
 ### Basic Usage
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function CodeViewer() {
@@ -8346,7 +8346,7 @@ function CodeViewer() {
   `;
   
   return (
-    <LogiGoEmbed
+    <LogicArtEmbed
       code={code}
       theme="dark"
       position="bottom-right"
@@ -8373,7 +8373,7 @@ function CodeViewer() {
 ### Advanced Example
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import { useState } from 'react';
 
 function AlgorithmDemo() {
@@ -8393,7 +8393,7 @@ function AlgorithmDemo() {
         <option value="merge">Merge Sort</option>
       </select>
       
-      <LogiGoEmbed
+      <LogicArtEmbed
         code={algorithms[selectedAlgo]}
         theme="dark"
         showVariables={true}
@@ -8406,7 +8406,7 @@ function AlgorithmDemo() {
 
 ### Verification Checklist
 
-- [ ] `logigo-embed` appears in `package.json`
+- [ ] `logicart-embed` appears in `package.json`
 - [ ] CSS import is present: `import '@xyflow/react/dist/style.css';`
 - [ ] Component renders without errors
 - [ ] Flowchart displays nodes for your code
@@ -8414,7 +8414,7 @@ function AlgorithmDemo() {
 
 ### Troubleshooting
 
-**"Module not found: logigo-embed"**
+**"Module not found: logicart-embed"**
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -8440,8 +8440,8 @@ import '@xyflow/react/dist/style.css';
 ### Installation
 
 ```bash
-npm install logigo-vite-plugin --save-dev
-npm install logigo-embed
+npm install logicart-vite-plugin --save-dev
+npm install logicart-embed
 ```
 
 ### Configuration
@@ -8450,15 +8450,15 @@ npm install logigo-embed
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
-      manifestPath: 'logigo-manifest.json',
+      manifestPath: 'logicart-manifest.json',
       autoInstrument: true,
       captureVariables: true
     })
@@ -8472,7 +8472,7 @@ export default defineConfig({
 |--------|------|---------|-------------|
 | `include` | string[] | `['**/*.js', '**/*.ts']` | Files to instrument |
 | `exclude` | string[] | `['/node_modules/']` | Files to skip |
-| `manifestPath` | string | `'logigo-manifest.json'` | Output path for manifest |
+| `manifestPath` | string | `'logicart-manifest.json'` | Output path for manifest |
 | `autoInstrument` | boolean | `true` | Auto-inject checkpoints |
 | `captureVariables` | boolean | `true` | Capture local variables |
 
@@ -8480,7 +8480,7 @@ export default defineConfig({
 
 ```javascript
 // src/App.tsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -8488,8 +8488,8 @@ function App() {
     <div>
       {/* Your app content */}
       
-      <LogiGoEmbed
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed
+        manifestUrl="/logicart-manifest.json"
         showVariables={true}
         showHistory={true}
         theme="dark"
@@ -8508,25 +8508,25 @@ npm run dev
 ### What the Plugin Does
 
 1. **Parses** your source files using Acorn
-2. **Injects** `LogiGo.checkpoint()` calls at key points
-3. **Generates** `logigo-manifest.json` with flowchart data
+2. **Injects** `LogicArt.checkpoint()` calls at key points
+3. **Generates** `logicart-manifest.json` with flowchart data
 4. **Injects** runtime script into your HTML
 
 ### Output Files
 
 ```
 dist/
-├── logigo-manifest.json   # Flowchart nodes, edges, checkpoint metadata
-└── logigo-runtime.js      # Browser runtime for checkpoint handling
+├── logicart-manifest.json   # Flowchart nodes, edges, checkpoint metadata
+└── logicart-runtime.js      # Browser runtime for checkpoint handling
 ```
 
 ### Verification Checklist
 
-- [ ] `logigo-vite-plugin` in `devDependencies`
-- [ ] `logigo-embed` in `dependencies`
-- [ ] `vite.config.js` includes `logigoPlugin()`
+- [ ] `logicart-vite-plugin` in `devDependencies`
+- [ ] `logicart-embed` in `dependencies`
+- [ ] `vite.config.js` includes `logicartPlugin()`
 - [ ] Build completes without errors
-- [ ] `logigo-manifest.json` is generated in `dist/`
+- [ ] `logicart-manifest.json` is generated in `dist/`
 - [ ] Flowchart shows with variable tracking
 
 ### Troubleshooting
@@ -8539,7 +8539,7 @@ dist/
 **No variable tracking**
 - Ensure `captureVariables: true` (default)
 - Check that instrumented code is executing
-- Verify `showVariables={true}` in `LogiGoEmbed`
+- Verify `showVariables={true}` in `LogicArtEmbed`
 
 ---
 
@@ -8562,21 +8562,21 @@ dist/
 Add this to your main server file (e.g., `server.ts`, `routes.ts`, `index.ts`):
 
 ```typescript
-// LogiGo checkpoint helper for execution visualization
-const LogiGo = {
+// LogicArt checkpoint helper for execution visualization
+const LogicArt = {
   checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
 
 **JavaScript version:**
 ```javascript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -8585,26 +8585,26 @@ const LogiGo = {
 
 ```typescript
 async function processOrder(order: Order) {
-  LogiGo.checkpoint('order:start', {
+  LogicArt.checkpoint('order:start', {
     variables: { orderId: order.id, items: order.items.length }
   });
 
   const isValid = validateOrder(order);
   
   if (!isValid) {
-    LogiGo.checkpoint('order:invalid', {
+    LogicArt.checkpoint('order:invalid', {
       variables: { error: 'Validation failed' }
     });
     return { success: false };
   }
 
-  LogiGo.checkpoint('order:payment', {
+  LogicArt.checkpoint('order:payment', {
     variables: { amount: order.total }
   });
   
   const payment = await processPayment(order);
 
-  LogiGo.checkpoint('order:complete', {
+  LogicArt.checkpoint('order:complete', {
     variables: { success: true, transactionId: payment.id }
   });
   
@@ -8622,14 +8622,14 @@ npm run dev
 
 **Console output:**
 ```
-[LogiGo] order:start {
+[LogicArt] order:start {
   "orderId": "abc123",
   "items": 3
 }
-[LogiGo] order:payment {
+[LogicArt] order:payment {
   "amount": 99.99
 }
-[LogiGo] order:complete {
+[LogicArt] order:complete {
   "success": true,
   "transactionId": "txn_456"
 }
@@ -8640,13 +8640,13 @@ npm run dev
 **💡 Pro Tip:** To see the flowchart structure:
 
 1. Copy your server code
-2. Paste into LogiGo Studio
+2. Paste into LogicArt Studio
 3. See the flowchart visualization
 4. Correlate flowchart nodes with console logs
 
 **Example workflow:**
 ```
-1. Paste server code into LogiGo Studio → See flowchart
+1. Paste server code into LogicArt Studio → See flowchart
 2. Run server → See console logs
 3. Match log IDs to flowchart nodes
 4. Understand execution flow visually
@@ -8658,22 +8658,22 @@ Use hierarchical names for organized logging:
 
 ```javascript
 // Format: section:action:detail
-LogiGo.checkpoint('auth:login:start');
-LogiGo.checkpoint('auth:login:validate');
-LogiGo.checkpoint('auth:login:success');
+LogicArt.checkpoint('auth:login:start');
+LogicArt.checkpoint('auth:login:validate');
+LogicArt.checkpoint('auth:login:success');
 
-LogiGo.checkpoint('api:users:fetch');
-LogiGo.checkpoint('api:users:response');
+LogicArt.checkpoint('api:users:fetch');
+LogicArt.checkpoint('api:users:response');
 
-LogiGo.checkpoint('db:query:start', { variables: { sql } });
-LogiGo.checkpoint('db:query:complete', { variables: { rows: result.length } });
+LogicArt.checkpoint('db:query:start', { variables: { sql } });
+LogicArt.checkpoint('db:query:complete', { variables: { rows: result.length } });
 ```
 
 ### Verification Checklist
 
 - [ ] Checkpoint helper is added to server file
-- [ ] At least one `LogiGo.checkpoint()` call exists
-- [ ] Console shows `[LogiGo]` logs when code runs
+- [ ] At least one `LogicArt.checkpoint()` call exists
+- [ ] Console shows `[LogicArt]` logs when code runs
 - [ ] Logs include checkpoint ID and variables
 
 ### Troubleshooting
@@ -8696,13 +8696,13 @@ LogiGo.checkpoint('db:query:complete', { variables: { rows: result.length } });
 ### Installation
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Synchronous Checkpoints
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function bubbleSort(arr) {
   checkpoint('sort:start', { arr: [...arr] });
@@ -8726,9 +8726,9 @@ function bubbleSort(arr) {
 ### Async Checkpoints (With Breakpoints)
 
 ```javascript
-import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+import { checkpointAsync, LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+const runtime = new LogicArtRuntime({ manifestHash: 'abc123' });
 runtime.setBreakpoint('critical_point', true);
 
 async function processData(data) {
@@ -8750,7 +8750,7 @@ runtime.resume();
 ### Runtime API
 
 ```javascript
-const runtime = new LogiGoRuntime();
+const runtime = new LogicArtRuntime();
 
 // Session control
 runtime.start();                           // Begin session
@@ -8805,16 +8805,16 @@ for (let i = 0; i < items.length; i++) {
 
 ### Verification Checklist
 
-- [ ] `logigo-core` in `package.json`
+- [ ] `logicart-core` in `package.json`
 - [ ] Checkpoints are being called
-- [ ] LogiGo Studio receives checkpoint data
+- [ ] LogicArt Studio receives checkpoint data
 - [ ] Variables are tracked correctly
 
 ---
 
 ## IDE Extensions
 
-Add LogiGo visualization directly to your IDE.
+Add LogicArt visualization directly to your IDE.
 
 ### Supported IDEs
 
@@ -8835,7 +8835,7 @@ Add LogiGo visualization directly to your IDE.
 
 **Option 1: Install from VSIX**
 
-1. Download `logigo-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogiGo/releases)
+1. Download `logicart-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogicArt/releases)
 2. Open VS Code
 3. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
 4. Type: `Extensions: Install from VSIX`
@@ -8847,32 +8847,32 @@ Add LogiGo visualization directly to your IDE.
 
 ```bash
 # Mac
-mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
-cd ~/.vscode/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.vscode/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.vscode/extensions/logicart.logicart-1.0.0
+cd ~/.vscode/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 
 # Windows
-mkdir %USERPROFILE%\.vscode\extensions\logigo.logigo-1.0.0
+mkdir %USERPROFILE%\.vscode\extensions\logicart.logicart-1.0.0
 # Extract VSIX to this folder
 
 # Linux
-mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
-cd ~/.vscode/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.vscode/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.vscode/extensions/logicart.logicart-1.0.0
+cd ~/.vscode/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
 **Usage:**
 
 1. Open any `.js` or `.ts` file
-2. Press `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. Press `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 3. Flowchart panel appears beside your code
 4. Click nodes to jump to that line
 
 **Verification:**
 
-- [ ] `LogiGo: Visualize Current File` appears in Command Palette
+- [ ] `LogicArt: Visualize Current File` appears in Command Palette
 - [ ] Flowchart panel opens
 - [ ] Nodes appear for code's control flow
 - [ ] Clicking nodes jumps to corresponding line
@@ -8903,9 +8903,9 @@ Same as VS Code (Cursor is a VS Code fork):
 
 ```bash
 # Cursor extensions folder
-mkdir -p ~/.cursor/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.cursor/extensions/logigo.logigo-1.0.0
-cd ~/.cursor/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.cursor/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.cursor/extensions/logicart.logicart-1.0.0
+cd ~/.cursor/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -8913,7 +8913,7 @@ mv extension/* . && rm -rf extension
 
 Same as VS Code:
 1. Open `.js` or `.ts` file
-2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 
 ---
 
@@ -8931,9 +8931,9 @@ The standard VSIX installer may not work in Antigravity due to differences in th
 
 ```bash
 # Antigravity extensions folder
-mkdir -p ~/.antigravity/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.antigravity/extensions/logigo.logigo-1.0.0
-cd ~/.antigravity/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.antigravity/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.antigravity/extensions/logicart.logicart-1.0.0
+cd ~/.antigravity/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -8942,20 +8942,20 @@ Reload Antigravity: `Cmd+Shift+P` → `Reload Window`
 **Usage:**
 
 1. Open `.js` or `.ts` file
-2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 3. Click nodes to jump to source code
 
 **Verification:**
 
-- [ ] Extension folder exists at `~/.antigravity/extensions/logigo.logigo-1.0.0/`
-- [ ] LogiGo command appears after reload
+- [ ] Extension folder exists at `~/.antigravity/extensions/logicart.logicart-1.0.0/`
+- [ ] LogicArt command appears after reload
 - [ ] Flowchart displays when command is run
 - [ ] Clicking nodes jumps to source
 
 **Troubleshooting:**
 
 **Extension not appearing**
-- Verify folder structure: `ls ~/.antigravity/extensions/logigo.logigo-1.0.0/`
+- Verify folder structure: `ls ~/.antigravity/extensions/logicart.logicart-1.0.0/`
 - Should contain: `package.json`, `dist/`, `icon.png`
 - If you see `extension/` subfolder, extraction failed
 
@@ -8971,18 +8971,18 @@ Reload Antigravity: `Cmd+Shift+P` → `Reload Window`
 
 **Option 1: Import from Cursor**
 
-If you have Cursor with LogiGo installed:
+If you have Cursor with LogicArt installed:
 1. Launch Windsurf
 2. Select "Import from Cursor"
-3. LogiGo is automatically imported
+3. LogicArt is automatically imported
 
 **Option 2: Manual Installation**
 
 ```bash
 # Windsurf extensions folder
-mkdir -p ~/.windsurf/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.windsurf/extensions/logigo.logigo-1.0.0
-cd ~/.windsurf/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.windsurf/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.windsurf/extensions/logicart.logicart-1.0.0
+cd ~/.windsurf/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -9023,10 +9023,10 @@ npm install
 Use typed checkpoint helper:
 
 ```typescript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -9053,7 +9053,7 @@ For VS Code forks:
 
 - **[Getting Started Guide](GETTING_STARTED.md)** - Tutorials and workflows
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogicArt)** - Source code
 
 ---
 
@@ -9061,7 +9061,7 @@ For VS Code forks:
 
 - **Documentation**: See in-app Help dialog (`?` button)
 - **Examples**: Try built-in algorithm examples
-- **GitHub Issues**: [Report bugs or request features](https://github.com/JPaulGrayson/LogiGo/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/JPaulGrayson/LogicArt/issues)
 
 ---
 
@@ -9069,9 +9069,9 @@ For VS Code forks:
 
 
 --- FILE: docs/INTEGRATION_GUIDE.md ---
-# LogiGo Integration Guide
+# LogicArt Integration Guide
 
-This guide documents the tested integration flow for connecting any JavaScript app to LogiGo Studio.
+This guide documents the tested integration flow for connecting any JavaScript app to LogicArt Studio.
 
 ---
 
@@ -9091,7 +9091,7 @@ This guide documents the tested integration flow for connecting any JavaScript a
 
 **Step 1: Add remote.js to HTML head**
 ```html
-<script src="https://logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
+<script src="https://logicart-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
 ```
 
 **Step 2: Add checkpoint() calls to key functions**
@@ -9110,7 +9110,7 @@ function processOrder(order) {
 <script>
   fetch('/main.js')
     .then(r => r.text())
-    .then(code => window.LogiGo.registerCode(code));
+    .then(code => window.LogicArt.registerCode(code));
 </script>
 ```
 
@@ -9118,13 +9118,13 @@ function processOrder(order) {
 
 ## Integration Prompt for Replit Agent
 
-Copy this prompt and give it to Agent to integrate LogiGo:
+Copy this prompt and give it to Agent to integrate LogicArt:
 
 ```
-Add LogiGo visualization to this project.
+Add LogicArt visualization to this project.
 
 1. Add this script to the HTML head (before other scripts):
-   <script src="https://logigo-studio.replit.app/remote.js?project=MyAppName&autoOpen=false"></script>
+   <script src="https://logicart-studio.replit.app/remote.js?project=MyAppName&autoOpen=false"></script>
 
 2. Add checkpoint() calls at important points in my JavaScript:
    - At function start: checkpoint('functionName-start', { param1, param2 })
@@ -9135,11 +9135,11 @@ Add LogiGo visualization to this project.
    <script>
      fetch('/path/to/main.js')
        .then(r => r.text())
-       .then(code => window.LogiGo.registerCode(code));
+       .then(code => window.LogicArt.registerCode(code));
    </script>
 
-4. Add a button to open LogiGo Studio:
-   <button onclick="window.LogiGo.openStudio()">Open LogiGo</button>
+4. Add a button to open LogicArt Studio:
+   <button onclick="window.LogicArt.openStudio()">Open LogicArt</button>
 ```
 
 ---
@@ -9149,9 +9149,9 @@ Add LogiGo visualization to this project.
 ### 1. Need to Manually Add Checkpoints
 **Problem:** Developer must add checkpoint() calls to see execution flow.
 
-**Solution:** This is intentional - checkpoints mark the meaningful moments in code execution. Without them, LogiGo doesn't know what to visualize.
+**Solution:** This is intentional - checkpoints mark the meaningful moments in code execution. Without them, LogicArt doesn't know what to visualize.
 
-**Mitigation:** The Vite plugin (logigo-vite-plugin) can auto-instrument at build time, but requires build config changes.
+**Mitigation:** The Vite plugin (logicart-vite-plugin) can auto-instrument at build time, but requires build config changes.
 
 ### 2. Vite HMR Websocket Errors in Console
 **Problem:** Console shows WebSocket connection errors in Replit environment.
@@ -9173,7 +9173,7 @@ Add LogiGo visualization to this project.
 ```javascript
 fetch('/app.js')
   .then(r => r.text())
-  .then(code => window.LogiGo.registerCode(code));
+  .then(code => window.LogicArt.registerCode(code));
 ```
 
 ---
@@ -9181,33 +9181,33 @@ fetch('/app.js')
 ## API Reference
 
 ### checkpoint(id, variables, options)
-Send execution checkpoint to LogiGo:
+Send execution checkpoint to LogicArt:
 ```javascript
 checkpoint('step-name', { var1: value1 });
 ```
 
-### window.LogiGo.registerCode(sourceCode)
+### window.LogicArt.registerCode(sourceCode)
 Register source code for flowchart parsing:
 ```javascript
-window.LogiGo.registerCode(sourceString);
+window.LogicArt.registerCode(sourceString);
 ```
 
-### window.LogiGo.openStudio()
-Open LogiGo Studio in new tab:
+### window.LogicArt.openStudio()
+Open LogicArt Studio in new tab:
 ```javascript
-window.LogiGo.openStudio();
+window.LogicArt.openStudio();
 ```
 
-### window.LogiGo.sessionId
+### window.LogicArt.sessionId
 Get current session ID:
 ```javascript
-console.log(window.LogiGo.sessionId);
+console.log(window.LogicArt.sessionId);
 ```
 
-### window.LogiGo.studioUrl
+### window.LogicArt.studioUrl
 Get Studio URL:
 ```javascript
-console.log(window.LogiGo.studioUrl);
+console.log(window.LogicArt.studioUrl);
 ```
 
 ---
@@ -9216,7 +9216,7 @@ console.log(window.LogiGo.studioUrl);
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| project | "Remote App" | Name shown in LogiGo Studio |
+| project | "Remote App" | Name shown in LogicArt Studio |
 | autoOpen | true | Auto-open Studio on first checkpoint |
 | name | (same as project) | Alias for project |
 
@@ -9230,13 +9230,13 @@ Example:
 ## Tested Reference Implementation
 
 See `/test-app/` for a working example:
-- `index.html` - Includes remote.js, registers code, has "Open LogiGo" button
+- `index.html` - Includes remote.js, registers code, has "Open LogicArt" button
 - `game.js` - Number guessing game with checkpoint() calls throughout
 
 To test:
 1. Visit `/test-app/index.html`
 2. Play the game (enter guesses)
-3. Click "Open LogiGo Studio"
+3. Click "Open LogicArt Studio"
 4. See checkpoints flow in real-time with flowchart
 
 ---
@@ -9245,7 +9245,7 @@ To test:
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐
-│   Your App      │ ─────────────────> │   LogiGo        │
+│   Your App      │ ─────────────────> │   LogicArt        │
 │                 │   /api/remote/     │   Server        │
 │  checkpoint()   │   checkpoint       │                 │
 │  registerCode() │                    │  Stores data    │
@@ -9254,7 +9254,7 @@ To test:
                                                 │ SSE Stream
                                                 ▼
                                        ┌─────────────────┐
-                                       │   LogiGo        │
+                                       │   LogicArt        │
                                        │   Studio        │
                                        │                 │
                                        │  Displays:      │
@@ -9270,27 +9270,27 @@ To test:
 
 The current integration requires adding checkpoint() calls. Future enhancements:
 
-1. **Vite Plugin Auto-Instrumentation**: Already exists at `packages/logigo-vite-plugin/`
+1. **Vite Plugin Auto-Instrumentation**: Already exists at `packages/logicart-vite-plugin/`
 2. **Proxy Mode**: Works for plain JS apps, see `/proxy/`
 3. **Browser Extension**: Would enable zero-code injection (not yet built)
 
 
 --- FILE: docs/INTEGRATION_PROMPT.md ---
-# LogiGo Integration Prompt
+# LogicArt Integration Prompt
 
-Copy and paste this single prompt into any Replit Agent to add LogiGo visualization.
+Copy and paste this single prompt into any Replit Agent to add LogicArt visualization.
 
 ---
 
 ## The Prompt
 
 ```
-Add LogiGo code visualization to this project.
+Add LogicArt code visualization to this project.
 
 1. Add this script tag to the HTML <head> (replace PROJECT_NAME with this app's actual name):
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
+<script src="https://logicart-studio-jpaulgrayson.replit.app/remote.js?project=PROJECT_NAME"></script>
 
-2. Call LogiGo.openWithCode(codeString, name) when user wants to visualize code:
+2. Call LogicArt.openWithCode(codeString, name) when user wants to visualize code:
 
 // FOR ALGORITHM VISUALIZERS (stored code strings):
 const algorithms = {
@@ -9306,18 +9306,18 @@ const algorithms = {
   }`
 };
 // When user selects algorithm:
-LogiGo.openWithCode(algorithms.bubbleSort, 'BubbleSort');
+LogicArt.openWithCode(algorithms.bubbleSort, 'BubbleSort');
 
 // FOR CODE EDITORS (user-typed code):
 // Get the current editor content and visualize it
 const editorContent = editor.getValue(); // or textarea.value, etc.
-LogiGo.openWithCode(editorContent, 'UserCode');
+LogicArt.openWithCode(editorContent, 'UserCode');
 
 // FOR APPS WITH EXISTING FUNCTIONS:
 // Convert function to string
-LogiGo.openWithCode(myFunction.toString(), 'MyFunction');
+LogicArt.openWithCode(myFunction.toString(), 'MyFunction');
 
-This creates a fresh session and opens LogiGo Studio in a new tab with the flowchart.
+This creates a fresh session and opens LogicArt Studio in a new tab with the flowchart.
 ```
 
 ---
@@ -9333,7 +9333,7 @@ const algorithms = {
 };
 
 // Visualize when selected
-LogiGo.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
+LogicArt.openWithCode(algorithms[selectedAlgorithm], selectedAlgorithm);
 ```
 
 ### 2. Code Editors
@@ -9341,15 +9341,15 @@ Capture the editor's current content:
 ```javascript
 // For Monaco Editor
 const code = monacoEditor.getValue();
-LogiGo.openWithCode(code, 'UserCode');
+LogicArt.openWithCode(code, 'UserCode');
 
 // For CodeMirror
 const code = codeMirrorInstance.getValue();
-LogiGo.openWithCode(code, 'UserCode');
+LogicArt.openWithCode(code, 'UserCode');
 
 // For simple textarea
 const code = document.getElementById('code-textarea').value;
-LogiGo.openWithCode(code, 'UserCode');
+LogicArt.openWithCode(code, 'UserCode');
 ```
 
 ### 3. Apps with Core Functions
@@ -9361,34 +9361,34 @@ function calculateTax(income, rate) {
   return income * rate;
 }
 
-LogiGo.openWithCode(calculateTax.toString(), 'CalculateTax');
+LogicArt.openWithCode(calculateTax.toString(), 'CalculateTax');
 ```
 
 ---
 
 ## API Reference
 
-### LogiGo.openWithCode(code, name)
-Creates a session and opens LogiGo Studio with the flowchart:
+### LogicArt.openWithCode(code, name)
+Creates a session and opens LogicArt Studio with the flowchart:
 ```javascript
-if (window.LogiGo) {
-  LogiGo.openWithCode(codeString, 'SessionName');
+if (window.LogicArt) {
+  LogicArt.openWithCode(codeString, 'SessionName');
 }
 ```
 
-### LogiGo.registerCode(code, name)
+### LogicArt.registerCode(code, name)
 Register code without opening Studio (updates badge for later):
 ```javascript
-if (window.LogiGo) {
-  LogiGo.registerCode(codeString, 'SessionName');
+if (window.LogicArt) {
+  LogicArt.registerCode(codeString, 'SessionName');
 }
 ```
 
-### LogiGo.openStudio()
-Open the current session in LogiGo Studio:
+### LogicArt.openStudio()
+Open the current session in LogicArt Studio:
 ```javascript
-if (window.LogiGo) {
-  LogiGo.openStudio();
+if (window.LogicArt) {
+  LogicArt.openStudio();
 }
 ```
 
@@ -9398,7 +9398,7 @@ if (window.LogiGo) {
 
 1. **Source code as strings** - Pass readable JavaScript source, not bundled/minified code
 2. **Unique sessions** - Each call creates a fresh session automatically
-3. **Opens in new tab** - LogiGo requires a full browser tab (not iframes)
+3. **Opens in new tab** - LogicArt requires a full browser tab (not iframes)
 
 ---
 
@@ -9410,16 +9410,16 @@ if (window.LogiGo) {
 
 **Flowchart empty:**
 - Ensure the code is readable JavaScript, not minified/bundled
-- Check browser console for `[LogiGo]` messages
+- Check browser console for `[LogicArt]` messages
 
 **Badge not appearing:**
 - Make sure remote.js script is in `<head>` before other scripts
 
 
 --- FILE: docs/LIVE_MODE_INTEGRATION.md ---
-# LogiGo Live Mode Integration Guide
+# LogicArt Live Mode Integration Guide
 
-This guide explains how to integrate LogiGo Live Mode into any Vite-based Replit project.
+This guide explains how to integrate LogicArt Live Mode into any Vite-based Replit project.
 
 ## Overview
 
@@ -9429,20 +9429,20 @@ Live Mode provides real-time flowchart visualization during code execution. Unli
 
 ### Method 1: Using the Vite Plugin (Recommended)
 
-The `logigo-vite-plugin` automatically instruments your code at build time.
+The `logicart-vite-plugin` automatically instruments your code at build time.
 
 #### Step 1: Install the Plugin
 
 In your Replit project, add the plugin files:
 
 ```bash
-# Copy the plugin from LogiGo Studio
-cp -r /path/to/logigo-studio/packages/logigo-vite-plugin ./logigo-vite-plugin
+# Copy the plugin from LogicArt Studio
+cp -r /path/to/logicart-studio/packages/logicart-vite-plugin ./logicart-vite-plugin
 ```
 
 Or install from npm (when published):
 ```bash
-npm install logigo-vite-plugin
+npm install logicart-vite-plugin
 ```
 
 #### Step 2: Configure Vite
@@ -9452,12 +9452,12 @@ Add the plugin to your `vite.config.js`:
 ```javascript
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from './logigo-vite-plugin';
+import logicartPlugin from './logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.js', 'src/**/*.ts'],
       exclude: ['node_modules/**'],
       outputDir: 'public'
@@ -9473,29 +9473,29 @@ npm run build
 ```
 
 This generates:
-- `public/logigo-manifest.json` - Contains flowchart nodes, edges, and checkpoint metadata
-- `public/logigo-runtime.js` - The runtime script that sends checkpoint data
+- `public/logicart-manifest.json` - Contains flowchart nodes, edges, and checkpoint metadata
+- `public/logicart-runtime.js` - The runtime script that sends checkpoint data
 
 #### Step 4: Add the Runtime Script
 
 Add this to your HTML `<head>`:
 
 ```html
-<script src="/logigo-runtime.js"></script>
+<script src="/logicart-runtime.js"></script>
 ```
 
-#### Step 5: Embed LogiGoEmbed
+#### Step 5: Embed LogicArtEmbed
 
 In your React app:
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
         width={600}
         height={400}
@@ -9508,11 +9508,11 @@ function App() {
 
 ### Method 2: Using Remote Mode (Cross-Replit)
 
-For projects where you can't modify the build system, use Remote Mode to send checkpoints to LogiGo Studio.
+For projects where you can't modify the build system, use Remote Mode to send checkpoints to LogicArt Studio.
 
 #### Step 1: Create a Session
 
-Visit LogiGo Studio at your Replit URL and go to `/remote`. Click "Create Session" to get:
+Visit LogicArt Studio at your Replit URL and go to `/remote`. Click "Create Session" to get:
 - A `sessionId` 
 - A code snippet to add to your project
 
@@ -9521,12 +9521,12 @@ Visit LogiGo Studio at your Replit URL and go to `/remote`. Click "Create Sessio
 Add this to your project's entry point:
 
 ```javascript
-const LOGIGO_URL = 'https://your-logigo-studio.replit.app';
+const LOGICART_URL = 'https://your-logicart-studio.replit.app';
 const SESSION_ID = 'your-session-id';
 
-window.LogiGo = {
+window.LogicArt = {
   checkpoint: async (nodeId, variables = {}) => {
-    await fetch(`${LOGIGO_URL}/api/remote/checkpoint`, {
+    await fetch(`${LOGICART_URL}/api/remote/checkpoint`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -9546,22 +9546,22 @@ Manually add checkpoint calls:
 
 ```javascript
 function bubbleSort(arr) {
-  LogiGo.checkpoint('start', { arr });
+  LogicArt.checkpoint('start', { arr });
   
   for (let i = 0; i < arr.length; i++) {
-    LogiGo.checkpoint('outer-loop', { i, arr });
+    LogicArt.checkpoint('outer-loop', { i, arr });
     
     for (let j = 0; j < arr.length - i - 1; j++) {
-      LogiGo.checkpoint('inner-loop', { i, j, arr });
+      LogicArt.checkpoint('inner-loop', { i, j, arr });
       
       if (arr[j] > arr[j + 1]) {
-        LogiGo.checkpoint('swap', { a: arr[j], b: arr[j+1] });
+        LogicArt.checkpoint('swap', { a: arr[j], b: arr[j+1] });
         [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
       }
     }
   }
   
-  LogiGo.checkpoint('end', { arr });
+  LogicArt.checkpoint('end', { arr });
   return arr;
 }
 ```
@@ -9572,7 +9572,7 @@ function bubbleSort(arr) {
 
 1. Open your app in the browser
 2. Trigger the instrumented code (e.g., run an algorithm)
-3. Watch the LogiGoEmbed component - nodes should highlight as code executes
+3. Watch the LogicArtEmbed component - nodes should highlight as code executes
 4. Check the browser console for any errors
 
 ### What to Look For
@@ -9587,14 +9587,14 @@ function bubbleSort(arr) {
 ### Checkpoints Not Firing
 
 1. Check browser console for errors
-2. Verify `logigo-runtime.js` is loaded
+2. Verify `logicart-runtime.js` is loaded
 3. Ensure manifest hash matches the build
 
 ### Manifest Not Found
 
 1. Run `npm run build` to generate the manifest
-2. Check `public/logigo-manifest.json` exists
-3. Verify the manifest URL in LogiGoEmbed props
+2. Check `public/logicart-manifest.json` exists
+3. Verify the manifest URL in LogicArtEmbed props
 
 ### Variables Not Captured
 
@@ -9650,7 +9650,7 @@ function partition(arr, low, high) {
 
 ## API Reference
 
-### LogiGoEmbed Props
+### LogicArtEmbed Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -9661,28 +9661,28 @@ function partition(arr, low, high) {
 | `height` | number | 300 | Height in pixels |
 | `theme` | string | 'dark' | Color theme |
 
-### LogiGo Runtime API
+### LogicArt Runtime API
 
 ```javascript
 // Fire a checkpoint (synchronous)
-LogiGo.checkpoint(nodeId, variables);
+LogicArt.checkpoint(nodeId, variables);
 
 // Fire a checkpoint with breakpoint support (async)
-await LogiGo.checkpointAsync(nodeId, variables);
+await LogicArt.checkpointAsync(nodeId, variables);
 
 // Set a breakpoint
-LogiGo.setBreakpoint(nodeId);
+LogicArt.setBreakpoint(nodeId);
 
 // Remove a breakpoint
-LogiGo.removeBreakpoint(nodeId);
+LogicArt.removeBreakpoint(nodeId);
 
 // Resume from breakpoint
-LogiGo.resume();
+LogicArt.resume();
 ```
 
 
 --- FILE: docs/LIVE_MODE_STATUS.md ---
-# LogiGo Live Mode - Status & Questions for Antigravity
+# LogicArt Live Mode - Status & Questions for Antigravity
 
 **Date:** December 20, 2025  
 **Context:** VisionLoop integration test revealed gap between expected and delivered experience
@@ -9691,7 +9691,7 @@ LogiGo.resume();
 
 ## What We Tested
 
-A user installed LogiGo into VisionLoop (a separate Replit project) following the INSTALLATION_GUIDE.md instructions. The Replit Agent added checkpoint calls to `processNextIteration()`.
+A user installed LogicArt into VisionLoop (a separate Replit project) following the INSTALLATION_GUIDE.md instructions. The Replit Agent added checkpoint calls to `processNextIteration()`.
 
 **Expected:** Visual flowchart debugging experience  
 **Actual:** Console logs only - no visualization
@@ -9700,10 +9700,10 @@ A user installed LogiGo into VisionLoop (a separate Replit project) following th
 
 ## What Exists (Built & Working)
 
-### 1. Reporter API - Sender Side (logigo-core)
+### 1. Reporter API - Sender Side (logicart-core)
 **File:** `src/reporter.js`, `src/runtime.js`
 
-The LogiGoReporter class captures checkpoints and broadcasts via `window.postMessage`:
+The LogicArtReporter class captures checkpoints and broadcasts via `window.postMessage`:
 
 ```javascript
 // src/runtime.js - checkpoint() calls reporter.recordCheckpoint()
@@ -9716,16 +9716,16 @@ if (this.reporter) {
 }
 ```
 
-### 2. Reporter API - Receiver Side (LogiGo Studio)
+### 2. Reporter API - Receiver Side (LogicArt Studio)
 **File:** `client/src/pages/Workbench.tsx`
 
-LogiGo Studio listens for postMessage events:
+LogicArt Studio listens for postMessage events:
 
 ```javascript
 window.addEventListener('message', (event) => {
-  if (event.data?.source !== 'LOGIGO_CORE') return;
+  if (event.data?.source !== 'LOGICART_CORE') return;
   
-  if (event.data.type === 'LOGIGO_CHECKPOINT') {
+  if (event.data.type === 'LOGICART_CHECKPOINT') {
     // Highlight node, update variables panel
   }
 });
@@ -9735,12 +9735,12 @@ window.addEventListener('message', (event) => {
 **File:** `REPORTER_API_SPEC.md`, `shared/reporter-api.ts`
 
 Fully specified message format:
-- `LOGIGO_SESSION_START` - Session begins
-- `LOGIGO_CHECKPOINT` - Checkpoint fired
+- `LOGICART_SESSION_START` - Session begins
+- `LOGICART_CHECKPOINT` - Checkpoint fired
 - Payload includes: id, timestamp, variables, domElement
 
 ### 4. Static Mode (Works)
-Users can paste code into LogiGo Studio and see the flowchart immediately.
+Users can paste code into LogicArt Studio and see the flowchart immediately.
 
 ---
 
@@ -9751,32 +9751,32 @@ Users can paste code into LogiGo Studio and see the flowchart immediately.
 `window.postMessage` only works **within the same browser window/tab**.
 
 - VisionLoop runs in: `https://visionloop.replit.app`
-- LogiGo Studio runs in: `https://logigo-studio.replit.app`
+- LogicArt Studio runs in: `https://logicart-studio.replit.app`
 
-They are **different origins in different tabs**. The postMessage events from VisionLoop never reach LogiGo Studio.
+They are **different origins in different tabs**. The postMessage events from VisionLoop never reach LogicArt Studio.
 
 ### What the User Expected
 
 After adding checkpoints to VisionLoop:
-1. Open LogiGo Studio
+1. Open LogicArt Studio
 2. See VisionLoop's execution flow visualized in real-time
 3. Watch the flowchart animate as iterations process
 
 ### What Actually Happened
 
 1. Checkpoints log to VisionLoop's console
-2. LogiGo Studio shows nothing (no connection)
+2. LogicArt Studio shows nothing (no connection)
 3. User must manually paste code into Studio for any visualization
 
 ---
 
 ## Possible Solutions
 
-### Option A: logigo-core Overlay in VisionLoop Frontend
+### Option A: logicart-core Overlay in VisionLoop Frontend
 
 **How it works:**
-- VisionLoop's React frontend imports `logigo-core`
-- The `LogiGoOverlay` renders a floating visual panel directly in VisionLoop
+- VisionLoop's React frontend imports `logicart-core`
+- The `LogicArtOverlay` renders a floating visual panel directly in VisionLoop
 - No cross-tab communication needed
 
 **Pros:**
@@ -9787,18 +9787,18 @@ After adding checkpoints to VisionLoop:
 **Cons:**
 - Only works for apps with a frontend
 - Backend-only apps (pure Node.js) can't use this
-- Separate from the full LogiGo Studio experience
+- Separate from the full LogicArt Studio experience
 
 ### Option B: WebSocket/Server Bridge
 
 **How it works:**
 - VisionLoop sends checkpoints to a bridge server
-- LogiGo Studio connects to the same bridge
+- LogicArt Studio connects to the same bridge
 - Server relays checkpoints from VisionLoop → Studio
 
 **Pros:**
 - Works for any app (frontend or backend)
-- Full LogiGo Studio experience
+- Full LogicArt Studio experience
 - Could support multiple apps connecting simultaneously
 
 **Cons:**
@@ -9809,7 +9809,7 @@ After adding checkpoints to VisionLoop:
 ### Option C: Shared Iframe/Webview Approach
 
 **How it works:**
-- LogiGo Studio embedded as an iframe in VisionLoop
+- LogicArt Studio embedded as an iframe in VisionLoop
 - postMessage works between parent and iframe (same window)
 
 **Pros:**
@@ -9825,7 +9825,7 @@ After adding checkpoints to VisionLoop:
 
 **How it works:**
 - Browser extension captures checkpoints from any tab
-- Relays them to LogiGo Studio tab
+- Relays them to LogicArt Studio tab
 
 **Pros:**
 - Works across tabs
@@ -9848,7 +9848,7 @@ After adding checkpoints to VisionLoop:
    - Other ideas?
 
 3. **For VisionLoop specifically:**
-   - VisionLoop has a React frontend - should we add the logigo-core overlay there?
+   - VisionLoop has a React frontend - should we add the logicart-core overlay there?
    - Or is VisionLoop meant to demonstrate backend-only integration?
 
 4. **Documentation update:**
@@ -9858,7 +9858,7 @@ After adding checkpoints to VisionLoop:
 
 5. **Who should implement what?**
    - Replit team: Update documentation, Studio improvements
-   - Antigravity team: logigo-core enhancements, bridge infrastructure
+   - Antigravity team: logicart-core enhancements, bridge infrastructure
 
 ---
 
@@ -9866,19 +9866,19 @@ After adding checkpoints to VisionLoop:
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| Static Mode | Working | LogiGo Studio |
+| Static Mode | Working | LogicArt Studio |
 | Reporter API (sender) | Built | src/reporter.js |
 | Reporter API (receiver) | Built | Workbench.tsx |
 | postMessage protocol | Specified | REPORTER_API_SPEC.md |
 | Cross-tab communication | Not working | (architecture gap) |
-| logigo-core overlay | Built | npm package |
+| logicart-core overlay | Built | npm package |
 | VisionLoop frontend overlay | Not installed | (could add) |
 
 ---
 
 ## Immediate Next Steps (Pending Decision)
 
-1. **If Option A (overlay):** Add logigo-core overlay to VisionLoop's React frontend
+1. **If Option A (overlay):** Add logicart-core overlay to VisionLoop's React frontend
 2. **If Option B (bridge):** Design WebSocket bridge architecture
 3. **Either way:** Update INSTALLATION_GUIDE.md to set correct expectations
 
@@ -9894,22 +9894,22 @@ After adding checkpoints to VisionLoop:
 - `docs/INSTALLATION_GUIDE.md` - User-facing installation docs
 
 
---- FILE: docs/LOGIGO_EMBED_OVERVIEW.md ---
-# LogiGo Embed - Overview for Review
+--- FILE: docs/LOGICART_EMBED_OVERVIEW.md ---
+# LogicArt Embed - Overview for Review
 
 ## The Problem
 
-LogiGo Studio is a code-to-flowchart visualization tool. Users paste JavaScript code, and it renders an interactive flowchart showing the control flow. We also have a "Live Mode" where users instrument their code with `LogiGo.checkpoint()` calls to see real-time execution visualization.
+LogicArt Studio is a code-to-flowchart visualization tool. Users paste JavaScript code, and it renders an interactive flowchart showing the control flow. We also have a "Live Mode" where users instrument their code with `LogicArt.checkpoint()` calls to see real-time execution visualization.
 
-**The gap we discovered:** Live Mode uses `window.postMessage` to communicate between instrumented code and the Studio. This only works within the same browser window/tab. If a user is building an app in Replit (or any vibe coding platform) and wants to visualize it in LogiGo Studio running in a different tab, the messages can't cross that boundary.
+**The gap we discovered:** Live Mode uses `window.postMessage` to communicate between instrumented code and the Studio. This only works within the same browser window/tab. If a user is building an app in Replit (or any vibe coding platform) and wants to visualize it in LogicArt Studio running in a different tab, the messages can't cross that boundary.
 
-**Original assumption:** Users would have LogiGo Studio open in the same project/tab as their code.
+**Original assumption:** Users would have LogicArt Studio open in the same project/tab as their code.
 
 **Reality:** Vibe coders typically have their app running in one tab and want visualization tools in another.
 
 ---
 
-## The Solution: LogiGo Embed
+## The Solution: LogicArt Embed
 
 Instead of requiring users to open a separate Studio tab, we embed the visualization directly into their app as a floating overlay.
 
@@ -9923,7 +9923,7 @@ Instead of requiring users to open a separate Studio tab, we embed the visualiza
 │  └─────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐   │
-│  │  LogiGo Embed (floating panel)              │   │
+│  │  LogicArt Embed (floating panel)              │   │
 │  │  ┌─────────────────────────────────────┐    │   │
 │  │  │  Flowchart Canvas                    │    │   │
 │  │  │  (nodes highlight as code executes)  │    │   │
@@ -9961,18 +9961,18 @@ User's Source Files
         │
         ▼
 ┌─────────────────────────────────────────────────────┐
-│  LogiGo Bundler Plugin (Vite/Webpack)               │
+│  LogicArt Bundler Plugin (Vite/Webpack)               │
 │                                                     │
 │  For each source file:                              │
 │  1. Parse with Acorn (get AST)                      │
 │  2. Generate flowchart nodes/edges                  │
 │  3. Assign stable node IDs (hash-based)             │
-│  4. Inject LogiGo.checkpoint() calls                │
+│  4. Inject LogicArt.checkpoint() calls                │
 │  5. Write metadata to manifest                      │
 └─────────────────────────────────────────────────────┘
         │                               │
         ▼                               ▼
-  Instrumented Bundle          logigo-manifest.json
+  Instrumented Bundle          logicart-manifest.json
   (with checkpoints)           (flowchart structure)
 ```
 
@@ -10018,21 +10018,21 @@ This means:
 ┌─────────────────────────────────────────────────────┐
 │  Page Load                                          │
 │                                                     │
-│  1. Bundle emits LOGIGO_MANIFEST_READY              │
-│     → Embed fetches /logigo-manifest.json           │
+│  1. Bundle emits LOGICART_MANIFEST_READY              │
+│     → Embed fetches /logicart-manifest.json           │
 │     → Renders flowchart from manifest               │
 │                                                     │
 │  2. User triggers instrumented code                 │
-│     → LOGIGO_SESSION_START                          │
+│     → LOGICART_SESSION_START                          │
 │     → Embed resets state                            │
 │                                                     │
 │  3. Each checkpoint() call                          │
-│     → LOGIGO_CHECKPOINT { id, variables }           │
+│     → LOGICART_CHECKPOINT { id, variables }           │
 │     → Embed highlights matching node                │
 │     → Records variable snapshot                     │
 │                                                     │
 │  4. Execution completes                             │
-│     → LOGIGO_SESSION_END                            │
+│     → LOGICART_SESSION_END                            │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -10042,14 +10042,14 @@ This means:
 
 **Production (with bundler plugin):**
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
       <MyApp />
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
       />
     </div>
@@ -10059,13 +10059,13 @@ function App() {
 
 **Vite config:**
 ```javascript
-import logigo from 'logigo-embed/vite';
+import logicart from 'logicart-embed/vite';
 
 export default {
   plugins: [
-    logigo({
+    logicart({
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      manifestPath: 'public/logigo-manifest.json'
+      manifestPath: 'public/logicart-manifest.json'
     })
   ]
 }
@@ -10073,7 +10073,7 @@ export default {
 
 **Quick demo (no build integration):**
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  // Parse at runtime
   position="bottom-right"
 />
@@ -10093,22 +10093,22 @@ export default {
 
 5. **Package distribution:** Planning ESM (React as peer dep) + UMD (standalone with bundled React). Anything else to consider?
 
-6. **Async/await:** The checkpoint injection adds `await LogiGo.checkpoint(...)`. This requires functions to be async. Worth the constraint?
+6. **Async/await:** The checkpoint injection adds `await LogicArt.checkpoint(...)`. This requires functions to be async. Worth the constraint?
 
 ---
 
 ## What We've Built So Far
 
-- **LogiGo Studio:** Full workbench with code editor, flowchart canvas, variable inspector
+- **LogicArt Studio:** Full workbench with code editor, flowchart canvas, variable inspector
 - **Static Mode:** Paste code → instant flowchart (working)
 - **Reporter API spec:** Message format for checkpoint communication
-- **logigo-core package:** Runtime library with `window.LogiGo.checkpoint()`
-- **logigo-embed package (Phase 1):** Embeddable React component with runtime parsing for Static Mode
+- **logicart-core package:** Runtime library with `window.LogicArt.checkpoint()`
+- **logicart-embed package (Phase 1):** Embeddable React component with runtime parsing for Static Mode
 
 ## Implementation Status
 
 ### Phase 1 (Complete)
-- **LogiGoEmbed component:** Floating overlay with runtime JavaScript parsing
+- **LogicArtEmbed component:** Floating overlay with runtime JavaScript parsing
 - **Static Mode:** Parse code on the fly, render flowchart, no build integration needed
 - **Demo page:** `/embed-demo` shows component in action with position controls
 - **Features:** Collapse/expand, position options, dark/light themes
@@ -10116,7 +10116,7 @@ export default {
 ### Phase 2 (Planned)
 - **Bundler plugins:** Vite and Webpack integrations for build-time manifest
 - **Live Mode:** Checkpoint-driven node highlighting (requires manifest for ID matching)
-- **logigo-install CLI:** `npx logigo-install` to add embed to any project
+- **logicart-install CLI:** `npx logicart-install` to add embed to any project
 - **Manifest generation:** Build-time AST analysis and checkpoint injection
 
 ### Architecture Decision: Static Mode First
@@ -10143,22 +10143,22 @@ See `docs/EMBED_STUDIO_DESIGN.md` for complete specification including:
 
 --- FILE: docs/MCP_INTEGRATION_GUIDE.md ---
 # MCP Integration Guide: Logic-Aware AI
-**The "Eyes" for your LLM: Connecting LogiGo to Cursor, Claude, and VS Code.**
+**The "Eyes" for your LLM: Connecting LogicArt to Cursor, Claude, and VS Code.**
 
 ---
 
 ## 🚀 Overview
-The **Model Context Protocol (MCP)** allows LogiGo to act as a logic-engine for external AI models. Instead of the AI just "guessing" how your code works, it can call LogiGo tools to **see** the flowchart and complexity in real-time.
+The **Model Context Protocol (MCP)** allows LogicArt to act as a logic-engine for external AI models. Instead of the AI just "guessing" how your code works, it can call LogicArt tools to **see** the flowchart and complexity in real-time.
 
 ---
 
 ## 🛠 Setup in Cursor
 Cursor is currently the flagship platform for MCP. Follow these steps to give Cursor "Visual Logic" capabilities:
 
-1.  **Start LogiGo**: Ensure your LogiGo server is running (`npm run dev`).
+1.  **Start LogicArt**: Ensure your LogicArt server is running (`npm run dev`).
 2.  **Open Cursor Settings**: Navigate to `Settings` -> `Features` -> `MCP`.
 3.  **Add New Server**:
-    *   **Name**: `LogiGo`
+    *   **Name**: `LogicArt`
     *   **Type**: `sse`
     *   **URL**: `http://localhost:5001/api/mcp/sse`
 4.  **Verify**: You should see a green "Active" status and a count of 5 tools.
@@ -10167,7 +10167,7 @@ Cursor is currently the flagship platform for MCP. Follow these steps to give Cu
 
 ## 🧰 Available Tools (The Agent's Eyes)
 
-LogiGo provides the following "Visual Instruments" to your AI:
+LogicArt provides the following "Visual Instruments" to your AI:
 
 ### 1. `analyze_code`
 Primary tool for structural understanding.
@@ -10187,16 +10187,16 @@ A natural language summary of the logic shape.
 ---
 
 ## 🗣 How to Talk to your AI (Best Practices)
-To get the most out of the LogiGo bridge, use "Logic-First" prompts:
+To get the most out of the LogicArt bridge, use "Logic-First" prompts:
 
 *   **Bad Prompt**: *"Explain this code."*
-*   **Good Prompt (Visualized)**: *"LogiGo has generated a flowchart for this. Use your tools to look at the 'Decision Nodes' and tell me if I missed an edge case."*
+*   **Good Prompt (Visualized)**: *"LogicArt has generated a flowchart for this. Use your tools to look at the 'Decision Nodes' and tell me if I missed an edge case."*
 *   **Optimization Prompt**: *"Check the complexity score of this module. If it's above 10, suggest a refactoring to flatten the loops."*
 
 ---
 
 ## 🔌 Technical Details
-LogiGo uses the `@modelcontextprotocol/sdk` to maintain a persistent SSE connection.
+LogicArt uses the `@modelcontextprotocol/sdk` to maintain a persistent SSE connection.
 *   **Transport**: SSE (Server-Sent Events)
 *   **Security**: Localhost-only by default.
 *   **Protocol Version**: 1.0.0
@@ -10206,7 +10206,7 @@ LogiGo uses the `@modelcontextprotocol/sdk` to maintain a persistent SSE connect
 
 
 --- FILE: docs/PROJECT_STATUS_ARCHITECTURE.md ---
-# LogiGo Project Status & Architecture Document
+# LogicArt Project Status & Architecture Document
 
 **Date:** December 23, 2025  
 **Purpose:** Comprehensive audit of implemented vs. planned features  
@@ -10216,7 +10216,7 @@ LogiGo uses the `@modelcontextprotocol/sdk` to maintain a persistent SSE connect
 
 ## Executive Summary
 
-LogiGo (formerly Cartographer) is a bidirectional code-to-flowchart visualization tool targeting "Vibe Coders." The project has evolved from a simple flowchart generator to a multi-platform debugging system with runtime instrumentation capabilities.
+LogicArt (formerly Cartographer) is a bidirectional code-to-flowchart visualization tool targeting "Vibe Coders." The project has evolved from a simple flowchart generator to a multi-platform debugging system with runtime instrumentation capabilities.
 
 **Architecture Strategy:** "Factory vs. Showroom" - Antigravity builds the core engine libraries while Replit builds the Studio UI.
 
@@ -10271,8 +10271,8 @@ diffTrees(oldTree: FlowNode[], newTree: FlowNode[]): DiffResult {
 
 **Locations:**
 - `client/src/lib/executionController.ts` - Client-side controller
-- `packages/logigo-core/src/runtime.ts` - Runtime library
-- `packages/logigo-vite-plugin/src/index.ts` - Build-time injection
+- `packages/logicart-core/src/runtime.ts` - Runtime library
+- `packages/logicart-vite-plugin/src/index.ts` - Build-time injection
 
 **Status:** Core logic exists, integration incomplete
 
@@ -10292,10 +10292,10 @@ class ExecutionController {
 }
 ```
 
-#### Runtime Library (logigo-core) ✅
+#### Runtime Library (logicart-core) ✅
 ```typescript
-// packages/logigo-core/src/runtime.ts
-class LogiGoRuntime {
+// packages/logicart-core/src/runtime.ts
+class LogicArtRuntime {
   private breakpoints = new Map<string, Breakpoint>();
   
   async checkpointAsync(id, variables): Promise<void> {
@@ -10330,7 +10330,7 @@ class LogiGoRuntime {
 
 **Locations:**
 - `server/routes.ts` (lines 352-480) - `remote.js` bootstrap script
-- `packages/logigo-core/src/runtime.ts` - postMessage API
+- `packages/logicart-core/src/runtime.ts` - postMessage API
 - `shared/reporter-api.ts` - Message protocol definitions
 
 **Communication Method:** `window.postMessage` with structured messages
@@ -10338,16 +10338,16 @@ class LogiGoRuntime {
 #### Message Protocol:
 ```typescript
 // Reporter API (Runtime -> Studio)
-interface LogiGoMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_SESSION_START' | 'LOGIGO_CHECKPOINT' | 'LOGIGO_ERROR';
+interface LogicArtMessage {
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_SESSION_START' | 'LOGICART_CHECKPOINT' | 'LOGICART_ERROR';
   payload: CheckpointPayload | SessionStartPayload;
 }
 
 // Control API (Studio -> Runtime)
 interface ControlMessage {
-  source: 'LOGIGO_STUDIO';
-  type: 'LOGIGO_JUMP_TO_LINE' | 'LOGIGO_WRITE_FILE' | 'LOGIGO_REQUEST_FILE';
+  source: 'LOGICART_STUDIO';
+  type: 'LOGICART_JUMP_TO_LINE' | 'LOGICART_WRITE_FILE' | 'LOGICART_REQUEST_FILE';
   payload: JumpToLinePayload | WriteFilePayload;
 }
 ```
@@ -10357,14 +10357,14 @@ interface ControlMessage {
 // Auto-creates session, exposes window.checkpoint()
 window.checkpoint = function(id, variables, options) {
   // Sends POST to /api/remote/checkpoint
-  // Auto-opens LogiGo on first checkpoint (zero-click)
+  // Auto-opens LogicArt on first checkpoint (zero-click)
 };
 
-window.LogiGo = {
+window.LogicArt = {
   checkpoint: window.checkpoint,
   sessionId: SESSION_ID,
   viewUrl: VIEW_URL,
-  openNow: function() { /* Opens LogiGo manually */ },
+  openNow: function() { /* Opens LogicArt manually */ },
   registerCode: function(code) { /* Registers source for flowchart */ }
 };
 ```
@@ -10409,7 +10409,7 @@ window.LogiGo = {
 ### 2.1 Package Structure
 
 ```
-logigo/
+logicart/
 ├── client/                    # React Studio UI (Replit)
 │   └── src/
 │       ├── lib/
@@ -10422,20 +10422,20 @@ logigo/
 │           └── RemoteMode.tsx # Cross-Replit visualization
 │
 ├── packages/
-│   ├── logigo-core/           # Runtime library (Antigravity)
+│   ├── logicart-core/           # Runtime library (Antigravity)
 │   │   └── src/runtime.ts     # Checkpoint API
-│   ├── logigo-embed/          # Embeddable React component
-│   │   └── src/LogiGoEmbed.tsx
-│   ├── logigo-vite-plugin/    # Build-time instrumentation
+│   ├── logicart-embed/          # Embeddable React component
+│   │   └── src/LogicArtEmbed.tsx
+│   ├── logicart-vite-plugin/    # Build-time instrumentation
 │   │   └── src/instrumenter.ts
-│   └── logigo-remote/         # Remote mode client helper
+│   └── logicart-remote/         # Remote mode client helper
 │
 ├── vscode-extension/          # VS Code/Antigravity extension
 │   ├── src/
 │   │   ├── extension.ts       # Activation, commands
 │   │   ├── parser.ts          # Standalone parser
 │   │   └── webview/           # Embedded Studio UI
-│   └── logigo-1.0.0.vsix      # Pre-built extension
+│   └── logicart-1.0.0.vsix      # Pre-built extension
 │
 ├── server/
 │   └── routes.ts              # Remote Mode API, remote.js
@@ -10448,10 +10448,10 @@ logigo/
 
 ```
 ┌─────────────────┐    postMessage    ┌─────────────────┐
-│  User's App     │ ───────────────── │  LogiGo Studio  │
+│  User's App     │ ───────────────── │  LogicArt Studio  │
 │  (with checkpoints)                 │  (Workbench/    │
 │                 │                   │   RemoteMode)   │
-│  LogiGo.checkpoint()                │                 │
+│  LogicArt.checkpoint()                │                 │
 │       ↓         │                   │                 │
 │  runtime.ts     │                   │  parser.ts      │
 │       ↓         │                   │       ↓         │
@@ -10465,7 +10465,7 @@ logigo/
 
 ```
 ┌─────────────────┐     POST /checkpoint    ┌─────────────────┐
-│  External Repl  │ ──────────────────────→ │  LogiGo Server  │
+│  External Repl  │ ──────────────────────→ │  LogicArt Server  │
 │  (user's app)   │                         │  (Express)      │
 │                 │                         │                 │
 │  <script src=   │                         │  RemoteSession  │
@@ -10476,7 +10476,7 @@ logigo/
                                                      │ SSE
                                                      ↓
                                             ┌─────────────────┐
-                                            │  LogiGo Studio  │
+                                            │  LogicArt Studio  │
                                             │  RemoteMode.tsx │
                                             │                 │
                                             │  - Live flowchart
@@ -10516,7 +10516,7 @@ logigo/
 - `extension.ts` - Activation, command registration
 - `parser.ts` - Standalone JavaScript parser (same as client)
 - `webview/` - Embedded flowchart UI
-- `logigo-1.0.0.vsix` - Pre-packaged extension
+- `logicart-1.0.0.vsix` - Pre-packaged extension
 
 ### Capabilities:
 - Webview panel with flowchart visualization
@@ -10536,7 +10536,7 @@ logigo/
 ## 5. Antigravity Collaboration Summary
 
 ### Division of Labor:
-- **Antigravity (Factory):** `logigo-core`, `@logigo/bridge` concepts, VS Code extension, runtime instrumentation
+- **Antigravity (Factory):** `logicart-core`, `@logicart/bridge` concepts, VS Code extension, runtime instrumentation
 - **Replit (Showroom):** Studio UI, Remote Mode, user-facing features
 
 ### Key Antigravity Contributions:
@@ -10548,7 +10548,7 @@ logigo/
 ### Pending Questions for Antigravity:
 1. What hooks are available for `antigravity.execution.onExecutionStart`?
 2. Can we get `antigravity.ai.onCodeGeneration` for auto-show on AI changes?
-3. Should we implement the full `@logigo/bridge` library or continue with postMessage?
+3. Should we implement the full `@logicart/bridge` library or continue with postMessage?
 
 ---
 
@@ -10566,7 +10566,7 @@ logigo/
 
 ### Priority 3: Visual Handshake (Optional)
 - Inject CSS for DOM element highlighting
-- Add `data-logigo-checkpoint` attributes to instrumented elements
+- Add `data-logicart-checkpoint` attributes to instrumented elements
 - Implement hover synchronization
 
 ---
@@ -10578,7 +10578,7 @@ For verification, examine these key files:
 | Feature | Primary File | Secondary |
 |---------|--------------|-----------|
 | Ghost Diff Logic | `client/src/lib/ghostDiff.ts` | - |
-| Speed Governor | `client/src/lib/executionController.ts` | `packages/logigo-core/src/runtime.ts` |
+| Speed Governor | `client/src/lib/executionController.ts` | `packages/logicart-core/src/runtime.ts` |
 | Remote Mode API | `server/routes.ts` (lines 133-500) | - |
 | Message Protocol | `shared/reporter-api.ts` | - |
 | VS Code Extension | `vscode-extension/src/extension.ts` | `vscode-extension/src/parser.ts` |
@@ -10586,11 +10586,11 @@ For verification, examine these key files:
 
 ---
 
-*Document generated by LogiGo Replit Agent - December 23, 2025*
+*Document generated by LogicArt Replit Agent - December 23, 2025*
 
 
 --- FILE: docs/PROJECT_STATUS.md ---
-# LogiGo Project Status & Architecture Document
+# LogicArt Project Status & Architecture Document
 
 **Generated:** December 27, 2025  
 **Purpose:** Reality check before building advanced "Grounding" features
@@ -10625,7 +10625,7 @@ For verification, examine these key files:
 |---------|--------|----------|-------|
 | **Ghost Diff** | ✅ Working | `client/src/lib/ghostDiff.ts` | AST-aware comparison, CSS classes (`diff-added`, `diff-removed`, `diff-modified`), UI toggle in Workbench |
 | **Natural Language Search** | ✅ Working | `client/src/lib/naturalLanguageSearch.ts`, `client/src/components/ide/NaturalLanguageSearch.tsx` | Pattern matching for "show conditionals", "find loops", etc. Premium feature. |
-| **Grounding Context** | ✅ Working | `packages/logigo-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
+| **Grounding Context** | ✅ Working | `packages/logicart-core/src/grounding.ts`, `shared/grounding-types.ts` | Full `generateGroundingContext()` implementation with tests |
 | **Visual Handshake** | ✅ Working | `shared/control-types.ts`, `client/src/pages/Workbench.tsx` | Click flowchart node → highlight DOM in remote app. Amber ring feedback in Studio. 3s fallback timeout. |
 
 ### Partially Implemented Features ⚠️
@@ -10649,7 +10649,7 @@ For verification, examine these key files:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        LogiGo Studio                            │
+│                        LogicArt Studio                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
 │  │ Code Editor  │───▶│ Acorn Parser │───▶│ React Flow   │      │
@@ -10702,7 +10702,7 @@ For verification, examine these key files:
 ### Remote Mode Communication
 
 ```
-External Replit App                    LogiGo Studio
+External Replit App                    LogicArt Studio
 ─────────────────                     ──────────────
       │                                     │
       │ ◀─── GET /api/mcp/sse ───────────── │  (AI Agent connects)
@@ -10717,17 +10717,17 @@ External Replit App                    LogiGo Studio
 **Communication Methods:**
 - **SSE (Server-Sent Events):** Checkpoints flow from remote app → Studio
 - **WebSocket Control Channel:** Bidirectional debugging commands
-- **postMessage:** Used by logigo-embed for iframe communication
-- **Global Variables:** Legacy overlay.js uses `window.LogiGo`
+- **postMessage:** Used by logicart-embed for iframe communication
+- **Global Variables:** Legacy overlay.js uses `window.LogicArt`
 
-### Overlay Injection (packages/logigo-embed)
+### Overlay Injection (packages/logicart-embed)
 
 ```javascript
 // Static Mode: Runtime parsing
-<LogiGoEmbed mode="static" code={sourceCode} />
+<LogicArtEmbed mode="static" code={sourceCode} />
 
 // Live Mode: Build-time instrumentation
-<LogiGoEmbed mode="live" manifestUrl="/logigo-manifest.json" />
+<LogicArtEmbed mode="live" manifestUrl="/logicart-manifest.json" />
 ```
 
 The embed component:
@@ -10791,9 +10791,9 @@ The embed component:
 
 | Aspect | Current State | Gap |
 |--------|---------------|-----|
-| **Context Generation** | ✅ Full implementation | `generateGroundingContext()` in `packages/logigo-core/src/grounding.ts` |
+| **Context Generation** | ✅ Full implementation | `generateGroundingContext()` in `packages/logicart-core/src/grounding.ts` |
 | **Types** | ✅ Defined | `shared/grounding-types.ts` with `GroundingNode`, `GroundingContext` |
-| **Tests** | ✅ Has tests | `packages/logigo-core/src/grounding.test.ts` |
+| **Tests** | ✅ Has tests | `packages/logicart-core/src/grounding.test.ts` |
 | **AI Agent Integration** | ✅ MCP Server works | MCP tools can return grounding data |
 | **UI Export Button** | ⚠️ Not exposed | Could add "Export Context" button |
 
@@ -10842,7 +10842,7 @@ The embed component:
 
 | File | Purpose | Completeness |
 |------|---------|--------------|
-| `packages/logigo-embed/` | Embeddable component | ⚠️ Basic |
+| `packages/logicart-embed/` | Embeddable component | ⚠️ Basic |
 | `public/src/runtime.js` | Legacy runtime injection | ⚠️ Basic |
 | `public/src/overlay.js` | Legacy overlay | ⚠️ Basic |
 
@@ -10882,7 +10882,7 @@ sessions          -- Express sessions
 
 
 --- FILE: docs/QUICK_REFERENCE.md ---
-# LogiGo Quick Reference Card
+# LogicArt Quick Reference Card
 
 **Print this for your desk!**
 
@@ -10895,16 +10895,16 @@ sessions          -- Express sessions
    → Static Mode (paste into Studio)
 
 🔧 React app?
-   → npm install logigo-embed
+   → npm install logicart-embed
 
 🏗️ Vite project?
-   → npm install logigo-vite-plugin
+   → npm install logicart-vite-plugin
 
 🐛 Node.js server?
    → Copy checkpoint helper (no npm)
 
 🎯 Fine control?
-   → npm install logigo-core
+   → npm install logicart-core
 ```
 
 ---
@@ -10937,7 +10937,7 @@ checkpoint('sort', { arr: [...arr] });
 await checkpointAsync('fetch:data');
 
 // Add user labels
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 ```
 
@@ -10955,7 +10955,7 @@ checkpoint('fetch:data');
 
 // Label after code
 let count = 0;
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 ```
 
 ---
@@ -10964,34 +10964,34 @@ let count = 0;
 
 ### Static Mode
 ```
-1. Open LogiGo Studio
+1. Open LogicArt Studio
 2. Paste code
 3. Press Space
 ```
 
 ### React Embed
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
-<LogiGoEmbed code={code} theme="dark" />
+<LogicArtEmbed code={code} theme="dark" />
 ```
 
 ### Vite Plugin
 ```bash
-npm install logigo-vite-plugin --save-dev
+npm install logicart-vite-plugin --save-dev
 ```
 ```javascript
 // vite.config.js
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx']
     })
   ]
@@ -11000,10 +11000,10 @@ export default defineConfig({
 
 ### Backend Logging
 ```javascript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -11018,7 +11018,7 @@ const LogiGo = {
 | Syntax Error | Remove TypeScript syntax |
 | No variables | Check `captureVariables: true` |
 | CSS not loading | `import '@xyflow/react/dist/style.css'` |
-| Manifest 404 | Use `/logigo-manifest.json` (leading slash) |
+| Manifest 404 | Use `/logicart-manifest.json` (leading slash) |
 
 ---
 
@@ -11048,18 +11048,18 @@ loop:complete
 ## 🎨 User Labels
 
 ```javascript
-// @logigo: Your label here
+// @logicart: Your label here
 <code statement>
 ```
 
 **Example:**
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if empty
+// @logicart: Check if empty
 if (items.length === 0) {
-  // @logigo: Return zero
+  // @logicart: Return zero
   return 0;
 }
 ```
@@ -11072,9 +11072,9 @@ if (items.length === 0) {
 
 | Package | Use Case |
 |---------|----------|
-| logigo-core | Manual checkpoints, runtime control |
-| logigo-embed | React component for visualization |
-| logigo-vite-plugin | Build-time auto-instrumentation |
+| logicart-core | Manual checkpoints, runtime control |
+| logicart-embed | React component for visualization |
+| logicart-vite-plugin | Build-time auto-instrumentation |
 
 ---
 
@@ -11084,7 +11084,7 @@ if (items.length === 0) {
 - **Install**: [Installation Guide](docs/INSTALLATION_GUIDE.md)
 - **API**: [API Reference](docs/API_REFERENCE.md)
 - **Pitfalls**: [Common Pitfalls](docs/COMMON_PITFALLS.md)
-- **GitHub**: [github.com/JPaulGrayson/LogiGo](https://github.com/JPaulGrayson/LogiGo)
+- **GitHub**: [github.com/JPaulGrayson/LogicArt](https://github.com/JPaulGrayson/LogicArt)
 
 ---
 
@@ -11092,7 +11092,7 @@ if (items.length === 0) {
 
 1. **Use descriptive checkpoint IDs** - `auth:login:start` not `cp1`
 2. **Snapshot arrays** - `{ arr: [...arr] }` not `{ arr }`
-3. **Label your code** - `// @logigo: Initialize counter`
+3. **Label your code** - `// @logicart: Initialize counter`
 4. **Set strategic breakpoints** - Before complex logic
 5. **Check the Debug Panel** - See variables in real-time
 
@@ -11111,11 +11111,11 @@ if (items.length === 0) {
 
 
 --- FILE: docs/REMOTE_MODE_REVIEW_ANTIGRAVITY.md ---
-# Antigravity's Review of LogiGo Remote Mode Design
+# Antigravity's Review of LogicArt Remote Mode Design
 
 **Date:** December 21, 2025  
 **Reviewer:** Antigravity  
-**Document Reviewed:** LogiGo Cross-Replit Communication Design
+**Document Reviewed:** LogicArt Cross-Replit Communication Design
 
 ---
 
@@ -11126,7 +11126,7 @@ The Remote Mode solves a different use case than Embed:
 | Approach | Best For |
 |----------|----------|
 | **Embed** | Seeing visualization *inside* your app (single app) |
-| **Remote Mode** | Connecting *separate* apps to a central LogiGo instance (multi-app workflows) |
+| **Remote Mode** | Connecting *separate* apps to a central LogicArt instance (multi-app workflows) |
 
 Both are valuable. I recommend building **Remote Mode first** as it's simpler and solves the immediate VisionLoop problem without requiring users to modify their React component tree.
 
@@ -11183,7 +11183,7 @@ This enables:
 
 This is a powerful use case:
 - **Pair programming**: Two developers watching the same execution
-- **Teaching**: Instructor runs code, students watch in LogiGo
+- **Teaching**: Instructor runs code, students watch in LogicArt
 - **Debugging demos**: Share session URL in Slack, team watches live
 
 **Implementation is simple:** Your SSE design already supports this - just add multiple clients to `sseClients[]`.
@@ -11206,7 +11206,7 @@ Use cases:
 // External app subscribes to commands
 GET /api/remote/commands/:sessionId  // SSE stream
 
-// LogiGo sends commands
+// LogicArt sends commands
 event: pause
 data: {"checkpoint":"step-5"}
 
@@ -11215,15 +11215,15 @@ data: {"name":"maxRetries","value":10}
 
 // External app code
 commandStream.on('pause', (checkpoint) => {
-  await waitForResume();  // Block until LogiGo sends 'resume'
+  await waitForResume();  // Block until LogicArt sends 'resume'
 });
 ```
 
-**Recommendation: Build one-way (app→LogiGo) first. Add bidirectional in V2.**
+**Recommendation: Build one-way (app→LogicArt) first. Add bidirectional in V2.**
 
 ---
 
-### 5. NPM Package: Publish `logigo-remote`?
+### 5. NPM Package: Publish `logicart-remote`?
 
 **Yes, absolutely.**
 
@@ -11235,34 +11235,34 @@ Benefits:
 
 **Package design:**
 ```typescript
-// logigo-remote - Works in browser and Node.js
-import { LogiGoRemote } from 'logigo-remote';
+// logicart-remote - Works in browser and Node.js
+import { LogicArtRemote } from 'logicart-remote';
 
-const logigo = new LogiGoRemote({
-  serverUrl: 'https://logigo.replit.app',
+const logicart = new LogicArtRemote({
+  serverUrl: 'https://logicart.replit.app',
   sessionName: 'Turai Tour Generator',
   code: fs.readFileSync('./myCode.js', 'utf-8')  // Optional
 });
 
 // Automatically creates session on first checkpoint
-await logigo.checkpoint('start', { input: userInput });
-await logigo.checkpoint('processing', { step: 1 });
-await logigo.checkpoint('complete', { output: result });
+await logicart.checkpoint('start', { input: userInput });
+await logicart.checkpoint('processing', { step: 1 });
+await logicart.checkpoint('complete', { output: result });
 
 // Clean up
-await logigo.end();
+await logicart.end();
 ```
 
 **For Vibe Coders (zero-config):**
 ```javascript
 // One-liner: Auto-creates session, returns checkpoint function
-const checkpoint = await LogiGoRemote.quickConnect();
+const checkpoint = await LogicArtRemote.quickConnect();
 
 checkpoint('step-1', { x: 5 });
 checkpoint('step-2', { result: 'done' });
 ```
 
-**Recommendation: Publish `logigo-remote` package. It's the best DX for external apps.**
+**Recommendation: Publish `logicart-remote` package. It's the best DX for external apps.**
 
 ---
 
@@ -11273,7 +11273,7 @@ checkpoint('step-2', { result: 'done' });
 **Your choice of SSE is correct.**
 
 - SSE is simpler (HTTP-based, works through proxies)
-- Unidirectional is fine for MVP (LogiGo only receives, doesn't send)
+- Unidirectional is fine for MVP (LogicArt only receives, doesn't send)
 - WebSockets would add complexity without benefit for V1
 
 **If you add bidirectional later, consider:**
@@ -11332,11 +11332,11 @@ Also add:
 
 ### Connection Resilience
 
-Add these to the `logigo-remote` package:
+Add these to the `logicart-remote` package:
 
 ```typescript
-const logigo = new LogiGoRemote({
-  serverUrl: 'https://logigo.replit.app',
+const logicart = new LogicArtRemote({
+  serverUrl: 'https://logicart.replit.app',
   
   // Retry config
   retryAttempts: 3,
@@ -11360,7 +11360,7 @@ const logigo = new LogiGoRemote({
 | Persistence | In-memory for MVP, Redis/SQLite for V2 (replay) |
 | Multi-user | Yes, support from day one |
 | Bidirectional | No for MVP, add in V2 |
-| NPM Package | Yes, publish `logigo-remote` |
+| NPM Package | Yes, publish `logicart-remote` |
 
 ---
 
@@ -11370,7 +11370,7 @@ My recommended build order:
 
 1. **Backend API** (sessions + checkpoints + SSE)
 2. **Frontend Remote Tab** (trace view, not flowchart)
-3. **NPM package** (`logigo-remote`)
+3. **NPM package** (`logicart-remote`)
 4. **Integration code generator** (copy snippet button)
 5. **Flowchart matching** (when code is provided)
 6. **Bidirectional commands** (V2)
@@ -11387,7 +11387,7 @@ My recommended build order:
 │  │  (Turai)        │                                                │
 │  │                 │                                                │
 │  │  Uses either:   │                                                │
-│  │  • logigo-remote│─────┐                                          │
+│  │  • logicart-remote│─────┐                                          │
 │  │  • Raw fetch()  │     │                                          │
 │  └─────────────────┘     │                                          │
 │                          │                                          │
@@ -11395,7 +11395,7 @@ My recommended build order:
 │                          │                                          │
 │                          ▼                                          │
 │                  ┌───────────────┐                                  │
-│                  │   LogiGo      │                                  │
+│                  │   LogicArt      │                                  │
 │                  │   Server      │                                  │
 │                  │               │                                  │
 │                  │  Sessions[]   │                                  │
@@ -11406,7 +11406,7 @@ My recommended build order:
 │                          │                                          │
 │                          ▼                                          │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │   LogiGo Frontend (multiple viewers supported)               │  │
+│  │   LogicArt Frontend (multiple viewers supported)               │  │
 │  │                                                              │  │
 │  │   ┌─────────────────────┐  ┌─────────────────────────────┐  │  │
 │  │   │  Trace View         │  │  Flowchart View            │  │  │
@@ -11447,13 +11447,13 @@ I recommend building Remote Mode first because:
 
 
 --- FILE: docs/REMOTE_MODE_TEST_PLAN.md ---
-# LogiGo Remote Mode - Integration Test Plan
+# LogicArt Remote Mode - Integration Test Plan
 
-This guide walks through testing LogiGo's Remote Mode features with an external app (e.g., VisionLoop).
+This guide walks through testing LogicArt's Remote Mode features with an external app (e.g., VisionLoop).
 
 ## Overview
 
-Remote Mode enables external apps to connect to LogiGo Studio for real-time flowchart visualization and debugging. This test plan covers:
+Remote Mode enables external apps to connect to LogicArt Studio for real-time flowchart visualization and debugging. This test plan covers:
 
 1. **Seeding** - Adding the Vite plugin for automatic checkpoint injection
 2. **Self-Healing Loop** - Automatic reconnection and session recovery
@@ -11463,7 +11463,7 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 
 ## Prerequisites
 
-- LogiGo Studio running at your Replit URL
+- LogicArt Studio running at your Replit URL
 - An external Vite-based app (VisionLoop) 
 - Browser with developer tools for console inspection
 
@@ -11476,22 +11476,22 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 Add this single line to your app's HTML:
 
 ```html
-<script src="https://YOUR-LOGIGO-URL/remote.js?project=VisionLoop"></script>
+<script src="https://YOUR-LOGICART-URL/remote.js?project=VisionLoop"></script>
 ```
 
 ### 1.2 What Happens Automatically
 
 When the page loads:
 1. **Connection established** - Session created with Studio
-2. **Badge appears** - Floating "View in LogiGo" badge in bottom-right
+2. **Badge appears** - Floating "View in LogicArt" badge in bottom-right
 3. **Tip shown in console** - How to enable auto-discovery
 
 ### 1.3 Zero-Code Proxy (Recommended for Vite/React apps)
 
-The easiest way to visualize any app - just visit it through LogiGo's proxy:
+The easiest way to visualize any app - just visit it through LogicArt's proxy:
 
 ```
-https://YOUR-LOGIGO-URL/proxy/https://your-app.replit.app
+https://YOUR-LOGICART-URL/proxy/https://your-app.replit.app
 ```
 
 This will:
@@ -11505,7 +11505,7 @@ This will:
 For traditional script apps, you can also use auto-discovery:
 
 ```javascript
-LogiGo.enableAutoDiscovery()
+LogicArt.enableAutoDiscovery()
 ```
 
 This scans `<script>` tags and wraps global functions.
@@ -11515,20 +11515,20 @@ This scans `<script>` tags and wraps global functions.
 Open your app in a browser. Check the console for:
 
 ```
-🔗 LogiGo Studio connected!
-📊 View flowchart at: https://YOUR-LOGIGO-URL/?session=SESSION_ID
-[LogiGo] Tip: Call LogiGo.enableAutoDiscovery() to auto-wrap global functions
+🔗 LogicArt Studio connected!
+📊 View flowchart at: https://YOUR-LOGICART-URL/?session=SESSION_ID
+[LogicArt] Tip: Call LogicArt.enableAutoDiscovery() to auto-wrap global functions
 ```
 
 After calling `enableAutoDiscovery()`:
 ```
-[LogiGo] Auto-discovery enabled. Source code will be sent to Studio for visualization.
-[LogiGo] Registered 3 script(s) for flowchart visualization
-[LogiGo] Auto-wrapped 5 global function(s)
+[LogicArt] Auto-discovery enabled. Source code will be sent to Studio for visualization.
+[LogicArt] Registered 3 script(s) for flowchart visualization
+[LogicArt] Auto-wrapped 5 global function(s)
 ```
 
 **Expected:**
-- ✅ Floating badge appears (bottom-right): "View in LogiGo" with green dot
+- ✅ Floating badge appears (bottom-right): "View in LogicArt" with green dot
 - ✅ Console shows connection messages
 - ✅ After enabling auto-discovery, function checkpoints fire when code executes
 
@@ -11543,11 +11543,11 @@ For more granular control, you can use the Vite plugin instead:
 ```typescript
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { logigoPlugin } from 'logigo-vite-plugin';
+import { logicartPlugin } from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
-    logigoPlugin({
+    logicartPlugin({
       autoInstrument: true,
       captureVariables: true
     })
@@ -11580,13 +11580,13 @@ Becomes (after build):
 
 ```javascript
 function processImage(image) {
-  LogiGo.checkpoint('fn_abc123', { image });
+  LogicArt.checkpoint('fn_abc123', { image });
   const filename = image.name;
-  LogiGo.checkpoint('var_def456', { image, filename });
+  LogicArt.checkpoint('var_def456', { image, filename });
   const processed = applyFilters(image);
-  LogiGo.checkpoint('var_ghi789', { image, filename, processed });
+  LogicArt.checkpoint('var_ghi789', { image, filename, processed });
   return processed;
-  LogiGo.checkpoint('ret_jkl012', { image, filename, processed });
+  LogicArt.checkpoint('ret_jkl012', { image, filename, processed });
 }
 ```
 
@@ -11604,7 +11604,7 @@ For click-to-highlight between Studio and your app, bind elements to checkpoint 
 ```javascript
 // The checkpoint ID comes from the manifest or console logs
 const uploadButton = document.getElementById('upload-btn');
-LogiGo.bindElement('fn_abc123', uploadButton);
+LogicArt.bindElement('fn_abc123', uploadButton);
 ```
 
 ### 2.3 Manual Checkpoints (Optional)
@@ -11627,8 +11627,8 @@ checkpoint('custom-step', { myVar: someValue });
 4. Trigger another checkpoint
 5. Watch console for retry messages:
    ```
-   [LogiGo] Retry 1/3 in 1000ms...
-   [LogiGo] Retry 2/3 in 2000ms...
+   [LogicArt] Retry 1/3 in 1000ms...
+   [LogicArt] Retry 2/3 in 2000ms...
    ```
 6. Re-enable network
 7. **Expected**: Checkpoint eventually succeeds, status dot turns green
@@ -11640,8 +11640,8 @@ checkpoint('custom-step', { myVar: someValue });
 3. Trigger a checkpoint in your app
 4. Watch console for:
    ```
-   [LogiGo] Session expired (404). Attempting renewal...
-   ✅ [LogiGo] Session renewed: abc12345 → def67890
+   [LogicArt] Session expired (404). Attempting renewal...
+   ✅ [LogicArt] Session renewed: abc12345 → def67890
    📊 New Studio URL: https://...
    ```
 5. **Expected**: New session created, checkpoints continue working
@@ -11650,7 +11650,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 1. Open Studio with `/?session=SESSION_ID`
 2. Verify "Connected: VisionLoop" badge in header
-3. Restart the LogiGo server (simulates disconnect)
+3. Restart the LogicArt server (simulates disconnect)
 4. Watch Studio header for:
    - Badge changes to "Reconnecting..." with pulsing icon
    - After server restarts: "Connected: VisionLoop" returns
@@ -11678,7 +11678,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 1. Bind an element to a checkpoint:
    ```javascript
-   LogiGo.bindElement('upload-start', document.querySelector('.upload-btn'));
+   LogicArt.bindElement('upload-start', document.querySelector('.upload-btn'));
    ```
 2. In Studio, click the corresponding flowchart node
 3. **Expected**:
@@ -11699,8 +11699,8 @@ checkpoint('custom-step', { myVar: someValue });
 ### Complete Integration Test
 
 1. **Seed**: Add `<script src=".../remote.js?project=VisionLoop"></script>` to your app
-2. **Register Code**: Call `LogiGo.registerCode(yourFunctionCode)`
-3. **Bind Elements**: Call `LogiGo.bindElement('id', element)` for key elements
+2. **Register Code**: Call `LogicArt.registerCode(yourFunctionCode)`
+3. **Bind Elements**: Call `LogicArt.bindElement('id', element)` for key elements
 4. **Run Your App**: Trigger checkpoints by executing your function
 5. **Open Studio**: Click the badge or navigate to `/?session=SESSION_ID`
 6. **Verify Flowchart**: See your function visualized as a flowchart
@@ -11750,7 +11750,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 ### Visual Handshake Not Working
 - Check WebSocket connection in Network tab (filter: WS)
-- Verify element is bound with `LogiGo.bindElement()`
+- Verify element is bound with `LogicArt.bindElement()`
 - Look for "[Control Channel] WebSocket connected" in Studio console
 
 ### Studio Not Reconnecting
@@ -11769,41 +11769,41 @@ checkpoint('custom-step', { myVar: someValue });
 checkpoint(id, variables, options)
 
 // Alias for checkpoint
-LogiGo.checkpoint(id, variables, options)
+LogicArt.checkpoint(id, variables, options)
 
 // Register source code for flowchart visualization
-LogiGo.registerCode(codeString)
+LogicArt.registerCode(codeString)
 
 // Bind a DOM element to a checkpoint for Visual Handshake
-LogiGo.bindElement(checkpointId, domElement)
+LogicArt.bindElement(checkpointId, domElement)
 
 // Get current connection status
-LogiGo.connectionStatus() // 'connected' | 'reconnecting' | 'error'
+LogicArt.connectionStatus() // 'connected' | 'reconnecting' | 'error'
 
 // Manually open Studio
-LogiGo.openStudio()
+LogicArt.openStudio()
 
 // Force session renewal
-LogiGo.renewSession()
+LogicArt.renewSession()
 ```
 
 ### Session Properties
 
 ```javascript
-LogiGo.sessionId    // Current session UUID
-LogiGo.studioUrl    // URL to open Studio with this session
-LogiGo.viewUrl      // Alias for studioUrl
+LogicArt.sessionId    // Current session UUID
+LogicArt.studioUrl    // URL to open Studio with this session
+LogicArt.viewUrl      // Alias for studioUrl
 ```
 
 
 --- FILE: docs/REMOTE_SYNC_GUIDE.md ---
 # Remote Sync Guide: IDE Telepresence
-**Connect your local editor to LogiGo for real-time visual debugging.**
+**Connect your local editor to LogicArt for real-time visual debugging.**
 
 ---
 
 ## 🛰 The "Telepresence" Workflow
-Remote Sync (also known as "Remote Mode") allows you to stay in your favorite IDE (VS Code, Cursor) while LogiGo acts as a high-fidelity visual dashboard in the background.
+Remote Sync (also known as "Remote Mode") allows you to stay in your favorite IDE (VS Code, Cursor) while LogicArt acts as a high-fidelity visual dashboard in the background.
 
 ---
 
@@ -11811,22 +11811,22 @@ Remote Sync (also known as "Remote Mode") allows you to stay in your favorite ID
 
 Follow these steps to establish a live link:
 
-1.  **Open LogiGo Workbench**: Start the application on `localhost:5001`.
+1.  **Open LogicArt Workbench**: Start the application on `localhost:5001`.
 2.  **Toggle Remote Mode**: Click the **"Remote Mode"** toggle in the bottom-left sidebar.
 3.  **Copy the Bridge URL**: A unique Session URL will be generated.
 4.  **Configure IDE Extension**:
-    *   Open the LogiGo extension in VS Code.
+    *   Open the LogicArt extension in VS Code.
     *   Paste the Bridge URL into the "Remote Session" field.
     *   Click **"Sync"**.
 
 ---
 
 ## 👻 Ghost Projection
-Once connected, LogiGo begins "Projecting" your local state into the Workbench.
+Once connected, LogicArt begins "Projecting" your local state into the Workbench.
 
-*   **Real-time Logic Diff**: As you type code in VS Code, LogiGo instantly recalculates the flowchart structure.
+*   **Real-time Logic Diff**: As you type code in VS Code, LogicArt instantly recalculates the flowchart structure.
 *   **Zero-Friction Sync**: You don't need to copy-paste. The bridge handles "Hot Logic Updates" automatically.
-*   **Visual Logic Mapping**: Use the LogiGo flowchart as a map to navigate complex modules. Clicking a node in LogiGo will jump your IDE cursor to that exact line.
+*   **Visual Logic Mapping**: Use the LogicArt flowchart as a map to navigate complex modules. Clicking a node in LogicArt will jump your IDE cursor to that exact line.
 
 ---
 
@@ -11835,22 +11835,22 @@ This is the most advanced part of the Remote Sync trilogy.
 
 1.  **Set Breakpoints**: Set a breakpoint in your IDE (VS Code/Cursor).
 2.  **Trigger Execution**: Run your local app (e.g., `npm run dev`).
-3.  **Visual Handshake**: When the breakpoint is hit, the corresponding node in LogiGo will **glow red**.
-4.  **Variable Spying**: Inspect the LogiGo sidebar to see a visual timeline of variable changes that occurred *leading up* to that breakpoint.
+3.  **Visual Handshake**: When the breakpoint is hit, the corresponding node in LogicArt will **glow red**.
+4.  **Variable Spying**: Inspect the LogicArt sidebar to see a visual timeline of variable changes that occurred *leading up* to that breakpoint.
 
 ---
 
 ## 🔌 Technical Underpinnings
-*   **Bridge API**: LogiGo uses a dedicated bridge service (`/api/remote`) to pipe file-change events and runtime snapshots.
+*   **Bridge API**: LogicArt uses a dedicated bridge service (`/api/remote`) to pipe file-change events and runtime snapshots.
 *   **Latency**: Designed for sub-100ms updates on local loopback.
-*   **Security**: Each session has a unique `sessionId`. Logic is only shared between your IDE and your local LogiGo instance.
+*   **Security**: Each session has a unique `sessionId`. Logic is only shared between your IDE and your local LogicArt instance.
 
 ---
 **Code in your IDE. Visualise in the Studio. Master the flow.**
 
 
 --- FILE: docs/REPLIT_EXTENSION_SPEC.md ---
-# LogiGo Replit Extension Specification
+# LogicArt Replit Extension Specification
 
 **Version:** 1.0.0-draft  
 **For:** Antigravity Team  
@@ -11858,7 +11858,7 @@ This is the most advanced part of the Remote Sync trilogy.
 
 ## Overview
 
-This document specifies the requirements for building a Replit Extension that enables LogiGo Studio to work with any Replit project. The extension should parallel the existing VS Code implementation, using the same `logigo-core` runtime library and Reporter API.
+This document specifies the requirements for building a Replit Extension that enables LogicArt Studio to work with any Replit project. The extension should parallel the existing VS Code implementation, using the same `logicart-core` runtime library and Reporter API.
 
 ---
 
@@ -11869,9 +11869,9 @@ This document specifies the requirements for building a Replit Extension that en
 │                        User's Replit Project                     │
 │                                                                  │
 │  ┌──────────────┐     ┌─────────────────────────────────────┐   │
-│  │  User's Code │────▶│      LogiGo Replit Extension        │   │
+│  │  User's Code │────▶│      LogicArt Replit Extension        │   │
 │  │  (with       │     │  ┌─────────────────────────────┐    │   │
-│  │  checkpoints)│     │  │     logigo-core runtime     │    │   │
+│  │  checkpoints)│     │  │     logicart-core runtime     │    │   │
 │  └──────────────┘     │  │  - Checkpoint instrumentation│    │   │
 │                       │  │  - Reporter API broadcast    │    │   │
 │                       │  └─────────────────────────────┘    │   │
@@ -11881,7 +11881,7 @@ This document specifies the requirements for building a Replit Extension that en
 │                                      │ (Reporter API)           │
 │                                      ▼                          │
 │                       ┌─────────────────────────────────────┐   │
-│                       │       LogiGo Studio Webview         │   │
+│                       │       LogicArt Studio Webview         │   │
 │                       │  - Flowchart visualization          │   │
 │                       │  - AI-assisted code editing         │   │
 │                       │  - Runtime state display            │   │
@@ -11898,8 +11898,8 @@ The extension uses the existing Reporter API (v1.0.0-beta.2) for communication. 
 ### Message Envelope
 
 ```typescript
-interface LogiGoMessage<T = any> {
-  source: 'LOGIGO_CORE';
+interface LogicArtMessage<T = any> {
+  source: 'LOGICART_CORE';
   type: string;
   payload: T;
 }
@@ -11911,7 +11911,7 @@ interface LogiGoMessage<T = any> {
 Broadcast when the runtime initializes.
 
 ```typescript
-type: 'LOGIGO_SESSION_START'
+type: 'LOGICART_SESSION_START'
 payload: {
   sessionId: string;      // Unique session identifier
   startTime: number;      // Unix timestamp
@@ -11920,10 +11920,10 @@ payload: {
 ```
 
 #### 2. Checkpoint Event
-Broadcast when code execution hits a `LogiGo.checkpoint()` call.
+Broadcast when code execution hits a `LogicArt.checkpoint()` call.
 
 ```typescript
-type: 'LOGIGO_CHECKPOINT'
+type: 'LOGICART_CHECKPOINT'
 payload: {
   id: string;                         // Checkpoint identifier (e.g., "loop:iteration:5")
   timestamp: number;                  // Unix timestamp
@@ -11938,8 +11938,8 @@ payload: {
 
 ```javascript
 window.postMessage({
-  source: 'LOGIGO_CORE',
-  type: 'LOGIGO_CHECKPOINT',
+  source: 'LOGICART_CORE',
+  type: 'LOGICART_CHECKPOINT',
   payload: { /* ... */ }
 }, '*');
 ```
@@ -11954,8 +11954,8 @@ The extension should register with Replit's extension system:
 
 ```json
 {
-  "name": "logigo",
-  "displayName": "LogiGo Flowchart Debugger",
+  "name": "logicart",
+  "displayName": "LogicArt Flowchart Debugger",
   "description": "Visualize code as interactive flowcharts with AI-assisted editing",
   "version": "1.0.0",
   "permissions": [
@@ -11984,7 +11984,7 @@ window.replit.session.onActiveFileChange(callback): () => void
 
 ### Extension Responsibilities
 
-1. **Inject logigo-core runtime** into the user's preview/webview
+1. **Inject logicart-core runtime** into the user's preview/webview
 2. **Listen for Reporter API events** and forward to Studio
 3. **Handle file sync** between Studio edits and the actual files
 4. **Manage session lifecycle** (start, pause, resume, end)
@@ -11993,7 +11993,7 @@ window.replit.session.onActiveFileChange(callback): () => void
 
 ## Part 3: IDE Adapter Interface
 
-LogiGo Studio expects the extension to implement this interface (via message passing):
+LogicArt Studio expects the extension to implement this interface (via message passing):
 
 ```typescript
 interface IDEAdapter {
@@ -12042,7 +12042,7 @@ Beyond Reporter API events, the extension should send these control messages:
 ```typescript
 // When active file changes
 {
-  type: 'LOGIGO_FILE_CHANGED',
+  type: 'LOGICART_FILE_CHANGED',
   payload: {
     path: string;
     content: string;
@@ -12052,7 +12052,7 @@ Beyond Reporter API events, the extension should send these control messages:
 
 // When file is saved externally
 {
-  type: 'LOGIGO_FILE_SAVED',
+  type: 'LOGICART_FILE_SAVED',
   payload: {
     path: string;
     content: string;
@@ -12065,7 +12065,7 @@ Beyond Reporter API events, the extension should send these control messages:
 ```typescript
 // Extension ready
 {
-  type: 'LOGIGO_EXTENSION_READY',
+  type: 'LOGICART_EXTENSION_READY',
   payload: {
     version: string;
     capabilities: string[];  // ['editing', 'runtime', 'fileSync']
@@ -12074,7 +12074,7 @@ Beyond Reporter API events, the extension should send these control messages:
 
 // Runtime mode toggle
 {
-  type: 'LOGIGO_MODE_CHANGE',
+  type: 'LOGICART_MODE_CHANGE',
   payload: {
     mode: 'static' | 'live';
     reason?: string;
@@ -12086,18 +12086,18 @@ Beyond Reporter API events, the extension should send these control messages:
 
 ## Part 5: Studio-to-Extension Messages
 
-LogiGo Studio will send these commands to the extension:
+LogicArt Studio will send these commands to the extension:
 
 ```typescript
 // Request file content
 {
-  type: 'LOGIGO_REQUEST_FILE',
+  type: 'LOGICART_REQUEST_FILE',
   payload: { path?: string; }  // Optional, uses active file if omitted
 }
 
 // Write file changes (from AI rewrite or manual edit)
 {
-  type: 'LOGIGO_WRITE_FILE',
+  type: 'LOGICART_WRITE_FILE',
   payload: {
     path: string;
     content: string;
@@ -12106,7 +12106,7 @@ LogiGo Studio will send these commands to the extension:
 
 // Navigate to line in editor
 {
-  type: 'LOGIGO_NAVIGATE',
+  type: 'LOGICART_NAVIGATE',
   payload: {
     path: string;
     line: number;
@@ -12116,7 +12116,7 @@ LogiGo Studio will send these commands to the extension:
 
 // Highlight range in editor
 {
-  type: 'LOGIGO_HIGHLIGHT',
+  type: 'LOGICART_HIGHLIGHT',
   payload: {
     path: string;
     range: Range;
@@ -12130,16 +12130,16 @@ LogiGo Studio will send these commands to the extension:
 
 ### First-Time Setup
 
-1. User installs LogiGo extension from Replit Extensions
+1. User installs LogicArt extension from Replit Extensions
 2. Extension injects connection UI in sidebar
 3. User opens a JavaScript/TypeScript file
 4. Extension auto-parses and shows flowchart in Studio panel
 
 ### Live Debugging Flow
 
-1. User adds `LogiGo.checkpoint()` calls to their code
+1. User adds `LogicArt.checkpoint()` calls to their code
 2. User runs their application in Replit
-3. Extension injects logigo-core into the preview
+3. Extension injects logicart-core into the preview
 4. Runtime broadcasts checkpoint events via Reporter API
 5. Studio receives events and highlights corresponding flowchart nodes
 6. User can see variable state at each checkpoint
@@ -12151,7 +12151,7 @@ LogiGo Studio will send these commands to the extension:
 3. User types natural language instructions
 4. Studio calls AI endpoint to rewrite code
 5. User approves changes
-6. Studio sends `LOGIGO_WRITE_FILE` to extension
+6. Studio sends `LOGICART_WRITE_FILE` to extension
 7. Extension writes changes to file via Replit API
 
 ---
@@ -12167,11 +12167,11 @@ When a checkpoint includes a `domElement` selector, the extension should:
 
 CSS for highlight:
 ```css
-.logigo-visual-handshake {
+.logicart-visual-handshake {
   outline: 3px solid #22c55e !important;
   outline-offset: 2px;
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
-  animation: logigo-pulse 0.8s ease-in-out infinite;
+  animation: logicart-pulse 0.8s ease-in-out infinite;
 }
 ```
 
@@ -12199,7 +12199,7 @@ Before release, verify:
 - [ ] Static parsing works for JS/TS files
 - [ ] Double-click node opens edit dialog
 - [ ] AI rewrite saves changes to file
-- [ ] `LogiGo.checkpoint()` events reach Studio
+- [ ] `LogicArt.checkpoint()` events reach Studio
 - [ ] Visual Handshake highlights DOM elements
 - [ ] File changes sync bidirectionally
 - [ ] Extension handles missing/invalid files gracefully
@@ -12224,7 +12224,7 @@ Key files Antigravity should reference:
 
 ## Questions for Discussion
 
-1. Should the extension auto-inject logigo-core, or require users to add it manually?
+1. Should the extension auto-inject logicart-core, or require users to add it manually?
 2. How should we handle multi-file projects? Parse all files or just active file?
 3. Do we need offline/caching support for when Replit is slow?
 4. Should checkpoints persist across page reloads?
@@ -12233,11 +12233,11 @@ Key files Antigravity should reference:
 
 ## Contact
 
-For questions about this specification, reach out to the LogiGo Studio team.
+For questions about this specification, reach out to the LogicArt Studio team.
 
 
 --- FILE: docs/V1_FEATURE_COMPLETION_PLAN.md ---
-# LogiGo V1 Feature Completion Plan
+# LogicArt V1 Feature Completion Plan
 
 **Date:** December 26, 2025  
 **Goal:** Add all low-hanging fruit features before V1 launch  
@@ -12272,8 +12272,8 @@ Create REST endpoints for code analysis:
 // POST body: { code: string, language?: string }
 // Returns: GroundingContext (already implemented!)
 
-import { parseCodeToFlow } from '@logigo/bridge';
-import { generateGroundingContext } from '@logigo/core';
+import { parseCodeToFlow } from '@logicart/bridge';
+import { generateGroundingContext } from '@logicart/core';
 
 export async function analyzeCode(code: string) {
   const flowData = parseCodeToFlow(code);
@@ -12302,20 +12302,20 @@ app.post('/api/agent/analyze', async (req, res) => {
 ```
 
 #### Phase 2: CLI Tool (Day 2)
-**New package:** `packages/logigo-cli/`
+**New package:** `packages/logicart-cli/`
 
 ```bash
-npm install -g @logigo/cli
+npm install -g @logicart/cli
 
 # Usage
-logigo analyze src/auth.js
-logigo analyze src/auth.js --output json > analysis.json
-logigo analyze src/auth.js --format summary
+logicart analyze src/auth.js
+logicart analyze src/auth.js --output json > analysis.json
+logicart analyze src/auth.js --format summary
 ```
 
 **Implementation:**
 ```typescript
-// packages/logigo-cli/src/index.ts
+// packages/logicart-cli/src/index.ts
 import { Command } from 'commander';
 import fs from 'fs';
 import { analyzeCode } from './api-client';
@@ -12509,7 +12509,7 @@ const applyLayout = (preset: keyof typeof layoutPresets) => {
   setFlowchartPanelSize(flowchart);
   
   // Save to localStorage
-  localStorage.setItem('logigo-layout', preset);
+  localStorage.setItem('logicart-layout', preset);
 };
 
 // Add preset buttons to toolbar
@@ -12579,14 +12579,14 @@ export class HistoryManager {
   }
   
   save() {
-    localStorage.setItem('logigo-history', JSON.stringify({
+    localStorage.setItem('logicart-history', JSON.stringify({
       history: this.history,
       currentIndex: this.currentIndex
     }));
   }
   
   load() {
-    const saved = localStorage.getItem('logigo-history');
+    const saved = localStorage.getItem('logicart-history');
     if (saved) {
       const { history, currentIndex } = JSON.parse(saved);
       this.history = history;
@@ -12688,7 +12688,7 @@ app.post('/api/share', async (req, res) => {
   );
   
   res.json({ 
-    url: `https://logigo.replit.app/s/${id}`,
+    url: `https://logicart.replit.app/s/${id}`,
     id 
   });
 });
@@ -12800,10 +12800,10 @@ app.get('/s/:id', async (req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <meta property="og:title" content="${title || 'LogiGo Flowchart'}" />
+        <meta property="og:title" content="${title || 'LogicArt Flowchart'}" />
         <meta property="og:description" content="${description || 'Interactive code flowchart'}" />
-        <meta property="og:image" content="https://logigo.replit.app/og-image.png" />
-        <meta property="og:url" content="https://logigo.replit.app/s/${id}" />
+        <meta property="og:image" content="https://logicart.replit.app/og-image.png" />
+        <meta property="og:url" content="https://logicart.replit.app/s/${id}" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta http-equiv="refresh" content="0; url=/?code=..." />
       </head>
@@ -12837,7 +12837,7 @@ app.get('/s/:id', async (req, res) => {
 Each feature must meet these criteria before shipping:
 
 1. ✅ **Replit Agent API**
-   - CLI tool works: `logigo analyze file.js`
+   - CLI tool works: `logicart analyze file.js`
    - API returns valid GroundingContext
    - Documentation with examples
 
@@ -12905,7 +12905,7 @@ Before V1 launch, verify:
 
 
 --- FILE: docs/V1_READINESS_AND_V2_ROADMAP.md ---
-# LogiGo V1 Release Readiness & V2 Roadmap
+# LogicArt V1 Release Readiness & V2 Roadmap
 
 **Date:** December 26, 2025  
 **Prepared by:** Antigravity  
@@ -12915,7 +12915,7 @@ Before V1 launch, verify:
 
 ## V1 Release Status: **READY FOR LAUNCH** 🚀
 
-LogiGo has achieved **feature completeness** for a V1 release. The core value proposition is fully implemented:
+LogicArt has achieved **feature completeness** for a V1 release. The core value proposition is fully implemented:
 
 ### ✅ Core Features (All Implemented)
 - Static Mode (paste code → instant flowchart)
@@ -12923,7 +12923,7 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 - Remote Mode (cross-app debugging via SSE/WebSocket)
 - DOM Visual Handshake (click node → highlight element)
 - Collapsible containers with hierarchical views
-- User labels (`// @logigo:` annotations)
+- User labels (`// @logicart:` annotations)
 - Export (PNG/PDF/Code)
 - Model Arena (4-AI comparison)
 - VS Code Extension (full integration)
@@ -12961,12 +12961,12 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 **Status:** ❌ NOT IMPLEMENTED (docs exist, no API)
 
 **What it is:**
-- CLI/API for Replit Agent to call LogiGo programmatically
-- Agent uses LogiGo to understand code before modifying
+- CLI/API for Replit Agent to call LogicArt programmatically
+- Agent uses LogicArt to understand code before modifying
 - Visual test planning and debug visualization
 
 **Why it's valuable:**
-- Makes LogiGo part of the AI coding workflow
+- Makes LogicArt part of the AI coding workflow
 - Agent can "see" code structure before editing
 - Reduces AI hallucinations by grounding in flowcharts
 
@@ -12980,7 +12980,7 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 **Quick Win:** Start with read-only API:
 ```bash
 # Agent calls this before modifying code
-logigo analyze src/auth.js --output json
+logicart analyze src/auth.js --output json
 # Returns: { nodes: [...], complexity: 12, entryPoints: [...] }
 ```
 
@@ -13139,11 +13139,11 @@ These are **implemented features** that are missing from documentation:
 ## V2 Roadmap Recommendation
 
 ### Phase 1: AI Integration (Q1 2026)
-**Goal:** Make LogiGo essential for AI coding workflows
+**Goal:** Make LogicArt essential for AI coding workflows
 
 1. **Replit Agent API** ⭐⭐⭐
    - Read-only API for code analysis
-   - CLI tool: `logigo analyze <file>`
+   - CLI tool: `logicart analyze <file>`
    - Agent prompt templates
 
 2. **Model Arena File Selection** ⭐⭐
@@ -13151,7 +13151,7 @@ These are **implemented features** that are missing from documentation:
    - AI code discovery
    - Context-aware generation
 
-**Impact:** Positions LogiGo as "AI coding assistant's eyes"
+**Impact:** Positions LogicArt as "AI coding assistant's eyes"
 
 ---
 
@@ -13168,7 +13168,7 @@ These are **implemented features** that are missing from documentation:
    - Short URLs
    - Open Graph previews
 
-**Impact:** Differentiates LogiGo from competitors
+**Impact:** Differentiates LogicArt from competitors
 
 ---
 
@@ -13225,7 +13225,7 @@ These are **implemented features** that are missing from documentation:
 ### For V1 Launch (Now)
 **Ship it!** 🚀
 
-LogiGo is feature-complete for V1. The only blockers are:
+LogicArt is feature-complete for V1. The only blockers are:
 1. Update documentation (Model Arena, BYOK, Bidirectional Editing)
 2. Test installation guides
 3. Fix any critical bugs
@@ -13275,19 +13275,19 @@ Track these to validate V1 and inform V2:
 
 
 --- FILE: docs/VIBE_CODER_GUIDE.md ---
-# LogiGo Remote Mode - Vibe Coder's Guide
+# LogicArt Remote Mode - Vibe Coder's Guide
 
-Connect LogiGo to any external app **without writing code yourself**. Just two simple steps!
+Connect LogicArt to any external app **without writing code yourself**. Just two simple steps!
 
 ## Step 1: Add the Script Tag
 
 Add this single line to your app's `index.html` file, inside the `<head>` section:
 
 ```html
-<script src="YOUR_LOGIGO_URL/remote.js?project=MyApp"></script>
+<script src="YOUR_LOGICART_URL/remote.js?project=MyApp"></script>
 ```
 
-Replace `YOUR_LOGIGO_URL` with your LogiGo app's URL (you can find this in the browser address bar when viewing LogiGo).
+Replace `YOUR_LOGICART_URL` with your LogicArt app's URL (you can find this in the browser address bar when viewing LogicArt).
 
 **Example:** Complete HTML file
 ```html
@@ -13298,8 +13298,8 @@ Replace `YOUR_LOGIGO_URL` with your LogiGo app's URL (you can find this in the b
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My App</title>
   
-  <!-- Add LogiGo Remote Mode Script -->
-  <script src="https://your-logigo-app.replit.dev/remote.js?project=MyApp"></script>
+  <!-- Add LogicArt Remote Mode Script -->
+  <script src="https://your-logicart-app.replit.dev/remote.js?project=MyApp"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -13310,7 +13310,7 @@ Replace `YOUR_LOGIGO_URL` with your LogiGo app's URL (you can find this in the b
 </html>
 ```
 
-When your app loads, you'll see a **"View in LogiGo"** badge in the bottom-right corner. Click it to open your flowchart!
+When your app loads, you'll see a **"View in LogicArt"** badge in the bottom-right corner. Click it to open your flowchart!
 
 ---
 
@@ -13319,13 +13319,13 @@ When your app loads, you'll see a **"View in LogiGo"** badge in the bottom-right
 Copy this prompt and paste it into your app's AI agent (like Replit Agent):
 
 ```
-Add LogiGo checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
+Add LogicArt checkpoint() calls to track execution in my FRONTEND code only. The checkpoint() function is globally available (no import needed).
 
 IMPORTANT: Only add checkpoints to frontend/client-side JavaScript files (React components, client utilities, etc). Do NOT add to backend/server files - the checkpoint function only works in the browser.
 
 After adding checkpoints, ALSO register the code for flowchart visualization. Add this call somewhere in the frontend code that runs on page load:
 
-LogiGo.registerCode(`
+LogicArt.registerCode(`
 // Paste the main function or component with checkpoints here
 function myMainFunction() {
   checkpoint('start', {});
@@ -13349,14 +13349,14 @@ function handleUpload(file) {
 
 Your AI agent will:
 1. Add checkpoint calls to your frontend code
-2. Register the code with LogiGo so you can see the flowchart
+2. Register the code with LogicArt so you can see the flowchart
 
 ---
 
 ## Step 3: View Your Flowchart
 
 1. Run your app
-2. Click the **"View in LogiGo"** badge in the bottom-right corner
+2. Click the **"View in LogicArt"** badge in the bottom-right corner
 3. You'll see two tabs:
    - **Flowchart** - Visual representation of your code with nodes lighting up as checkpoints fire
    - **Trace** - List of checkpoints in order they were called
@@ -13379,44 +13379,44 @@ Just copy, paste, and let your AI agent do the work!
 **Badge doesn't appear?**
 - Make sure the script tag is in the `<head>` section
 - Check your browser console for any errors
-- Make sure LogiGo is running
+- Make sure LogicArt is running
 
 **Only seeing Trace, no Flowchart tab?**
-- The AI agent needs to call `LogiGo.registerCode()` with the code
-- Ask your agent: "Register the instrumented code with LogiGo using LogiGo.registerCode()"
+- The AI agent needs to call `LogicArt.registerCode()` with the code
+- Ask your agent: "Register the instrumented code with LogicArt using LogicArt.registerCode()"
 
 **Checkpoints not showing?**
 - Make sure your AI agent added checkpoints to **frontend** code only (not backend/server files)
 - Interact with your app to trigger the code that has checkpoints
-- Check that you're viewing the correct session in LogiGo
+- Check that you're viewing the correct session in LogicArt
 
 **Agent added checkpoints to backend code?**
 - Ask the agent to remove them from server files
 - The `checkpoint()` function only works in the browser, not on the server
 
 **Need help?**
-Click the help button (?) in LogiGo's header for more documentation.
+Click the help button (?) in LogicArt's header for more documentation.
 
 
 --- FILE: docs/VSCODE_COMPATIBILITY_SUMMARY.md ---
-# LogiGo VS Code / Antigravity Compatibility Summary
+# LogicArt VS Code / Antigravity Compatibility Summary
 
 ## Status: EXTENSION COMPLETE ✅
 
-The VS Code extension has been **fully developed** and is located at `vscode-extension/`. A pre-built `.vsix` file (`logigo-1.0.0.vsix`) is ready for distribution.
+The VS Code extension has been **fully developed** and is located at `vscode-extension/`. A pre-built `.vsix` file (`logicart-1.0.0.vsix`) is ready for distribution.
 
 ## Purpose
-This document summarizes the technical architecture of LogiGo and identifies which features are platform-specific vs platform-agnostic.
+This document summarizes the technical architecture of LogicArt and identifies which features are platform-specific vs platform-agnostic.
 
 ---
 
 ## Architecture Overview
 
-LogiGo uses a **pluggable adapter pattern** to support multiple IDEs:
+LogicArt uses a **pluggable adapter pattern** to support multiple IDEs:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    LogiGo Core                          │
+│                    LogicArt Core                          │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
 │  │   Parser    │  │  Renderer   │  │  Interpreter    │  │
 │  │  (Acorn)    │  │ (ReactFlow) │  │  (Step Engine)  │  │
@@ -13506,7 +13506,7 @@ These work identically across all platforms:
 - **Fullscreen/Presentation Modes**: CSS + React state
 
 ### Comment Labels
-- **`// @logigo:` comments**: Parsed from source code, works everywhere
+- **`// @logicart:` comments**: Parsed from source code, works everywhere
 
 ---
 
@@ -13516,7 +13516,7 @@ These work identically across all platforms:
 
 ```
 ┌──────────────────┐     HTTP/SSE      ┌──────────────────┐
-│  External App    │ ───────────────▶  │  LogiGo Server   │
+│  External App    │ ───────────────▶  │  LogicArt Server   │
 │  (Any Platform)  │                   │  (Replit-hosted) │
 └──────────────────┘                   └────────┬─────────┘
                                                 │
@@ -13528,7 +13528,7 @@ These work identically across all platforms:
 
 ### Options for VS Code
 
-1. **Use Published LogiGo URL**: VS Code users can send checkpoints to the published Replit app and view in browser
+1. **Use Published LogicArt URL**: VS Code users can send checkpoints to the published Replit app and view in browser
 2. **Local Server Mode**: Bundle a lightweight Express server with the VS Code extension
 3. **Direct Integration**: Skip Remote Mode entirely, use VS Code's built-in debugging APIs
 
@@ -13652,10 +13652,10 @@ export class VSCodeAdapter implements IDEAdapter {
 
 | Package | Purpose | Platform |
 |---------|---------|----------|
-| `logigo-embed` | Embeddable React component | Any React app |
-| `logigo-remote` | HTTP client for Remote Mode | Any JavaScript runtime |
-| `logigo-core` | Runtime overlay + checkpoint API | Browser-based apps |
-| `@logigo/bridge` | Shared parser + types | All platforms |
+| `logicart-embed` | Embeddable React component | Any React app |
+| `logicart-remote` | HTTP client for Remote Mode | Any JavaScript runtime |
+| `logicart-core` | Runtime overlay + checkpoint API | Browser-based apps |
+| `@logicart/bridge` | Shared parser + types | All platforms |
 
 ---
 
@@ -13664,12 +13664,12 @@ export class VSCodeAdapter implements IDEAdapter {
 1. **Confirm Extension Status**: Get update from Antigravity on VS Code extension progress
 2. **Share This Document**: Review architecture decisions together
 3. **Prioritize Features**: Decide which features need VS Code parity first
-4. **Integration Testing**: Test logigo-remote from a VS Code terminal app
+4. **Integration Testing**: Test logicart-remote from a VS Code terminal app
 
 ---
 
 *Document prepared: December 2024*
-*Contact: LogiGo Development Team*
+*Contact: LogicArt Development Team*
 
 
 ========================================
@@ -13677,21 +13677,21 @@ export class VSCodeAdapter implements IDEAdapter {
 ========================================
 
 --- FILE: README.md ---
-# LogiGo Studio
+# LogicArt Studio
 
 **Transform JavaScript into Interactive Flowcharts**
 
-> 💡 **The LogiGo Promise**: Paste code → See flowchart → Step through execution  
+> 💡 **The LogicArt Promise**: Paste code → See flowchart → Step through execution  
 > No configuration. No setup. Just instant visual understanding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/JPaulGrayson/LogiGo/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/JPaulGrayson/LogicArt/releases)
 
 ---
 
-## 🎯 What is LogiGo?
+## 🎯 What is LogicArt?
 
-LogiGo is a **code-to-flowchart visualization tool** designed for visual learners and "Vibe Coders" who understand code better when they can see it in action.
+LogicArt is a **code-to-flowchart visualization tool** designed for visual learners and "Vibe Coders" who understand code better when they can see it in action.
 
 **Key Features:**
 - 🎨 **Instant Visualization** - Paste JavaScript, see flowchart immediately
@@ -13705,9 +13705,9 @@ LogiGo is a **code-to-flowchart visualization tool** designed for visual learner
 
 ## 🚀 Quick Start (30 Seconds)
 
-### Option 1: Use LogiGo Studio (No Installation)
+### Option 1: Use LogicArt Studio (No Installation)
 
-1. **Open** [LogiGo Studio](https://logigo.studio) *(or your deployed URL)*
+1. **Open** [LogicArt Studio](https://logicart.studio) *(or your deployed URL)*
 2. **Paste** any JavaScript function into the editor
 3. **Watch** the flowchart appear automatically
 4. **Press** `Space` to step through execution
@@ -13716,7 +13716,7 @@ LogiGo is a **code-to-flowchart visualization tool** designed for visual learner
 
 ### Option 2: Try an Example
 
-Click the **EXAMPLES** dropdown in LogiGo Studio and select:
+Click the **EXAMPLES** dropdown in LogicArt Studio and select:
 - **Bubble Sort** - See sorting algorithms visualized
 - **Fibonacci** - Understand recursion visually
 - **Tic-Tac-Toe** - Explore game logic step-by-step
@@ -13728,7 +13728,7 @@ Click the **EXAMPLES** dropdown in LogiGo Studio and select:
 | Guide | Description | Best For |
 |-------|-------------|----------|
 | **[Getting Started](docs/GETTING_STARTED.md)** | Quick start, keyboard shortcuts, basic features | First-time users |
-| **[Installation Guide](docs/INSTALLATION_GUIDE.md)** | Add LogiGo to your projects (Replit, VS Code, etc.) | Developers integrating LogiGo |
+| **[Installation Guide](docs/INSTALLATION_GUIDE.md)** | Add LogicArt to your projects (Replit, VS Code, etc.) | Developers integrating LogicArt |
 | **[API Reference](docs/API_REFERENCE.md)** | Complete API for packages and checkpoints | Advanced users |
 
 ---
@@ -13739,19 +13739,19 @@ Click the **EXAMPLES** dropdown in LogiGo Studio and select:
 START HERE: What do you want to do?
 │
 ├─ 📖 Just visualize code to understand it
-│  └─ ✅ Use LogiGo Studio (paste code, no installation)
+│  └─ ✅ Use LogicArt Studio (paste code, no installation)
 │
 ├─ 🔧 Add flowcharts to my React app
-│  └─ ✅ Install logigo-embed package
+│  └─ ✅ Install logicart-embed package
 │
 ├─ 🏗️ Auto-instrument my Vite project
-│  └─ ✅ Install logigo-vite-plugin
+│  └─ ✅ Install logicart-vite-plugin
 │
 ├─ 🐛 Debug my Node.js/Express server
 │  └─ ✅ Add checkpoint helper (no package needed)
 │
 └─ 🎯 Fine-grained control over checkpoints
-   └─ ✅ Install logigo-core and add manual checkpoints
+   └─ ✅ Install logicart-core and add manual checkpoints
 ```
 
 **Still not sure?** See the [Installation Guide](docs/INSTALLATION_GUIDE.md) for detailed decision tree.
@@ -13762,9 +13762,9 @@ START HERE: What do you want to do?
 
 | Package | Purpose | Install |
 |---------|---------|---------|
-| **logigo-core** | Runtime library for checkpoint debugging | `npm install logigo-core` |
-| **logigo-embed** | React component for flowchart visualization | `npm install logigo-embed` |
-| **logigo-vite-plugin** | Vite plugin for build-time instrumentation | `npm install logigo-vite-plugin --save-dev` |
+| **logicart-core** | Runtime library for checkpoint debugging | `npm install logicart-core` |
+| **logicart-embed** | React component for flowchart visualization | `npm install logicart-embed` |
+| **logicart-vite-plugin** | Vite plugin for build-time instrumentation | `npm install logicart-vite-plugin --save-dev` |
 
 ---
 
@@ -13772,7 +13772,7 @@ START HERE: What do you want to do?
 
 ### Static Mode (No Installation)
 ```javascript
-// Just paste this into LogiGo Studio
+// Just paste this into LogicArt Studio
 function factorial(n) {
   if (n <= 1) return 1;
   return n * factorial(n - 1);
@@ -13781,11 +13781,11 @@ function factorial(n) {
 
 ### React Embed Component
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -13802,28 +13802,28 @@ function App() {
     }
   `;
   
-  return <LogiGoEmbed code={code} theme="dark" />;
+  return <LogicArtEmbed code={code} theme="dark" />;
 }
 ```
 
 ### Vite Plugin (Auto-Instrumentation)
 ```bash
-npm install logigo-vite-plugin --save-dev
-npm install logigo-embed
+npm install logicart-vite-plugin --save-dev
+npm install logicart-embed
 ```
 
 ```javascript
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
-      manifestPath: 'logigo-manifest.json'
+      manifestPath: 'logicart-manifest.json'
     })
   ]
 });
@@ -13832,25 +13832,25 @@ export default defineConfig({
 ### Backend Logging (Node.js/Express)
 ```javascript
 // Add this helper to your server file (no npm package needed)
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 
 // Use in your routes
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: { body: req.body } });
+  LogicArt.checkpoint('order:start', { variables: { body: req.body } });
   
   const order = await processOrder(req.body);
   
-  LogiGo.checkpoint('order:complete', { variables: { orderId: order.id } });
+  LogicArt.checkpoint('order:complete', { variables: { orderId: order.id } });
   res.json(order);
 });
 ```
 
-**💡 Tip:** Paste your server code into LogiGo Studio to see the flowchart, then correlate with console logs.
+**💡 Tip:** Paste your server code into LogicArt Studio to see the flowchart, then correlate with console logs.
 
 ---
 
@@ -13870,19 +13870,19 @@ app.post('/api/order', async (req, res) => {
 
 ## 🎨 User Labels
 
-Add human-readable labels to flowchart nodes with `// @logigo:` comments:
+Add human-readable labels to flowchart nodes with `// @logicart:` comments:
 
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if array is empty
+// @logicart: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return early with zero
+  // @logicart: Return early with zero
   return 0;
 }
 
-// @logigo: Sum all items
+// @logicart: Sum all items
 for (const item of items) {
   count += item.value;
 }
@@ -13897,7 +13897,7 @@ for (const item of items) {
 
 Get code generation help from **4 AI models simultaneously**:
 
-1. Click **Model Arena** in LogiGo Studio
+1. Click **Model Arena** in LogicArt Studio
 2. Describe what you want to build
 3. See responses from:
    - **GPT-4o** (OpenAI)
@@ -13912,7 +13912,7 @@ Get code generation help from **4 AI models simultaneously**:
 
 ## 🔗 Sharing Flowcharts
 
-1. Click **Share** button in LogiGo Studio
+1. Click **Share** button in LogicArt Studio
 2. Add optional title and description
 3. Copy the generated URL
 4. Recipients see your flowchart with full interactivity
@@ -13928,7 +13928,7 @@ Get code generation help from **4 AI models simultaneously**:
 ## 🏗️ Architecture
 
 ```
-LogiGo Studio
+LogicArt Studio
 ├── client/                 # React frontend
 │   ├── src/pages/         # Workbench, Model Arena
 │   ├── src/components/    # IDE, Flowchart, Debug Panel
@@ -13938,9 +13938,9 @@ LogiGo Studio
 │   ├── storage.ts         # Database interface
 │   └── mcp.ts             # MCP server for AI agents
 ├── packages/
-│   ├── logigo-core/       # Runtime library
-│   ├── logigo-embed/      # React component
-│   └── logigo-vite-plugin/# Vite build plugin
+│   ├── logicart-core/       # Runtime library
+│   ├── logicart-embed/      # React component
+│   └── logicart-vite-plugin/# Vite build plugin
 └── shared/
     └── schema.ts          # Drizzle ORM schema
 ```
@@ -13951,8 +13951,8 @@ LogiGo Studio
 
 ```bash
 # Clone the repository
-git clone https://github.com/JPaulGrayson/LogiGo.git
-cd LogiGo
+git clone https://github.com/JPaulGrayson/LogicArt.git
+cd LogicArt
 
 # Install dependencies
 npm install
@@ -13971,16 +13971,16 @@ npm run db:push
 
 ```bash
 # Build all packages
-cd packages/logigo-core && npm run build
-cd packages/logigo-embed && npm run build
-cd packages/logigo-vite-plugin && npm run build
+cd packages/logicart-core && npm run build
+cd packages/logicart-embed && npm run build
+cd packages/logicart-vite-plugin && npm run build
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### "Module not found: logigo-embed"
+### "Module not found: logicart-embed"
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -13988,14 +13988,14 @@ npm install
 ```
 
 ### Flowchart shows "Syntax Error"
-- LogiGo uses Acorn parser (ECMAScript 2020)
+- LogicArt uses Acorn parser (ECMAScript 2020)
 - Ensure code is valid JavaScript
 - TypeScript-specific syntax may cause errors
 
 ### No variable tracking in Live Mode
 - Verify Vite plugin is configured: `captureVariables: true` (default)
-- Check that `logigo-manifest.json` is being generated
-- Ensure `LogiGoEmbed` has `showVariables={true}`
+- Check that `logicart-manifest.json` is being generated
+- Ensure `LogicArtEmbed` has `showVariables={true}`
 
 ### CSS not loading
 ```javascript
@@ -14011,9 +14011,9 @@ import '@xyflow/react/dist/style.css';
 
 | Package | Version | React | Vite | Node |
 |---------|---------|-------|------|------|
-| logigo-core | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-embed | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-vite-plugin | 1.0.0 | - | 4+ | 16+ |
+| logicart-core | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-embed | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-vite-plugin | 1.0.0 | - | 4+ | 16+ |
 
 **Supported Browsers:**
 - Chrome/Edge 90+
@@ -14027,7 +14027,7 @@ import '@xyflow/react/dist/style.css';
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Tutorials and examples
 - **[Installation Guide](docs/INSTALLATION_GUIDE.md)** - Platform-specific setup
 - **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Issues](https://github.com/JPaulGrayson/LogiGo/issues)** - Report bugs or request features
+- **[GitHub Issues](https://github.com/JPaulGrayson/LogicArt/issues)** - Report bugs or request features
 
 ---
 
@@ -14049,14 +14049,14 @@ Built with:
 
 **Made with ❤️ for Vibe Coders who learn by seeing**
 
-[⭐ Star on GitHub](https://github.com/JPaulGrayson/LogiGo) | [📖 Documentation](docs/GETTING_STARTED.md) | [🐛 Report Bug](https://github.com/JPaulGrayson/LogiGo/issues)
+[⭐ Star on GitHub](https://github.com/JPaulGrayson/LogicArt) | [📖 Documentation](docs/GETTING_STARTED.md) | [🐛 Report Bug](https://github.com/JPaulGrayson/LogicArt/issues)
 
 
 --- FILE: replit.md ---
-# LogiGo - Code-to-Flowchart Visualization Tool
+# LogicArt - Code-to-Flowchart Visualization Tool
 
 ## Overview
-LogiGo is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
+LogicArt is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -14067,7 +14067,7 @@ Preferred communication style: Simple, everyday language.
 The frontend employs a workbench-style IDE with a 2-panel, flowchart-first layout. It features a "Technical, Clean, Blueprint-like" aesthetic, dark mode, blue accent, JetBrains Mono font for code, and Inter for UI. Resizable panels are used for flexible workspace configuration, with layout presets (50/50, 30/70, Flow Only) and hierarchical navigation via breadcrumbs and zoom presets.
 
 ### Technical Implementations
-LogiGo is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Core libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui.
+LogicArt is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Core libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui.
 The system supports a three-tier hybrid model:
 - **Static Mode**: Instant flowchart generation from pasted code via Acorn parsing.
 - **Live Mode**: Runtime overlay showing execution data from instrumented code.
@@ -14077,7 +14077,7 @@ Parsing and interpretation involve Acorn for AST analysis, converting JavaScript
 
 Cross-Replit Communication (Remote Mode) enables external Replit apps to send checkpoint data for real-time visualization via SSE and a WebSocket control channel for bidirectional debugging (remote breakpoints, pause/resume/step).
 
-The `logigo-embed` package offers an embeddable React component for visualization, while `logigo-vite-plugin` provides build-time instrumentation for Live Mode. The `logigo-core` NPM package is a standalone runtime library for manual checkpoint instrumentation.
+The `logicart-embed` package offers an embeddable React component for visualization, while `logicart-vite-plugin` provides build-time instrumentation for Live Mode. The `logicart-core` NPM package is a standalone runtime library for manual checkpoint instrumentation.
 
 The application features Zero-Code Auto-Discovery for automatic scanning and instrumentation of global functions from `<script>` tags, and a Zero-Code Reverse Proxy for instrumenting any web application.
 
@@ -14089,7 +14089,7 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 - **Undo/Redo**: HistoryManager singleton with keyboard shortcuts (Ctrl+Z/Ctrl+Y) and toolbar buttons.
 - **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
 - **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
-- **MCP Server (Model Context Protocol)**: Exposes LogiGo's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
+- **MCP Server (Model Context Protocol)**: Exposes LogicArt's code analysis capabilities to AI agents via the MCP standard, offering tools like `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, and `count_paths`.
 - **Voyai Authentication**: JWT-based authentication via Voyai (voyai.org). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence. Feature flags supported: `history_database`, `rabbit_hole_rescue`, `github_sync`, `managed_allowance`.
 - **Managed AI Proxy**: Pro users with `managed_allowance` feature get server-side API key access for AI models (OpenAI, Gemini, Anthropic, xAI). Usage tracked per-user with monthly auto-reset. Endpoints: `GET /api/ai/usage` (current usage), `POST /api/ai/proxy` (proxied AI calls). Credit Meter UI shows "X/Y" format with remaining credits tooltip. Returns 402 when quota exhausted.
 - **Demo Mode**: Allows users to preview all Pro features without signing in. Toggle via "Try Demo" button in header. Simulates founder-tier user with all features enabled (history_database, rabbit_hole_rescue, github_sync, managed_allowance: 100). Persists across page reloads via localStorage. Exits cleanly and restores any existing Voyai session.
@@ -14138,7 +14138,7 @@ Advanced features include Ghost Diff for visualizing code changes, Hierarchical 
 --- FILE: CHANGELOG.md ---
 # Changelog
 
-All notable changes to LogiGo will be documented in this file.
+All notable changes to LogicArt will be documented in this file.
 
 ## [1.0.0] - 2025-01-01
 
@@ -14192,21 +14192,21 @@ All notable changes to LogiGo will be documented in this file.
 
 ---
 
-[1.0.0]: https://github.com/JPaulGrayson/LogiGo/releases/tag/v1.0.0
+[1.0.0]: https://github.com/JPaulGrayson/LogicArt/releases/tag/v1.0.0
 
 
 ========================================
 === HTML HELP/DEMO FILES ===
 ========================================
 
---- FILE: public/logigo-demo.html ---
+--- FILE: public/logicart-demo.html ---
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Complete Integration Demo</title>
+    <title>LogicArt - Complete Integration Demo</title>
     <style>
         * {
             margin: 0;
@@ -14474,7 +14474,7 @@ All notable changes to LogiGo will be documented in this file.
 
 <body>
     <div class="container">
-        <h1>🚀 LogiGo Complete Integration</h1>
+        <h1>🚀 LogicArt Complete Integration</h1>
         <p class="subtitle">
             All 3 Features: Overlay + Speed Governor + Ghost Diff
             <span class="feature-badge">Phase 1</span>
@@ -14486,7 +14486,7 @@ All notable changes to LogiGo will be documented in this file.
             <h3>🎮 How to Use This Demo</h3>
             <ol>
                 <li><strong>Run Code:</strong> Click "Execute Code" to run the current version</li>
-                <li><strong>Control Speed:</strong> Use the LogiGo overlay (bottom-right) to adjust speed, pause, or
+                <li><strong>Control Speed:</strong> Use the LogicArt overlay (bottom-right) to adjust speed, pause, or
                     step</li>
                 <li><strong>Simulate AI Change:</strong> Click "Simulate AI Refactor" to see Ghost Diff in action</li>
                 <li><strong>Compare:</strong> Watch the flowchart update with color-coded changes (Green=New,
@@ -14547,27 +14547,27 @@ All notable changes to LogiGo will be documented in this file.
         </div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="/src/runtime.js"></script>
     <script src="/src/overlay.js"></script>
     <script src="/src/parser.js"></script>
     <script src="/src/differ.js"></script>
 
-    <!-- Initialize LogiGo -->
+    <!-- Initialize LogicArt -->
     <script>
-        const logigo = new LogiGoOverlay({
+        const logicart = new LogicArtOverlay({
             speed: 1.0,
             debug: true,
             position: 'bottom-right'
         }).init();
 
-        console.log('✅ LogiGo Complete Integration Ready!');
+        console.log('✅ LogicArt Complete Integration Ready!');
     </script>
 
     <!-- Demo Logic -->
     <script>
-        const parser = new LogiGoParser({ debug: false });
-        const differ = new LogiGoDiffer({ debug: false });
+        const parser = new LogicArtParser({ debug: false });
+        const differ = new LogicArtDiffer({ debug: false });
 
         let currentCode = `function processItems(items) {
   let total = 0;
@@ -14607,7 +14607,7 @@ All notable changes to LogiGo will be documented in this file.
                 // Original version - loop with checkpoints
                 let total = 0;
                 for (let i = 0; i < items.length; i++) {
-                    await LogiGo.checkpoint(`loop_iteration_${i}`);
+                    await LogicArt.checkpoint(`loop_iteration_${i}`);
                     checkpoints++;
                     total = total + items[i].value;
 
@@ -14623,7 +14623,7 @@ All notable changes to LogiGo will be documented in this file.
                 output.appendChild(result);
             } else {
                 // Refactored version - single reduce
-                await LogiGo.checkpoint('reduce_operation');
+                await LogicArt.checkpoint('reduce_operation');
                 checkpoints++;
                 const total = items.reduce((sum, item) => sum + item.value, 0);
 
@@ -14721,8 +14721,8 @@ All notable changes to LogiGo will be documented in this file.
 
         // Update speed display
         setInterval(() => {
-            if (logigo.executionController) {
-                const state = logigo.executionController.getState();
+            if (logicart.executionController) {
+                const state = logicart.executionController.getState();
                 document.getElementById('stat-speed').textContent = `${state.currentSpeed.toFixed(1)}x`;
             }
         }, 500);
@@ -14731,13 +14731,13 @@ All notable changes to LogiGo will be documented in this file.
 
 </html>
 
---- FILE: public/test-logigo.html ---
+--- FILE: public/test-logicart.html ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Runtime Test</title>
+    <title>LogicArt Runtime Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -14792,8 +14792,8 @@ All notable changes to LogiGo will be documented in this file.
 </head>
 <body>
     <div class="container">
-        <h1>🎯 LogiGo Runtime Test</h1>
-        <p>This demo tests the LogiGo runtime overlay and checkpoint system.</p>
+        <h1>🎯 LogicArt Runtime Test</h1>
+        <p>This demo tests the LogicArt runtime overlay and checkpoint system.</p>
         
         <div style="margin: 24px 0;">
             <button onclick="runDemo()">▶ Run Demo Code</button>
@@ -14818,7 +14818,7 @@ All notable changes to LogiGo will be documented in this file.
             }
         }
 
-        class LogiGoOverlay {
+        class LogicArtOverlay {
             constructor(options = {}) {
                 this.executionController = new ExecutionController(options);
                 this.options = options;
@@ -14826,10 +14826,10 @@ All notable changes to LogiGo will be documented in this file.
 
             init() {
                 this.createOverlay();
-                window.LogiGo = {
+                window.LogicArt = {
                     checkpoint: this.executionController.checkpoint.bind(this.executionController)
                 };
-                console.log('✅ LogiGo initialized');
+                console.log('✅ LogicArt initialized');
                 return this;
             }
 
@@ -14849,7 +14849,7 @@ All notable changes to LogiGo will be documented in this file.
                     min-width: 200px;
                 `;
                 overlay.innerHTML = `
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">LogiGo Runtime</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">LogicArt Runtime</div>
                     <div style="font-size: 12px; opacity: 0.9;">Speed: ${this.executionController.currentSpeed}x</div>
                     <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">Status: Active ✓</div>
                 `;
@@ -14857,8 +14857,8 @@ All notable changes to LogiGo will be documented in this file.
             }
         }
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({ speed: 1.5 }).init();
+        // Initialize LogicArt
+        const logicart = new LogicArtOverlay({ speed: 1.5 }).init();
 
         // Demo function with checkpoints
         async function runDemo() {
@@ -14873,20 +14873,20 @@ All notable changes to LogiGo will be documented in this file.
             }
 
             log('Starting execution...');
-            await LogiGo.checkpoint('start');
+            await LogicArt.checkpoint('start');
 
             const items = [10, 20, 30, 40, 50];
             log(`Processing ${items.length} items...`);
-            await LogiGo.checkpoint('init-loop');
+            await LogicArt.checkpoint('init-loop');
 
             let sum = 0;
             for (let i = 0; i < items.length; i++) {
-                await LogiGo.checkpoint(`loop-${i}`);
+                await LogicArt.checkpoint(`loop-${i}`);
                 sum += items[i];
                 log(`Item ${i + 1}: ${items[i]} (sum: ${sum})`);
             }
 
-            await LogiGo.checkpoint('finish');
+            await LogicArt.checkpoint('finish');
             log(`✅ Complete! Total: ${sum}`);
         }
     </script>
@@ -14901,13 +14901,13 @@ All notable changes to LogiGo will be documented in this file.
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 
-    <meta property="og:title" content="LogiGo - Code to Flowchart" />
+    <meta property="og:title" content="LogicArt - Code to Flowchart" />
     <meta property="og:description" content="Visualize code execution logic as an interactive flowchart in real-time." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://replit.com/public/images/opengraph.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@replit" />
-    <meta name="twitter:title" content="LogiGo - Code to Flowchart" />
+    <meta name="twitter:title" content="LogicArt - Code to Flowchart" />
     <meta name="twitter:description" content="Visualize code execution logic as an interactive flowchart in real-time." />
     <meta name="twitter:image" content="https://replit.com/public/images/opengraph.png" />
 
@@ -14915,7 +14915,7 @@ All notable changes to LogiGo will be documented in this file.
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>LogiGo Extension</title>
+    <title>LogicArt Extension</title>
     <script type="module" crossorigin src="/assets/main-Bzo2hYpb.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/main-Bgj7Vesx.css">
   </head>
@@ -14932,7 +14932,7 @@ All notable changes to LogiGo will be documented in this file.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Complete Integration Demo</title>
+    <title>LogicArt - Complete Integration Demo</title>
     <style>
         * {
             margin: 0;
@@ -15200,7 +15200,7 @@ All notable changes to LogiGo will be documented in this file.
 
 <body>
     <div class="container">
-        <h1>🚀 LogiGo Complete Integration</h1>
+        <h1>🚀 LogicArt Complete Integration</h1>
         <p class="subtitle">
             All 3 Features: Overlay + Speed Governor + Ghost Diff
             <span class="feature-badge">Phase 1</span>
@@ -15212,7 +15212,7 @@ All notable changes to LogiGo will be documented in this file.
             <h3>🎮 How to Use This Demo</h3>
             <ol>
                 <li><strong>Run Code:</strong> Click "Execute Code" to run the current version</li>
-                <li><strong>Control Speed:</strong> Use the LogiGo overlay (bottom-right) to adjust speed, pause, or
+                <li><strong>Control Speed:</strong> Use the LogicArt overlay (bottom-right) to adjust speed, pause, or
                     step</li>
                 <li><strong>Simulate AI Change:</strong> Click "Simulate AI Refactor" to see Ghost Diff in action</li>
                 <li><strong>Compare:</strong> Watch the flowchart update with color-coded changes (Green=New,
@@ -15273,27 +15273,27 @@ All notable changes to LogiGo will be documented in this file.
         </div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="/demo-src/runtime.js"></script>
     <script src="/demo-src/overlay.js"></script>
     <script src="/demo-src/parser.js"></script>
     <script src="/demo-src/differ.js"></script>
 
-    <!-- Initialize LogiGo -->
+    <!-- Initialize LogicArt -->
     <script>
-        const logigo = new LogiGoOverlay({
+        const logicart = new LogicArtOverlay({
             speed: 1.0,
             debug: true,
             position: 'bottom-right'
         }).init();
 
-        console.log('✅ LogiGo Complete Integration Ready!');
+        console.log('✅ LogicArt Complete Integration Ready!');
     </script>
 
     <!-- Demo Logic -->
     <script>
-        const parser = new LogiGoParser({ debug: false });
-        const differ = new LogiGoDiffer({ debug: false });
+        const parser = new LogicArtParser({ debug: false });
+        const differ = new LogicArtDiffer({ debug: false });
 
         let currentCode = `function processItems(items) {
   let total = 0;
@@ -15333,7 +15333,7 @@ All notable changes to LogiGo will be documented in this file.
                 // Original version - loop with checkpoints
                 let total = 0;
                 for (let i = 0; i < items.length; i++) {
-                    await LogiGo.checkpoint(`loop_iteration_${i}`);
+                    await LogicArt.checkpoint(`loop_iteration_${i}`);
                     checkpoints++;
                     total = total + items[i].value;
 
@@ -15349,7 +15349,7 @@ All notable changes to LogiGo will be documented in this file.
                 output.appendChild(result);
             } else {
                 // Refactored version - single reduce
-                await LogiGo.checkpoint('reduce_operation');
+                await LogicArt.checkpoint('reduce_operation');
                 checkpoints++;
                 const total = items.reduce((sum, item) => sum + item.value, 0);
 
@@ -15447,8 +15447,8 @@ All notable changes to LogiGo will be documented in this file.
 
         // Update speed display
         setInterval(() => {
-            if (logigo.executionController) {
-                const state = logigo.executionController.getState();
+            if (logicart.executionController) {
+                const state = logicart.executionController.getState();
                 document.getElementById('stat-speed').textContent = `${state.currentSpeed.toFixed(1)}x`;
             }
         }, 500);
@@ -15464,7 +15464,7 @@ All notable changes to LogiGo will be documented in this file.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Ghost Diff Demo</title>
+    <title>LogicArt - Ghost Diff Demo</title>
     <style>
         * {
             margin: 0;
@@ -15696,7 +15696,7 @@ All notable changes to LogiGo will be documented in this file.
 
 <body>
     <div class="container">
-        <h1>👻 LogiGo Ghost Diff Demo</h1>
+        <h1>👻 LogicArt Ghost Diff Demo</h1>
 
         <div class="controls">
             <h2>Scenarios</h2>
@@ -15725,7 +15725,7 @@ All notable changes to LogiGo will be documented in this file.
         <div class="stats" id="stats"></div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="../src/parser.js"></script>
     <script src="../src/differ.js"></script>
 
@@ -15792,8 +15792,8 @@ function unusedFunction() {
             }
         };
 
-        const parser = new LogiGoParser({ debug: false });
-        const differ = new LogiGoDiffer({ debug: false });
+        const parser = new LogicArtParser({ debug: false });
+        const differ = new LogicArtDiffer({ debug: false });
 
         function loadScenario(name) {
             const scenario = scenarios[name];
@@ -15876,7 +15876,7 @@ function unusedFunction() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LogiGo - Example Demo</title>
+  <title>LogicArt - Example Demo</title>
   <style>
     * {
       margin: 0;
@@ -15995,9 +15995,9 @@ function unusedFunction() {
 
 <body>
   <div class="container">
-    <h1>🚀 LogiGo Demo</h1>
+    <h1>🚀 LogicArt Demo</h1>
     <p>
-      Welcome to LogiGo! This demo shows how the overlay injects into any web page
+      Welcome to LogicArt! This demo shows how the overlay injects into any web page
       and visualizes code execution in real-time.
     </p>
 
@@ -16013,13 +16013,13 @@ function unusedFunction() {
       <button id="btn_factorial" onclick="runFactorial()">
         Calculate Factorial
       </button>
-      <div id="result">Click a button to see LogiGo in action!</div>
+      <div id="result">Click a button to see LogicArt in action!</div>
     </div>
 
     <div class="demo-section">
       <h2>How It Works</h2>
       <p style="margin: 0; font-size: 14px; color: #666;">
-        1. The LogiGo overlay appears in the bottom-right corner<br>
+        1. The LogicArt overlay appears in the bottom-right corner<br>
         2. Click "Play" to start execution<br>
         3. Watch as each code block highlights in real-time<br>
         4. Use the speed slider to slow down or speed up<br>
@@ -16028,32 +16028,32 @@ function unusedFunction() {
     </div>
 
     <div class="code-block">
-      <pre>// Example: Using LogiGo checkpoints
+      <pre>// Example: Using LogicArt checkpoints
 async function myFunction() {
-  await LogiGo.checkpoint('step1');
+  await LogicArt.checkpoint('step1');
   console.log('Step 1 executed');
   
-  await LogiGo.checkpoint('step2');
+  await LogicArt.checkpoint('step2');
   console.log('Step 2 executed');
 }</pre>
     </div>
   </div>
 
-  <!-- Load LogiGo Library -->
+  <!-- Load LogicArt Library -->
   <script src="../src/runtime.js"></script>
   <script src="../src/overlay.js"></script>
   <script src="../src/parser.js"></script>
 
-  <!-- Initialize LogiGo -->
+  <!-- Initialize LogicArt -->
   <script>
     // Initialize the overlay
-    const logigo = new LogiGoOverlay({
+    const logicart = new LogicArtOverlay({
       speed: 1.0,
       debug: true,
       position: 'bottom-right'
     }).init();
 
-    console.log('✅ LogiGo initialized!');
+    console.log('✅ LogicArt initialized!');
   </script>
 
   <!-- Demo Functions -->
@@ -16062,28 +16062,28 @@ async function myFunction() {
       const result = document.getElementById('result');
       result.textContent = 'Running...';
 
-      await LogiGo.checkpoint('btn_hello');
+      await LogicArt.checkpoint('btn_hello');
       result.textContent = 'Step 1: Starting Hello World...';
 
-      await LogiGo.checkpoint('hello_step2');
+      await LogicArt.checkpoint('hello_step2');
       result.textContent = 'Step 2: Processing...';
 
-      await LogiGo.checkpoint('hello_step3');
-      result.textContent = '✅ Hello, LogiGo! Demo complete.';
+      await LogicArt.checkpoint('hello_step3');
+      result.textContent = '✅ Hello, LogicArt! Demo complete.';
     }
 
     async function runLoopExample() {
       const result = document.getElementById('result');
       result.textContent = 'Running loop...';
 
-      await LogiGo.checkpoint('btn_loop');
+      await LogicArt.checkpoint('btn_loop');
 
       for (let i = 1; i <= 5; i++) {
-        await LogiGo.checkpoint(`loop_iteration_${i}`);
+        await LogicArt.checkpoint(`loop_iteration_${i}`);
         result.textContent = `Loop iteration ${i} of 5`;
       }
 
-      await LogiGo.checkpoint('loop_complete');
+      await LogicArt.checkpoint('loop_complete');
       result.textContent = '✅ Loop complete!';
     }
 
@@ -16091,22 +16091,22 @@ async function myFunction() {
       const result = document.getElementById('result');
       const n = 5;
 
-      await LogiGo.checkpoint('btn_factorial');
+      await LogicArt.checkpoint('btn_factorial');
       result.textContent = `Calculating factorial of ${n}...`;
 
       let factorial = 1;
       for (let i = 1; i <= n; i++) {
-        await LogiGo.checkpoint(`factorial_step_${i}`);
+        await LogicArt.checkpoint(`factorial_step_${i}`);
         factorial *= i;
         result.textContent = `Step ${i}: ${factorial}`;
       }
 
-      await LogiGo.checkpoint('factorial_complete');
+      await LogicArt.checkpoint('factorial_complete');
       result.textContent = `✅ Factorial of ${n} = ${factorial}`;
     }
 
     // Parse and display the code structure
-    const parser = new LogiGoParser({ debug: true });
+    const parser = new LogicArtParser({ debug: true });
     const sampleCode = `
 function calculateFactorial(n) {
   if (n === 0) {
@@ -16134,7 +16134,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Reporter API Demo</title>
+    <title>LogicArt - Reporter API Demo</title>
     <style>
 
         * {
@@ -16492,7 +16492,7 @@ function calculateFactorial(n) {
     <!-- Simulated App -->
     <div class="app-container">
         <h1>My App</h1>
-        <p>Click the button to run a process. LogiGo will report every step.</p>
+        <p>Click the button to run a process. LogicArt will report every step.</p>
 
         <button id="btn-process">Start Process</button>
 
@@ -16504,7 +16504,7 @@ function calculateFactorial(n) {
     <!-- Reporter View (Simulating Browser Agent) -->
     <div class="reporter-container">
         <h2>🤖 Browser Agent View</h2>
-        <p>Listening to LogiGo Reporter API...</p>
+        <p>Listening to LogicArt Reporter API...</p>
 
         <div class="log-panel" id="log-output">
             <!-- Logs will appear here -->
@@ -16533,10 +16533,10 @@ function calculateFactorial(n) {
 
     <script type="module">
 <<<<<<< HEAD
-        import LogiGoReporter from '../src/reporter.js';
+        import LogicArtReporter from '../src/reporter.js';
 
         // Initialize Reporter
-        const reporter = new LogiGoReporter({ debug: true });
+        const reporter = new LogicArtReporter({ debug: true });
 
         // Subscribe to checkpoint events (simulates AI Agent listening)
         reporter.onCheckpoint((data) => {
@@ -16552,7 +16552,7 @@ function calculateFactorial(n) {
         // Make reporter globally accessible
         window.reporter = reporter;
 
-        console.log('✅ LogiGo Reporter initialized');
+        console.log('✅ LogicArt Reporter initialized');
         console.log('🤖 AI Agent is now listening for checkpoint events');
 
         // Helper function to add events to log
@@ -16638,7 +16638,7 @@ function calculateFactorial(n) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `logigo-report-${Date.now()}.json`;
+            a.download = `logicart-report-${Date.now()}.json`;
             a.click();
             URL.revokeObjectURL(url);
             
@@ -16677,19 +16677,19 @@ function calculateFactorial(n) {
 </body>
 </html>
 =======
-        import LogiGoOverlay from '../src/overlay.js';
+        import LogicArtOverlay from '../src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt
+        const logicart = new LogicArtOverlay({
             speed: 1.5,
             position: 'bottom-left'
         }).init();
 
-        window.LogiGo = logigo;
+        window.LogicArt = logicart;
 
         // --- REPORTER INTEGRATION ---
         // This is how a Browser Agent would hook in
-        const reporter = logigo.executionController.reporter;
+        const reporter = logicart.executionController.reporter;
         const logOutput = document.getElementById('log-output');
 
         // Subscribe to checkpoints
@@ -16730,13 +16730,13 @@ function calculateFactorial(n) {
             btn.disabled = true;
 
             // Step 1
-            await LogiGo.checkpoint('process_start', {
+            await LogicArt.checkpoint('process_start', {
                 domElement: '#btn-process',
                 variables: { status: 'starting' }
             });
 
             // Step 2
-            await LogiGo.checkpoint('step_1_active', {
+            await LogicArt.checkpoint('step_1_active', {
                 domElement: '#step-1',
                 color: '#e74c3c'
             });
@@ -16744,7 +16744,7 @@ function calculateFactorial(n) {
             document.getElementById('step-1').style.color = 'white';
 
             // Step 3
-            await LogiGo.checkpoint('step_2_active', {
+            await LogicArt.checkpoint('step_2_active', {
                 domElement: '#step-2',
                 color: '#f1c40f'
             });
@@ -16752,7 +16752,7 @@ function calculateFactorial(n) {
             document.getElementById('step-2').style.color = 'black';
 
             // Step 4
-            await LogiGo.checkpoint('step_3_active', {
+            await LogicArt.checkpoint('step_3_active', {
                 domElement: '#step-3',
                 color: '#2ecc71',
                 variables: { result: 'success' }
@@ -16761,7 +16761,7 @@ function calculateFactorial(n) {
             document.getElementById('step-3').style.color = 'white';
 
             // Done
-            await LogiGo.checkpoint('process_complete', {
+            await LogicArt.checkpoint('process_complete', {
                 variables: { itemsProcessed: 3 }
             });
 
@@ -17002,7 +17002,7 @@ function calculateFactorial(n) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'logigo-reporter-test-' + Date.now() + '.json';
+            a.download = 'logicart-reporter-test-' + Date.now() + '.json';
             a.click();
             URL.revokeObjectURL(url);
             
@@ -17043,7 +17043,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Differ - Unit Tests</title>
+    <title>LogicArt Differ - Unit Tests</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -17176,7 +17176,7 @@ function calculateFactorial(n) {
 </head>
 
 <body>
-    <h1>🧪 LogiGo Differ - Unit Tests</h1>
+    <h1>🧪 LogicArt Differ - Unit Tests</h1>
 
     <div class="summary" id="summary">
         <h2>Running tests...</h2>
@@ -17184,7 +17184,7 @@ function calculateFactorial(n) {
 
     <div id="test-results"></div>
 
-    <!-- Load LogiGo Differ -->
+    <!-- Load LogicArt Differ -->
     <script src="../src/differ.js"></script>
 
     <!-- Test Suite -->
@@ -17243,16 +17243,16 @@ function calculateFactorial(n) {
         ];
 
         // Run tests
-        console.log('🧪 Starting LogiGo Differ Unit Tests...\n');
+        console.log('🧪 Starting LogicArt Differ Unit Tests...\n');
 
         test('Differ initializes correctly', () => {
-            const differ = new LogiGoDiffer({ debug: true });
+            const differ = new LogicArtDiffer({ debug: true });
             assert(differ !== null, 'Differ should be created');
             assert(differ.options.debug === true, 'Debug option should be set');
         });
 
         test('diffTrees identifies added nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const added = result.nodes.filter(n => n.diffStatus === 'added');
             assertEqual(added.length, 1, 'Should find 1 added node');
@@ -17261,7 +17261,7 @@ function calculateFactorial(n) {
         });
 
         test('diffTrees identifies deleted nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const deleted = result.nodes.filter(n => n.diffStatus === 'deleted');
             assertEqual(deleted.length, 1, 'Should find 1 deleted node');
@@ -17270,7 +17270,7 @@ function calculateFactorial(n) {
         });
 
         test('diffTrees identifies modified nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const modified = result.nodes.filter(n => n.diffStatus === 'modified');
             assertEqual(modified.length, 1, 'Should find 1 modified node');
@@ -17279,7 +17279,7 @@ function calculateFactorial(n) {
         });
 
         test('diffTrees identifies unchanged nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const unchanged = result.nodes.filter(n => n.diffStatus === 'unchanged');
             assertEqual(unchanged.length, 1, 'Should find 1 unchanged node');
@@ -17287,7 +17287,7 @@ function calculateFactorial(n) {
         });
 
         test('Stats are calculated correctly', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             assertEqual(result.stats.added, 1, 'Should count 1 added');
             assertEqual(result.stats.removed, 1, 'Should count 1 removed');
@@ -17296,7 +17296,7 @@ function calculateFactorial(n) {
         });
 
         test('getSummary generates correct text', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const summary = differ.getSummary(result);
             assert(summary.includes('4 nodes'), 'Summary should mention total nodes');
@@ -17305,7 +17305,7 @@ function calculateFactorial(n) {
         });
 
         test('filterByStatus works correctly', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const added = differ.filterByStatus(result.nodes, 'added');
             assertEqual(added.length, 1, 'Should filter added nodes');
@@ -17313,7 +17313,7 @@ function calculateFactorial(n) {
         });
 
         test('getChanges returns only changed nodes', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, newTree);
             const changes = differ.getChanges(result.nodes);
             assertEqual(changes.length, 3, 'Should return 3 changes (added + modified + deleted)');
@@ -17321,7 +17321,7 @@ function calculateFactorial(n) {
         });
 
         test('Empty trees produce empty diff', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees([], []);
             assertEqual(result.nodes.length, 0, 'Empty trees should produce empty result');
             assertEqual(result.stats.added, 0, 'No added nodes');
@@ -17329,7 +17329,7 @@ function calculateFactorial(n) {
         });
 
         test('Identical trees show all unchanged', () => {
-            const differ = new LogiGoDiffer();
+            const differ = new LogicArtDiffer();
             const result = differ.diffTrees(oldTree, oldTree);
             assertEqual(result.stats.unchanged, oldTree.length, 'All nodes should be unchanged');
             assertEqual(result.stats.added, 0, 'No added nodes');
@@ -17373,7 +17373,7 @@ function calculateFactorial(n) {
     `;
         testContainer.appendChild(demoSection);
 
-        const differ = new LogiGoDiffer();
+        const differ = new LogicArtDiffer();
         const result = differ.diffTrees(oldTree, newTree);
         const visualDemo = document.getElementById('visual-demo');
 
@@ -17401,7 +17401,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Speed Governor Test</title>
+    <title>LogicArt - Speed Governor Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -17481,7 +17481,7 @@ function calculateFactorial(n) {
         <div class="instructions">
             <strong>Test Instructions:</strong><br>
             1. Click "Run Test Loop"<br>
-            2. Watch the LogiGo overlay in the bottom-right<br>
+            2. Watch the LogicArt overlay in the bottom-right<br>
             3. Try adjusting the speed slider (0.1x = slow, 2.0x = fast)<br>
             4. Click "Pause" to freeze execution<br>
             5. Click "Step" to advance one iteration at a time<br>
@@ -17495,19 +17495,19 @@ function calculateFactorial(n) {
         <div id="output"></div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="../src/runtime.js"></script>
     <script src="../src/overlay.js"></script>
 
     <!-- Initialize -->
     <script>
-        const logigo = new LogiGoOverlay({
+        const logicart = new LogicArtOverlay({
             speed: 1.0,
             debug: true,
             position: 'bottom-right'
         }).init();
 
-        console.log('✅ LogiGo Speed Governor Test Ready');
+        console.log('✅ LogicArt Speed Governor Test Ready');
     </script>
 
     <!-- Test Functions -->
@@ -17518,7 +17518,7 @@ function calculateFactorial(n) {
             output.innerHTML = '<div><strong>Starting test loop...</strong></div>';
 
             for (let i = 1; i <= 10; i++) {
-                await LogiGo.checkpoint(`loop_iteration_${i}`);
+                await LogicArt.checkpoint(`loop_iteration_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';
@@ -17539,7 +17539,7 @@ function calculateFactorial(n) {
             output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE in the overlay after iteration 3</div>';
 
             for (let i = 1; i <= 10; i++) {
-                await LogiGo.checkpoint(`pause_test_${i}`);
+                await LogicArt.checkpoint(`pause_test_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';
@@ -17558,10 +17558,10 @@ function calculateFactorial(n) {
             output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE, then use STEP to advance one at a time</div>';
 
             // Auto-pause for step testing
-            setTimeout(() => LogiGo.pause(), 100);
+            setTimeout(() => LogicArt.pause(), 100);
 
             for (let i = 1; i <= 5; i++) {
-                await LogiGo.checkpoint(`step_test_${i}`);
+                await LogicArt.checkpoint(`step_test_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';
@@ -17586,7 +17586,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Visual Handshake Demo</title>
+    <title>LogicArt - Visual Handshake Demo</title>
     <style>
         * {
             margin: 0;
@@ -17763,14 +17763,14 @@ function calculateFactorial(n) {
         }
 
         /* Visual Handshake Highlight Styles */
-        .logigo-highlight {
+        .logicart-highlight {
             outline: 3px solid gold !important;
             outline-offset: 2px;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important;
-            animation: logigo-pulse 0.5s ease-in-out;
+            animation: logicart-pulse 0.5s ease-in-out;
         }
 
-        @keyframes logigo-pulse {
+        @keyframes logicart-pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.02); }
             100% { transform: scale(1); }
@@ -17808,7 +17808,7 @@ function calculateFactorial(n) {
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter email" value="demo@logigo.dev">
+                    <input type="email" id="email" placeholder="Enter email" value="demo@logicart.dev">
                 </div>
 
                 <div class="form-group">
@@ -17834,11 +17834,11 @@ function calculateFactorial(n) {
                     return;
                 }
                 
-                el.classList.add('logigo-highlight');
+                el.classList.add('logicart-highlight');
                 console.log(`Highlighting: #${elementId}`);
                 
                 setTimeout(() => {
-                    el.classList.remove('logigo-highlight');
+                    el.classList.remove('logicart-highlight');
                     resolve();
                 }, duration);
             });
@@ -17905,8 +17905,8 @@ function calculateFactorial(n) {
             statusMsg.style.display = 'none';
             
             // Remove any lingering highlights
-            document.querySelectorAll('.logigo-highlight').forEach(el => {
-                el.classList.remove('logigo-highlight');
+            document.querySelectorAll('.logicart-highlight').forEach(el => {
+                el.classList.remove('logicart-highlight');
             });
         }
 
@@ -17931,7 +17931,7 @@ function calculateFactorial(n) {
         if (!(event.error instanceof Error) || event.error === null || event.error === undefined) {
           event.stopImmediatePropagation();
           event.preventDefault();
-          console.warn('[LogiGo] Suppressed non-Error exception:', event.error);
+          console.warn('[LogicArt] Suppressed non-Error exception:', event.error);
           return false;
         }
       }, true);
@@ -17940,19 +17940,19 @@ function calculateFactorial(n) {
         if (!(event.reason instanceof Error) || event.reason === null || event.reason === undefined) {
           event.stopImmediatePropagation();
           event.preventDefault();
-          console.warn('[LogiGo] Suppressed non-Error rejection:', event.reason);
+          console.warn('[LogicArt] Suppressed non-Error rejection:', event.reason);
           return false;
         }
       }, true);
     </script>
 
-    <meta property="og:title" content="LogiGo - Visual Code Debugger" />
+    <meta property="og:title" content="LogicArt - Visual Code Debugger" />
     <meta property="og:description" content="Transform JavaScript into interactive flowcharts with step-by-step execution, time-travel debugging, and natural language search. Perfect for understanding AI-generated code." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://replit.com/public/images/opengraph.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@replit" />
-    <meta name="twitter:title" content="LogiGo - Visual Code Debugger" />
+    <meta name="twitter:title" content="LogicArt - Visual Code Debugger" />
     <meta name="twitter:description" content="Transform JavaScript into interactive flowcharts with step-by-step execution, time-travel debugging, and natural language search. Perfect for understanding AI-generated code." />
     <meta name="twitter:image" content="https://replit.com/public/images/opengraph.png" />
 
@@ -17960,7 +17960,7 @@ function calculateFactorial(n) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>LogiGo - Visual Code Debugger</title>
+    <title>LogicArt - Visual Code Debugger</title>
   </head>
   <body>
     <div id="root"></div>
@@ -17979,7 +17979,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Library: Pathfinding (A*)</title>
+    <title>LogicArt Library: Pathfinding (A*)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18145,14 +18145,14 @@ function calculateFactorial(n) {
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '../../src/overlay.js';
+        import LogicArtOverlay from '../../src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt
+        const logicart = new LogicArtOverlay({
             speed: 5.0, // Fast default
             position: 'bottom-right'
         }).init();
-        window.LogiGo = logigo;
+        window.LogicArt = logicart;
 
         // Config
         const COLS = 20;
@@ -18236,7 +18236,7 @@ function calculateFactorial(n) {
             document.getElementById('stat-status').textContent = 'Running...';
 
             try {
-                await LogiGo.checkpoint('astar:start', {
+                await LogicArt.checkpoint('astar:start', {
                     variables: { start: startNode, end: endNode }
                 });
 
@@ -18265,7 +18265,7 @@ function calculateFactorial(n) {
                     console.log(`[A*] Processing ${key(current)}, fScore: ${fScore.get(key(current))}`);
 
                     // Visual: Highlight current node processing
-                    await LogiGo.checkpoint(`process:${current.x}:${current.y}`, {
+                    await LogicArt.checkpoint(`process:${current.x}:${current.y}`, {
                         domElement: `#cell-${current.x}-${current.y}`,
                         color: '#f1c40f',
                         variables: {
@@ -18331,7 +18331,7 @@ function calculateFactorial(n) {
                                 document.getElementById('stat-visited').textContent = stats.visited;
 
                                 // Visual: Highlight neighbor discovery
-                                await LogiGo.checkpoint(`discover:${neighbor.x}:${neighbor.y}`, {
+                                await LogicArt.checkpoint(`discover:${neighbor.x}:${neighbor.y}`, {
                                     domElement: `#cell-${neighbor.x}-${neighbor.y}`,
                                     color: '#a8e6cf'
                                 });
@@ -18341,7 +18341,7 @@ function calculateFactorial(n) {
                 }
 
                 document.getElementById('stat-status').textContent = 'No Path';
-                await LogiGo.checkpoint('astar:fail', { color: '#e74c3c' });
+                await LogicArt.checkpoint('astar:fail', { color: '#e74c3c' });
 
             } catch (error) {
                 console.error('[A*] Error:', error);
@@ -18385,7 +18385,7 @@ function calculateFactorial(n) {
             }
 
             // Visualize path
-            await LogiGo.checkpoint('astar:path_found', { color: '#2ecc71' });
+            await LogicArt.checkpoint('astar:path_found', { color: '#2ecc71' });
 
             document.getElementById('stat-path').textContent = path.length;
 
@@ -18397,7 +18397,7 @@ function calculateFactorial(n) {
                     grid[node.y][node.x].el.classList.add('path');
 
                     // Animate path drawing
-                    await LogiGo.checkpoint(`path:${node.x}:${node.y}`, {
+                    await LogicArt.checkpoint(`path:${node.x}:${node.y}`, {
                         domElement: `#cell-${node.x}-${node.y}`,
                         color: '#3498db',
                         duration: 100 // Fast path drawing
@@ -18422,7 +18422,7 @@ function calculateFactorial(n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Library: Sorting Algorithms</title>
+    <title>LogicArt Library: Sorting Algorithms</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18539,7 +18539,7 @@ function calculateFactorial(n) {
 
     <div class="container">
         <h1>📚 Library of Logic: Sorting</h1>
-        <p>Standard algorithms instrumented with LogiGo for visual debugging and AI verification.</p>
+        <p>Standard algorithms instrumented with LogicArt for visual debugging and AI verification.</p>
 
         <div class="controls">
             <button onclick="resetArray()">🎲 Randomize Array</button>
@@ -18580,14 +18580,14 @@ function calculateFactorial(n) {
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '../../src/overlay.js';
+        import LogicArtOverlay from '../../src/overlay.js';
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({
+        // Initialize LogicArt
+        const logicart = new LogicArtOverlay({
             speed: 2.0, // Faster default speed for sorting
             position: 'bottom-right'
         }).init();
-        window.LogiGo = logigo;
+        window.LogicArt = logicart;
 
         // State
         let array = [];
@@ -18646,7 +18646,7 @@ function calculateFactorial(n) {
             stats.swaps++;
 
             // Visual Handshake: Highlight bars being swapped
-            await LogiGo.checkpoint(`swap:${i}:${j}`, {
+            await LogicArt.checkpoint(`swap:${i}:${j}`, {
                 domElement: `#bar-${i}`, // Highlight first bar
                 variables: { i, j, val_i: array[i], val_j: array[j] },
                 color: '#e74c3c' // Red for swap
@@ -18674,14 +18674,14 @@ function calculateFactorial(n) {
             generateArray(); // Auto-reset
             showDescription("Bubble Sort", "Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. Simple but inefficient (O(n²)).");
 
-            await LogiGo.checkpoint('bubble_sort:start', { variables: { array } });
+            await LogicArt.checkpoint('bubble_sort:start', { variables: { array } });
 
             for (let i = 0; i < array.length; i++) {
                 for (let j = 0; j < array.length - i - 1; j++) {
                     stats.comparisons++;
 
                     // Checkpoint: Comparison
-                    await LogiGo.checkpoint(`compare:${j}:${j + 1}`, {
+                    await LogicArt.checkpoint(`compare:${j}:${j + 1}`, {
                         domElement: `#bar-${j}`,
                         color: '#f1c40f', // Yellow for compare
                         variables: { left: array[j], right: array[j + 1] }
@@ -18693,7 +18693,7 @@ function calculateFactorial(n) {
                 }
             }
 
-            await LogiGo.checkpoint('bubble_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('bubble_sort:complete', { color: '#2ecc71' });
         };
 
         // 2. Quick Sort
@@ -18701,15 +18701,15 @@ function calculateFactorial(n) {
             generateArray(); // Auto-reset
             showDescription("Quick Sort", "A divide-and-conquer algorithm. It picks a 'pivot' element and partitions the array so smaller elements are on the left and larger on the right. Very efficient (O(n log n)).");
 
-            await LogiGo.checkpoint('quick_sort:start');
+            await LogicArt.checkpoint('quick_sort:start');
             await quickSort(0, array.length - 1);
-            await LogiGo.checkpoint('quick_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('quick_sort:complete', { color: '#2ecc71' });
         };
 
         async function quickSort(low, high) {
             if (low < high) {
                 // Hierarchical Checkpoint: Partition Start
-                await LogiGo.checkpoint(`quick_sort:partition_start:${low}:${high}`);
+                await LogicArt.checkpoint(`quick_sort:partition_start:${low}:${high}`);
 
                 let pi = await partition(low, high);
 
@@ -18722,7 +18722,7 @@ function calculateFactorial(n) {
             let pivot = array[high];
 
             // Highlight Pivot
-            await LogiGo.checkpoint(`partition:pivot_selected`, {
+            await LogicArt.checkpoint(`partition:pivot_selected`, {
                 domElement: `#bar-${high}`,
                 color: '#9b59b6', // Purple for pivot
                 variables: { pivot }
@@ -18733,7 +18733,7 @@ function calculateFactorial(n) {
             for (let j = low; j < high; j++) {
                 stats.comparisons++;
 
-                await LogiGo.checkpoint(`partition:compare:${j}`, {
+                await LogicArt.checkpoint(`partition:compare:${j}`, {
                     domElement: `#bar-${j}`,
                     color: '#f1c40f',
                     variables: { current: array[j], pivot }
@@ -18753,9 +18753,9 @@ function calculateFactorial(n) {
             generateArray(); // Auto-reset
             showDescription("Merge Sort", "Divides the array into halves, sorts them recursively, and then merges the sorted halves. Stable and efficient (O(n log n)).");
 
-            await LogiGo.checkpoint('merge_sort:start');
+            await LogicArt.checkpoint('merge_sort:start');
             await mergeSort(0, array.length - 1);
-            await LogiGo.checkpoint('merge_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('merge_sort:complete', { color: '#2ecc71' });
         };
 
         async function mergeSort(l, r) {
@@ -18763,7 +18763,7 @@ function calculateFactorial(n) {
 
             const m = l + parseInt((r - l) / 2);
 
-            await LogiGo.checkpoint(`merge_sort:split:${l}:${r}`, {
+            await LogicArt.checkpoint(`merge_sort:split:${l}:${r}`, {
                 variables: { left: l, mid: m, right: r }
             });
 
@@ -18773,7 +18773,7 @@ function calculateFactorial(n) {
         }
 
         async function merge(l, m, r) {
-            await LogiGo.checkpoint(`merge_sort:merge_start:${l}:${r}`, {
+            await LogicArt.checkpoint(`merge_sort:merge_start:${l}:${r}`, {
                 color: '#3498db' // Blue for merge
             });
 
@@ -18798,7 +18798,7 @@ function calculateFactorial(n) {
                 }
                 // Visual update for merge step
                 renderArray();
-                await LogiGo.checkpoint(`merge:place:${k}`, {
+                await LogicArt.checkpoint(`merge:place:${k}`, {
                     domElement: `#bar-${k}`,
                     color: '#2ecc71'
                 });
@@ -18808,14 +18808,14 @@ function calculateFactorial(n) {
             while (i < n1) {
                 array[k] = L[i];
                 renderArray();
-                await LogiGo.checkpoint(`merge:place_remaining_left:${k}`);
+                await LogicArt.checkpoint(`merge:place_remaining_left:${k}`);
                 i++; k++;
             }
 
             while (j < n2) {
                 array[k] = R[j];
                 renderArray();
-                await LogiGo.checkpoint(`merge:place_remaining_right:${k}`);
+                await LogicArt.checkpoint(`merge:place_remaining_right:${k}`);
                 j++; k++;
             }
         }

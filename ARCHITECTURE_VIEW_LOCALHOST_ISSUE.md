@@ -11,9 +11,9 @@ The Architecture View feature returns **HTTP 400** when testing from localhost.
 
 ### Console Log:
 ```
-[LogiGo] Architecture view: 43 files from http://localhost:5001/api/source
+[LogicArt] Architecture view: 43 files from http://localhost:5001/api/source
 Failed to load resource: the server responded with a status of 400 ()
-[LogiGo] Failed to build architecture: - "HTTP 400"
+[LogicArt] Failed to build architecture: - "HTTP 400"
 ```
 
 ---
@@ -88,8 +88,8 @@ Have remote.js detect localhost URLs and automatically switch to client-side fet
 ### Turai-v1 (local):
 - `server/routes.ts` - Added query parameter format support for `/api/source`
 
-### LogiGo (local):
-- Updated to `logicart.git` remote (was pointing to old `LogiGo.git`)
+### LogicArt (local):
+- Updated to `logicart.git` remote (was pointing to old `LogicArt.git`)
 - Synced 46 new commits from Replit
 
 ---

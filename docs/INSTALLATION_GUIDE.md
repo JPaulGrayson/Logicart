@@ -1,6 +1,6 @@
-# LogiGo Installation Guide
+# LogicArt Installation Guide
 
-**Add LogiGo visualization to your JavaScript projects**
+**Add LogicArt visualization to your JavaScript projects**
 
 ---
 
@@ -11,10 +11,10 @@
 | Your Goal | Best Method | Installation | Best For |
 |-----------|-------------|--------------|----------|
 | 📖 Just visualize code to understand it | **Static Mode** | None | Learning, code reviews, quick visualization |
-| 🔧 Add flowcharts to my React app | **Embed Component** | `npm install logigo-embed` | Documentation, demos, educational apps |
-| 🏗️ Auto-instrument my Vite project | **Vite Plugin** | `npm install logigo-vite-plugin` | Build-time instrumentation, minimal code changes |
+| 🔧 Add flowcharts to my React app | **Embed Component** | `npm install logicart-embed` | Documentation, demos, educational apps |
+| 🏗️ Auto-instrument my Vite project | **Vite Plugin** | `npm install logicart-vite-plugin` | Build-time instrumentation, minimal code changes |
 | 🐛 Debug my Node.js/Express server | **Backend Logging** | Copy helper function | Server-side debugging, API logic |
-| 🎯 Fine-grained control over checkpoints | **Manual Checkpoints** | `npm install logigo-core` | Complex debugging, precise instrumentation |
+| 🎯 Fine-grained control over checkpoints | **Manual Checkpoints** | `npm install logicart-core` | Complex debugging, precise instrumentation |
 
 ### Detailed Decision Tree
 
@@ -25,12 +25,12 @@ graph TD
     A[What do you want to do?] --> B{Just visualize code?}
     B -->|Yes| C[STATIC MODE<br/>No Installation Required]
     B -->|No| D{Add to React app?}
-    D -->|Yes| E[EMBED COMPONENT<br/>npm install logigo-embed]
+    D -->|Yes| E[EMBED COMPONENT<br/>npm install logicart-embed]
     D -->|No| F{Auto-instrument Vite?}
-    F -->|Yes| G[VITE PLUGIN<br/>npm install logigo-vite-plugin]
+    F -->|Yes| G[VITE PLUGIN<br/>npm install logicart-vite-plugin]
     F -->|No| H{Debug Node.js server?}
     H -->|Yes| I[BACKEND LOGGING<br/>Copy checkpoint helper]
-    H -->|No| J[MANUAL CHECKPOINTS<br/>npm install logigo-core]
+    H -->|No| J[MANUAL CHECKPOINTS<br/>npm install logicart-core]
 
     C --> C1[Best for: Learning, code reviews]
     E --> E1[Best for: Docs, demos, educational apps]
@@ -73,7 +73,7 @@ Jump to your chosen method:
 
 ### How to Use
 
-1. **Open** [LogiGo Studio](https://logigo.studio)
+1. **Open** [LogicArt Studio](https://logicart.studio)
 2. **Paste** your JavaScript code into the editor
 3. **Watch** the flowchart appear automatically
 4. **Press** `Space` to step through
@@ -111,7 +111,7 @@ function factorial(n) {
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ### Required CSS
@@ -123,7 +123,7 @@ import '@xyflow/react/dist/style.css';
 ### Basic Usage
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function CodeViewer() {
@@ -141,7 +141,7 @@ function CodeViewer() {
   `;
   
   return (
-    <LogiGoEmbed
+    <LogicArtEmbed
       code={code}
       theme="dark"
       position="bottom-right"
@@ -168,7 +168,7 @@ function CodeViewer() {
 ### Advanced Example
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import { useState } from 'react';
 
 function AlgorithmDemo() {
@@ -188,7 +188,7 @@ function AlgorithmDemo() {
         <option value="merge">Merge Sort</option>
       </select>
       
-      <LogiGoEmbed
+      <LogicArtEmbed
         code={algorithms[selectedAlgo]}
         theme="dark"
         showVariables={true}
@@ -201,7 +201,7 @@ function AlgorithmDemo() {
 
 ### Verification Checklist
 
-- [ ] `logigo-embed` appears in `package.json`
+- [ ] `logicart-embed` appears in `package.json`
 - [ ] CSS import is present: `import '@xyflow/react/dist/style.css';`
 - [ ] Component renders without errors
 - [ ] Flowchart displays nodes for your code
@@ -209,7 +209,7 @@ function AlgorithmDemo() {
 
 ### Troubleshooting
 
-**"Module not found: logigo-embed"**
+**"Module not found: logicart-embed"**
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -235,8 +235,8 @@ import '@xyflow/react/dist/style.css';
 ### Installation
 
 ```bash
-npm install logigo-vite-plugin --save-dev
-npm install logigo-embed
+npm install logicart-vite-plugin --save-dev
+npm install logicart-embed
 ```
 
 ### Configuration
@@ -245,15 +245,15 @@ npm install logigo-embed
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
-      manifestPath: 'logigo-manifest.json',
+      manifestPath: 'logicart-manifest.json',
       autoInstrument: true,
       captureVariables: true
     })
@@ -267,7 +267,7 @@ export default defineConfig({
 |--------|------|---------|-------------|
 | `include` | string[] | `['**/*.js', '**/*.ts']` | Files to instrument |
 | `exclude` | string[] | `['/node_modules/']` | Files to skip |
-| `manifestPath` | string | `'logigo-manifest.json'` | Output path for manifest |
+| `manifestPath` | string | `'logicart-manifest.json'` | Output path for manifest |
 | `autoInstrument` | boolean | `true` | Auto-inject checkpoints |
 | `captureVariables` | boolean | `true` | Capture local variables |
 
@@ -275,7 +275,7 @@ export default defineConfig({
 
 ```javascript
 // src/App.tsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -283,8 +283,8 @@ function App() {
     <div>
       {/* Your app content */}
       
-      <LogiGoEmbed
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed
+        manifestUrl="/logicart-manifest.json"
         showVariables={true}
         showHistory={true}
         theme="dark"
@@ -303,25 +303,25 @@ npm run dev
 ### What the Plugin Does
 
 1. **Parses** your source files using Acorn
-2. **Injects** `LogiGo.checkpoint()` calls at key points
-3. **Generates** `logigo-manifest.json` with flowchart data
+2. **Injects** `LogicArt.checkpoint()` calls at key points
+3. **Generates** `logicart-manifest.json` with flowchart data
 4. **Injects** runtime script into your HTML
 
 ### Output Files
 
 ```
 dist/
-├── logigo-manifest.json   # Flowchart nodes, edges, checkpoint metadata
-└── logigo-runtime.js      # Browser runtime for checkpoint handling
+├── logicart-manifest.json   # Flowchart nodes, edges, checkpoint metadata
+└── logicart-runtime.js      # Browser runtime for checkpoint handling
 ```
 
 ### Verification Checklist
 
-- [ ] `logigo-vite-plugin` in `devDependencies`
-- [ ] `logigo-embed` in `dependencies`
-- [ ] `vite.config.js` includes `logigoPlugin()`
+- [ ] `logicart-vite-plugin` in `devDependencies`
+- [ ] `logicart-embed` in `dependencies`
+- [ ] `vite.config.js` includes `logicartPlugin()`
 - [ ] Build completes without errors
-- [ ] `logigo-manifest.json` is generated in `dist/`
+- [ ] `logicart-manifest.json` is generated in `dist/`
 - [ ] Flowchart shows with variable tracking
 
 ### Troubleshooting
@@ -334,7 +334,7 @@ dist/
 **No variable tracking**
 - Ensure `captureVariables: true` (default)
 - Check that instrumented code is executing
-- Verify `showVariables={true}` in `LogiGoEmbed`
+- Verify `showVariables={true}` in `LogicArtEmbed`
 
 ---
 
@@ -357,21 +357,21 @@ dist/
 Add this to your main server file (e.g., `server.ts`, `routes.ts`, `index.ts`):
 
 ```typescript
-// LogiGo checkpoint helper for execution visualization
-const LogiGo = {
+// LogicArt checkpoint helper for execution visualization
+const LogicArt = {
   checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
 
 **JavaScript version:**
 ```javascript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -380,26 +380,26 @@ const LogiGo = {
 
 ```typescript
 async function processOrder(order: Order) {
-  LogiGo.checkpoint('order:start', {
+  LogicArt.checkpoint('order:start', {
     variables: { orderId: order.id, items: order.items.length }
   });
 
   const isValid = validateOrder(order);
   
   if (!isValid) {
-    LogiGo.checkpoint('order:invalid', {
+    LogicArt.checkpoint('order:invalid', {
       variables: { error: 'Validation failed' }
     });
     return { success: false };
   }
 
-  LogiGo.checkpoint('order:payment', {
+  LogicArt.checkpoint('order:payment', {
     variables: { amount: order.total }
   });
   
   const payment = await processPayment(order);
 
-  LogiGo.checkpoint('order:complete', {
+  LogicArt.checkpoint('order:complete', {
     variables: { success: true, transactionId: payment.id }
   });
   
@@ -417,14 +417,14 @@ npm run dev
 
 **Console output:**
 ```
-[LogiGo] order:start {
+[LogicArt] order:start {
   "orderId": "abc123",
   "items": 3
 }
-[LogiGo] order:payment {
+[LogicArt] order:payment {
   "amount": 99.99
 }
-[LogiGo] order:complete {
+[LogicArt] order:complete {
   "success": true,
   "transactionId": "txn_456"
 }
@@ -435,13 +435,13 @@ npm run dev
 **💡 Pro Tip:** To see the flowchart structure:
 
 1. Copy your server code
-2. Paste into LogiGo Studio
+2. Paste into LogicArt Studio
 3. See the flowchart visualization
 4. Correlate flowchart nodes with console logs
 
 **Example workflow:**
 ```
-1. Paste server code into LogiGo Studio → See flowchart
+1. Paste server code into LogicArt Studio → See flowchart
 2. Run server → See console logs
 3. Match log IDs to flowchart nodes
 4. Understand execution flow visually
@@ -453,22 +453,22 @@ Use hierarchical names for organized logging:
 
 ```javascript
 // Format: section:action:detail
-LogiGo.checkpoint('auth:login:start');
-LogiGo.checkpoint('auth:login:validate');
-LogiGo.checkpoint('auth:login:success');
+LogicArt.checkpoint('auth:login:start');
+LogicArt.checkpoint('auth:login:validate');
+LogicArt.checkpoint('auth:login:success');
 
-LogiGo.checkpoint('api:users:fetch');
-LogiGo.checkpoint('api:users:response');
+LogicArt.checkpoint('api:users:fetch');
+LogicArt.checkpoint('api:users:response');
 
-LogiGo.checkpoint('db:query:start', { variables: { sql } });
-LogiGo.checkpoint('db:query:complete', { variables: { rows: result.length } });
+LogicArt.checkpoint('db:query:start', { variables: { sql } });
+LogicArt.checkpoint('db:query:complete', { variables: { rows: result.length } });
 ```
 
 ### Verification Checklist
 
 - [ ] Checkpoint helper is added to server file
-- [ ] At least one `LogiGo.checkpoint()` call exists
-- [ ] Console shows `[LogiGo]` logs when code runs
+- [ ] At least one `LogicArt.checkpoint()` call exists
+- [ ] Console shows `[LogicArt]` logs when code runs
 - [ ] Logs include checkpoint ID and variables
 
 ### Troubleshooting
@@ -491,13 +491,13 @@ LogiGo.checkpoint('db:query:complete', { variables: { rows: result.length } });
 ### Installation
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Synchronous Checkpoints
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function bubbleSort(arr) {
   checkpoint('sort:start', { arr: [...arr] });
@@ -521,9 +521,9 @@ function bubbleSort(arr) {
 ### Async Checkpoints (With Breakpoints)
 
 ```javascript
-import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+import { checkpointAsync, LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+const runtime = new LogicArtRuntime({ manifestHash: 'abc123' });
 runtime.setBreakpoint('critical_point', true);
 
 async function processData(data) {
@@ -545,7 +545,7 @@ runtime.resume();
 ### Runtime API
 
 ```javascript
-const runtime = new LogiGoRuntime();
+const runtime = new LogicArtRuntime();
 
 // Session control
 runtime.start();                           // Begin session
@@ -600,16 +600,16 @@ for (let i = 0; i < items.length; i++) {
 
 ### Verification Checklist
 
-- [ ] `logigo-core` in `package.json`
+- [ ] `logicart-core` in `package.json`
 - [ ] Checkpoints are being called
-- [ ] LogiGo Studio receives checkpoint data
+- [ ] LogicArt Studio receives checkpoint data
 - [ ] Variables are tracked correctly
 
 ---
 
 ## IDE Extensions
 
-Add LogiGo visualization directly to your IDE.
+Add LogicArt visualization directly to your IDE.
 
 ### Supported IDEs
 
@@ -630,7 +630,7 @@ Add LogiGo visualization directly to your IDE.
 
 **Option 1: Install from VSIX**
 
-1. Download `logigo-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogiGo/releases)
+1. Download `logicart-1.0.0.vsix` from [GitHub Releases](https://github.com/JPaulGrayson/LogicArt/releases)
 2. Open VS Code
 3. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
 4. Type: `Extensions: Install from VSIX`
@@ -642,32 +642,32 @@ Add LogiGo visualization directly to your IDE.
 
 ```bash
 # Mac
-mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
-cd ~/.vscode/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.vscode/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.vscode/extensions/logicart.logicart-1.0.0
+cd ~/.vscode/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 
 # Windows
-mkdir %USERPROFILE%\.vscode\extensions\logigo.logigo-1.0.0
+mkdir %USERPROFILE%\.vscode\extensions\logicart.logicart-1.0.0
 # Extract VSIX to this folder
 
 # Linux
-mkdir -p ~/.vscode/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.vscode/extensions/logigo.logigo-1.0.0
-cd ~/.vscode/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.vscode/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.vscode/extensions/logicart.logicart-1.0.0
+cd ~/.vscode/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
 **Usage:**
 
 1. Open any `.js` or `.ts` file
-2. Press `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. Press `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 3. Flowchart panel appears beside your code
 4. Click nodes to jump to that line
 
 **Verification:**
 
-- [ ] `LogiGo: Visualize Current File` appears in Command Palette
+- [ ] `LogicArt: Visualize Current File` appears in Command Palette
 - [ ] Flowchart panel opens
 - [ ] Nodes appear for code's control flow
 - [ ] Clicking nodes jumps to corresponding line
@@ -698,9 +698,9 @@ Same as VS Code (Cursor is a VS Code fork):
 
 ```bash
 # Cursor extensions folder
-mkdir -p ~/.cursor/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.cursor/extensions/logigo.logigo-1.0.0
-cd ~/.cursor/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.cursor/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.cursor/extensions/logicart.logicart-1.0.0
+cd ~/.cursor/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -708,7 +708,7 @@ mv extension/* . && rm -rf extension
 
 Same as VS Code:
 1. Open `.js` or `.ts` file
-2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 
 ---
 
@@ -726,9 +726,9 @@ The standard VSIX installer may not work in Antigravity due to differences in th
 
 ```bash
 # Antigravity extensions folder
-mkdir -p ~/.antigravity/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.antigravity/extensions/logigo.logigo-1.0.0
-cd ~/.antigravity/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.antigravity/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.antigravity/extensions/logicart.logicart-1.0.0
+cd ~/.antigravity/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -737,20 +737,20 @@ Reload Antigravity: `Cmd+Shift+P` → `Reload Window`
 **Usage:**
 
 1. Open `.js` or `.ts` file
-2. `Cmd+Shift+P` → `LogiGo: Visualize Current File`
+2. `Cmd+Shift+P` → `LogicArt: Visualize Current File`
 3. Click nodes to jump to source code
 
 **Verification:**
 
-- [ ] Extension folder exists at `~/.antigravity/extensions/logigo.logigo-1.0.0/`
-- [ ] LogiGo command appears after reload
+- [ ] Extension folder exists at `~/.antigravity/extensions/logicart.logicart-1.0.0/`
+- [ ] LogicArt command appears after reload
 - [ ] Flowchart displays when command is run
 - [ ] Clicking nodes jumps to source
 
 **Troubleshooting:**
 
 **Extension not appearing**
-- Verify folder structure: `ls ~/.antigravity/extensions/logigo.logigo-1.0.0/`
+- Verify folder structure: `ls ~/.antigravity/extensions/logicart.logicart-1.0.0/`
 - Should contain: `package.json`, `dist/`, `icon.png`
 - If you see `extension/` subfolder, extraction failed
 
@@ -766,18 +766,18 @@ Reload Antigravity: `Cmd+Shift+P` → `Reload Window`
 
 **Option 1: Import from Cursor**
 
-If you have Cursor with LogiGo installed:
+If you have Cursor with LogicArt installed:
 1. Launch Windsurf
 2. Select "Import from Cursor"
-3. LogiGo is automatically imported
+3. LogicArt is automatically imported
 
 **Option 2: Manual Installation**
 
 ```bash
 # Windsurf extensions folder
-mkdir -p ~/.windsurf/extensions/logigo.logigo-1.0.0
-unzip logigo-1.0.0.vsix -d ~/.windsurf/extensions/logigo.logigo-1.0.0
-cd ~/.windsurf/extensions/logigo.logigo-1.0.0
+mkdir -p ~/.windsurf/extensions/logicart.logicart-1.0.0
+unzip logicart-1.0.0.vsix -d ~/.windsurf/extensions/logicart.logicart-1.0.0
+cd ~/.windsurf/extensions/logicart.logicart-1.0.0
 mv extension/* . && rm -rf extension
 ```
 
@@ -818,10 +818,10 @@ npm install
 Use typed checkpoint helper:
 
 ```typescript
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 ```
@@ -848,7 +848,7 @@ For VS Code forks:
 
 - **[Getting Started Guide](GETTING_STARTED.md)** - Tutorials and workflows
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogicArt)** - Source code
 
 ---
 
@@ -856,7 +856,7 @@ For VS Code forks:
 
 - **Documentation**: See in-app Help dialog (`?` button)
 - **Examples**: Try built-in algorithm examples
-- **GitHub Issues**: [Report bugs or request features](https://github.com/JPaulGrayson/LogiGo/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/JPaulGrayson/LogicArt/issues)
 
 ---
 

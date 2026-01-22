@@ -1,4 +1,4 @@
-# LogiGo × Antigravity: Visual Handshake + Browser Agent Integration
+# LogicArt × Antigravity: Visual Handshake + Browser Agent Integration
 
 **Document Version:** 1.0  
 **Date:** November 25, 2024  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This proposal outlines an enhanced integration between LogiGo and Antigravity that combines **Visual Handshake** (connecting code execution to UI elements) with **Browser Agent** capabilities (AI-powered browser automation). Together, these create a powerful debugging experience where developers can see exactly how their code affects the UI and use AI agents to test and validate behavior.
+This proposal outlines an enhanced integration between LogicArt and Antigravity that combines **Visual Handshake** (connecting code execution to UI elements) with **Browser Agent** capabilities (AI-powered browser automation). Together, these create a powerful debugging experience where developers can see exactly how their code affects the UI and use AI agents to test and validate behavior.
 
 ---
 
@@ -16,14 +16,14 @@ This proposal outlines an enhanced integration between LogiGo and Antigravity th
 
 ### What is "Visual Handshake"?
 
-Visual Handshake creates a visual connection between LogiGo's flowchart nodes and the actual DOM elements they affect. When code executes and hits a checkpoint, the corresponding UI element on the page highlights, creating a "handshake" between logic and interface.
+Visual Handshake creates a visual connection between LogicArt's flowchart nodes and the actual DOM elements they affect. When code executes and hits a checkpoint, the corresponding UI element on the page highlights, creating a "handshake" between logic and interface.
 
 ### Example Scenario
 
 ```javascript
 async function handleLoginClick() {
   // Checkpoint 1: User clicks login button
-  await LogiGo.checkpoint('btn_login_clicked', { 
+  await LogicArt.checkpoint('btn_login_clicked', { 
     domElement: '#btn-login' 
   });
   
@@ -32,7 +32,7 @@ async function handleLoginClick() {
   button.textContent = 'Logging in...';
   
   // Checkpoint 2: Validating credentials
-  await LogiGo.checkpoint('validating_credentials', { 
+  await LogicArt.checkpoint('validating_credentials', { 
     domElement: '#login-form' 
   });
   
@@ -40,7 +40,7 @@ async function handleLoginClick() {
   const password = document.getElementById('password').value;
   
   if (!username || !password) {
-    await LogiGo.checkpoint('validation_failed', { 
+    await LogicArt.checkpoint('validation_failed', { 
       domElement: '#error-message' 
     });
     showError('Please enter username and password');
@@ -48,7 +48,7 @@ async function handleLoginClick() {
   }
   
   // Checkpoint 3: Making API call
-  await LogiGo.checkpoint('api_login_request', { 
+  await LogicArt.checkpoint('api_login_request', { 
     domElement: '#loading-spinner' 
   });
   
@@ -58,7 +58,7 @@ async function handleLoginClick() {
   });
   
   // Checkpoint 4: Success!
-  await LogiGo.checkpoint('login_success', { 
+  await LogicArt.checkpoint('login_success', { 
     domElement: '#dashboard' 
   });
   
@@ -75,17 +75,17 @@ async function handleLoginClick() {
 
 ### Visual Effect
 
-When `LogiGo.checkpoint('btn_login_clicked', { domElement: '#btn-login' })` executes:
+When `LogicArt.checkpoint('btn_login_clicked', { domElement: '#btn-login' })` executes:
 
 ```css
 /* Element gets temporary highlight */
 #btn-login {
   box-shadow: 0 0 20px 4px gold !important;
   outline: 3px solid rgba(255, 215, 0, 0.6) !important;
-  animation: logigo-pulse 1s ease-in-out;
+  animation: logicart-pulse 1s ease-in-out;
 }
 
-@keyframes logigo-pulse {
+@keyframes logicart-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
@@ -122,7 +122,7 @@ highlightElement(selector, options) {
   const element = document.querySelector(selector);
   if (!element) {
     if (this.options.debug) {
-      console.warn(`[LogiGo] Element not found: ${selector}`);
+      console.warn(`[LogicArt] Element not found: ${selector}`);
     }
     return;
   }
@@ -143,13 +143,13 @@ highlightElement(selector, options) {
   element.style.transition = 'all 0.3s ease';
   
   // Add pulse animation
-  element.classList.add('logigo-highlight-pulse');
+  element.classList.add('logicart-highlight-pulse');
   
   // Remove after duration
   setTimeout(() => {
     element.style.boxShadow = originalBoxShadow;
     element.style.outline = originalOutline;
-    element.classList.remove('logigo-highlight-pulse');
+    element.classList.remove('logicart-highlight-pulse');
   }, options.duration);
 }
 ```
@@ -157,18 +157,18 @@ highlightElement(selector, options) {
 **CSS Injection (one-time on init):**
 ```javascript
 injectStyles() {
-  if (document.getElementById('logigo-styles')) return;
+  if (document.getElementById('logicart-styles')) return;
   
   const style = document.createElement('style');
-  style.id = 'logigo-styles';
+  style.id = 'logicart-styles';
   style.textContent = `
-    @keyframes logigo-highlight-pulse {
+    @keyframes logicart-highlight-pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
     
-    .logigo-highlight-pulse {
-      animation: logigo-highlight-pulse 1s ease-in-out !important;
+    .logicart-highlight-pulse {
+      animation: logicart-highlight-pulse 1s ease-in-out !important;
     }
   `;
   document.head.appendChild(style);
@@ -186,8 +186,8 @@ injectStyles() {
 ### User Experience Flow
 
 **Developer Workflow:**
-1. Developer adds `LogiGo.checkpoint()` calls with `domElement` option
-2. Code runs → LogiGo overlay appears (bottom-right)
+1. Developer adds `LogicArt.checkpoint()` calls with `domElement` option
+2. Code runs → LogicArt overlay appears (bottom-right)
 3. As checkpoints execute:
    - Flowchart node highlights in overlay
    - Corresponding DOM element highlights on page
@@ -205,7 +205,7 @@ injectStyles() {
 
 ### Current Browser Testing vs. Browser Agent
 
-**LogiGo's Current Capability (Playwright Testing):**
+**LogicArt's Current Capability (Playwright Testing):**
 - Automated UI/UX testing with predefined test scripts
 - Validates that features work as expected
 - Requires manually written test plans
@@ -219,7 +219,7 @@ injectStyles() {
 
 ### The Integration Opportunity
 
-Combine LogiGo's execution tracking with Antigravity's browser agent to create **AI-assisted debugging sessions**.
+Combine LogicArt's execution tracking with Antigravity's browser agent to create **AI-assisted debugging sessions**.
 
 ### Concept: "AI Test Partner"
 
@@ -231,7 +231,7 @@ Combine LogiGo's execution tracking with Antigravity's browser agent to create *
 1. Opens the application in browser
 2. Identifies login form visually
 3. Tries different inputs (valid, invalid, edge cases)
-4. Monitors LogiGo checkpoints during each attempt
+4. Monitors LogicArt checkpoints during each attempt
 5. Reports findings:
    ```
    ✅ Valid login works correctly
@@ -239,7 +239,7 @@ Combine LogiGo's execution tracking with Antigravity's browser agent to create *
    ⚠️  Very long usernames cause UI overflow (observed during 'validating_credentials')
    ```
 
-**How LogiGo Helps:**
+**How LogicArt Helps:**
 - Agent can see which checkpoints execute
 - Agent can correlate UI behavior with code flow
 - Agent can identify missing error handling (expected checkpoints not hit)
@@ -250,9 +250,9 @@ Combine LogiGo's execution tracking with Antigravity's browser agent to create *
 
 **User:** "Explain what happens when I click the 'Checkout' button"
 
-**Antigravity Browser Agent + LogiGo:**
+**Antigravity Browser Agent + LogicArt:**
 1. Agent clicks checkout button
-2. LogiGo tracks execution:
+2. LogicArt tracks execution:
    ```
    checkpoint('validate_cart') → 3 items validated
    checkpoint('calculate_tax') → Tax: $12.50
@@ -285,7 +285,7 @@ Combine LogiGo's execution tracking with Antigravity's browser agent to create *
 
 **Antigravity Browser Agent:**
 1. Agent identifies "Add to Cart" button
-2. Agent clicks it while LogiGo is in **step mode** (paused after each checkpoint)
+2. Agent clicks it while LogicArt is in **step mode** (paused after each checkpoint)
 3. For each checkpoint, agent:
    - Takes screenshot
    - Highlights affected DOM element
@@ -313,11 +313,11 @@ Step 4: checkpoint('show_notification')
 
 ### Technical Architecture
 
-**Component 1: LogiGo Checkpoint Reporter API**
+**Component 1: LogicArt Checkpoint Reporter API**
 
 ```javascript
-// New feature in logigo-core
-class LogiGoReporter {
+// New feature in logicart-core
+class LogicArtReporter {
   constructor() {
     this.checkpointLog = [];
     this.listeners = [];
@@ -358,7 +358,7 @@ class LogiGoReporter {
 }
 
 // Expose API
-window.LogiGo.reporter = new LogiGoReporter();
+window.LogicArt.reporter = new LogicArtReporter();
 ```
 
 **Component 2: Antigravity Browser Agent Integration**
@@ -369,10 +369,10 @@ class AntigravityBrowserAgent {
   async observePage(url, options = {}) {
     await this.navigate(url);
     
-    // Subscribe to LogiGo checkpoints
+    // Subscribe to LogicArt checkpoints
     if (options.watchLogigo) {
       await this.executeScript(() => {
-        window.LogiGo.reporter.onCheckpoint((checkpoint) => {
+        window.LogicArt.reporter.onCheckpoint((checkpoint) => {
           // Send to agent for analysis
           window.__antigravity__.reportCheckpoint(checkpoint);
         });
@@ -384,18 +384,18 @@ class AntigravityBrowserAgent {
     const { enableLogigo = true } = options;
     
     if (enableLogigo) {
-      // Set LogiGo to step mode
+      // Set LogicArt to step mode
       await this.executeScript(() => {
-        window.LogiGo.pause();
+        window.LogicArt.pause();
       });
     }
     
     // Execute instruction
     await this.followInstruction(instruction);
     
-    // Get LogiGo report
+    // Get LogicArt report
     const report = await this.executeScript(() => {
-      return window.LogiGo.reporter.exportReport();
+      return window.LogicArt.reporter.exportReport();
     });
     
     // Analyze with AI
@@ -408,11 +408,11 @@ class AntigravityBrowserAgent {
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Antigravity × LogiGo Debugging Session                 │
+│ Antigravity × LogicArt Debugging Session                 │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │ Browser Agent   │  │ LogiGo Flowchart            │ │
+│  │ Browser Agent   │  │ LogicArt Flowchart            │ │
 │  │                 │  │                             │ │
 │  │ [Live Browser]  │  │  ┌──────────┐              │ │
 │  │                 │  │  │  Start   │              │ │
@@ -447,7 +447,7 @@ class AntigravityBrowserAgent {
 
 ### Phase 1: Visual Handshake (2 weeks)
 
-**LogiGo Team:**
+**LogicArt Team:**
 - [ ] Enhance `checkpoint()` to accept `domElement` parameter
 - [ ] Implement `highlightElement()` with customizable styling
 - [ ] Add CSS animation injection
@@ -455,34 +455,34 @@ class AntigravityBrowserAgent {
 - [ ] Document Visual Handshake API
 
 **Deliverables:**
-- Updated `logigo-core` package (v0.2.0)
+- Updated `logicart-core` package (v0.2.0)
 - Demo: `example/visual_handshake_demo.html`
 - Documentation: API reference for Visual Handshake
 
 ### Phase 2: Checkpoint Reporter API (2 weeks)
 
-**LogiGo Team:**
-- [ ] Create `LogiGoReporter` class
+**LogicArt Team:**
+- [ ] Create `LogicArtReporter` class
 - [ ] Add checkpoint logging and event system
 - [ ] Implement export/report generation
 - [ ] Create API for external tools to subscribe
 - [ ] Add telemetry and statistics
 
 **Deliverables:**
-- Updated `logigo-core` package (v0.3.0)
+- Updated `logicart-core` package (v0.3.0)
 - API documentation for integrations
 - Example: Exporting checkpoint data to analytics
 
 ### Phase 3: Browser Agent Integration (4 weeks - Joint Effort)
 
 **Antigravity Team:**
-- [ ] Define Browser Agent API for LogiGo integration
+- [ ] Define Browser Agent API for LogicArt integration
 - [ ] Implement checkpoint subscription in agent runtime
 - [ ] Add visual correlation (checkpoint → screenshot)
 - [ ] Build AI analysis pipeline for checkpoint data
 - [ ] Create unified debugging dashboard UI
 
-**LogiGo Team:**
+**LogicArt Team:**
 - [ ] Ensure checkpoint API is browser-agent friendly
 - [ ] Add structured metadata output
 - [ ] Optimize for real-time streaming of checkpoint events
@@ -509,19 +509,19 @@ class AntigravityBrowserAgent {
 ### Technical Questions
 
 1. **Browser Agent API Access:**
-   - Is there a public API for LogiGo to interact with the browser agent?
+   - Is there a public API for LogicArt to interact with the browser agent?
    - Can extensions/libraries subscribe to agent events?
    - What data format does the agent expect for analysis?
 
 2. **Integration Points:**
    - Can the browser agent execute JavaScript in the test page context?
-   - Can we inject LogiGo into the browser agent's test environment?
+   - Can we inject LogicArt into the browser agent's test environment?
    - How does the agent handle async operations (checkpoints are Promise-based)?
 
 3. **Visual Correlation:**
    - Can the agent take screenshots on demand (e.g., at each checkpoint)?
-   - Can we overlay LogiGo highlights onto agent screenshots?
-   - Is there a way to sync agent actions with LogiGo timeline?
+   - Can we overlay LogicArt highlights onto agent screenshots?
+   - Is there a way to sync agent actions with LogicArt timeline?
 
 4. **AI Analysis:**
    - What LLM powers the browser agent (Gemini, GPT-4)?
@@ -536,7 +536,7 @@ class AntigravityBrowserAgent {
    - How do Antigravity users currently view browser agent results?
 
 6. **Workflow Integration:**
-   - Should LogiGo auto-activate when browser agent runs tests?
+   - Should LogicArt auto-activate when browser agent runs tests?
    - How should users trigger "AI Test Partner" mode?
    - Should reports be saved to workspace history?
 
@@ -569,7 +569,7 @@ Verify tax calculation, inventory check, and payment redirect."
 **What Happens:**
 1. Agent adds 3 items to cart
 2. Agent clicks checkout
-3. LogiGo tracks each checkpoint:
+3. LogicArt tracks each checkpoint:
    - `validate_cart` → 3 items OK
    - `calculate_tax` → $15.50
    - `check_inventory` → All available
@@ -598,20 +598,20 @@ and report which validations work."
 1. Agent tries empty email → Error shows ✅
 2. Agent tries invalid email format → Error shows ✅
 3. Agent tries weak password → **No error!** ❌
-4. LogiGo shows: `validate_password` checkpoint never executes
+4. LogicArt shows: `validate_password` checkpoint never executes
 5. Agent reports: "Password validation is missing or broken"
 
 **Developer Fix:**
 ```javascript
 // Add missing checkpoint
 async function validateForm() {
-  await LogiGo.checkpoint('validate_email', { 
+  await LogicArt.checkpoint('validate_email', { 
     domElement: '#email-input' 
   });
   if (!isValidEmail(email)) return false;
   
   // ADD THIS:
-  await LogiGo.checkpoint('validate_password', { 
+  await LogicArt.checkpoint('validate_password', { 
     domElement: '#password-input' 
   });
   if (!isStrongPassword(password)) return false;
@@ -626,9 +626,9 @@ async function validateForm() {
 
 **Developer Asks:** "What does the 'Save Draft' button do?"
 
-**Browser Agent + LogiGo:**
+**Browser Agent + LogicArt:**
 1. Agent clicks "Save Draft"
-2. LogiGo captures flow:
+2. LogicArt captures flow:
    ```
    checkpoint('get_form_data') → 500 chars
    checkpoint('validate_required_fields') → Title OK, body OK
@@ -657,7 +657,7 @@ This means it won't sync across devices.
 ## Part 6: Success Metrics
 
 ### User Engagement
-- **Adoption:** % of Antigravity users who enable LogiGo with browser agent
+- **Adoption:** % of Antigravity users who enable LogicArt with browser agent
 - **Retention:** % who use it weekly
 - **Session Duration:** Time spent in debugging sessions
 
@@ -676,7 +676,7 @@ This means it won't sync across devices.
 ## Part 7: Risks & Mitigation
 
 ### Risk 1: Performance Impact
-**Concern:** LogiGo + Browser Agent slow down page execution
+**Concern:** LogicArt + Browser Agent slow down page execution
 
 **Mitigation:**
 - Make checkpoint logging async (non-blocking)
@@ -684,11 +684,11 @@ This means it won't sync across devices.
 - Provide performance budgets and warnings
 
 ### Risk 2: Browser Agent Compatibility
-**Concern:** LogiGo may not work in agent's browser environment
+**Concern:** LogicArt may not work in agent's browser environment
 
 **Mitigation:**
 - Test early in controlled environment
-- Create fallback mode (agent works without LogiGo)
+- Create fallback mode (agent works without LogicArt)
 - Provide clear error messages
 
 ### Risk 3: User Confusion
@@ -706,12 +706,12 @@ This means it won't sync across devices.
 ### Immediate (This Week)
 1. **Antigravity Team:** Review this proposal and provide feedback
 2. **Joint Call:** Discuss browser agent API and integration points
-3. **LogiGo Team:** Start Visual Handshake implementation
+3. **LogicArt Team:** Start Visual Handshake implementation
 
 ### Short-term (Next Month)
 4. **Prototype:** Build Visual Handshake demo
 5. **API Design:** Define checkpoint reporter API
-6. **Joint Prototype:** Simple browser agent + LogiGo integration
+6. **Joint Prototype:** Simple browser agent + LogicArt integration
 
 ### Medium-term (Next Quarter)
 7. **Beta Launch:** Release to Antigravity Pro users
@@ -743,7 +743,7 @@ The combination of **Visual Handshake** and **Browser Agent Integration** create
 
 ```javascript
 // Basic usage
-await LogiGo.checkpoint('step_name', {
+await LogicArt.checkpoint('step_name', {
   domElement: '#my-button',  // CSS selector
   duration: 2000,             // Highlight duration (ms)
   color: 'gold',             // Highlight color
@@ -751,7 +751,7 @@ await LogiGo.checkpoint('step_name', {
 });
 
 // Advanced usage
-await LogiGo.checkpoint('complex_step', {
+await LogicArt.checkpoint('complex_step', {
   domElement: '.product-card[data-id="42"]',
   highlight: {
     type: 'border',  // border | shadow | outline | glow
@@ -767,16 +767,16 @@ await LogiGo.checkpoint('complex_step', {
 
 ```javascript
 // Subscribe to checkpoints
-LogiGo.reporter.onCheckpoint((checkpoint) => {
+LogicArt.reporter.onCheckpoint((checkpoint) => {
   console.log('Checkpoint hit:', checkpoint);
   // { id, timestamp, domElement, variables, metadata }
 });
 
 // Get full log
-const log = LogiGo.reporter.getCheckpointLog();
+const log = LogicArt.reporter.getCheckpointLog();
 
 // Export report
-const report = LogiGo.reporter.exportReport();
+const report = LogicArt.reporter.exportReport();
 // { summary, timeline, statistics, visualizations }
 ```
 

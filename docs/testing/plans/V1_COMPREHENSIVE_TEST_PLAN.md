@@ -1,4 +1,4 @@
-# LogiGo V1 Comprehensive Test Plan
+# LogicArt V1 Comprehensive Test Plan
 
 **Version:** 1.0  
 **Date:** December 29, 2025  
@@ -66,10 +66,10 @@ npm run build:packages
 
 **Expected Output:**
 ```
-✅ logigo-core: dist/index.js, dist/index.d.ts
-✅ logigo-embed: dist/index.js, dist/index.esm.js, dist/index.d.ts
-✅ logigo-remote: dist/index.js, dist/index.mjs, dist/index.d.ts
-✅ logigo-vite-plugin: dist/index.js, dist/index.d.ts, dist/*.js
+✅ logicart-core: dist/index.js, dist/index.d.ts
+✅ logicart-embed: dist/index.js, dist/index.esm.js, dist/index.d.ts
+✅ logicart-remote: dist/index.js, dist/index.mjs, dist/index.d.ts
+✅ logicart-vite-plugin: dist/index.js, dist/index.d.ts, dist/*.js
 ```
 
 ---
@@ -80,14 +80,14 @@ npm run build:packages
 **Test Steps:**
 ```bash
 # Create test project
-mkdir -p /tmp/logigo-test
-cd /tmp/logigo-test
+mkdir -p /tmp/logicart-test
+cd /tmp/logicart-test
 npm init -y
 
 # Test each package
-npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogiGo/packages/logigo-core
-npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogiGo/packages/logigo-embed
-npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogiGo/packages/logigo-vite-plugin
+npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogicArt/packages/logicart-core
+npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogicArt/packages/logicart-embed
+npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogicArt/packages/logicart-vite-plugin
 ```
 
 **Success Criteria:**
@@ -104,20 +104,20 @@ npm install /Users/paulg/Documents/Antigravity\ Github\ folder/LogiGo/packages/l
 **Test Steps:**
 ```bash
 # Create TypeScript test file
-cat > /tmp/logigo-test/test.ts << 'EOF'
-import { checkpoint, LogiGoRuntime } from 'logigo-core';
-import { LogiGoEmbed } from 'logigo-embed';
-import logigoPlugin from 'logigo-vite-plugin';
+cat > /tmp/logicart-test/test.ts << 'EOF'
+import { checkpoint, LogicArtRuntime } from 'logicart-core';
+import { LogicArtEmbed } from 'logicart-embed';
+import logicartPlugin from 'logicart-vite-plugin';
 
 // Test type inference
 checkpoint('test', { value: 123 });
-const runtime = new LogiGoRuntime();
+const runtime = new LogicArtRuntime();
 
 // Test React component types
-const embed = LogiGoEmbed({ code: 'test' });
+const embed = LogicArtEmbed({ code: 'test' });
 
 // Test plugin types
-const plugin = logigoPlugin({ include: ['**/*.ts'] });
+const plugin = logicartPlugin({ include: ['**/*.ts'] });
 EOF
 
 npx tsc --noEmit test.ts
@@ -137,7 +137,7 @@ npx tsc --noEmit test.ts
 
 **Test Steps:**
 ```bash
-cd /Users/paulg/Documents/Antigravity\ Github\ folder/LogiGo
+cd /Users/paulg/Documents/Antigravity\ Github\ folder/LogicArt
 npm audit
 npm audit --workspaces
 ```
@@ -184,9 +184,9 @@ grep -r "TODO\|FIXME\|HACK\|XXX" --include="*.ts" --include="*.tsx" client/ serv
 **Test Steps:**
 ```bash
 # Check for circular dependencies
-cd packages/logigo-core && npx madge --circular src/
-cd ../logigo-embed && npx madge --circular src/
-cd ../logigo-vite-plugin && npx madge --circular src/
+cd packages/logicart-core && npx madge --circular src/
+cd ../logicart-embed && npx madge --circular src/
+cd ../logicart-vite-plugin && npx madge --circular src/
 ```
 
 **Success Criteria:**
@@ -220,9 +220,9 @@ cd ../logigo-vite-plugin && npx madge --circular src/
 **Status:** ⏳ Pending
 
 **Test Steps:**
-1. Read `packages/logigo-core/README.md`
-2. Read `packages/logigo-embed/README.md`
-3. Read `packages/logigo-vite-plugin/README.md`
+1. Read `packages/logicart-core/README.md`
+2. Read `packages/logicart-embed/README.md`
+3. Read `packages/logicart-vite-plugin/README.md`
 
 **Success Criteria:**
 - [ ] Installation instructions are correct
@@ -346,7 +346,7 @@ ls dist/*.map
 # 🤖 Part 2: Replit Agent Testing
 
 **Responsibility:** Runtime testing, feature verification, UI/UX  
-**Environment:** Replit LogiGo Studio (live application) + Browser  
+**Environment:** Replit LogicArt Studio (live application) + Browser  
 **Duration:** 6-8 hours  
 **Tools:** Browser, Replit IDE, manual testing, **browser recording**
 
@@ -478,12 +478,12 @@ function test() {
 
 **Test Code:**
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if empty
+// @logicart: Check if empty
 if (items.length === 0) {
-  // @logigo: Return zero
+  // @logicart: Return zero
   return 0;
 }
 ```
@@ -861,17 +861,17 @@ function outer() {
 ### P1.1 New User Onboarding (CRITICAL)
 **Status:** ⏳ Pending
 
-**Scenario:** You are a new user who just heard about LogiGo
+**Scenario:** You are a new user who just heard about LogicArt
 
 **Test Steps:**
-1. Go to LogiGo Studio URL
+1. Go to LogicArt Studio URL
 2. Read any welcome message
 3. Try to create your first flowchart
 4. Follow any tutorials/guides
 5. Try to understand a complex algorithm
 
 **Success Criteria:**
-- [ ] Clear what LogiGo does
+- [ ] Clear what LogicArt does
 - [ ] Easy to get started
 - [ ] Examples are helpful
 - [ ] Documentation is accessible
@@ -891,7 +891,7 @@ function outer() {
 **Scenario:** You have a bug in your code and want to visualize it
 
 **Test Steps:**
-1. Paste buggy code into LogiGo
+1. Paste buggy code into LogicArt
 2. Step through execution
 3. Identify where bug occurs
 4. Use breakpoints to investigate
@@ -905,7 +905,7 @@ function outer() {
 - [ ] Found the bug faster than traditional debugging
 
 **Questions to Answer:**
-- Does LogiGo actually help find bugs?
+- Does LogicArt actually help find bugs?
 - Is it faster than console.log debugging?
 - Would you use this for real debugging?
 
@@ -943,7 +943,7 @@ function outer() {
 **Scenario:** You're reviewing someone's pull request
 
 **Test Steps:**
-1. Paste PR code into LogiGo
+1. Paste PR code into LogicArt
 2. Visualize the logic flow
 3. Identify potential issues
 4. Add comments/labels
@@ -970,7 +970,7 @@ function outer() {
 
 **Test Steps:**
 1. Take a real function from your projects
-2. Paste into LogiGo
+2. Paste into LogicArt
 3. Visualize it
 4. Step through it
 5. Evaluate usefulness
@@ -1084,7 +1084,7 @@ function outer() {
 
 **Test Steps:**
 1. Create new React project
-2. Install logigo-embed
+2. Install logicart-embed
 3. Follow documentation
 4. Get it working
 5. Evaluate experience
@@ -1102,7 +1102,7 @@ function outer() {
 
 **Test Steps:**
 1. Create new Vite project
-2. Install logigo-vite-plugin
+2. Install logicart-vite-plugin
 3. Configure as documented
 4. Build project
 5. Verify instrumentation works

@@ -1,4 +1,4 @@
-# LogiGo V1 Test Plan - Quick Reference
+# LogicArt V1 Test Plan - Quick Reference
 
 **Full Plan:** See `V1_COMPREHENSIVE_TEST_PLAN.md`
 
@@ -99,7 +99,7 @@
 
 ### For Antigravity:
 ```bash
-cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
 git pull origin main
 npm install
 npm run build:packages
@@ -115,7 +115,7 @@ npm run dev
 
 ### For Paul:
 ```
-Open LogiGo Studio
+Open LogicArt Studio
 Follow test plan P1-P5
 Make final decision
 ```

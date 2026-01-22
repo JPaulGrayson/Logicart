@@ -85,7 +85,7 @@ export function FlowchartButton() {
   
   // Enable bidirectional debugging features (breakpoints, visual sync)
   useEffect(() => {
-    const api = window.LogiGo || window.LogicArt;
+    const api = window.LogicArt || window.LogicArt;
     if (api?.connectControlChannel) {
       api.connectControlChannel();
     }
@@ -99,7 +99,7 @@ export function FlowchartButton() {
       if (!response.ok) throw new Error('Failed to load file');
       const code = await response.text();
       
-      const api = window.LogiGo || window.LogicArt;
+      const api = window.LogicArt || window.LogicArt;
       if (api?.visualize) {
         api.visualize(code, component.name);
       } else {
@@ -113,7 +113,7 @@ export function FlowchartButton() {
   // View full project architecture (component dependency graph)
   function viewArchitecture() {
     setIsOpen(false);
-    const api = window.LogiGo || window.LogicArt;
+    const api = window.LogicArt || window.LogicArt;
     if (api?.openArchitecture) {
       api.openArchitecture(
         window.location.origin + '/api/source',

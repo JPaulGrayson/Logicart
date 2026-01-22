@@ -1,7 +1,7 @@
-# Antigravity's Review of LogiGo Embed Design
+# Antigravity's Review of LogicArt Embed Design
 **Date:** December 20, 2025  
 **Reviewer:** Antigravity  
-**Document Reviewed:** LogiGo Embed - Overview for Review
+**Document Reviewed:** LogicArt Embed - Overview for Review
 ---
 ## Overall Assessment: **Strong Design**
 
@@ -47,14 +47,14 @@ Add a "Development Mode" that doesn't require build integration:
 
 ```javascript
 // Option A: Runtime parsing (slower but zero config)
-<LogiGoEmbed 
+<LogicArtEmbed 
   mode="development"
   entryFile="src/App.tsx"  // We fetch and parse at runtime
 />
 
 // Option B: Pre-computed manifest from CLI
-// npx logigo-manifest generate src/ --output public/logigo-manifest.json
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+// npx logicart-manifest generate src/ --output public/logicart-manifest.json
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Recommendation:**
@@ -92,17 +92,17 @@ Source maps would only help if you were trying to correlate minified production 
 
 | Distribution | Purpose |
 |--------------|---------|
-| `logigo-embed` (ESM) | React apps, peer dep on React |
-| `logigo-embed/vanilla` (UMD) | Non-React apps, bundled React |
-| `logigo-embed/vite` | Vite plugin |
-| `logigo-embed/webpack` | Webpack plugin |
+| `logicart-embed` (ESM) | React apps, peer dep on React |
+| `logicart-embed/vanilla` (UMD) | Non-React apps, bundled React |
+| `logicart-embed/vite` | Vite plugin |
+| `logicart-embed/webpack` | Webpack plugin |
 
 **CDN usage:**
 ```html
 <!-- For quick prototypes -->
-<script src="https://unpkg.com/logigo-embed/dist/logigo-embed.umd.js"></script>
+<script src="https://unpkg.com/logicart-embed/dist/logicart-embed.umd.js"></script>
 <script>
-  LogiGoEmbed.init({ container: '#logigo' });
+  LogicArtEmbed.init({ container: '#logicart' });
 </script>
 ```
 ---
@@ -120,9 +120,9 @@ function calculate(x) {
 
 // Instrumented - now async!
 async function calculate(x) {
-  await LogiGo.checkpoint('if_abc123');
+  await LogicArt.checkpoint('if_abc123');
   if (x > 0) {
-    await LogiGo.checkpoint('return_def456');
+    await LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
@@ -139,15 +139,15 @@ async function calculate(x) {
 ```javascript
 // Instrumented - stays synchronous
 function calculate(x) {
-  LogiGo.checkpoint('if_abc123');  // Fire-and-forget
+  LogicArt.checkpoint('if_abc123');  // Fire-and-forget
   if (x > 0) {
-    LogiGo.checkpoint('return_def456');
+    LogicArt.checkpoint('return_def456');
     return x * 2;
   }
   return 0;
 }
 
-// In logigo-core:
+// In logicart-core:
 checkpoint(id, vars) {
   // Synchronous - just queue the message
   this.queue.push({ id, vars, timestamp: Date.now() });
@@ -157,7 +157,7 @@ checkpoint(id, vars) {
 
 **Recommendation:**
 - Make checkpoints **synchronous** by default
-- Offer `await LogiGo.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
+- Offer `await LogicArt.checkpointAsync(id)` for cases where user wants to pause execution (step debugging)
 ---
 ## Additional Suggestions
 
@@ -166,7 +166,7 @@ checkpoint(id, vars) {
 For multi-file apps, showing the entire app's flowchart could be overwhelming.
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   focusFile="src/utils/sort.ts"  // Only show this file's flowchart
   // or
   focusFunction="processNextIteration"  // Auto-locate and zoom
@@ -178,14 +178,14 @@ For multi-file apps, showing the entire app's flowchart could be overwhelming.
 ```javascript
 // When AI modifies code, trigger refresh
 aiCodeAssistant.onCodeChange((file, newCode) => {
-  LogiGoEmbed.refresh({ file });
+  LogicArtEmbed.refresh({ file });
 });
 ```
 
 ### 3. Export Capability
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   onExport={(snapshot) => {
     // User can export current flowchart state for sharing
     // snapshot = { nodes, edges, variables, timestamp }
@@ -208,8 +208,8 @@ aiCodeAssistant.onCodeChange((file, newCode) => {
 
 | Task | Owner |
 |------|-------|
-| Build `logigo-embed` package with synchronous checkpoints | Replit |
-| Create `npx logigo-manifest` CLI tool for MVP | Replit |
+| Build `logicart-embed` package with synchronous checkpoints | Replit |
+| Create `npx logicart-manifest` CLI tool for MVP | Replit |
 | Review `docs/EMBED_STUDIO_DESIGN.md` once pushed | Antigravity |
 | Define exact manifest JSON schema for interoperability | Joint |
 ---

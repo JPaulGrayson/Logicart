@@ -1,6 +1,6 @@
-# LogiGo Integration Guide
+# LogicArt Integration Guide
 
-How to integrate LogiGo visualization into your projects.
+How to integrate LogicArt visualization into your projects.
 
 ---
 
@@ -9,10 +9,10 @@ How to integrate LogiGo visualization into your projects.
 | Method | Use Case | Installation |
 |--------|----------|--------------|
 | **Static Mode** | Quick visualization | None (paste into Studio) |
-| **Embed Component** | React apps | `npm install logigo-embed` |
-| **Vite Plugin** | Build-time instrumentation | `npm install logigo-vite-plugin` |
+| **Embed Component** | React apps | `npm install logicart-embed` |
+| **Vite Plugin** | Build-time instrumentation | `npm install logicart-vite-plugin` |
 | **Remote Mode** | Cross-app debugging | Script tag injection |
-| **Manual Checkpoints** | Fine-grained control | `npm install logigo-core` |
+| **Manual Checkpoints** | Fine-grained control | `npm install logicart-core` |
 
 ---
 
@@ -23,18 +23,18 @@ Add flowchart visualization directly into your React app.
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ### Static Mode (Parse at Runtime)
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function CodeViewer({ code }) {
   return (
-    <LogiGoEmbed
+    <LogicArtEmbed
       code={code}
       theme="dark"
       position="bottom-right"
@@ -48,13 +48,13 @@ function CodeViewer({ code }) {
 ### Live Mode (With Manifest)
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
   return (
-    <LogiGoEmbed
-      manifestUrl="/logigo-manifest.json"
+    <LogicArtEmbed
+      manifestUrl="/logicart-manifest.json"
       manifestHash="abc123"
       showVariables={true}
       showHistory={true}
@@ -73,7 +73,7 @@ Automatically instrument your code at build time.
 ### Installation
 
 ```bash
-npm install logigo-vite-plugin --save-dev
+npm install logicart-vite-plugin --save-dev
 ```
 
 ### Configuration
@@ -82,15 +82,15 @@ npm install logigo-vite-plugin --save-dev
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
-      manifestPath: 'logigo-manifest.json',
+      manifestPath: 'logicart-manifest.json',
       autoInstrument: true,
       captureVariables: true
     })
@@ -101,28 +101,28 @@ export default defineConfig({
 ### What It Does
 
 1. **Parses** your source files using Acorn
-2. **Injects** `LogiGo.checkpoint()` calls at key points
-3. **Generates** `logigo-manifest.json` with flowchart data
+2. **Injects** `LogicArt.checkpoint()` calls at key points
+3. **Generates** `logicart-manifest.json` with flowchart data
 4. **Injects** runtime script into your HTML
 
 ### Output Files
 
 ```
 dist/
-├── logigo-manifest.json   # Flowchart nodes, edges, checkpoint metadata
-└── logigo-runtime.js      # Browser runtime for checkpoint handling
+├── logicart-manifest.json   # Flowchart nodes, edges, checkpoint metadata
+└── logicart-runtime.js      # Browser runtime for checkpoint handling
 ```
 
 ---
 
 ## 3. Remote Mode (Cross-App Debugging)
 
-Connect external apps to LogiGo Studio for real-time visualization.
+Connect external apps to LogicArt Studio for real-time visualization.
 
 ### Add Script Tag
 
 ```html
-<script src="https://your-logigo-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
+<script src="https://your-logicart-studio.replit.app/remote.js?project=MyApp&autoOpen=false"></script>
 ```
 
 The `remote.js` script automatically provides a global `checkpoint` function. No import needed.
@@ -152,14 +152,14 @@ For flowchart generation, register your source:
 <script>
   fetch('/app.js')
     .then(r => r.text())
-    .then(code => window.LogiGo.registerCode(code));
+    .then(code => window.LogicArt.registerCode(code));
 </script>
 ```
 
 ### Open Studio
 
 ```javascript
-window.LogiGo.openStudio();
+window.LogicArt.openStudio();
 ```
 
 ### Query Parameters
@@ -178,13 +178,13 @@ Use the core library for precise checkpoint placement.
 ### Installation
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Synchronous Checkpoints
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function bubbleSort(arr) {
   checkpoint('sort_start', { arr: [...arr] });
@@ -208,9 +208,9 @@ function bubbleSort(arr) {
 ### Async Checkpoints (With Breakpoints)
 
 ```javascript
-import { checkpointAsync, LogiGoRuntime } from 'logigo-core';
+import { checkpointAsync, LogicArtRuntime } from 'logicart-core';
 
-const runtime = new LogiGoRuntime({ manifestHash: 'abc123' });
+const runtime = new LogicArtRuntime({ manifestHash: 'abc123' });
 runtime.setBreakpoint('critical_point', true);
 
 async function processData(data) {
@@ -224,7 +224,7 @@ async function processData(data) {
 ### Runtime API
 
 ```javascript
-const runtime = new LogiGoRuntime();
+const runtime = new LogicArtRuntime();
 
 runtime.start();                           // Begin session
 runtime.checkpoint('id', { vars });        // Record checkpoint
@@ -239,31 +239,31 @@ runtime.end();                             // End session
 
 ## 5. Backend Logging (Node.js)
 
-For server-side code where `logigo-core` cannot be used (no browser), add this logging helper directly to your code:
+For server-side code where `logicart-core` cannot be used (no browser), add this logging helper directly to your code:
 
 ```typescript
 // Add this helper at the top of your server file
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId: string, options: { variables?: Record<string, any> } = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 
 // Usage in your routes
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('api:order:start', { variables: { body: req.body } });
+  LogicArt.checkpoint('api:order:start', { variables: { body: req.body } });
   
   const order = await processOrder(req.body);
   
-  LogiGo.checkpoint('api:order:complete', { variables: { orderId: order.id } });
+  LogicArt.checkpoint('api:order:complete', { variables: { orderId: order.id } });
   res.json(order);
 });
 ```
 
-This logs checkpoints to the console. To see the flowchart, paste your server code into LogiGo Studio.
+This logs checkpoints to the console. To see the flowchart, paste your server code into LogicArt Studio.
 
-**Note:** This is a standalone helper, not an import from `logigo-core`. The core package is designed for browser environments with `postMessage` support.
+**Note:** This is a standalone helper, not an import from `logicart-core`. The core package is designed for browser environments with `postMessage` support.
 
 ---
 
@@ -276,7 +276,7 @@ This logs checkpoints to the console. To see the flowchart, paste your server co
 | `id` | string | Unique checkpoint identifier |
 | `variables` | object | Variables to capture at this point |
 
-### LogiGoEmbed Props
+### LogicArtEmbed Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -287,13 +287,13 @@ This logs checkpoints to the console. To see the flowchart, paste your server co
 | `showVariables` | boolean | true | Show variable inspector |
 | `showHistory` | boolean | false | Show checkpoint history |
 
-### logigoPlugin Options
+### logicartPlugin Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `include` | string[] | ['**/*.js', ...] | Files to instrument |
 | `exclude` | string[] | ['**/node_modules/**'] | Files to skip |
-| `manifestPath` | string | 'logigo-manifest.json' | Output path |
+| `manifestPath` | string | 'logicart-manifest.json' | Output path |
 | `autoInstrument` | boolean | true | Auto-inject checkpoints |
 | `captureVariables` | boolean | true | Capture local variables |
 
@@ -322,12 +322,12 @@ checkpoint('loop:iteration', { i: currentIndex });
 Add readable labels to flowchart nodes:
 
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if empty
+// @logicart: Check if empty
 if (items.length === 0) {
-  // @logigo: Return early
+  // @logicart: Return early
   return null;
 }
 ```
@@ -340,7 +340,7 @@ Labeled nodes show a blue indicator. Hover to see original code.
 
 ```
 ┌─────────────────┐     HTTP POST      ┌─────────────────┐
-│   Your App      │ ─────────────────> │   LogiGo        │
+│   Your App      │ ─────────────────> │   LogicArt        │
 │                 │   /api/remote/     │   Server        │
 │  checkpoint()   │   checkpoint       │                 │
 │  registerCode() │                    │  Stores data    │
@@ -349,7 +349,7 @@ Labeled nodes show a blue indicator. Hover to see original code.
                                                 │ SSE Stream
                                                 ▼
                                        ┌─────────────────┐
-                                       │   LogiGo        │
+                                       │   LogicArt        │
                                        │   Studio        │
                                        │                 │
                                        │  Displays:      │
@@ -365,7 +365,7 @@ Labeled nodes show a blue indicator. Hover to see original code.
 
 ### Checkpoints not appearing
 
-1. Verify LogiGo runtime is loaded
+1. Verify LogicArt runtime is loaded
 2. Check browser console for errors
 3. Ensure checkpoint code is actually executing
 
@@ -373,14 +373,14 @@ Labeled nodes show a blue indicator. Hover to see original code.
 
 1. Check `captureVariables: true` in plugin config
 2. Verify manifest is being generated
-3. Check LogiGoEmbed has `showVariables={true}`
+3. Check LogicArtEmbed has `showVariables={true}`
 
 ### TypeScript errors
 
 Use typed checkpoint helper:
 
 ```typescript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 // Types are included in the package
 ```
 

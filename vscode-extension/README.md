@@ -1,4 +1,4 @@
-# LogiGo - Code Flow Visualizer
+# LogicArt - Code Flow Visualizer
 
 Transform JavaScript code into interactive flowcharts with step-by-step execution.
 
@@ -15,13 +15,13 @@ Transform JavaScript code into interactive flowcharts with step-by-step executio
 ### From VS Code Marketplace
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
-3. Search for "LogiGo"
+3. Search for "LogicArt"
 4. Click Install
 
 ### From Open VSX (Google Antigravity)
 1. Open Antigravity
 2. Go to Extensions
-3. Search for "LogiGo"
+3. Search for "LogicArt"
 4. Click Install
 
 ### Manual Installation (.vsix)
@@ -34,7 +34,7 @@ Transform JavaScript code into interactive flowcharts with step-by-step executio
 
 1. Open a JavaScript or TypeScript file
 2. Click the flowchart icon in the editor toolbar, or
-3. Run command: `LogiGo: Visualize Current File`
+3. Run command: `LogicArt: Visualize Current File`
 4. The flowchart appears in a side panel
 5. Click nodes to navigate to source code
 
@@ -42,8 +42,8 @@ Transform JavaScript code into interactive flowcharts with step-by-step executio
 
 ```json
 {
-  "logigo.autoRefresh": true,
-  "logigo.layout": "dagre"
+  "logicart.autoRefresh": true,
+  "logicart.layout": "dagre"
 }
 ```
 

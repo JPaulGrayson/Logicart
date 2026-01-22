@@ -1,8 +1,8 @@
-# LogiGo - Complete Implementation Summary
+# LogicArt - Complete Implementation Summary
 
 ## 🎉 Project Status: ALL PHASES COMPLETE
 
-LogiGo is a runtime code visualizer for "Vibe Coders" that makes AI-generated code visible, debuggable, and understandable.
+LogicArt is a runtime code visualizer for "Vibe Coders" that makes AI-generated code visible, debuggable, and understandable.
 
 ---
 
@@ -117,37 +117,37 @@ npm install --save-dev @rollup/plugin-node-resolve @rollup/plugin-terser rollup
 npx rollup -c
 
 # Output:
-# dist/logigo.js (UMD)
-# dist/logigo.min.js (UMD minified)
-# dist/logigo.esm.js (ES Module)
+# dist/logicart.js (UMD)
+# dist/logicart.min.js (UMD minified)
+# dist/logicart.esm.js (ES Module)
 ```
 
 ### To Use:
 
 **Option 1: Script Tag**
 ```html
-<script src="https://unpkg.com/logigo-core/dist/logigo.min.js"></script>
+<script src="https://unpkg.com/logicart-core/dist/logicart.min.js"></script>
 <script>
-  LogiGo.init({ speed: 1.0, debug: true });
+  LogicArt.init({ speed: 1.0, debug: true });
 </script>
 ```
 
 **Option 2: NPM Install**
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ```javascript
-import LogiGo from 'logigo-core';
+import LogicArt from 'logicart-core';
 
-const app = LogiGo.init({
+const app = LogicArt.init({
   speed: 1.0,
   debug: true,
   position: 'bottom-right'
 });
 
 // In your code
-await LogiGo.checkpoint('step1');
+await LogicArt.checkpoint('step1');
 ```
 
 ---
@@ -155,7 +155,7 @@ await LogiGo.checkpoint('step1');
 ## 🎯 Key Features
 
 ### 1. Visual Handshake
-When code executes `await LogiGo.checkpoint('btn_login')`, the button with `id="btn_login"` lights up with a gold glow.
+When code executes `await LogicArt.checkpoint('btn_login')`, the button with `id="btn_login"` lights up with a gold glow.
 
 ### 2. Speed Governor
 Slow down execution to watch logic flow:
@@ -219,7 +219,7 @@ Click "Pause" then "Step" to advance one checkpoint at a time - like a real debu
 
 ## 🤝 Contributing
 
-LogiGo is ready for:
+LogicArt is ready for:
 1. **NPM Publishing** - Package is build-ready
 2. **GitHub Release** - All code documented
 3. **User Testing** - 7 demo files ready
@@ -259,4 +259,4 @@ MIT License - See LICENSE file
 
 **Status:** 🎉 **COMPLETE AND READY FOR RELEASE**
 
-All MVP features implemented, tested, and documented. LogiGo is ready to help Vibe Coders everywhere understand their AI-generated code!
+All MVP features implemented, tested, and documented. LogicArt is ready to help Vibe Coders everywhere understand their AI-generated code!

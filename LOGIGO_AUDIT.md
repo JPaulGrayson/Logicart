@@ -1,4 +1,4 @@
-# LogiGo External Audit - Complete Package Files
+# LogicArt External Audit - Complete Package Files
 
 Generated: December 27, 2025
 **Updated: December 28, 2025**
@@ -8,9 +8,9 @@ Generated: December 27, 2025
 ## Audit Fixes Applied
 
 ### 1. Critical "Split-Brain" Runtime Bug - FIXED ✅
-**File:** `packages/logigo-vite-plugin/src/index.ts`
+**File:** `packages/logicart-vite-plugin/src/index.ts`
 
-The injected runtime string now matches the optimized `logigo-core` runtime:
+The injected runtime string now matches the optimized `logicart-core` runtime:
 - ✅ `MAX_QUEUE_SIZE: 5000` - Queue overflow protection
 - ✅ `_queueOverflowWarned` flag - Single warning on overflow  
 - ✅ **Deferred Serialization** - `rawVariables` shallow copy in `checkpoint()`, heavy `safeSerialize()` in `_flush()`
@@ -19,14 +19,14 @@ The injected runtime string now matches the optimized `logigo-core` runtime:
 **Files:** All `.ts` files in packages
 
 Added `.js` extensions to all relative imports for proper ES module resolution:
-- `packages/logigo-vite-plugin/src/index.ts`
-- `packages/logigo-vite-plugin/src/instrumenter.ts`
-- `packages/logigo-vite-plugin/src/layout.ts`
-- `packages/logigo-core/src/index.ts`
-- `packages/logigo-core/src/runtime.ts`
+- `packages/logicart-vite-plugin/src/index.ts`
+- `packages/logicart-vite-plugin/src/instrumenter.ts`
+- `packages/logicart-vite-plugin/src/layout.ts`
+- `packages/logicart-core/src/index.ts`
+- `packages/logicart-core/src/runtime.ts`
 
 ### 3. Rollup Config - FIXED ✅
-**File:** `packages/logigo-embed/rollup.config.js`
+**File:** `packages/logicart-embed/rollup.config.js`
 
 - ✅ Added `cssStub()` plugin to handle CSS imports from @xyflow/react
 - ✅ Added `inlineDynamicImports: true` for lazy-loaded dagre
@@ -37,9 +37,9 @@ Added `.js` extensions to all relative imports for proper ES module resolution:
 
 | Package | Build | Exports |
 |---------|-------|---------|
-| `logigo-core` | ✅ | `LogiGoRuntime`, `checkpoint`, `checkpointAsync`, `createRuntime`, `generateGroundingContext` |
-| `logigo-embed` | ✅ | `LogiGoEmbed`, `default` |
-| `logigo-vite-plugin` | ✅ | `logigoPlugin`, `default` |
+| `logicart-core` | ✅ | `LogicArtRuntime`, `checkpoint`, `checkpointAsync`, `createRuntime`, `generateGroundingContext` |
+| `logicart-embed` | ✅ | `LogicArtEmbed`, `default` |
+| `logicart-vite-plugin` | ✅ | `logicartPlugin`, `default` |
 
 ### 5. End-to-End Testing - VERIFIED ✅
 
@@ -205,11 +205,11 @@ function bubbleSort(arr) {
 
 ---
 
-### packages/logigo-embed/package.json
+### packages/logicart-embed/package.json
 
 ```json
 {
-  "name": "logigo-embed",
+  "name": "logicart-embed",
   "version": "0.1.0",
   "description": "Embeddable code-to-flowchart visualization for JavaScript",
   "main": "dist/index.js",
@@ -257,20 +257,20 @@ function bubbleSort(arr) {
     "debugging",
     "react"
   ],
-  "author": "LogiGo",
+  "author": "LogicArt",
   "license": "MIT"
 }
 ```
 
 ---
 
-### packages/logigo-core/package.json
+### packages/logicart-core/package.json
 
 ```json
 {
-  "name": "logigo-core",
+  "name": "logicart-core",
   "version": "1.0.0",
-  "description": "LogiGo runtime library for checkpoint-based debugging",
+  "description": "LogicArt runtime library for checkpoint-based debugging",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -294,7 +294,7 @@ function bubbleSort(arr) {
     "typescript": "^5.0.0"
   },
   "keywords": [
-    "logigo",
+    "logicart",
     "debugging",
     "visualization",
     "checkpoint"
@@ -305,13 +305,13 @@ function bubbleSort(arr) {
 
 ---
 
-### packages/logigo-vite-plugin/package.json
+### packages/logicart-vite-plugin/package.json
 
 ```json
 {
-  "name": "logigo-vite-plugin",
+  "name": "logicart-vite-plugin",
   "version": "1.0.0",
-  "description": "Vite plugin for LogiGo build-time instrumentation",
+  "description": "Vite plugin for LogicArt build-time instrumentation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -345,7 +345,7 @@ function bubbleSort(arr) {
   "keywords": [
     "vite",
     "vite-plugin",
-    "logigo",
+    "logicart",
     "flowchart",
     "visualization",
     "debugging"
@@ -390,16 +390,16 @@ function bubbleSort(arr) {
 
 ## 2. The Embed Package
 
-### packages/logigo-embed/src/index.ts
+### packages/logicart-embed/src/index.ts
 
 ```typescript
-export { LogiGoEmbed, default } from './LogiGoEmbed';
+export { LogicArtEmbed, default } from './LogicArtEmbed';
 export type { 
-  LogiGoEmbedProps, 
+  LogicArtEmbedProps, 
   EmbedState, 
   CheckpointEntry,
   CheckpointPayload,
-  LogiGoManifest,
+  LogicArtManifest,
   FlowNode,
   FlowEdge,
   CheckpointMetadata
@@ -407,16 +407,16 @@ export type {
 
 declare global {
   interface Window {
-    LogiGoEmbed?: {
-      init: (options: import('./types').LogiGoEmbedProps & { container?: string }) => void;
+    LogicArtEmbed?: {
+      init: (options: import('./types').LogicArtEmbedProps & { container?: string }) => void;
     };
   }
 }
 
 if (typeof window !== 'undefined') {
-  window.LogiGoEmbed = {
+  window.LogicArtEmbed = {
     init: (options) => {
-      console.log('[LogiGo] Initialized with options:', options);
+      console.log('[LogicArt] Initialized with options:', options);
     }
   };
 }
@@ -424,14 +424,14 @@ if (typeof window !== 'undefined') {
 
 ---
 
-### packages/logigo-embed/src/LogiGoEmbed.tsx
+### packages/logicart-embed/src/LogicArtEmbed.tsx
 
 ```tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import * as acorn from 'acorn';
-import { LogiGoEmbedProps, EmbedState, LogiGoManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
+import { LogicArtEmbedProps, EmbedState, LogicArtManifest, CheckpointPayload, FlowNode as ManifestFlowNode, FlowEdge as ManifestFlowEdge } from './types';
 
 interface FlowNode {
   id: string;
@@ -599,7 +599,7 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
 
     return { nodes, edges };
   } catch (error) {
-    console.error('[LogiGo] Parse error:', error);
+    console.error('[LogicArt] Parse error:', error);
     return {
       nodes: [{ id: 'error', type: 'output' as const, data: { label: `Parse Error: ${(error as Error).message}` }, position: { x: 0, y: 0 } }],
       edges: []
@@ -607,7 +607,7 @@ function parseCode(code: string): { nodes: FlowNode[]; edges: FlowEdge[] } {
   }
 }
 
-function convertManifestToFlowData(manifest: LogiGoManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
+function convertManifestToFlowData(manifest: LogicArtManifest): { nodes: FlowNode[]; edges: FlowEdge[] } {
   const nodes: FlowNode[] = manifest.nodes.map(n => ({
     id: n.id,
     type: (n.type === 'decision' ? 'decision' : n.type === 'input' ? 'input' : n.type === 'output' ? 'output' : 'default') as FlowNode['type'],
@@ -696,7 +696,7 @@ function FlowchartPanel({ nodes, edges, activeNodeId, onNodeClick }: {
   );
 }
 
-export function LogiGoEmbed({
+export function LogicArtEmbed({
   code,
   manifestUrl,
   manifestHash,
@@ -711,7 +711,7 @@ export function LogiGoEmbed({
   onManifestLoad,
   onReady,
   onError
-}: LogiGoEmbedProps) {
+}: LogicArtEmbedProps) {
   const [state, setState] = useState<EmbedState>({
     isOpen: defaultOpen,
     size: defaultSize,
@@ -720,7 +720,7 @@ export function LogiGoEmbed({
     checkpointHistory: []
   });
   
-  const [manifest, setManifest] = useState<LogiGoManifest | null>(null);
+  const [manifest, setManifest] = useState<LogicArtManifest | null>(null);
   const [manifestNodes, setManifestNodes] = useState<FlowNode[]>([]);
   const [manifestEdges, setManifestEdges] = useState<FlowEdge[]>([]);
   const [parsedNodes, setParsedNodes] = useState<FlowNode[]>([]);
@@ -780,10 +780,10 @@ export function LogiGoEmbed({
         const response = await fetch(manifestUrl!);
         if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
         
-        const data: LogiGoManifest = await response.json();
+        const data: LogicArtManifest = await response.json();
         
         if (manifestHash && data.hash !== manifestHash) {
-          console.warn('[LogiGo] Manifest hash mismatch, may be stale');
+          console.warn('[LogicArt] Manifest hash mismatch, may be stale');
         }
         
         setManifest(data);
@@ -795,9 +795,9 @@ export function LogiGoEmbed({
         setIsLiveMode(true);
         
         onManifestLoad?.(data);
-        console.log(`[LogiGo] Loaded manifest with ${nodes.length} nodes`);
+        console.log(`[LogicArt] Loaded manifest with ${nodes.length} nodes`);
       } catch (error) {
-        console.error('[LogiGo] Failed to load manifest:', error);
+        console.error('[LogicArt] Failed to load manifest:', error);
         onError?.(error as Error);
       }
     }
@@ -807,18 +807,18 @@ export function LogiGoEmbed({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.source !== 'LOGIGO_CORE') return;
+      if (event.data?.source !== 'LOGICART_CORE') return;
       
       // 1. Handle New Session (Page Reload / HMR)
-      if (event.data.type === 'LOGIGO_MANIFEST_READY') {
+      if (event.data.type === 'LOGICART_MANIFEST_READY') {
         const { manifestUrl: url, manifestHash: newHash, sessionId } = event.data.payload;
         
         // If hash changed (HMR), fetch new manifest immediately to sync UI
         if (manifest && manifest.hash !== newHash) {
-          console.log('[LogiGo] Code changed (HMR). Refreshing manifest...');
+          console.log('[LogicArt] Code changed (HMR). Refreshing manifest...');
           fetch(url)
             .then(res => res.json())
-            .then((data: LogiGoManifest) => {
+            .then((data: LogicArtManifest) => {
               setManifest(data);
               setSessionHash(newHash);
               const { nodes, edges } = convertManifestToFlowData(data);
@@ -828,7 +828,7 @@ export function LogiGoEmbed({
               // Reset history so we don't show stale state
               setState(prev => ({ ...prev, checkpointHistory: [], activeNodeId: null }));
             })
-            .catch(err => console.error('[LogiGo] Failed to refresh manifest:', err));
+            .catch(err => console.error('[LogicArt] Failed to refresh manifest:', err));
         } else {
            // First load or same hash
            setSessionHash(newHash);
@@ -836,7 +836,7 @@ export function LogiGoEmbed({
       }
       
       // 2. Handle Checkpoints
-      if (event.data.type === 'LOGIGO_CHECKPOINT') {
+      if (event.data.type === 'LOGICART_CHECKPOINT') {
         const payload = event.data.payload as CheckpointPayload;
         const { id, variables, timestamp, manifestVersion } = payload;
         
@@ -897,7 +897,7 @@ export function LogiGoEmbed({
           zIndex: 9999,
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
         }}
-        data-testid="logigo-toggle"
+        data-testid="logicart-toggle"
       >
         ◈
       </button>
@@ -920,7 +920,7 @@ export function LogiGoEmbed({
         flexDirection: 'column',
         boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
       }}
-      data-testid="logigo-embed-panel"
+      data-testid="logicart-embed-panel"
     >
       <div
         style={{
@@ -939,7 +939,7 @@ export function LogiGoEmbed({
             fontSize: 12,
             fontFamily: 'system-ui, sans-serif'
           }}>
-            LogiGo
+            LogicArt
           </span>
           <span style={{
             fontSize: 9,
@@ -965,7 +965,7 @@ export function LogiGoEmbed({
             cursor: 'pointer',
             fontSize: 14
           }}
-          data-testid="logigo-close"
+          data-testid="logicart-close"
         >
           ×
         </button>
@@ -1030,15 +1030,15 @@ export function LogiGoEmbed({
   );
 }
 
-export default LogiGoEmbed;
+export default LogicArtEmbed;
 ```
 
 ---
 
-### packages/logigo-embed/src/types.ts
+### packages/logicart-embed/src/types.ts
 
 ```typescript
-export interface LogiGoEmbedProps {
+export interface LogicArtEmbedProps {
   code?: string;
   
   manifestUrl?: string;
@@ -1061,7 +1061,7 @@ export interface LogiGoEmbedProps {
   
   onNodeClick?: (nodeId: string) => void;
   onCheckpoint?: (checkpoint: CheckpointPayload) => void;
-  onManifestLoad?: (manifest: LogiGoManifest) => void;
+  onManifestLoad?: (manifest: LogicArtManifest) => void;
   onReady?: () => void;
   onError?: (error: Error) => void;
 }
@@ -1073,7 +1073,7 @@ export interface CheckpointPayload {
   manifestVersion?: string;
 }
 
-export interface LogiGoManifest {
+export interface LogicArtManifest {
   version: '1.0';
   hash: string;
   generatedAt: number;
@@ -1144,19 +1144,19 @@ export interface CheckpointEntry {
 
 ---
 
-### packages/logigo-embed/src/hooks/*.ts
+### packages/logicart-embed/src/hooks/*.ts
 
 **MISSING** - No hooks directory exists.
 
 ---
 
-### packages/logigo-embed/rollup.config.js
+### packages/logicart-embed/rollup.config.js
 
 **MISSING** - No rollup.config.js file exists.
 
 ---
 
-### packages/logigo-embed/src/styles/embed.css
+### packages/logicart-embed/src/styles/embed.css
 
 **MISSING** - No styles directory exists.
 
@@ -1164,10 +1164,10 @@ export interface CheckpointEntry {
 
 ## 3. The Core Runtime
 
-### packages/logigo-core/src/index.ts
+### packages/logicart-core/src/index.ts
 
 ```typescript
-export { LogiGoRuntime, createRuntime, checkpoint, checkpointAsync } from './runtime';
+export { LogicArtRuntime, createRuntime, checkpoint, checkpointAsync } from './runtime';
 export type { CheckpointData, RuntimeOptions, Breakpoint } from './types';
 
 // Grounding Layer exports
@@ -1184,14 +1184,14 @@ export type {
 
 ---
 
-### packages/logigo-core/src/runtime.ts
+### packages/logicart-core/src/runtime.ts
 
 ```typescript
-import type { CheckpointData, RuntimeOptions, Breakpoint, LogiGoMessage } from './types';
+import type { CheckpointData, RuntimeOptions, Breakpoint, LogicArtMessage } from './types';
 
 const MAX_QUEUE_SIZE = 5000;
 
-export class LogiGoRuntime {
+export class LogicArtRuntime {
   private queue: CheckpointData[] = [];
   private flushScheduled = false;
   private manifestHash: string;
@@ -1219,8 +1219,8 @@ export class LogiGoRuntime {
     this.started = true;
 
     this.postMessage({
-      source: 'LOGIGO_CORE',
-      type: 'LOGIGO_SESSION_START',
+      source: 'LOGICART_CORE',
+      type: 'LOGICART_SESSION_START',
       payload: {
         sessionId: this.sessionId,
         manifestHash: this.manifestHash,
@@ -1235,8 +1235,8 @@ export class LogiGoRuntime {
     this.flush();
     
     this.postMessage({
-      source: 'LOGIGO_CORE',
-      type: 'LOGIGO_SESSION_END',
+      source: 'LOGICART_CORE',
+      type: 'LOGICART_SESSION_END',
       payload: {
         sessionId: this.sessionId,
         timestamp: Date.now()
@@ -1253,7 +1253,7 @@ export class LogiGoRuntime {
 
     if (this.queue.length >= MAX_QUEUE_SIZE) {
       if (!this.queueOverflowWarned) {
-        console.warn(`[LogiGo] Checkpoint queue overflow (${MAX_QUEUE_SIZE} items). Dropping checkpoints to prevent browser crash. This may indicate an infinite loop.`);
+        console.warn(`[LogicArt] Checkpoint queue overflow (${MAX_QUEUE_SIZE} items). Dropping checkpoints to prevent browser crash. This may indicate an infinite loop.`);
         this.queueOverflowWarned = true;
       }
       return;
@@ -1338,8 +1338,8 @@ export class LogiGoRuntime {
       const serializedVariables = this.safeSerialize(data.rawVariables);
 
       this.postMessage({
-        source: 'LOGIGO_CORE',
-        type: 'LOGIGO_CHECKPOINT',
+        source: 'LOGICART_CORE',
+        type: 'LOGICART_CHECKPOINT',
         payload: {
           id: data.id,
           timestamp: data.timestamp,
@@ -1350,7 +1350,7 @@ export class LogiGoRuntime {
     });
   }
 
-  private postMessage(message: LogiGoMessage): void {
+  private postMessage(message: LogicArtMessage): void {
     if (typeof window !== 'undefined') {
       window.postMessage(message, '*');
     }
@@ -1389,37 +1389,37 @@ export class LogiGoRuntime {
   }
 }
 
-let globalRuntime: LogiGoRuntime | null = null;
+let globalRuntime: LogicArtRuntime | null = null;
 
-export function createRuntime(options?: RuntimeOptions): LogiGoRuntime {
-  globalRuntime = new LogiGoRuntime(options);
+export function createRuntime(options?: RuntimeOptions): LogicArtRuntime {
+  globalRuntime = new LogicArtRuntime(options);
   return globalRuntime;
 }
 
 export function checkpoint(id: string, variables?: Record<string, any>): void {
   if (!globalRuntime) {
-    globalRuntime = new LogiGoRuntime();
+    globalRuntime = new LogicArtRuntime();
   }
   globalRuntime.checkpoint(id, variables);
 }
 
 export async function checkpointAsync(id: string, variables?: Record<string, any>): Promise<void> {
   if (!globalRuntime) {
-    globalRuntime = new LogiGoRuntime();
+    globalRuntime = new LogicArtRuntime();
   }
   return globalRuntime.checkpointAsync(id, variables);
 }
 
 if (typeof window !== 'undefined') {
-  (window as any).LogiGo = {
+  (window as any).LogicArt = {
     checkpoint,
     checkpointAsync,
     createRuntime,
-    _runtime: null as LogiGoRuntime | null,
+    _runtime: null as LogicArtRuntime | null,
 
     get runtime() {
       if (!this._runtime) {
-        this._runtime = new LogiGoRuntime();
+        this._runtime = new LogicArtRuntime();
       }
       return this._runtime;
     },
@@ -1438,12 +1438,12 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export default LogiGoRuntime;
+export default LogicArtRuntime;
 ```
 
 ---
 
-### packages/logigo-core/src/types.ts
+### packages/logicart-core/src/types.ts
 
 ```typescript
 export interface CheckpointData {
@@ -1466,20 +1466,20 @@ export interface Breakpoint {
   condition?: string;
 }
 
-export interface LogiGoMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_CHECKPOINT' | 'LOGIGO_SESSION_START' | 'LOGIGO_SESSION_END' | 'LOGIGO_MANIFEST_READY';
+export interface LogicArtMessage {
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_CHECKPOINT' | 'LOGICART_SESSION_START' | 'LOGICART_SESSION_END' | 'LOGICART_MANIFEST_READY';
   payload: any;
 }
 ```
 
 ---
 
-### packages/logigo-core/src/grounding.ts
+### packages/logicart-core/src/grounding.ts
 
 ```typescript
 /**
- * LogiGo Grounding Layer
+ * LogicArt Grounding Layer
  * 
  * Lightweight, high-density JSON representation of flowcharts
  * for LLM consumption. Strips visual data, preserves logic topology.
@@ -1603,15 +1603,15 @@ export function generateGroundingContext(
 
 ## 4. The Vite Plugin
 
-### packages/logigo-vite-plugin/src/index.ts
+### packages/logicart-vite-plugin/src/index.ts
 
 ```typescript
 import type { Plugin, ResolvedConfig } from 'vite';
 import { instrumentFile } from './instrumenter';
 import { generateFileChecksum, generateManifestHash } from './hash';
-import type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata } from './types';
+import type { LogicArtManifest, LogicArtPluginOptions, FlowNode, FlowEdge, CheckpointMetadata } from './types';
 
-export type { LogiGoManifest, LogiGoPluginOptions, FlowNode, FlowEdge, CheckpointMetadata };
+export type { LogicArtManifest, LogicArtPluginOptions, FlowNode, FlowEdge, CheckpointMetadata };
 
 interface FileData {
   checksum: string;
@@ -1621,11 +1621,11 @@ interface FileData {
   checkpoints: Record<string, CheckpointMetadata>;
 }
 
-export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
+export function logicartPlugin(options: LogicArtPluginOptions = {}): Plugin {
   const {
     include = ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
     exclude = ['**/node_modules/**', '**/*.test.*', '**/*.spec.*'],
-    manifestPath = 'logigo-manifest.json',
+    manifestPath = 'logicart-manifest.json',
     autoInstrument = true,
     captureVariables = true
   } = options;
@@ -1642,7 +1642,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
   }
   
   return {
-    name: 'logigo-vite-plugin',
+    name: 'logicart-vite-plugin',
     
     configResolved(resolvedConfig) {
       config = resolvedConfig;
@@ -1651,7 +1651,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     transform(code: string, id: string) {
       if (!autoInstrument) return null;
       if (!shouldInstrument(id)) return null;
-      if (id.includes('logigo-')) return null;
+      if (id.includes('logicart-')) return null;
       
       const relativePath = id.replace(config.root + '/', '');
       
@@ -1673,7 +1673,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
           map: null
         };
       } catch (error) {
-        console.warn(`[LogiGo] Failed to instrument ${relativePath}:`, error);
+        console.warn(`[LogicArt] Failed to instrument ${relativePath}:`, error);
         return null;
       }
     },
@@ -1699,7 +1699,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
       
       manifestHash = generateManifestHash(checksums);
       
-      const manifest: LogiGoManifest = {
+      const manifest: LogicArtManifest = {
         version: '1.0',
         hash: manifestHash,
         generatedAt: Date.now(),
@@ -1720,8 +1720,8 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
   var MANIFEST_HASH = '${manifestHash}';
   var MANIFEST_URL = '/${manifestPath}';
   
-  window.__LOGIGO_MANIFEST_HASH__ = MANIFEST_HASH;
-  window.__LOGIGO_MANIFEST_URL__ = MANIFEST_URL;
+  window.__LOGICART_MANIFEST_HASH__ = MANIFEST_HASH;
+  window.__LOGICART_MANIFEST_URL__ = MANIFEST_URL;
   
   function generateSessionId() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -1762,7 +1762,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     return result;
   }
   
-  var LogiGoRuntime = {
+  var LogicArtRuntime = {
     _queue: [],
     _flushScheduled: false,
     _sessionId: generateSessionId(),
@@ -1774,7 +1774,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     start: function() {
       if (this._started) return;
       this._started = true;
-      this._postMessage('LOGIGO_SESSION_START', {
+      this._postMessage('LOGICART_SESSION_START', {
         sessionId: this._sessionId,
         manifestHash: this._manifestHash,
         timestamp: Date.now()
@@ -1784,7 +1784,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     end: function() {
       if (!this._started) return;
       this._flush();
-      this._postMessage('LOGIGO_SESSION_END', {
+      this._postMessage('LOGICART_SESSION_END', {
         sessionId: this._sessionId,
         timestamp: Date.now()
       });
@@ -1845,14 +1845,14 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
       var self = this;
       
       batch.forEach(function(data) {
-        self._postMessage('LOGIGO_CHECKPOINT', data);
+        self._postMessage('LOGICART_CHECKPOINT', data);
       });
     },
     
     _postMessage: function(type, payload) {
       if (typeof window !== 'undefined') {
         window.postMessage({
-          source: 'LOGIGO_CORE',
+          source: 'LOGICART_CORE',
           type: type,
           payload: payload
         }, '*');
@@ -1860,23 +1860,23 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
     }
   };
   
-  window.LogiGo = LogiGoRuntime;
+  window.LogicArt = LogicArtRuntime;
   
-  LogiGoRuntime._postMessage('LOGIGO_MANIFEST_READY', {
+  LogicArtRuntime._postMessage('LOGICART_MANIFEST_READY', {
     manifestUrl: MANIFEST_URL + '?v=' + MANIFEST_HASH,
     manifestHash: MANIFEST_HASH,
-    sessionId: LogiGoRuntime._sessionId
+    sessionId: LogicArtRuntime._sessionId
   });
 })();
 `;
       
       this.emitFile({
         type: 'asset',
-        fileName: 'logigo-runtime.js',
+        fileName: 'logicart-runtime.js',
         source: runtimeInit
       });
       
-      console.log(`[LogiGo] Generated manifest with ${allNodes.length} nodes from ${fileDataMap.size} files`);
+      console.log(`[LogicArt] Generated manifest with ${allNodes.length} nodes from ${fileDataMap.size} files`);
     },
     
     transformIndexHtml(html) {
@@ -1885,7 +1885,7 @@ export function logigoPlugin(options: LogiGoPluginOptions = {}): Plugin {
         tags: [
           {
             tag: 'script',
-            attrs: { src: '/logigo-runtime.js' },
+            attrs: { src: '/logicart-runtime.js' },
             injectTo: 'head'
           }
         ]
@@ -1914,12 +1914,12 @@ function minimatch(path: string, pattern: string): boolean {
   return path === pattern || path.endsWith(pattern);
 }
 
-export default logigoPlugin;
+export default logicartPlugin;
 ```
 
 ---
 
-### packages/logigo-vite-plugin/src/instrumenter.ts
+### packages/logicart-vite-plugin/src/instrumenter.ts
 
 ```typescript
 import * as acorn from 'acorn';
@@ -2085,7 +2085,7 @@ export function instrumentFile(code: string, filePath: string): InstrumentResult
       locations: true 
     });
   } catch (error) {
-    console.error(`[LogiGo] Parse error in ${filePath}:`, error);
+    console.error(`[LogicArt] Parse error in ${filePath}:`, error);
     return { code, nodes: [], edges: [], checkpoints: {}, functions: [] };
   }
   
@@ -2442,7 +2442,7 @@ function generateCheckpointInjections(
         .map(v => `${v}: typeof ${v} !== 'undefined' ? ${v} : undefined`)
         .join(', ');
       
-      const checkpoint = `LogiGo.checkpoint('${nodeId}', { ${varsCapture} })`;
+      const checkpoint = `LogicArt.checkpoint('${nodeId}', { ${varsCapture} })`;
       
       if (meta.isArrowImplicitReturn && meta.arrowBodyEnd !== undefined) {
         arrowRewrites.push({
@@ -2462,10 +2462,10 @@ function generateCheckpointInjections(
 
 ---
 
-### packages/logigo-vite-plugin/src/types.ts
+### packages/logicart-vite-plugin/src/types.ts
 
 ```typescript
-export interface LogiGoManifest {
+export interface LogicArtManifest {
   version: '1.0';
   hash: string;
   generatedAt: number;
@@ -2525,7 +2525,7 @@ export interface CheckpointMetadata {
   arrowBodyEnd?: number;
 }
 
-export interface LogiGoPluginOptions {
+export interface LogicArtPluginOptions {
   include?: string[];
   exclude?: string[];
   manifestPath?: string;
@@ -2544,7 +2544,7 @@ export interface InstrumentResult {
 
 ---
 
-### packages/logigo-vite-plugin/src/hash.ts
+### packages/logicart-vite-plugin/src/hash.ts
 
 ```typescript
 export function simpleHash(str: string): string {
@@ -2632,7 +2632,7 @@ export function generateManifestHash(fileChecksums: string[]): string {
 
 ---
 
-### packages/logigo-vite-plugin/src/layout.ts
+### packages/logicart-vite-plugin/src/layout.ts
 
 ```typescript
 import dagre from 'dagre';
@@ -2688,28 +2688,28 @@ export function computeLayout(nodes: FlowNode[], edges: FlowEdge[]): FlowNode[] 
 
 | File | Status |
 |------|--------|
-| `packages/logigo-embed/src/hooks/*.ts` | MISSING |
-| `packages/logigo-embed/rollup.config.js` | MISSING |
-| `packages/logigo-embed/src/styles/embed.css` | MISSING |
+| `packages/logicart-embed/src/hooks/*.ts` | MISSING |
+| `packages/logicart-embed/rollup.config.js` | MISSING |
+| `packages/logicart-embed/src/styles/embed.css` | MISSING |
 
 ### Package Structure
 
 ```
 packages/
-├── logigo-core/
+├── logicart-core/
 │   ├── package.json
 │   └── src/
 │       ├── index.ts
 │       ├── runtime.ts
 │       ├── types.ts
 │       └── grounding.ts
-├── logigo-embed/
+├── logicart-embed/
 │   ├── package.json
 │   └── src/
 │       ├── index.ts
-│       ├── LogiGoEmbed.tsx
+│       ├── LogicArtEmbed.tsx
 │       └── types.ts
-└── logigo-vite-plugin/
+└── logicart-vite-plugin/
     ├── package.json
     └── src/
         ├── index.ts

@@ -1,14 +1,14 @@
-# LogiGo Manual Setup Instructions
+# LogicArt Manual Setup Instructions
 
-Step-by-step guide for adding LogiGo visualization to your JavaScript projects.
+Step-by-step guide for adding LogicArt visualization to your JavaScript projects.
 
 ---
 
 ## Option 1: Static Mode (No Installation)
 
-Use LogiGo Studio directly without installing anything:
+Use LogicArt Studio directly without installing anything:
 
-1. Open LogiGo Studio
+1. Open LogicArt Studio
 2. Paste your JavaScript function into the code editor
 3. The flowchart renders automatically
 4. Use controls to step through execution
@@ -19,12 +19,12 @@ Use LogiGo Studio directly without installing anything:
 
 ## Option 2: Embed Component (React Apps)
 
-Add the LogiGo flowchart component to your React application.
+Add the LogicArt flowchart component to your React application.
 
 ### Step 1: Install the Package
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ### Step 2: Add Required CSS
@@ -36,7 +36,7 @@ import '@xyflow/react/dist/style.css';
 ### Step 3: Use the Component
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function CodeViewer() {
@@ -48,7 +48,7 @@ function CodeViewer() {
   `;
 
   return (
-    <LogiGoEmbed
+    <LogicArtEmbed
       code={code}
       theme="dark"
       position="bottom-right"
@@ -60,7 +60,7 @@ function CodeViewer() {
 
 ### Verification Checklist
 
-- [ ] `logigo-embed` appears in package.json
+- [ ] `logicart-embed` appears in package.json
 - [ ] CSS import is present
 - [ ] Component renders without errors
 - [ ] Flowchart displays nodes for your code
@@ -74,8 +74,8 @@ For real-time variable tracking during code execution.
 ### Step 1: Install Packages
 
 ```bash
-npm install logigo-vite-plugin --save-dev
-npm install logigo-embed
+npm install logicart-vite-plugin --save-dev
+npm install logicart-embed
 ```
 
 ### Step 2: Configure Vite
@@ -84,15 +84,15 @@ npm install logigo-embed
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*'],
-      manifestPath: 'logigo-manifest.json'
+      manifestPath: 'logicart-manifest.json'
     })
   ]
 });
@@ -101,13 +101,13 @@ export default defineConfig({
 ### Step 3: Add Embed Component
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
   return (
-    <LogiGoEmbed
-      manifestUrl="/logigo-manifest.json"
+    <LogicArtEmbed
+      manifestUrl="/logicart-manifest.json"
       showVariables={true}
       showHistory={true}
       theme="dark"
@@ -125,16 +125,16 @@ npm run dev
 The plugin will:
 1. Parse your source files
 2. Inject checkpoint calls automatically
-3. Generate `logigo-manifest.json`
+3. Generate `logicart-manifest.json`
 4. Inject the runtime into your HTML
 
 ### Verification Checklist
 
-- [ ] `logigo-vite-plugin` in devDependencies
-- [ ] `logigo-embed` in dependencies
-- [ ] vite.config.js includes logigoPlugin()
+- [ ] `logicart-vite-plugin` in devDependencies
+- [ ] `logicart-embed` in dependencies
+- [ ] vite.config.js includes logicartPlugin()
 - [ ] Build completes without errors
-- [ ] `logigo-manifest.json` is generated
+- [ ] `logicart-manifest.json` is generated
 - [ ] Flowchart shows with variable tracking
 
 ---
@@ -146,13 +146,13 @@ Add checkpoint calls directly to your code for fine-grained control.
 ### Step 1: Install Core Library
 
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Step 2: Add Checkpoints
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function processOrder(order) {
   checkpoint('order_start', { orderId: order.id });
@@ -171,15 +171,15 @@ function processOrder(order) {
 }
 ```
 
-### Step 3: Connect to LogiGo Studio
+### Step 3: Connect to LogicArt Studio
 
-Checkpoints send data via `postMessage`. Open LogiGo Studio in the same browser window to see the execution flow.
+Checkpoints send data via `postMessage`. Open LogicArt Studio in the same browser window to see the execution flow.
 
 ---
 
 ## Troubleshooting
 
-### "Module not found: logigo-embed"
+### "Module not found: logicart-embed"
 
 ```bash
 # Clear cache and reinstall
@@ -189,7 +189,7 @@ npm install
 
 ### Flowchart shows "Syntax Error"
 
-- LogiGo uses Acorn parser (ECMAScript 2020)
+- LogicArt uses Acorn parser (ECMAScript 2020)
 - TypeScript-specific syntax may cause errors
 - Ensure code is valid JavaScript
 
@@ -215,12 +215,12 @@ After setup, your project should look like:
 ```
 my-project/
 ├── package.json
-├── vite.config.js          # With logigoPlugin()
+├── vite.config.js          # With logicartPlugin()
 ├── src/
-│   ├── App.tsx             # With LogiGoEmbed
+│   ├── App.tsx             # With LogicArtEmbed
 │   └── ...
 └── dist/
-    └── logigo-manifest.json  # Generated by plugin
+    └── logicart-manifest.json  # Generated by plugin
 ```
 
 The plugin also injects a runtime script tag into your HTML during the build process.
@@ -229,7 +229,7 @@ The plugin also injects a runtime script tag into your HTML during the build pro
 
 ## Next Steps
 
-- Add `// @logigo:` comments for custom node labels
+- Add `// @logicart:` comments for custom node labels
 - Use the Debug Panel to set breakpoints
 - Try the Model Arena for AI-assisted code generation
 - Share flowcharts with the Share button

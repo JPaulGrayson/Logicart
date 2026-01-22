@@ -8,7 +8,7 @@
 
 ## Overview
 
-This plan covers three features that require bidirectional communication between LogiGo Studio and remote applications (like VisionLoop):
+This plan covers three features that require bidirectional communication between LogicArt Studio and remote applications (like VisionLoop):
 
 1. **Remote Mode Pause/Resume** - Breakpoints actually pause remote execution
 2. **Visual Handshake** - Click flowchart node → highlight DOM element (and vice versa)
@@ -20,12 +20,12 @@ This plan covers three features that require bidirectional communication between
 
 ### Current State (One-Way)
 ```
-VisionLoop ──POST /checkpoint──> LogiGo Server ──SSE──> LogiGo Studio
+VisionLoop ──POST /checkpoint──> LogicArt Server ──SSE──> LogicArt Studio
 ```
 
 ### Required State (Two-Way)
 ```
-VisionLoop <──WebSocket──> LogiGo Server <──WebSocket──> LogiGo Studio
+VisionLoop <──WebSocket──> LogicArt Server <──WebSocket──> LogicArt Studio
          (commands)              (state sync)           (UI controls)
 ```
 
@@ -44,12 +44,12 @@ VisionLoop <──WebSocket──> LogiGo Server <──WebSocket──> LogiGo 
 ## Feature 1: Remote Mode Pause/Resume
 
 ### Goal
-When a breakpoint is set in LogiGo, the remote app actually pauses execution at that checkpoint.
+When a breakpoint is set in LogicArt, the remote app actually pauses execution at that checkpoint.
 
 ### Implementation Steps
 
 1. **Server: Add WebSocket endpoint**
-   - `ws://logigo/api/remote/control/:sessionId`
+   - `ws://logicart/api/remote/control/:sessionId`
    - Handles: `SET_BREAKPOINT`, `REMOVE_BREAKPOINT`, `RESUME`, `STEP`
 
 2. **Server: Breakpoint state management**
@@ -64,7 +64,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
 
 3. **Remote.js: Connect to WebSocket**
    ```javascript
-   const ws = new WebSocket(LOGIGO_URL.replace('http', 'ws') + '/api/remote/control/' + SESSION_ID);
+   const ws = new WebSocket(LOGICART_URL.replace('http', 'ws') + '/api/remote/control/' + SESSION_ID);
    ws.onmessage = (event) => {
      const cmd = JSON.parse(event.data);
      if (cmd.type === 'SET_BREAKPOINT') breakpoints.add(cmd.id);
@@ -76,7 +76,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    ```javascript
    window.checkpoint = async function(id, variables) {
      // Send checkpoint
-     await fetch(LOGIGO_URL + '/api/remote/checkpoint', {...});
+     await fetch(LOGICART_URL + '/api/remote/checkpoint', {...});
      
      // Check if breakpoint is set
      if (breakpoints.has(id)) {
@@ -101,7 +101,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
 
 ### Goal
 - Click flowchart node → Highlight corresponding DOM element in remote app
-- Hover DOM element → Highlight flowchart node in LogiGo
+- Hover DOM element → Highlight flowchart node in LogicArt
 
 ### Implementation Steps
 
@@ -139,7 +139,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    
    function showHighlightOverlay(selector, rect) {
      const overlay = document.createElement('div');
-     overlay.className = 'logigo-highlight';
+     overlay.className = 'logicart-highlight';
      overlay.style.cssText = `
        position: fixed;
        left: ${rect.left}px; top: ${rect.top}px;
@@ -158,7 +158,7 @@ When a breakpoint is set in LogiGo, the remote app actually pauses execution at 
    - Send `HIGHLIGHT_ELEMENT` command via WebSocket
 
 5. **Remote.js: Hover reporting** (optional)
-   - Track mouse over elements with `data-logigo-checkpoint` attribute
+   - Track mouse over elements with `data-logicart-checkpoint` attribute
    - Send `ELEMENT_HOVER` message to highlight node in Studio
 
 ### Files to Modify
@@ -278,4 +278,4 @@ Automatic recovery from connection drops, session expiry, and transient errors.
 
 ---
 
-*Document created by LogiGo Agent - December 23, 2025*
+*Document created by LogicArt Agent - December 23, 2025*

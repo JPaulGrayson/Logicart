@@ -1,4 +1,4 @@
-# LogiGo AI Integration - Summary
+# LogicArt AI Integration - Summary
 
 **Date:** December 31, 2025  
 **Status:** Ready for Testing
@@ -7,10 +7,10 @@
 
 ## 🎉 What's New
 
-Replit Agent added **5 major features** to LogiGo that enable deep integration with AI coding assistants:
+Replit Agent added **5 major features** to LogicArt that enable deep integration with AI coding assistants:
 
 ### 1. **File Watch Mode** 🔄
-- **What:** Bi-directional sync between AI agents and the LogiGo UI
+- **What:** Bi-directional sync between AI agents and the LogicArt UI
 - **How:** `useWatchFile` hook polls `/api/file/status` every 2 seconds
 - **Why:** AI assistants can edit `data/flowchart.json` and the UI updates automatically
 - **Files:** 
@@ -45,7 +45,7 @@ Replit Agent added **5 major features** to LogiGo that enable deep integration w
 ### 5. **CLI Council** 💻
 - **What:** Command-line access to the AI council
 - **How:** `npm run council "your prompt"` or `npm run council` (reads from file)
-- **Why:** Dogfooding - use LogiGo's AI council for development
+- **Why:** Dogfooding - use LogicArt's AI council for development
 - **Files:**
   - `scripts/ask-council.ts`
 
@@ -95,8 +95,8 @@ Replit Agent added **5 major features** to LogiGo that enable deep integration w
 ### Option 1: Quick Validation (Recommended First)
 
 ```bash
-# 1. Navigate to LogiGo
-cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+# 1. Navigate to LogicArt
+cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
 
 # 2. Start dev server
 npm run dev
@@ -188,7 +188,7 @@ npm run dev
 
 ## ✅ Success Criteria
 
-For LogiGo to be **AI Assistant Ready**:
+For LogicArt to be **AI Assistant Ready**:
 
 ### CRITICAL (Must Pass):
 - [ ] File watch works in all 4 platforms (Antigravity, VS Code, Cursor, Windsurf)
@@ -233,7 +233,7 @@ For LogiGo to be **AI Assistant Ready**:
 
 ### File Structure
 ```
-LogiGo/
+LogicArt/
 ├── client/
 │   ├── src/
 │   │   ├── hooks/
@@ -300,7 +300,7 @@ LogiGo/
 
 ## 🎉 Conclusion
 
-LogiGo now has **enterprise-grade AI integration** capabilities:
+LogicArt now has **enterprise-grade AI integration** capabilities:
 
 1. **Real-time collaboration** with AI assistants via file watch
 2. **Multi-model consensus** for high-quality AI responses
@@ -314,4 +314,4 @@ LogiGo now has **enterprise-grade AI integration** capabilities:
 
 **Created:** December 31, 2025  
 **By:** Antigravity AI  
-**For:** LogiGo V1 AI Integration Validation
+**For:** LogicArt V1 AI Integration Validation

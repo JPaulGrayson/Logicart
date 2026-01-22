@@ -1,4 +1,4 @@
-# LogiGo Studio - Technical Summary for External Review
+# LogicArt Studio - Technical Summary for External Review
 
 **Generated:** December 26, 2025  
 **Purpose:** Comprehensive technical overview for Gemini AI review
@@ -8,7 +8,7 @@
 ## 1. Current File Structure and Organization
 
 ```
-logigo-studio/
+logicart-studio/
 ├── client/                          # Frontend React application
 │   ├── public/                      # Static assets
 │   │   └── favicon.png, opengraph.jpg, etc.
@@ -69,10 +69,10 @@ logigo-studio/
 │   └── reporter-api.ts              # Reporter API types
 │
 ├── packages/                        # Publishable NPM packages
-│   ├── logigo-core/                 # Runtime library for manual instrumentation
-│   ├── logigo-embed/                # Embeddable React component
-│   ├── logigo-remote/               # Remote checkpoint client
-│   └── logigo-vite-plugin/          # Build-time instrumentation plugin
+│   ├── logicart-core/                 # Runtime library for manual instrumentation
+│   ├── logicart-embed/                # Embeddable React component
+│   ├── logicart-remote/               # Remote checkpoint client
+│   └── logicart-vite-plugin/          # Build-time instrumentation plugin
 │
 ├── docs/                            # Documentation
 ├── example/                         # Demo HTML files

@@ -1,6 +1,6 @@
-# LogiGo Live Mode Integration Guide
+# LogicArt Live Mode Integration Guide
 
-This guide explains how to integrate LogiGo Live Mode into any Vite-based Replit project.
+This guide explains how to integrate LogicArt Live Mode into any Vite-based Replit project.
 
 ## Overview
 
@@ -10,20 +10,20 @@ Live Mode provides real-time flowchart visualization during code execution. Unli
 
 ### Method 1: Using the Vite Plugin (Recommended)
 
-The `logigo-vite-plugin` automatically instruments your code at build time.
+The `logicart-vite-plugin` automatically instruments your code at build time.
 
 #### Step 1: Install the Plugin
 
 In your Replit project, add the plugin files:
 
 ```bash
-# Copy the plugin from LogiGo Studio
-cp -r /path/to/logigo-studio/packages/logigo-vite-plugin ./logigo-vite-plugin
+# Copy the plugin from LogicArt Studio
+cp -r /path/to/logicart-studio/packages/logicart-vite-plugin ./logicart-vite-plugin
 ```
 
 Or install from npm (when published):
 ```bash
-npm install logigo-vite-plugin
+npm install logicart-vite-plugin
 ```
 
 #### Step 2: Configure Vite
@@ -33,12 +33,12 @@ Add the plugin to your `vite.config.js`:
 ```javascript
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from './logigo-vite-plugin';
+import logicartPlugin from './logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.js', 'src/**/*.ts'],
       exclude: ['node_modules/**'],
       outputDir: 'public'
@@ -54,29 +54,29 @@ npm run build
 ```
 
 This generates:
-- `public/logigo-manifest.json` - Contains flowchart nodes, edges, and checkpoint metadata
-- `public/logigo-runtime.js` - The runtime script that sends checkpoint data
+- `public/logicart-manifest.json` - Contains flowchart nodes, edges, and checkpoint metadata
+- `public/logicart-runtime.js` - The runtime script that sends checkpoint data
 
 #### Step 4: Add the Runtime Script
 
 Add this to your HTML `<head>`:
 
 ```html
-<script src="/logigo-runtime.js"></script>
+<script src="/logicart-runtime.js"></script>
 ```
 
-#### Step 5: Embed LogiGoEmbed
+#### Step 5: Embed LogicArtEmbed
 
 In your React app:
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
         width={600}
         height={400}
@@ -89,11 +89,11 @@ function App() {
 
 ### Method 2: Using Remote Mode (Cross-Replit)
 
-For projects where you can't modify the build system, use Remote Mode to send checkpoints to LogiGo Studio.
+For projects where you can't modify the build system, use Remote Mode to send checkpoints to LogicArt Studio.
 
 #### Step 1: Create a Session
 
-Visit LogiGo Studio at your Replit URL and go to `/remote`. Click "Create Session" to get:
+Visit LogicArt Studio at your Replit URL and go to `/remote`. Click "Create Session" to get:
 - A `sessionId` 
 - A code snippet to add to your project
 
@@ -102,12 +102,12 @@ Visit LogiGo Studio at your Replit URL and go to `/remote`. Click "Create Sessio
 Add this to your project's entry point:
 
 ```javascript
-const LOGIGO_URL = 'https://your-logigo-studio.replit.app';
+const LOGICART_URL = 'https://your-logicart-studio.replit.app';
 const SESSION_ID = 'your-session-id';
 
-window.LogiGo = {
+window.LogicArt = {
   checkpoint: async (nodeId, variables = {}) => {
-    await fetch(`${LOGIGO_URL}/api/remote/checkpoint`, {
+    await fetch(`${LOGICART_URL}/api/remote/checkpoint`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -127,22 +127,22 @@ Manually add checkpoint calls:
 
 ```javascript
 function bubbleSort(arr) {
-  LogiGo.checkpoint('start', { arr });
+  LogicArt.checkpoint('start', { arr });
   
   for (let i = 0; i < arr.length; i++) {
-    LogiGo.checkpoint('outer-loop', { i, arr });
+    LogicArt.checkpoint('outer-loop', { i, arr });
     
     for (let j = 0; j < arr.length - i - 1; j++) {
-      LogiGo.checkpoint('inner-loop', { i, j, arr });
+      LogicArt.checkpoint('inner-loop', { i, j, arr });
       
       if (arr[j] > arr[j + 1]) {
-        LogiGo.checkpoint('swap', { a: arr[j], b: arr[j+1] });
+        LogicArt.checkpoint('swap', { a: arr[j], b: arr[j+1] });
         [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
       }
     }
   }
   
-  LogiGo.checkpoint('end', { arr });
+  LogicArt.checkpoint('end', { arr });
   return arr;
 }
 ```
@@ -153,7 +153,7 @@ function bubbleSort(arr) {
 
 1. Open your app in the browser
 2. Trigger the instrumented code (e.g., run an algorithm)
-3. Watch the LogiGoEmbed component - nodes should highlight as code executes
+3. Watch the LogicArtEmbed component - nodes should highlight as code executes
 4. Check the browser console for any errors
 
 ### What to Look For
@@ -168,14 +168,14 @@ function bubbleSort(arr) {
 ### Checkpoints Not Firing
 
 1. Check browser console for errors
-2. Verify `logigo-runtime.js` is loaded
+2. Verify `logicart-runtime.js` is loaded
 3. Ensure manifest hash matches the build
 
 ### Manifest Not Found
 
 1. Run `npm run build` to generate the manifest
-2. Check `public/logigo-manifest.json` exists
-3. Verify the manifest URL in LogiGoEmbed props
+2. Check `public/logicart-manifest.json` exists
+3. Verify the manifest URL in LogicArtEmbed props
 
 ### Variables Not Captured
 
@@ -231,7 +231,7 @@ function partition(arr, low, high) {
 
 ## API Reference
 
-### LogiGoEmbed Props
+### LogicArtEmbed Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -242,21 +242,21 @@ function partition(arr, low, high) {
 | `height` | number | 300 | Height in pixels |
 | `theme` | string | 'dark' | Color theme |
 
-### LogiGo Runtime API
+### LogicArt Runtime API
 
 ```javascript
 // Fire a checkpoint (synchronous)
-LogiGo.checkpoint(nodeId, variables);
+LogicArt.checkpoint(nodeId, variables);
 
 // Fire a checkpoint with breakpoint support (async)
-await LogiGo.checkpointAsync(nodeId, variables);
+await LogicArt.checkpointAsync(nodeId, variables);
 
 // Set a breakpoint
-LogiGo.setBreakpoint(nodeId);
+LogicArt.setBreakpoint(nodeId);
 
 // Remove a breakpoint
-LogiGo.removeBreakpoint(nodeId);
+LogicArt.removeBreakpoint(nodeId);
 
 // Resume from breakpoint
-LogiGo.resume();
+LogicArt.resume();
 ```

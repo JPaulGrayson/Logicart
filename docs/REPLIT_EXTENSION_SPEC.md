@@ -1,4 +1,4 @@
-# LogiGo Replit Extension Specification
+# LogicArt Replit Extension Specification
 
 **Version:** 1.0.0-draft  
 **For:** Antigravity Team  
@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document specifies the requirements for building a Replit Extension that enables LogiGo Studio to work with any Replit project. The extension should parallel the existing VS Code implementation, using the same `logigo-core` runtime library and Reporter API.
+This document specifies the requirements for building a Replit Extension that enables LogicArt Studio to work with any Replit project. The extension should parallel the existing VS Code implementation, using the same `logicart-core` runtime library and Reporter API.
 
 ---
 
@@ -17,9 +17,9 @@ This document specifies the requirements for building a Replit Extension that en
 │                        User's Replit Project                     │
 │                                                                  │
 │  ┌──────────────┐     ┌─────────────────────────────────────┐   │
-│  │  User's Code │────▶│      LogiGo Replit Extension        │   │
+│  │  User's Code │────▶│      LogicArt Replit Extension        │   │
 │  │  (with       │     │  ┌─────────────────────────────┐    │   │
-│  │  checkpoints)│     │  │     logigo-core runtime     │    │   │
+│  │  checkpoints)│     │  │     logicart-core runtime     │    │   │
 │  └──────────────┘     │  │  - Checkpoint instrumentation│    │   │
 │                       │  │  - Reporter API broadcast    │    │   │
 │                       │  └─────────────────────────────┘    │   │
@@ -29,7 +29,7 @@ This document specifies the requirements for building a Replit Extension that en
 │                                      │ (Reporter API)           │
 │                                      ▼                          │
 │                       ┌─────────────────────────────────────┐   │
-│                       │       LogiGo Studio Webview         │   │
+│                       │       LogicArt Studio Webview         │   │
 │                       │  - Flowchart visualization          │   │
 │                       │  - AI-assisted code editing         │   │
 │                       │  - Runtime state display            │   │
@@ -46,8 +46,8 @@ The extension uses the existing Reporter API (v1.0.0-beta.2) for communication. 
 ### Message Envelope
 
 ```typescript
-interface LogiGoMessage<T = any> {
-  source: 'LOGIGO_CORE';
+interface LogicArtMessage<T = any> {
+  source: 'LOGICART_CORE';
   type: string;
   payload: T;
 }
@@ -59,7 +59,7 @@ interface LogiGoMessage<T = any> {
 Broadcast when the runtime initializes.
 
 ```typescript
-type: 'LOGIGO_SESSION_START'
+type: 'LOGICART_SESSION_START'
 payload: {
   sessionId: string;      // Unique session identifier
   startTime: number;      // Unix timestamp
@@ -68,10 +68,10 @@ payload: {
 ```
 
 #### 2. Checkpoint Event
-Broadcast when code execution hits a `LogiGo.checkpoint()` call.
+Broadcast when code execution hits a `LogicArt.checkpoint()` call.
 
 ```typescript
-type: 'LOGIGO_CHECKPOINT'
+type: 'LOGICART_CHECKPOINT'
 payload: {
   id: string;                         // Checkpoint identifier (e.g., "loop:iteration:5")
   timestamp: number;                  // Unix timestamp
@@ -86,8 +86,8 @@ payload: {
 
 ```javascript
 window.postMessage({
-  source: 'LOGIGO_CORE',
-  type: 'LOGIGO_CHECKPOINT',
+  source: 'LOGICART_CORE',
+  type: 'LOGICART_CHECKPOINT',
   payload: { /* ... */ }
 }, '*');
 ```
@@ -102,8 +102,8 @@ The extension should register with Replit's extension system:
 
 ```json
 {
-  "name": "logigo",
-  "displayName": "LogiGo Flowchart Debugger",
+  "name": "logicart",
+  "displayName": "LogicArt Flowchart Debugger",
   "description": "Visualize code as interactive flowcharts with AI-assisted editing",
   "version": "1.0.0",
   "permissions": [
@@ -132,7 +132,7 @@ window.replit.session.onActiveFileChange(callback): () => void
 
 ### Extension Responsibilities
 
-1. **Inject logigo-core runtime** into the user's preview/webview
+1. **Inject logicart-core runtime** into the user's preview/webview
 2. **Listen for Reporter API events** and forward to Studio
 3. **Handle file sync** between Studio edits and the actual files
 4. **Manage session lifecycle** (start, pause, resume, end)
@@ -141,7 +141,7 @@ window.replit.session.onActiveFileChange(callback): () => void
 
 ## Part 3: IDE Adapter Interface
 
-LogiGo Studio expects the extension to implement this interface (via message passing):
+LogicArt Studio expects the extension to implement this interface (via message passing):
 
 ```typescript
 interface IDEAdapter {
@@ -190,7 +190,7 @@ Beyond Reporter API events, the extension should send these control messages:
 ```typescript
 // When active file changes
 {
-  type: 'LOGIGO_FILE_CHANGED',
+  type: 'LOGICART_FILE_CHANGED',
   payload: {
     path: string;
     content: string;
@@ -200,7 +200,7 @@ Beyond Reporter API events, the extension should send these control messages:
 
 // When file is saved externally
 {
-  type: 'LOGIGO_FILE_SAVED',
+  type: 'LOGICART_FILE_SAVED',
   payload: {
     path: string;
     content: string;
@@ -213,7 +213,7 @@ Beyond Reporter API events, the extension should send these control messages:
 ```typescript
 // Extension ready
 {
-  type: 'LOGIGO_EXTENSION_READY',
+  type: 'LOGICART_EXTENSION_READY',
   payload: {
     version: string;
     capabilities: string[];  // ['editing', 'runtime', 'fileSync']
@@ -222,7 +222,7 @@ Beyond Reporter API events, the extension should send these control messages:
 
 // Runtime mode toggle
 {
-  type: 'LOGIGO_MODE_CHANGE',
+  type: 'LOGICART_MODE_CHANGE',
   payload: {
     mode: 'static' | 'live';
     reason?: string;
@@ -234,18 +234,18 @@ Beyond Reporter API events, the extension should send these control messages:
 
 ## Part 5: Studio-to-Extension Messages
 
-LogiGo Studio will send these commands to the extension:
+LogicArt Studio will send these commands to the extension:
 
 ```typescript
 // Request file content
 {
-  type: 'LOGIGO_REQUEST_FILE',
+  type: 'LOGICART_REQUEST_FILE',
   payload: { path?: string; }  // Optional, uses active file if omitted
 }
 
 // Write file changes (from AI rewrite or manual edit)
 {
-  type: 'LOGIGO_WRITE_FILE',
+  type: 'LOGICART_WRITE_FILE',
   payload: {
     path: string;
     content: string;
@@ -254,7 +254,7 @@ LogiGo Studio will send these commands to the extension:
 
 // Navigate to line in editor
 {
-  type: 'LOGIGO_NAVIGATE',
+  type: 'LOGICART_NAVIGATE',
   payload: {
     path: string;
     line: number;
@@ -264,7 +264,7 @@ LogiGo Studio will send these commands to the extension:
 
 // Highlight range in editor
 {
-  type: 'LOGIGO_HIGHLIGHT',
+  type: 'LOGICART_HIGHLIGHT',
   payload: {
     path: string;
     range: Range;
@@ -278,16 +278,16 @@ LogiGo Studio will send these commands to the extension:
 
 ### First-Time Setup
 
-1. User installs LogiGo extension from Replit Extensions
+1. User installs LogicArt extension from Replit Extensions
 2. Extension injects connection UI in sidebar
 3. User opens a JavaScript/TypeScript file
 4. Extension auto-parses and shows flowchart in Studio panel
 
 ### Live Debugging Flow
 
-1. User adds `LogiGo.checkpoint()` calls to their code
+1. User adds `LogicArt.checkpoint()` calls to their code
 2. User runs their application in Replit
-3. Extension injects logigo-core into the preview
+3. Extension injects logicart-core into the preview
 4. Runtime broadcasts checkpoint events via Reporter API
 5. Studio receives events and highlights corresponding flowchart nodes
 6. User can see variable state at each checkpoint
@@ -299,7 +299,7 @@ LogiGo Studio will send these commands to the extension:
 3. User types natural language instructions
 4. Studio calls AI endpoint to rewrite code
 5. User approves changes
-6. Studio sends `LOGIGO_WRITE_FILE` to extension
+6. Studio sends `LOGICART_WRITE_FILE` to extension
 7. Extension writes changes to file via Replit API
 
 ---
@@ -315,11 +315,11 @@ When a checkpoint includes a `domElement` selector, the extension should:
 
 CSS for highlight:
 ```css
-.logigo-visual-handshake {
+.logicart-visual-handshake {
   outline: 3px solid #22c55e !important;
   outline-offset: 2px;
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
-  animation: logigo-pulse 0.8s ease-in-out infinite;
+  animation: logicart-pulse 0.8s ease-in-out infinite;
 }
 ```
 
@@ -347,7 +347,7 @@ Before release, verify:
 - [ ] Static parsing works for JS/TS files
 - [ ] Double-click node opens edit dialog
 - [ ] AI rewrite saves changes to file
-- [ ] `LogiGo.checkpoint()` events reach Studio
+- [ ] `LogicArt.checkpoint()` events reach Studio
 - [ ] Visual Handshake highlights DOM elements
 - [ ] File changes sync bidirectionally
 - [ ] Extension handles missing/invalid files gracefully
@@ -372,7 +372,7 @@ Key files Antigravity should reference:
 
 ## Questions for Discussion
 
-1. Should the extension auto-inject logigo-core, or require users to add it manually?
+1. Should the extension auto-inject logicart-core, or require users to add it manually?
 2. How should we handle multi-file projects? Parse all files or just active file?
 3. Do we need offline/caching support for when Replit is slow?
 4. Should checkpoints persist across page reloads?
@@ -381,4 +381,4 @@ Key files Antigravity should reference:
 
 ## Contact
 
-For questions about this specification, reach out to the LogiGo Studio team.
+For questions about this specification, reach out to the LogicArt Studio team.

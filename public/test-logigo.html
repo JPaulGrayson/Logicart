@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo Runtime Test</title>
+    <title>LogicArt Runtime Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -58,8 +58,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 LogiGo Runtime Test</h1>
-        <p>This demo tests the LogiGo runtime overlay and checkpoint system.</p>
+        <h1>🎯 LogicArt Runtime Test</h1>
+        <p>This demo tests the LogicArt runtime overlay and checkpoint system.</p>
         
         <div style="margin: 24px 0;">
             <button onclick="runDemo()">▶ Run Demo Code</button>
@@ -84,7 +84,7 @@
             }
         }
 
-        class LogiGoOverlay {
+        class LogicArtOverlay {
             constructor(options = {}) {
                 this.executionController = new ExecutionController(options);
                 this.options = options;
@@ -92,10 +92,10 @@
 
             init() {
                 this.createOverlay();
-                window.LogiGo = {
+                window.LogicArt = {
                     checkpoint: this.executionController.checkpoint.bind(this.executionController)
                 };
-                console.log('✅ LogiGo initialized');
+                console.log('✅ LogicArt initialized');
                 return this;
             }
 
@@ -115,7 +115,7 @@
                     min-width: 200px;
                 `;
                 overlay.innerHTML = `
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">LogiGo Runtime</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">LogicArt Runtime</div>
                     <div style="font-size: 12px; opacity: 0.9;">Speed: ${this.executionController.currentSpeed}x</div>
                     <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">Status: Active ✓</div>
                 `;
@@ -123,8 +123,8 @@
             }
         }
 
-        // Initialize LogiGo
-        const logigo = new LogiGoOverlay({ speed: 1.5 }).init();
+        // Initialize LogicArt
+        const logigo = new LogicArtOverlay({ speed: 1.5 }).init();
 
         // Demo function with checkpoints
         async function runDemo() {
@@ -139,20 +139,20 @@
             }
 
             log('Starting execution...');
-            await LogiGo.checkpoint('start');
+            await LogicArt.checkpoint('start');
 
             const items = [10, 20, 30, 40, 50];
             log(`Processing ${items.length} items...`);
-            await LogiGo.checkpoint('init-loop');
+            await LogicArt.checkpoint('init-loop');
 
             let sum = 0;
             for (let i = 0; i < items.length; i++) {
-                await LogiGo.checkpoint(`loop-${i}`);
+                await LogicArt.checkpoint(`loop-${i}`);
                 sum += items[i];
                 log(`Item ${i + 1}: ${items[i]} (sum: ${sum})`);
             }
 
-            await LogiGo.checkpoint('finish');
+            await LogicArt.checkpoint('finish');
             log(`✅ Complete! Total: ${sum}`);
         }
     </script>

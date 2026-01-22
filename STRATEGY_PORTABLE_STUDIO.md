@@ -1,15 +1,15 @@
-# LogiGo Strategy Update: The "Portable Studio" Architecture
+# LogicArt Strategy Update: The "Portable Studio" Architecture
 
 **Date:** November 26, 2024
-**To:** LogiGo Replit Team
+**To:** LogicArt Replit Team
 **From:** Antigravity Team
 **Subject:** Pivot to Universal "Sidecar" Architecture for Cross-Platform Compatibility
 
 ## 🎯 Executive Summary
 
-To ensure LogiGo becomes the standard tool for "Vibe Coding" across **all platforms** (Antigravity, Replit, Cursor, VS Code), we are pivoting from an IDE-specific plugin model to a **"Portable Studio" (Sidecar)** architecture.
+To ensure LogicArt becomes the standard tool for "Vibe Coding" across **all platforms** (Antigravity, Replit, Cursor, VS Code), we are pivoting from an IDE-specific plugin model to a **"Portable Studio" (Sidecar)** architecture.
 
-Instead of building complex UI *inside* each IDE, we will build a single, powerful **LogiGo Studio** web app that acts as a "second monitor" for the coding process. This Studio will connect to the user's running app via the **Reporter API** we just built.
+Instead of building complex UI *inside* each IDE, we will build a single, powerful **LogicArt Studio** web app that acts as a "second monitor" for the coding process. This Studio will connect to the user's running app via the **Reporter API** we just built.
 
 ---
 
@@ -17,15 +17,15 @@ Instead of building complex UI *inside* each IDE, we will build a single, powerf
 
 ### 1. The Core Library (In-App)
 *   **Role:** The "Sensor" & "Actuator"
-*   **Location:** Inside the user's app (`npm install logigo-core`)
+*   **Location:** Inside the user's app (`npm install logicart-core`)
 *   **Responsibilities:**
     *   **Visual Handshake:** Highlight DOM elements in the user's app.
     *   **Reporter:** Stream execution events (`checkpoint`) out to the Studio.
     *   **Control:** Receive commands (Pause, Step) from the Studio.
 
-### 2. The LogiGo Studio (Standalone App)
+### 2. The LogicArt Studio (Standalone App)
 *   **Role:** The "Visual Contract" & "Dashboard"
-*   **Location:** A standalone web app (e.g., `studio.logigo.dev` or running locally)
+*   **Location:** A standalone web app (e.g., `studio.logicart.dev` or running locally)
 *   **Responsibilities:**
     *   **Design Mode:** Visualize "Draft" nodes and "Hierarchical" groups (System → Feature → Function).
     *   **Live Trace:** Render the real-time execution flow received from the Core Library.
@@ -35,8 +35,8 @@ Instead of building complex UI *inside* each IDE, we will build a single, powerf
 
 ## 🔄 The Workflow: "Sidecar Mode"
 
-1.  **Setup:** User installs `logigo-core` in their app (Antigravity/Replit/etc.).
-2.  **Connect:** User opens **LogiGo Studio** in a browser tab.
+1.  **Setup:** User installs `logicart-core` in their app (Antigravity/Replit/etc.).
+2.  **Connect:** User opens **LogicArt Studio** in a browser tab.
 3.  **Design (The "Visual Contract"):**
     *   User asks AI Agent: "Plan a sorting feature."
     *   AI Agent sends a "Draft Blueprint" (JSON) to the Studio.
@@ -52,7 +52,7 @@ Instead of building complex UI *inside* each IDE, we will build a single, powerf
 
 ## 🛠️ Technical Implementation for Replit Team
 
-We need the Replit Team to pivot the current "Showroom" app into this **LogiGo Studio**.
+We need the Replit Team to pivot the current "Showroom" app into this **LogicArt Studio**.
 
 ### Task 1: The "Studio" Connection Mode
 The Studio needs to listen for messages from the user's app.
@@ -63,8 +63,8 @@ The Studio needs to listen for messages from the user's app.
 ```javascript
 useEffect(() => {
   const handleMessage = (event) => {
-    // Filter for LogiGo messages
-    if (event.data?.source !== 'logigo-reporter') return;
+    // Filter for LogicArt messages
+    if (event.data?.source !== 'logicart-reporter') return;
     
     const { type, payload } = event.data;
     
@@ -109,23 +109,23 @@ Implement the "Drill-Down" UI.
 
 ## 🤖 The AI Verification Layer (Headless Testing)
 
-LogiGo also serves as the **Standard Verification Protocol** for AI Agents across platforms (Antigravity, Replit, etc.).
+LogicArt also serves as the **Standard Verification Protocol** for AI Agents across platforms (Antigravity, Replit, etc.).
 
 ### The Problem
 Current AI Agents validate code by "looking" at the screen (screenshots) or reading console logs. This is brittle and slow.
 
-### The LogiGo Solution: "Flight Recorder"
-LogiGo acts as a structured "Flight Recorder" that Agents can read programmatically.
+### The LogicArt Solution: "Flight Recorder"
+LogicArt acts as a structured "Flight Recorder" that Agents can read programmatically.
 
 **Workflow:**
 1.  **Agent Action:** Agent launches the app in the platform's built-in preview browser.
 2.  **Execution:** Agent interacts with the app (e.g., clicks "Login").
-3.  **Recording:** `logigo-core` captures the exact execution path, timing, and variable states.
+3.  **Recording:** `logicart-core` captures the exact execution path, timing, and variable states.
 4.  **Validation:** Agent reads the **Reporter API** JSON export to verify correctness.
     *   *Agent Logic:* "Did the `auth_success` checkpoint fire? Yes. Did it happen under 500ms? Yes. **Test Passed.**"
 
 **Strategic Value:**
-This makes LogiGo essential infrastructure for **Self-Healing Code**. Agents can detect bugs not just by crashes, but by *logic deviations* reported by LogiGo.
+This makes LogicArt essential infrastructure for **Self-Healing Code**. Agents can detect bugs not just by crashes, but by *logic deviations* reported by LogicArt.
 
 ---
 
@@ -134,4 +134,4 @@ This makes LogiGo essential infrastructure for **Self-Healing Code**. Agents can
 2.  **Decoupled:** The Core Library stays tiny and fast. The heavy UI logic lives in the Studio.
 3.  **Future Proof:** As AI Agents get smarter, they just send better "Blueprints" to the Studio. We don't need to update the IDE plugin.
 
-**Action Item:** Please begin transforming the current Replit app into this standalone **LogiGo Studio**.
+**Action Item:** Please begin transforming the current Replit app into this standalone **LogicArt Studio**.

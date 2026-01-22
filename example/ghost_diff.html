@@ -267,12 +267,12 @@
 
     <!-- Load LogicArt parser and differ as ES modules -->
     <script type="module">
-        import LogiGoParser from '/demo-src/parser.js';
-        import LogiGoDiffer from '/demo-src/differ.js';
+        import LogicArtParser from '/demo-src/parser.js';
+        import LogicArtDiffer from '/demo-src/differ.js';
         
         // Make available globally for the demo
-        window.LogiGoParser = LogiGoParser;
-        window.LogiGoDiffer = LogiGoDiffer;
+        window.LogicArtParser = LogicArtParser;
+        window.LogicArtDiffer = LogicArtDiffer;
         
         // Initialize and load default scenario after modules are ready
         document.addEventListener('DOMContentLoaded', () => {
@@ -351,12 +351,12 @@ function unusedFunction() {
         let differ = null;
 
         function initDemo() {
-            if (!window.LogiGoParser || !window.LogiGoDiffer) {
-                console.error('LogiGoParser or LogiGoDiffer not loaded');
+            if (!window.LogicArtParser || !window.LogicArtDiffer) {
+                console.error('LogicArtParser or LogicArtDiffer not loaded');
                 return;
             }
-            parser = new window.LogiGoParser({ debug: false });
-            differ = new window.LogiGoDiffer({ debug: false });
+            parser = new window.LogicArtParser({ debug: false });
+            differ = new window.LogicArtDiffer({ debug: false });
             loadScenario('refactor');
         }
 

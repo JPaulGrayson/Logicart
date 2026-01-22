@@ -26,9 +26,9 @@ LogicArt's hosted server (logic.art) could not reach `localhost:5001` because lo
 
 **Console Error:**
 ```
-[LogiGo] Architecture view: 43 files from http://localhost:5001/api/source
+[LogicArt] Architecture view: 43 files from http://localhost:5001/api/source
 Failed to load resource: the server responded with a status of 400 ()
-[LogiGo] Failed to build architecture: - "HTTP 400"
+[LogicArt] Failed to build architecture: - "HTTP 400"
 ```
 
 **Fix Applied by Replit (commit `dcc55c6`):**  
@@ -40,15 +40,15 @@ var isLocalhost = sourceUrl.indexOf('localhost') !== -1 || sourceUrl.indexOf('12
 
 if (isLocalhost) {
   // Fetch files client-side (browser can reach localhost)
-  console.log("[LogiGo] Localhost detected - fetching files client-side");
+  console.log("[LogicArt] Localhost detected - fetching files client-side");
   // ... client-side fetch logic
 }
 ```
 
 **Verification:**  
 - ✅ Architecture View now works on localhost
-- ✅ Console shows: `[LogiGo] Localhost detected - fetching files client-side`
-- ✅ Console shows: `[LogiGo] Architecture built: XX components`
+- ✅ Console shows: `[LogicArt] Localhost detected - fetching files client-side`
+- ✅ Console shows: `[LogicArt] Architecture built: XX components`
 
 ---
 
@@ -181,12 +181,12 @@ Using `http://127.0.0.1:5001/` instead of `http://localhost:5001/` resolves the 
 
 ### Before Fix
 - ❌ HTTP 400 error on "View Full Architecture"
-- ❌ `[LogiGo] Failed to build architecture: - "HTTP 400"`
+- ❌ `[LogicArt] Failed to build architecture: - "HTTP 400"`
 
 ### After Fix
 - ✅ Architecture View loads correctly
 - ✅ 37 components · 17 connections detected
-- ✅ `[LogiGo] Localhost detected - fetching files client-side`
+- ✅ `[LogicArt] Localhost detected - fetching files client-side`
 - ✅ Component graph displays in LogicArt
 
 ### Screenshot Evidence
@@ -196,7 +196,7 @@ Using `http://127.0.0.1:5001/` instead of `http://localhost:5001/` resolves the 
 
 ## Files for Reference
 
-- `/Users/paulg/Documents/Antigravity Github folder/LogiGo/ARCHITECTURE_VIEW_LOCALHOST_ISSUE.md` - Original issue report
+- `/Users/paulg/Documents/Antigravity Github folder/LogicArt/ARCHITECTURE_VIEW_LOCALHOST_ISSUE.md` - Original issue report
 - `/Users/paulg/Documents/Antigravity Github folder/Turai-v1/server/routes.ts` - Local fix applied
 - LogicArt commit `dcc55c6` - Server-side fix
 

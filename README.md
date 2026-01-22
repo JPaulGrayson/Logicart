@@ -1,18 +1,18 @@
-# LogiGo Studio
+# LogicArt Studio
 
 **Transform JavaScript into Interactive Flowcharts**
 
-> 💡 **The LogiGo Promise**: Paste code → See flowchart → Step through execution  
+> 💡 **The LogicArt Promise**: Paste code → See flowchart → Step through execution  
 > No configuration. No setup. Just instant visual understanding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/JPaulGrayson/LogiGo/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/JPaulGrayson/LogicArt/releases)
 
 ---
 
-## 🎯 What is LogiGo?
+## 🎯 What is LogicArt?
 
-LogiGo is a **code-to-flowchart visualization tool** designed for visual learners and "Vibe Coders" who understand code better when they can see it in action.
+LogicArt is a **code-to-flowchart visualization tool** designed for visual learners and "Vibe Coders" who understand code better when they can see it in action.
 
 **Key Features:**
 - 🎨 **Instant Visualization** - Paste JavaScript, see flowchart immediately
@@ -26,9 +26,9 @@ LogiGo is a **code-to-flowchart visualization tool** designed for visual learner
 
 ## 🚀 Quick Start (30 Seconds)
 
-### Option 1: Use LogiGo Studio (No Installation)
+### Option 1: Use LogicArt Studio (No Installation)
 
-1. **Open** [LogiGo Studio](https://logigo.studio) *(or your deployed URL)*
+1. **Open** [LogicArt Studio](https://logicart.studio) *(or your deployed URL)*
 2. **Paste** any JavaScript function into the editor
 3. **Watch** the flowchart appear automatically
 4. **Press** `Space` to step through execution
@@ -37,7 +37,7 @@ LogiGo is a **code-to-flowchart visualization tool** designed for visual learner
 
 ### Option 2: Try an Example
 
-Click the **EXAMPLES** dropdown in LogiGo Studio and select:
+Click the **EXAMPLES** dropdown in LogicArt Studio and select:
 - **Bubble Sort** - See sorting algorithms visualized
 - **Fibonacci** - Understand recursion visually
 - **Tic-Tac-Toe** - Explore game logic step-by-step
@@ -49,7 +49,7 @@ Click the **EXAMPLES** dropdown in LogiGo Studio and select:
 | Guide | Description | Best For |
 |-------|-------------|----------|
 | **[Getting Started](docs/GETTING_STARTED.md)** | Quick start, keyboard shortcuts, basic features | First-time users |
-| **[Installation Guide](docs/INSTALLATION_GUIDE.md)** | Add LogiGo to your projects (Replit, VS Code, etc.) | Developers integrating LogiGo |
+| **[Installation Guide](docs/INSTALLATION_GUIDE.md)** | Add LogicArt to your projects (Replit, VS Code, etc.) | Developers integrating LogicArt |
 | **[API Reference](docs/API_REFERENCE.md)** | Complete API for packages and checkpoints | Advanced users |
 
 ---
@@ -60,19 +60,19 @@ Click the **EXAMPLES** dropdown in LogiGo Studio and select:
 START HERE: What do you want to do?
 │
 ├─ 📖 Just visualize code to understand it
-│  └─ ✅ Use LogiGo Studio (paste code, no installation)
+│  └─ ✅ Use LogicArt Studio (paste code, no installation)
 │
 ├─ 🔧 Add flowcharts to my React app
-│  └─ ✅ Install logigo-embed package
+│  └─ ✅ Install logicart-embed package
 │
 ├─ 🏗️ Auto-instrument my Vite project
-│  └─ ✅ Install logigo-vite-plugin
+│  └─ ✅ Install logicart-vite-plugin
 │
 ├─ 🐛 Debug my Node.js/Express server
 │  └─ ✅ Add checkpoint helper (no package needed)
 │
 └─ 🎯 Fine-grained control over checkpoints
-   └─ ✅ Install logigo-core and add manual checkpoints
+   └─ ✅ Install logicart-core and add manual checkpoints
 ```
 
 **Still not sure?** See the [Installation Guide](docs/INSTALLATION_GUIDE.md) for detailed decision tree.
@@ -83,9 +83,9 @@ START HERE: What do you want to do?
 
 | Package | Purpose | Install |
 |---------|---------|---------|
-| **logigo-core** | Runtime library for checkpoint debugging | `npm install logigo-core` |
-| **logigo-embed** | React component for flowchart visualization | `npm install logigo-embed` |
-| **logigo-vite-plugin** | Vite plugin for build-time instrumentation | `npm install logigo-vite-plugin --save-dev` |
+| **logicart-core** | Runtime library for checkpoint debugging | `npm install logicart-core` |
+| **logicart-embed** | React component for flowchart visualization | `npm install logicart-embed` |
+| **logicart-vite-plugin** | Vite plugin for build-time instrumentation | `npm install logicart-vite-plugin --save-dev` |
 
 ---
 
@@ -93,7 +93,7 @@ START HERE: What do you want to do?
 
 ### Static Mode (No Installation)
 ```javascript
-// Just paste this into LogiGo Studio
+// Just paste this into LogicArt Studio
 function factorial(n) {
   if (n <= 1) return 1;
   return n * factorial(n - 1);
@@ -102,11 +102,11 @@ function factorial(n) {
 
 ### React Embed Component
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ```javascript
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -123,28 +123,28 @@ function App() {
     }
   `;
   
-  return <LogiGoEmbed code={code} theme="dark" />;
+  return <LogicArtEmbed code={code} theme="dark" />;
 }
 ```
 
 ### Vite Plugin (Auto-Instrumentation)
 ```bash
-npm install logigo-vite-plugin --save-dev
-npm install logigo-embed
+npm install logicart-vite-plugin --save-dev
+npm install logicart-embed
 ```
 
 ```javascript
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
+    logicartPlugin({
       include: ['src/**/*.tsx', 'src/**/*.ts'],
-      manifestPath: 'logigo-manifest.json'
+      manifestPath: 'logicart-manifest.json'
     })
   ]
 });
@@ -153,25 +153,25 @@ export default defineConfig({
 ### Backend Logging (Node.js/Express)
 ```javascript
 // Add this helper to your server file (no npm package needed)
-const LogiGo = {
+const LogicArt = {
   checkpoint(nodeId, options = {}) {
     const vars = options.variables || {};
-    console.log(`[LogiGo] ${nodeId}`, JSON.stringify(vars, null, 2));
+    console.log(`[LogicArt] ${nodeId}`, JSON.stringify(vars, null, 2));
   }
 };
 
 // Use in your routes
 app.post('/api/order', async (req, res) => {
-  LogiGo.checkpoint('order:start', { variables: { body: req.body } });
+  LogicArt.checkpoint('order:start', { variables: { body: req.body } });
   
   const order = await processOrder(req.body);
   
-  LogiGo.checkpoint('order:complete', { variables: { orderId: order.id } });
+  LogicArt.checkpoint('order:complete', { variables: { orderId: order.id } });
   res.json(order);
 });
 ```
 
-**💡 Tip:** Paste your server code into LogiGo Studio to see the flowchart, then correlate with console logs.
+**💡 Tip:** Paste your server code into LogicArt Studio to see the flowchart, then correlate with console logs.
 
 ---
 
@@ -191,19 +191,19 @@ app.post('/api/order', async (req, res) => {
 
 ## 🎨 User Labels
 
-Add human-readable labels to flowchart nodes with `// @logigo:` comments:
+Add human-readable labels to flowchart nodes with `// @logicart:` comments:
 
 ```javascript
-// @logigo: Initialize counter
+// @logicart: Initialize counter
 let count = 0;
 
-// @logigo: Check if array is empty
+// @logicart: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return early with zero
+  // @logicart: Return early with zero
   return 0;
 }
 
-// @logigo: Sum all items
+// @logicart: Sum all items
 for (const item of items) {
   count += item.value;
 }
@@ -218,7 +218,7 @@ for (const item of items) {
 
 Get code generation help from **4 AI models simultaneously**:
 
-1. Click **Model Arena** in LogiGo Studio
+1. Click **Model Arena** in LogicArt Studio
 2. Describe what you want to build
 3. See responses from:
    - **GPT-4o** (OpenAI)
@@ -233,7 +233,7 @@ Get code generation help from **4 AI models simultaneously**:
 
 ## 🔗 Sharing Flowcharts
 
-1. Click **Share** button in LogiGo Studio
+1. Click **Share** button in LogicArt Studio
 2. Add optional title and description
 3. Copy the generated URL
 4. Recipients see your flowchart with full interactivity
@@ -249,7 +249,7 @@ Get code generation help from **4 AI models simultaneously**:
 ## 🏗️ Architecture
 
 ```
-LogiGo Studio
+LogicArt Studio
 ├── client/                 # React frontend
 │   ├── src/pages/         # Workbench, Model Arena
 │   ├── src/components/    # IDE, Flowchart, Debug Panel
@@ -259,9 +259,9 @@ LogiGo Studio
 │   ├── storage.ts         # Database interface
 │   └── mcp.ts             # MCP server for AI agents
 ├── packages/
-│   ├── logigo-core/       # Runtime library
-│   ├── logigo-embed/      # React component
-│   └── logigo-vite-plugin/# Vite build plugin
+│   ├── logicart-core/       # Runtime library
+│   ├── logicart-embed/      # React component
+│   └── logicart-vite-plugin/# Vite build plugin
 └── shared/
     └── schema.ts          # Drizzle ORM schema
 ```
@@ -272,8 +272,8 @@ LogiGo Studio
 
 ```bash
 # Clone the repository
-git clone https://github.com/JPaulGrayson/LogiGo.git
-cd LogiGo
+git clone https://github.com/JPaulGrayson/LogicArt.git
+cd LogicArt
 
 # Install dependencies
 npm install
@@ -292,16 +292,16 @@ npm run db:push
 
 ```bash
 # Build all packages
-cd packages/logigo-core && npm run build
-cd packages/logigo-embed && npm run build
-cd packages/logigo-vite-plugin && npm run build
+cd packages/logicart-core && npm run build
+cd packages/logicart-embed && npm run build
+cd packages/logicart-vite-plugin && npm run build
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### "Module not found: logigo-embed"
+### "Module not found: logicart-embed"
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -309,14 +309,14 @@ npm install
 ```
 
 ### Flowchart shows "Syntax Error"
-- LogiGo uses Acorn parser (ECMAScript 2020)
+- LogicArt uses Acorn parser (ECMAScript 2020)
 - Ensure code is valid JavaScript
 - TypeScript-specific syntax may cause errors
 
 ### No variable tracking in Live Mode
 - Verify Vite plugin is configured: `captureVariables: true` (default)
-- Check that `logigo-manifest.json` is being generated
-- Ensure `LogiGoEmbed` has `showVariables={true}`
+- Check that `logicart-manifest.json` is being generated
+- Ensure `LogicArtEmbed` has `showVariables={true}`
 
 ### CSS not loading
 ```javascript
@@ -332,9 +332,9 @@ import '@xyflow/react/dist/style.css';
 
 | Package | Version | React | Vite | Node |
 |---------|---------|-------|------|------|
-| logigo-core | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-embed | 1.0.0 | 16+ | 4+ | 16+ |
-| logigo-vite-plugin | 1.0.0 | - | 4+ | 16+ |
+| logicart-core | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-embed | 1.0.0 | 16+ | 4+ | 16+ |
+| logicart-vite-plugin | 1.0.0 | - | 4+ | 16+ |
 
 **Supported Browsers:**
 - Chrome/Edge 90+
@@ -348,7 +348,7 @@ import '@xyflow/react/dist/style.css';
 - **[Getting Started Guide](docs/GETTING_STARTED.md)** - Tutorials and examples
 - **[Installation Guide](docs/INSTALLATION_GUIDE.md)** - Platform-specific setup
 - **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Issues](https://github.com/JPaulGrayson/LogiGo/issues)** - Report bugs or request features
+- **[GitHub Issues](https://github.com/JPaulGrayson/LogicArt/issues)** - Report bugs or request features
 
 ---
 
@@ -370,4 +370,4 @@ Built with:
 
 **Made with ❤️ for Vibe Coders who learn by seeing**
 
-[⭐ Star on GitHub](https://github.com/JPaulGrayson/LogiGo) | [📖 Documentation](docs/GETTING_STARTED.md) | [🐛 Report Bug](https://github.com/JPaulGrayson/LogiGo/issues)
+[⭐ Star on GitHub](https://github.com/JPaulGrayson/LogicArt) | [📖 Documentation](docs/GETTING_STARTED.md) | [🐛 Report Bug](https://github.com/JPaulGrayson/LogicArt/issues)

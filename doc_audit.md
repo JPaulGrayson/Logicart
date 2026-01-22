@@ -1,4 +1,4 @@
-# LOGIGO DOCS AUDIT
+# LOGICART DOCS AUDIT
 
 
 ## 1. HELP DIALOG (Layout & Filters)
@@ -166,14 +166,14 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
       return (
         <div className="space-y-6 pr-4 text-sm text-muted-foreground">
           <section>
-            <h3 className="text-lg font-semibold text-foreground mb-2">LogiGo Studio</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">LogicArt Studio</h3>
             <p>
               A bidirectional code-to-flowchart visualization tool designed for "Vibe Coders" who benefit from visual learning and debugging.
             </p>
           </section>
           <section>
             <h3 className="text-lg font-semibold text-foreground mb-2">Version</h3>
-            <p><strong>LogiGo Studio:</strong> v1.2.0-stable</p>
+            <p><strong>LogicArt Studio:</strong> v1.2.0-stable</p>
           </section>
           <section>
             <h3 className="text-lg font-semibold text-foreground mb-2">Key Features</h3>
@@ -295,7 +295,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                   L
                 </div>
-                <h2 className="font-bold text-lg tracking-tight">LogiGo Doc</h2>
+                <h2 className="font-bold text-lg tracking-tight">LogicArt Doc</h2>
               </div>
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] opacity-60">Documentation Center v1.3</p>
             </div>
@@ -354,7 +354,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                       )}
                     >
                       <Info className="w-4 h-4" />
-                      <span className="font-medium">About LogiGo</span>
+                      <span className="font-medium">About LogicArt</span>
                     </button>
                   </div>
                 </div>
@@ -383,7 +383,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
 
             <div className="p-4 bg-muted/20 border-t border-white/5">
               <a
-                href="https://github.com/JPaulGrayson/LogiGo"
+                href="https://github.com/JPaulGrayson/LogicArt"
                 target="_blank"
                 rel="noopener"
                 className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-white transition-colors"
@@ -401,7 +401,7 @@ export function HelpDialog({ open, onOpenChange, initialSection }: HelpDialogPro
                 <h2 className="text-lg font-bold tracking-tight capitalize">
                   {VISIBLE_DOCS.find(d => d.id === activeSection)?.title ||
                     (activeSection === 'shortcuts' ? 'Shortcuts' :
-                      activeSection === 'about' ? 'About LogiGo' :
+                      activeSection === 'about' ? 'About LogicArt' :
                         activeSection === 'gallery' ? 'Showcase Gallery' : '')}
                 </h2>
               </div>
@@ -477,17 +477,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Copy, Terminal, Wand2, Check, ExternalLink, Sparkles, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SCRIPT_TAG = `<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
+const SCRIPT_TAG = `<script src="https://logicart-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>`;
 
-const AGENT_PROMPT = `Add LogiGo code visualization to this project.
+const AGENT_PROMPT = `Add LogicArt code visualization to this project.
 
 1. Add this script tag to the HTML <head>:
-<script src="https://logigo-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
+<script src="https://logicart-studio-jpaulgrayson.replit.app/remote.js?mode=push&hideBadge=true"></script>
 
 2. Create a visualization handler:
 const handleVisualize = (code, name) => {
-  if (window.LogiGo?.visualize) {
-    window.LogiGo.visualize(code, name);
+  if (window.LogicArt?.visualize) {
+    window.LogicArt.visualize(code, name);
   }
 };
 
@@ -496,12 +496,12 @@ handleVisualize(algorithms[selectedAlgorithm], selectedAlgorithm);
 
 4. Connect the handler to a "View Flowchart" button.
 
-5. TEST: Click the button - LogiGo should open with a clean flowchart.
+5. TEST: Click the button - LogicArt should open with a clean flowchart.
 
-Available LogiGo methods:
-- visualize(code, name) - One-shot: registers code and opens LogiGo (recommended)
+Available LogicArt methods:
+- visualize(code, name) - One-shot: registers code and opens LogicArt (recommended)
 - registerCode(code, name) - Just registers code without opening
-- openStudio() - Opens LogiGo in a new tab
+- openStudio() - Opens LogicArt in a new tab
 
 The project name is auto-detected from your app's hostname.`;
 
@@ -531,7 +531,7 @@ export function ConnectWizard() {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Integration Wizard</h2>
-                    <p className="text-muted-foreground text-sm">Connect your external app to LogiGo in seconds.</p>
+                    <p className="text-muted-foreground text-sm">Connect your external app to LogicArt in seconds.</p>
                 </div>
             </div>
 
@@ -610,14 +610,14 @@ export function ConnectWizard() {
 
 
 ## 4. GETTING STARTED (Content)
-# LogiGo Getting Started Guide
+# LogicArt Getting Started Guide
 
 **Learn to visualize and debug JavaScript code in 5 minutes**
 
 ```mermaid
 graph TD
-    A["Your Code"] -->|remote.js| B("LogiGo Server")
-    B --> C{"LogiGo Studio"}
+    A["Your Code"] -->|remote.js| B("LogicArt Server")
+    B --> C{"LogicArt Studio"}
     C -->|Real-time| D["Visual Flowchart"]
     D -->|Interaction| E["Better Code Understanding"]
 ```
@@ -625,7 +625,7 @@ graph TD
 ---
 
 ```callout
-LogiGo is designed for "Vibe Coders" who want to lead the Agent through structural intent rather than just typing lines of code.
+LogicArt is designed for "Vibe Coders" who want to lead the Agent through structural intent rather than just typing lines of code.
 ```
 
 ---
@@ -643,9 +643,9 @@ By the end of this guide, you'll know how to:
 
 ## 🚀 Quick Start (2 Minutes)
 
-### Step 1: Open LogiGo Studio
+### Step 1: Open LogicArt Studio
 
-Navigate to [LogiGo Studio](https://logigo.studio) *(or your deployed URL)*
+Navigate to [LogicArt Studio](https://logicart.studio) *(or your deployed URL)*
 
 ### Step 2: Paste Code
 
@@ -707,22 +707,22 @@ if (items.length === 0) {
 ### With Labels (Better!)
 
 ```javascript
-// @logigo: Initialize running total
+// @logicart: Initialize running total
 let total = 0;
 
-// @logigo: Check if array is empty
+// @logicart: Check if array is empty
 if (items.length === 0) {
-  // @logigo: Return zero for empty array
+  // @logicart: Return zero for empty array
   return 0;
 }
 
-// @logigo: Calculate sum of all items
+// @logicart: Calculate sum of all items
 for (let i = 0; i < items.length; i++) {
-  // @logigo: Add current item to total
+  // @logicart: Add current item to total
   total += items[i];
 }
 
-// @logigo: Return final sum
+// @logicart: Return final sum
 return total;
 ```
 
@@ -738,7 +738,7 @@ return total;
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  LogiGo Studio                                          │
+│  LogicArt Studio                                          │
 ├──────────────────┬──────────────────────────────────────┤
 │                  │                                      │
 │  Code Editor     │  Flowchart Visualization            │
@@ -802,7 +802,7 @@ The floating Debug Panel shows real-time execution state:
 | `Ctrl/Cmd + O` | Import File | Load code from file |
 | `Ctrl/Cmd + S` | Export File | Save code to file |
 
-**💡 Pro Tip:** Press `?` in LogiGo Studio to see the full shortcut reference.
+**💡 Pro Tip:** Press `?` in LogicArt Studio to see the full shortcut reference.
 
 ---
 
@@ -846,7 +846,7 @@ function processOrder(order) {
 
 ### Automatic Tracking (Static Mode)
 
-LogiGo automatically tracks variables in your code:
+LogicArt automatically tracks variables in your code:
 
 ```javascript
 function fibonacci(n) {
@@ -875,10 +875,10 @@ Variables:
 
 ### Manual Tracking (Live Mode)
 
-For advanced tracking with `logigo-core`:
+For advanced tracking with `logicart-core`:
 
 ```javascript
-import { checkpoint } from 'logigo-core';
+import { checkpoint } from 'logicart-core';
 
 function processData(data) {
   checkpoint('process:start', { data });
@@ -894,7 +894,7 @@ function processData(data) {
 
 ## 🎓 Try These Examples
 
-LogiGo Studio includes built-in examples. Click the **EXAMPLES** dropdown to try:
+LogicArt Studio includes built-in examples. Click the **EXAMPLES** dropdown to try:
 
 ### 1. Bubble Sort
 **What it teaches:** Nested loops, array manipulation, swapping
@@ -1038,8 +1038,8 @@ Customize your workspace with layout presets.
 
 ### Workflow 1: Understanding New Code
 
-1. Paste code into LogiGo Studio
-2. Add `// @logigo:` labels for clarity
+1. Paste code into LogicArt Studio
+2. Add `// @logicart:` labels for clarity
 3. Press `Space` to auto-step through
 4. Watch variable values in Debug Panel
 5. Set breakpoints on confusing sections
@@ -1047,7 +1047,7 @@ Customize your workspace with layout presets.
 
 ### Workflow 2: Debugging a Bug
 
-1. Paste buggy code into LogiGo Studio
+1. Paste buggy code into LogicArt Studio
 2. Set breakpoints before the suspected bug
 3. Press `Space` to run to breakpoint
 4. Inspect variable values
@@ -1056,7 +1056,7 @@ Customize your workspace with layout presets.
 
 ### Workflow 3: Teaching an Algorithm
 
-1. Write algorithm with clear `// @logigo:` labels
+1. Write algorithm with clear `// @logicart:` labels
 2. Click **Share** to generate link
 3. Send link to students
 4. Students can step through at their own pace
@@ -1065,7 +1065,7 @@ Customize your workspace with layout presets.
 ### Workflow 4: Code Review
 
 1. Paste code to review
-2. Add `// @logigo:` labels explaining intent
+2. Add `// @logicart:` labels explaining intent
 3. Step through to verify logic
 4. Share link with team for discussion
 5. Use Debug Panel to verify edge cases
@@ -1076,13 +1076,13 @@ Customize your workspace with layout presets.
 
 ### For Beginners
 - ✅ Try all built-in examples
-- ✅ Practice adding `// @logigo:` labels
+- ✅ Practice adding `// @logicart:` labels
 - ✅ Learn keyboard shortcuts
 - ✅ Share a flowchart with a friend
 
 ### For Developers
-- ✅ Read the [Installation Guide](INSTALLATION_GUIDE.md) to add LogiGo to your projects
-- ✅ Try the `logigo-embed` React component
+- ✅ Read the [Installation Guide](INSTALLATION_GUIDE.md) to add LogicArt to your projects
+- ✅ Try the `logicart-embed` React component
 - ✅ Explore the [API Reference](API_REFERENCE.md)
 
 ### For Teams
@@ -1122,7 +1122,7 @@ Customize your workspace with layout presets.
 ### Can't find a keyboard shortcut
 
 **Fix:**
-- Press `?` in LogiGo Studio to see all shortcuts
+- Press `?` in LogicArt Studio to see all shortcuts
 - Check the Help dialog (click `?` icon in top-right)
 
 ---
@@ -1158,7 +1158,7 @@ Set breakpoints:
 
 ### Tip 4: Combine Labels and Checkpoints
 ```javascript
-// @logigo: Validate user input
+// @logicart: Validate user input
 if (!isValid(input)) {
   checkpoint('validation:failed', { input, errors });
   return null;
@@ -1169,10 +1169,10 @@ if (!isValid(input)) {
 
 ## 📚 Additional Resources
 
-- **[Installation Guide](INSTALLATION_GUIDE.md)** - Add LogiGo to your projects
+- **[Installation Guide](INSTALLATION_GUIDE.md)** - Add LogicArt to your projects
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
-- **[GitHub Repository](https://github.com/JPaulGrayson/LogiGo)** - Source code and issues
-- **Help Dialog** - Press `?` in LogiGo Studio
+- **[GitHub Repository](https://github.com/JPaulGrayson/LogicArt)** - Source code and issues
+- **Help Dialog** - Press `?` in LogicArt Studio
 
 ---
 
@@ -1186,7 +1186,7 @@ if (!isValid(input)) {
 
 ### Week 2: Integration
 - [ ] Read the Installation Guide
-- [ ] Add LogiGo to a personal project
+- [ ] Add LogicArt to a personal project
 - [ ] Create custom checkpoints
 - [ ] Use breakpoints for debugging
 
@@ -1200,4 +1200,4 @@ if (!isValid(input)) {
 
 **Made with ❤️ for Vibe Coders who learn by seeing**
 
-**Questions?** Check the [Installation Guide](INSTALLATION_GUIDE.md) or [open an issue](https://github.com/JPaulGrayson/LogiGo/issues).
+**Questions?** Check the [Installation Guide](INSTALLATION_GUIDE.md) or [open an issue](https://github.com/JPaulGrayson/LogicArt/issues).

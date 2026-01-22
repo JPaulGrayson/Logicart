@@ -1,4 +1,4 @@
-# LogiGo Parallel Testing Plan (Antigravity + Replit)
+# LogicArt Parallel Testing Plan (Antigravity + Replit)
 
 **Date:** January 1, 2026  
 **Purpose:** Parallel testing with Antigravity to verify features
@@ -30,7 +30,7 @@
 
 ### Group 2: Flowchart Interaction ✅
 - Collapsible containers (expand/collapse nested structures)
-- Add labels (right-click context menu → Add/Edit/Remove Label → `// @logigo:` comments)
+- Add labels (right-click context menu → Add/Edit/Remove Label → `// @logicart:` comments)
 
 ### Group 3: Code Examples & Editing ✅
 - Algorithmic Examples (Bubble Sort, Fibonacci, Pathfinding, etc.) - ✅ Quick Sort loads correctly
@@ -58,7 +58,7 @@
 
 ### Group 8: Sync & Integration
 - Bidirectional Sync (UI ↔ File)
-- LogiGo File Sync & Watch Mode
+- LogicArt File Sync & Watch Mode
 - Visual Handshake
 
 ### Group 9: External Tools
@@ -100,8 +100,8 @@
 
 ### Group 7 - Sharing & Export (January 1, 2026)
 - **Share Flowchart:** Creates unique URL via POST /api/share (format: /s/{id})
-- **Export Code:** Downloads as logigo-code.js
-- **Export PNG:** Downloads as logigo-flowchart.png
+- **Export Code:** Downloads as logicart-code.js
+- **Export PNG:** Downloads as logicart-flowchart.png
 - **Import Code:** File upload works, updates editor and flowchart
 - **Test Result:** ✅ PASS - All export/share features work
 
@@ -138,4 +138,4 @@
 - Remote Mode creates sessions and shows "Connected" status
 - Ghost Diff shows added/removed counts (12 added, 2 removed on example change)
 - Share URLs format: /s/{unique-id}
-- Export downloads: logigo-code.js, logigo-flowchart.png
+- Export downloads: logicart-code.js, logicart-flowchart.png

@@ -1,4 +1,4 @@
-# Antigravity's Review of LogiGo V1 Feature Delivery
+# Antigravity's Review of LogicArt V1 Feature Delivery
 
 **Date:** December 26, 2025  
 **Reviewer:** Antigravity  
@@ -271,7 +271,7 @@ app.post("/api/agent/analyze", async (req, res) => {
 ### Minor Observations
 
 1. **Missing CLI Tool**
-   - Agent API exists, but no `logigo-cli` package yet
+   - Agent API exists, but no `logicart-cli` package yet
    - **Recommendation:** Add CLI in V1.1 or V2
 
 2. **No File Selection for Arena**

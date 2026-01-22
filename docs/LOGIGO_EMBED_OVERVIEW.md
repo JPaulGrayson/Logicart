@@ -1,18 +1,18 @@
-# LogiGo Embed - Overview for Review
+# LogicArt Embed - Overview for Review
 
 ## The Problem
 
-LogiGo Studio is a code-to-flowchart visualization tool. Users paste JavaScript code, and it renders an interactive flowchart showing the control flow. We also have a "Live Mode" where users instrument their code with `LogiGo.checkpoint()` calls to see real-time execution visualization.
+LogicArt Studio is a code-to-flowchart visualization tool. Users paste JavaScript code, and it renders an interactive flowchart showing the control flow. We also have a "Live Mode" where users instrument their code with `LogicArt.checkpoint()` calls to see real-time execution visualization.
 
-**The gap we discovered:** Live Mode uses `window.postMessage` to communicate between instrumented code and the Studio. This only works within the same browser window/tab. If a user is building an app in Replit (or any vibe coding platform) and wants to visualize it in LogiGo Studio running in a different tab, the messages can't cross that boundary.
+**The gap we discovered:** Live Mode uses `window.postMessage` to communicate between instrumented code and the Studio. This only works within the same browser window/tab. If a user is building an app in Replit (or any vibe coding platform) and wants to visualize it in LogicArt Studio running in a different tab, the messages can't cross that boundary.
 
-**Original assumption:** Users would have LogiGo Studio open in the same project/tab as their code.
+**Original assumption:** Users would have LogicArt Studio open in the same project/tab as their code.
 
 **Reality:** Vibe coders typically have their app running in one tab and want visualization tools in another.
 
 ---
 
-## The Solution: LogiGo Embed
+## The Solution: LogicArt Embed
 
 Instead of requiring users to open a separate Studio tab, we embed the visualization directly into their app as a floating overlay.
 
@@ -26,7 +26,7 @@ Instead of requiring users to open a separate Studio tab, we embed the visualiza
 │  └─────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐   │
-│  │  LogiGo Embed (floating panel)              │   │
+│  │  LogicArt Embed (floating panel)              │   │
 │  │  ┌─────────────────────────────────────┐    │   │
 │  │  │  Flowchart Canvas                    │    │   │
 │  │  │  (nodes highlight as code executes)  │    │   │
@@ -64,18 +64,18 @@ User's Source Files
         │
         ▼
 ┌─────────────────────────────────────────────────────┐
-│  LogiGo Bundler Plugin (Vite/Webpack)               │
+│  LogicArt Bundler Plugin (Vite/Webpack)               │
 │                                                     │
 │  For each source file:                              │
 │  1. Parse with Acorn (get AST)                      │
 │  2. Generate flowchart nodes/edges                  │
 │  3. Assign stable node IDs (hash-based)             │
-│  4. Inject LogiGo.checkpoint() calls                │
+│  4. Inject LogicArt.checkpoint() calls                │
 │  5. Write metadata to manifest                      │
 └─────────────────────────────────────────────────────┘
         │                               │
         ▼                               ▼
-  Instrumented Bundle          logigo-manifest.json
+  Instrumented Bundle          logicart-manifest.json
   (with checkpoints)           (flowchart structure)
 ```
 
@@ -121,21 +121,21 @@ This means:
 ┌─────────────────────────────────────────────────────┐
 │  Page Load                                          │
 │                                                     │
-│  1. Bundle emits LOGIGO_MANIFEST_READY              │
-│     → Embed fetches /logigo-manifest.json           │
+│  1. Bundle emits LOGICART_MANIFEST_READY              │
+│     → Embed fetches /logicart-manifest.json           │
 │     → Renders flowchart from manifest               │
 │                                                     │
 │  2. User triggers instrumented code                 │
-│     → LOGIGO_SESSION_START                          │
+│     → LOGICART_SESSION_START                          │
 │     → Embed resets state                            │
 │                                                     │
 │  3. Each checkpoint() call                          │
-│     → LOGIGO_CHECKPOINT { id, variables }           │
+│     → LOGICART_CHECKPOINT { id, variables }           │
 │     → Embed highlights matching node                │
 │     → Records variable snapshot                     │
 │                                                     │
 │  4. Execution completes                             │
-│     → LOGIGO_SESSION_END                            │
+│     → LOGICART_SESSION_END                            │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -145,14 +145,14 @@ This means:
 
 **Production (with bundler plugin):**
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
       <MyApp />
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
       />
     </div>
@@ -162,13 +162,13 @@ function App() {
 
 **Vite config:**
 ```javascript
-import logigo from 'logigo-embed/vite';
+import logicart from 'logicart-embed/vite';
 
 export default {
   plugins: [
-    logigo({
+    logicart({
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      manifestPath: 'public/logigo-manifest.json'
+      manifestPath: 'public/logicart-manifest.json'
     })
   ]
 }
@@ -176,7 +176,7 @@ export default {
 
 **Quick demo (no build integration):**
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  // Parse at runtime
   position="bottom-right"
 />
@@ -196,22 +196,22 @@ export default {
 
 5. **Package distribution:** Planning ESM (React as peer dep) + UMD (standalone with bundled React). Anything else to consider?
 
-6. **Async/await:** The checkpoint injection adds `await LogiGo.checkpoint(...)`. This requires functions to be async. Worth the constraint?
+6. **Async/await:** The checkpoint injection adds `await LogicArt.checkpoint(...)`. This requires functions to be async. Worth the constraint?
 
 ---
 
 ## What We've Built So Far
 
-- **LogiGo Studio:** Full workbench with code editor, flowchart canvas, variable inspector
+- **LogicArt Studio:** Full workbench with code editor, flowchart canvas, variable inspector
 - **Static Mode:** Paste code → instant flowchart (working)
 - **Reporter API spec:** Message format for checkpoint communication
-- **logigo-core package:** Runtime library with `window.LogiGo.checkpoint()`
-- **logigo-embed package (Phase 1):** Embeddable React component with runtime parsing for Static Mode
+- **logicart-core package:** Runtime library with `window.LogicArt.checkpoint()`
+- **logicart-embed package (Phase 1):** Embeddable React component with runtime parsing for Static Mode
 
 ## Implementation Status
 
 ### Phase 1 (Complete)
-- **LogiGoEmbed component:** Floating overlay with runtime JavaScript parsing
+- **LogicArtEmbed component:** Floating overlay with runtime JavaScript parsing
 - **Static Mode:** Parse code on the fly, render flowchart, no build integration needed
 - **Demo page:** `/embed-demo` shows component in action with position controls
 - **Features:** Collapse/expand, position options, dark/light themes
@@ -219,7 +219,7 @@ export default {
 ### Phase 2 (Planned)
 - **Bundler plugins:** Vite and Webpack integrations for build-time manifest
 - **Live Mode:** Checkpoint-driven node highlighting (requires manifest for ID matching)
-- **logigo-install CLI:** `npx logigo-install` to add embed to any project
+- **logicart-install CLI:** `npx logicart-install` to add embed to any project
 - **Manifest generation:** Build-time AST analysis and checkpoint injection
 
 ### Architecture Decision: Static Mode First

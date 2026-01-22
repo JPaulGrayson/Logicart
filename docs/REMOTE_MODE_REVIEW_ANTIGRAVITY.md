@@ -1,8 +1,8 @@
-# Antigravity's Review of LogiGo Remote Mode Design
+# Antigravity's Review of LogicArt Remote Mode Design
 
 **Date:** December 21, 2025  
 **Reviewer:** Antigravity  
-**Document Reviewed:** LogiGo Cross-Replit Communication Design
+**Document Reviewed:** LogicArt Cross-Replit Communication Design
 
 ---
 
@@ -13,7 +13,7 @@ The Remote Mode solves a different use case than Embed:
 | Approach | Best For |
 |----------|----------|
 | **Embed** | Seeing visualization *inside* your app (single app) |
-| **Remote Mode** | Connecting *separate* apps to a central LogiGo instance (multi-app workflows) |
+| **Remote Mode** | Connecting *separate* apps to a central LogicArt instance (multi-app workflows) |
 
 Both are valuable. I recommend building **Remote Mode first** as it's simpler and solves the immediate VisionLoop problem without requiring users to modify their React component tree.
 
@@ -70,7 +70,7 @@ This enables:
 
 This is a powerful use case:
 - **Pair programming**: Two developers watching the same execution
-- **Teaching**: Instructor runs code, students watch in LogiGo
+- **Teaching**: Instructor runs code, students watch in LogicArt
 - **Debugging demos**: Share session URL in Slack, team watches live
 
 **Implementation is simple:** Your SSE design already supports this - just add multiple clients to `sseClients[]`.
@@ -93,7 +93,7 @@ Use cases:
 // External app subscribes to commands
 GET /api/remote/commands/:sessionId  // SSE stream
 
-// LogiGo sends commands
+// LogicArt sends commands
 event: pause
 data: {"checkpoint":"step-5"}
 
@@ -102,15 +102,15 @@ data: {"name":"maxRetries","value":10}
 
 // External app code
 commandStream.on('pause', (checkpoint) => {
-  await waitForResume();  // Block until LogiGo sends 'resume'
+  await waitForResume();  // Block until LogicArt sends 'resume'
 });
 ```
 
-**Recommendation: Build one-way (app→LogiGo) first. Add bidirectional in V2.**
+**Recommendation: Build one-way (app→LogicArt) first. Add bidirectional in V2.**
 
 ---
 
-### 5. NPM Package: Publish `logigo-remote`?
+### 5. NPM Package: Publish `logicart-remote`?
 
 **Yes, absolutely.**
 
@@ -122,34 +122,34 @@ Benefits:
 
 **Package design:**
 ```typescript
-// logigo-remote - Works in browser and Node.js
-import { LogiGoRemote } from 'logigo-remote';
+// logicart-remote - Works in browser and Node.js
+import { LogicArtRemote } from 'logicart-remote';
 
-const logigo = new LogiGoRemote({
-  serverUrl: 'https://logigo.replit.app',
+const logicart = new LogicArtRemote({
+  serverUrl: 'https://logicart.replit.app',
   sessionName: 'Turai Tour Generator',
   code: fs.readFileSync('./myCode.js', 'utf-8')  // Optional
 });
 
 // Automatically creates session on first checkpoint
-await logigo.checkpoint('start', { input: userInput });
-await logigo.checkpoint('processing', { step: 1 });
-await logigo.checkpoint('complete', { output: result });
+await logicart.checkpoint('start', { input: userInput });
+await logicart.checkpoint('processing', { step: 1 });
+await logicart.checkpoint('complete', { output: result });
 
 // Clean up
-await logigo.end();
+await logicart.end();
 ```
 
 **For Vibe Coders (zero-config):**
 ```javascript
 // One-liner: Auto-creates session, returns checkpoint function
-const checkpoint = await LogiGoRemote.quickConnect();
+const checkpoint = await LogicArtRemote.quickConnect();
 
 checkpoint('step-1', { x: 5 });
 checkpoint('step-2', { result: 'done' });
 ```
 
-**Recommendation: Publish `logigo-remote` package. It's the best DX for external apps.**
+**Recommendation: Publish `logicart-remote` package. It's the best DX for external apps.**
 
 ---
 
@@ -160,7 +160,7 @@ checkpoint('step-2', { result: 'done' });
 **Your choice of SSE is correct.**
 
 - SSE is simpler (HTTP-based, works through proxies)
-- Unidirectional is fine for MVP (LogiGo only receives, doesn't send)
+- Unidirectional is fine for MVP (LogicArt only receives, doesn't send)
 - WebSockets would add complexity without benefit for V1
 
 **If you add bidirectional later, consider:**
@@ -219,11 +219,11 @@ Also add:
 
 ### Connection Resilience
 
-Add these to the `logigo-remote` package:
+Add these to the `logicart-remote` package:
 
 ```typescript
-const logigo = new LogiGoRemote({
-  serverUrl: 'https://logigo.replit.app',
+const logicart = new LogicArtRemote({
+  serverUrl: 'https://logicart.replit.app',
   
   // Retry config
   retryAttempts: 3,
@@ -247,7 +247,7 @@ const logigo = new LogiGoRemote({
 | Persistence | In-memory for MVP, Redis/SQLite for V2 (replay) |
 | Multi-user | Yes, support from day one |
 | Bidirectional | No for MVP, add in V2 |
-| NPM Package | Yes, publish `logigo-remote` |
+| NPM Package | Yes, publish `logicart-remote` |
 
 ---
 
@@ -257,7 +257,7 @@ My recommended build order:
 
 1. **Backend API** (sessions + checkpoints + SSE)
 2. **Frontend Remote Tab** (trace view, not flowchart)
-3. **NPM package** (`logigo-remote`)
+3. **NPM package** (`logicart-remote`)
 4. **Integration code generator** (copy snippet button)
 5. **Flowchart matching** (when code is provided)
 6. **Bidirectional commands** (V2)
@@ -274,7 +274,7 @@ My recommended build order:
 │  │  (Turai)        │                                                │
 │  │                 │                                                │
 │  │  Uses either:   │                                                │
-│  │  • logigo-remote│─────┐                                          │
+│  │  • logicart-remote│─────┐                                          │
 │  │  • Raw fetch()  │     │                                          │
 │  └─────────────────┘     │                                          │
 │                          │                                          │
@@ -282,7 +282,7 @@ My recommended build order:
 │                          │                                          │
 │                          ▼                                          │
 │                  ┌───────────────┐                                  │
-│                  │   LogiGo      │                                  │
+│                  │   LogicArt      │                                  │
 │                  │   Server      │                                  │
 │                  │               │                                  │
 │                  │  Sessions[]   │                                  │
@@ -293,7 +293,7 @@ My recommended build order:
 │                          │                                          │
 │                          ▼                                          │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │   LogiGo Frontend (multiple viewers supported)               │  │
+│  │   LogicArt Frontend (multiple viewers supported)               │  │
 │  │                                                              │  │
 │  │   ┌─────────────────────┐  ┌─────────────────────────────┐  │  │
 │  │   │  Trace View         │  │  Flowchart View            │  │  │

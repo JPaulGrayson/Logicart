@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Complete Integration Demo</title>
+    <title>LogicArt - Complete Integration Demo</title>
     <style>
         * {
             margin: 0;
@@ -272,7 +272,7 @@
 
 <body>
     <div class="container">
-        <h1>🚀 LogiGo Complete Integration</h1>
+        <h1>🚀 LogicArt Complete Integration</h1>
         <p class="subtitle">
             All 3 Features: Overlay + Speed Governor + Ghost Diff
             <span class="feature-badge">Phase 1</span>
@@ -284,7 +284,7 @@
             <h3>🎮 How to Use This Demo</h3>
             <ol>
                 <li><strong>Run Code:</strong> Click "Execute Code" to run the current version</li>
-                <li><strong>Control Speed:</strong> Use the LogiGo overlay (bottom-right) to adjust speed, pause, or
+                <li><strong>Control Speed:</strong> Use the LogicArt overlay (bottom-right) to adjust speed, pause, or
                     step</li>
                 <li><strong>Simulate AI Change:</strong> Click "Simulate AI Refactor" to see Ghost Diff in action</li>
                 <li><strong>Compare:</strong> Watch the flowchart update with color-coded changes (Green=New,
@@ -345,27 +345,27 @@
         </div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="/demo-src/runtime.js"></script>
     <script src="/demo-src/overlay.js"></script>
     <script src="/demo-src/parser.js"></script>
     <script src="/demo-src/differ.js"></script>
 
-    <!-- Initialize LogiGo -->
+    <!-- Initialize LogicArt -->
     <script>
-        const logigo = new LogiGoOverlay({
+        const logigo = new LogicArtOverlay({
             speed: 1.0,
             debug: true,
             position: 'bottom-right'
         }).init();
 
-        console.log('✅ LogiGo Complete Integration Ready!');
+        console.log('✅ LogicArt Complete Integration Ready!');
     </script>
 
     <!-- Demo Logic -->
     <script>
-        const parser = new LogiGoParser({ debug: false });
-        const differ = new LogiGoDiffer({ debug: false });
+        const parser = new LogicArtParser({ debug: false });
+        const differ = new LogicArtDiffer({ debug: false });
 
         let currentCode = `function processItems(items) {
   let total = 0;
@@ -405,7 +405,7 @@
                 // Original version - loop with checkpoints
                 let total = 0;
                 for (let i = 0; i < items.length; i++) {
-                    await LogiGo.checkpoint(`loop_iteration_${i}`);
+                    await LogicArt.checkpoint(`loop_iteration_${i}`);
                     checkpoints++;
                     total = total + items[i].value;
 
@@ -421,7 +421,7 @@
                 output.appendChild(result);
             } else {
                 // Refactored version - single reduce
-                await LogiGo.checkpoint('reduce_operation');
+                await LogicArt.checkpoint('reduce_operation');
                 checkpoints++;
                 const total = items.reduce((sum, item) => sum + item.value, 0);
 

@@ -1,4 +1,4 @@
-# Implementation Plan: LogiGo File Sync & Watch Mode
+# Implementation Plan: LogicArt File Sync & Watch Mode
 
 We are enabling a "Bi-directional Sync" workflow where the Replit Agent can edit the flowchart data on disk, and the frontend updates automatically without a page reload.
 

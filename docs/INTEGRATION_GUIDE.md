@@ -83,7 +83,7 @@ Show me the file list before proceeding.
 STEP 4: Create a FlowchartButton component with a dropdown of the files from step 3.
 When user selects a component:
 1. Fetch the source via: fetch('/api/source/' + component.path)
-2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
+2. Call: (window.LogicArt || window.LogicArt).visualize(code, componentName)
 
 STEP 5: Add the FlowchartButton to an EXISTING header/navbar component.
 Do NOT create a floating button (gets hidden behind backgrounds).

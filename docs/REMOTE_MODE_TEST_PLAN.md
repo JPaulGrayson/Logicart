@@ -1,10 +1,10 @@
-# LogiGo Remote Mode - Integration Test Plan
+# LogicArt Remote Mode - Integration Test Plan
 
-This guide walks through testing LogiGo's Remote Mode features with an external app (e.g., VisionLoop).
+This guide walks through testing LogicArt's Remote Mode features with an external app (e.g., VisionLoop).
 
 ## Overview
 
-Remote Mode enables external apps to connect to LogiGo Studio for real-time flowchart visualization and debugging. This test plan covers:
+Remote Mode enables external apps to connect to LogicArt Studio for real-time flowchart visualization and debugging. This test plan covers:
 
 1. **Seeding** - Adding the Vite plugin for automatic checkpoint injection
 2. **Self-Healing Loop** - Automatic reconnection and session recovery
@@ -14,7 +14,7 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 
 ## Prerequisites
 
-- LogiGo Studio running at your Replit URL
+- LogicArt Studio running at your Replit URL
 - An external Vite-based app (VisionLoop) 
 - Browser with developer tools for console inspection
 
@@ -27,22 +27,22 @@ Remote Mode enables external apps to connect to LogiGo Studio for real-time flow
 Add this single line to your app's HTML:
 
 ```html
-<script src="https://YOUR-LOGIGO-URL/remote.js?project=VisionLoop"></script>
+<script src="https://YOUR-LOGICART-URL/remote.js?project=VisionLoop"></script>
 ```
 
 ### 1.2 What Happens Automatically
 
 When the page loads:
 1. **Connection established** - Session created with Studio
-2. **Badge appears** - Floating "View in LogiGo" badge in bottom-right
+2. **Badge appears** - Floating "View in LogicArt" badge in bottom-right
 3. **Tip shown in console** - How to enable auto-discovery
 
 ### 1.3 Zero-Code Proxy (Recommended for Vite/React apps)
 
-The easiest way to visualize any app - just visit it through LogiGo's proxy:
+The easiest way to visualize any app - just visit it through LogicArt's proxy:
 
 ```
-https://YOUR-LOGIGO-URL/proxy/https://your-app.replit.app
+https://YOUR-LOGICART-URL/proxy/https://your-app.replit.app
 ```
 
 This will:
@@ -56,7 +56,7 @@ This will:
 For traditional script apps, you can also use auto-discovery:
 
 ```javascript
-LogiGo.enableAutoDiscovery()
+LogicArt.enableAutoDiscovery()
 ```
 
 This scans `<script>` tags and wraps global functions.
@@ -66,20 +66,20 @@ This scans `<script>` tags and wraps global functions.
 Open your app in a browser. Check the console for:
 
 ```
-🔗 LogiGo Studio connected!
-📊 View flowchart at: https://YOUR-LOGIGO-URL/?session=SESSION_ID
-[LogiGo] Tip: Call LogiGo.enableAutoDiscovery() to auto-wrap global functions
+🔗 LogicArt Studio connected!
+📊 View flowchart at: https://YOUR-LOGICART-URL/?session=SESSION_ID
+[LogicArt] Tip: Call LogicArt.enableAutoDiscovery() to auto-wrap global functions
 ```
 
 After calling `enableAutoDiscovery()`:
 ```
-[LogiGo] Auto-discovery enabled. Source code will be sent to Studio for visualization.
-[LogiGo] Registered 3 script(s) for flowchart visualization
-[LogiGo] Auto-wrapped 5 global function(s)
+[LogicArt] Auto-discovery enabled. Source code will be sent to Studio for visualization.
+[LogicArt] Registered 3 script(s) for flowchart visualization
+[LogicArt] Auto-wrapped 5 global function(s)
 ```
 
 **Expected:**
-- ✅ Floating badge appears (bottom-right): "View in LogiGo" with green dot
+- ✅ Floating badge appears (bottom-right): "View in LogicArt" with green dot
 - ✅ Console shows connection messages
 - ✅ After enabling auto-discovery, function checkpoints fire when code executes
 
@@ -94,11 +94,11 @@ For more granular control, you can use the Vite plugin instead:
 ```typescript
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { logigoPlugin } from 'logigo-vite-plugin';
+import { logicartPlugin } from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
-    logigoPlugin({
+    logicartPlugin({
       autoInstrument: true,
       captureVariables: true
     })
@@ -131,13 +131,13 @@ Becomes (after build):
 
 ```javascript
 function processImage(image) {
-  LogiGo.checkpoint('fn_abc123', { image });
+  LogicArt.checkpoint('fn_abc123', { image });
   const filename = image.name;
-  LogiGo.checkpoint('var_def456', { image, filename });
+  LogicArt.checkpoint('var_def456', { image, filename });
   const processed = applyFilters(image);
-  LogiGo.checkpoint('var_ghi789', { image, filename, processed });
+  LogicArt.checkpoint('var_ghi789', { image, filename, processed });
   return processed;
-  LogiGo.checkpoint('ret_jkl012', { image, filename, processed });
+  LogicArt.checkpoint('ret_jkl012', { image, filename, processed });
 }
 ```
 
@@ -155,7 +155,7 @@ For click-to-highlight between Studio and your app, bind elements to checkpoint 
 ```javascript
 // The checkpoint ID comes from the manifest or console logs
 const uploadButton = document.getElementById('upload-btn');
-LogiGo.bindElement('fn_abc123', uploadButton);
+LogicArt.bindElement('fn_abc123', uploadButton);
 ```
 
 ### 2.3 Manual Checkpoints (Optional)
@@ -178,8 +178,8 @@ checkpoint('custom-step', { myVar: someValue });
 4. Trigger another checkpoint
 5. Watch console for retry messages:
    ```
-   [LogiGo] Retry 1/3 in 1000ms...
-   [LogiGo] Retry 2/3 in 2000ms...
+   [LogicArt] Retry 1/3 in 1000ms...
+   [LogicArt] Retry 2/3 in 2000ms...
    ```
 6. Re-enable network
 7. **Expected**: Checkpoint eventually succeeds, status dot turns green
@@ -191,8 +191,8 @@ checkpoint('custom-step', { myVar: someValue });
 3. Trigger a checkpoint in your app
 4. Watch console for:
    ```
-   [LogiGo] Session expired (404). Attempting renewal...
-   ✅ [LogiGo] Session renewed: abc12345 → def67890
+   [LogicArt] Session expired (404). Attempting renewal...
+   ✅ [LogicArt] Session renewed: abc12345 → def67890
    📊 New Studio URL: https://...
    ```
 5. **Expected**: New session created, checkpoints continue working
@@ -201,7 +201,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 1. Open Studio with `/?session=SESSION_ID`
 2. Verify "Connected: VisionLoop" badge in header
-3. Restart the LogiGo server (simulates disconnect)
+3. Restart the LogicArt server (simulates disconnect)
 4. Watch Studio header for:
    - Badge changes to "Reconnecting..." with pulsing icon
    - After server restarts: "Connected: VisionLoop" returns
@@ -229,7 +229,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 1. Bind an element to a checkpoint:
    ```javascript
-   LogiGo.bindElement('upload-start', document.querySelector('.upload-btn'));
+   LogicArt.bindElement('upload-start', document.querySelector('.upload-btn'));
    ```
 2. In Studio, click the corresponding flowchart node
 3. **Expected**:
@@ -250,8 +250,8 @@ checkpoint('custom-step', { myVar: someValue });
 ### Complete Integration Test
 
 1. **Seed**: Add `<script src=".../remote.js?project=VisionLoop"></script>` to your app
-2. **Register Code**: Call `LogiGo.registerCode(yourFunctionCode)`
-3. **Bind Elements**: Call `LogiGo.bindElement('id', element)` for key elements
+2. **Register Code**: Call `LogicArt.registerCode(yourFunctionCode)`
+3. **Bind Elements**: Call `LogicArt.bindElement('id', element)` for key elements
 4. **Run Your App**: Trigger checkpoints by executing your function
 5. **Open Studio**: Click the badge or navigate to `/?session=SESSION_ID`
 6. **Verify Flowchart**: See your function visualized as a flowchart
@@ -301,7 +301,7 @@ checkpoint('custom-step', { myVar: someValue });
 
 ### Visual Handshake Not Working
 - Check WebSocket connection in Network tab (filter: WS)
-- Verify element is bound with `LogiGo.bindElement()`
+- Verify element is bound with `LogicArt.bindElement()`
 - Look for "[Control Channel] WebSocket connected" in Studio console
 
 ### Studio Not Reconnecting
@@ -320,28 +320,28 @@ checkpoint('custom-step', { myVar: someValue });
 checkpoint(id, variables, options)
 
 // Alias for checkpoint
-LogiGo.checkpoint(id, variables, options)
+LogicArt.checkpoint(id, variables, options)
 
 // Register source code for flowchart visualization
-LogiGo.registerCode(codeString)
+LogicArt.registerCode(codeString)
 
 // Bind a DOM element to a checkpoint for Visual Handshake
-LogiGo.bindElement(checkpointId, domElement)
+LogicArt.bindElement(checkpointId, domElement)
 
 // Get current connection status
-LogiGo.connectionStatus() // 'connected' | 'reconnecting' | 'error'
+LogicArt.connectionStatus() // 'connected' | 'reconnecting' | 'error'
 
 // Manually open Studio
-LogiGo.openStudio()
+LogicArt.openStudio()
 
 // Force session renewal
-LogiGo.renewSession()
+LogicArt.renewSession()
 ```
 
 ### Session Properties
 
 ```javascript
-LogiGo.sessionId    // Current session UUID
-LogiGo.studioUrl    // URL to open Studio with this session
-LogiGo.viewUrl      // Alias for studioUrl
+LogicArt.sessionId    // Current session UUID
+LogicArt.studioUrl    // URL to open Studio with this session
+LogicArt.viewUrl      // Alias for studioUrl
 ```

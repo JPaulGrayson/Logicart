@@ -25,7 +25,7 @@ setSpeed(speed)           // Adjust speed (0.1 - 2.0)
 reset()                   // Clear state
 ```
 
-### 2. Integration with LogiGoOverlay
+### 2. Integration with LogicArtOverlay
 The overlay now delegates all execution control to the ExecutionController:
 
 **Updated Methods:**
@@ -149,7 +149,7 @@ The ExecutionController is lightweight and efficient:
 
 1. **Single execution context**: Only one execution flow can be controlled at a time
 2. **No breakpoints**: Unlike a real debugger, you can't set conditional breakpoints
-3. **Manual checkpoints**: Developer must add `await LogiGo.checkpoint()` calls
+3. **Manual checkpoints**: Developer must add `await LogicArt.checkpoint()` calls
 
 These limitations are acceptable for the MVP and can be addressed in future versions.
 

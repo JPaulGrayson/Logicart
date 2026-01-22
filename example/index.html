@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LogiGo - Example Demo</title>
+  <title>LogicArt - Example Demo</title>
   <style>
     * {
       margin: 0;
@@ -123,9 +123,9 @@
 
 <body>
   <div class="container">
-    <h1>🚀 LogiGo Demo</h1>
+    <h1>🚀 LogicArt Demo</h1>
     <p>
-      Welcome to LogiGo! This demo shows how the overlay injects into any web page
+      Welcome to LogicArt! This demo shows how the overlay injects into any web page
       and visualizes code execution in real-time.
     </p>
 
@@ -141,13 +141,13 @@
       <button id="btn_factorial" onclick="runFactorial()">
         Calculate Factorial
       </button>
-      <div id="result">Click a button to see LogiGo in action!</div>
+      <div id="result">Click a button to see LogicArt in action!</div>
     </div>
 
     <div class="demo-section">
       <h2>How It Works</h2>
       <p style="margin: 0; font-size: 14px; color: #666;">
-        1. The LogiGo overlay appears in the bottom-right corner<br>
+        1. The LogicArt overlay appears in the bottom-right corner<br>
         2. Click "Play" to start execution<br>
         3. Watch as each code block highlights in real-time<br>
         4. Use the speed slider to slow down or speed up<br>
@@ -156,32 +156,32 @@
     </div>
 
     <div class="code-block">
-      <pre>// Example: Using LogiGo checkpoints
+      <pre>// Example: Using LogicArt checkpoints
 async function myFunction() {
-  await LogiGo.checkpoint('step1');
+  await LogicArt.checkpoint('step1');
   console.log('Step 1 executed');
   
-  await LogiGo.checkpoint('step2');
+  await LogicArt.checkpoint('step2');
   console.log('Step 2 executed');
 }</pre>
     </div>
   </div>
 
-  <!-- Load LogiGo Library -->
+  <!-- Load LogicArt Library -->
   <script src="../src/runtime.js"></script>
   <script src="../src/overlay.js"></script>
   <script src="../src/parser.js"></script>
 
-  <!-- Initialize LogiGo -->
+  <!-- Initialize LogicArt -->
   <script>
     // Initialize the overlay
-    const logigo = new LogiGoOverlay({
+    const logigo = new LogicArtOverlay({
       speed: 1.0,
       debug: true,
       position: 'bottom-right'
     }).init();
 
-    console.log('✅ LogiGo initialized!');
+    console.log('✅ LogicArt initialized!');
   </script>
 
   <!-- Demo Functions -->
@@ -190,28 +190,28 @@ async function myFunction() {
       const result = document.getElementById('result');
       result.textContent = 'Running...';
 
-      await LogiGo.checkpoint('btn_hello');
+      await LogicArt.checkpoint('btn_hello');
       result.textContent = 'Step 1: Starting Hello World...';
 
-      await LogiGo.checkpoint('hello_step2');
+      await LogicArt.checkpoint('hello_step2');
       result.textContent = 'Step 2: Processing...';
 
-      await LogiGo.checkpoint('hello_step3');
-      result.textContent = '✅ Hello, LogiGo! Demo complete.';
+      await LogicArt.checkpoint('hello_step3');
+      result.textContent = '✅ Hello, LogicArt! Demo complete.';
     }
 
     async function runLoopExample() {
       const result = document.getElementById('result');
       result.textContent = 'Running loop...';
 
-      await LogiGo.checkpoint('btn_loop');
+      await LogicArt.checkpoint('btn_loop');
 
       for (let i = 1; i <= 5; i++) {
-        await LogiGo.checkpoint(`loop_iteration_${i}`);
+        await LogicArt.checkpoint(`loop_iteration_${i}`);
         result.textContent = `Loop iteration ${i} of 5`;
       }
 
-      await LogiGo.checkpoint('loop_complete');
+      await LogicArt.checkpoint('loop_complete');
       result.textContent = '✅ Loop complete!';
     }
 
@@ -219,22 +219,22 @@ async function myFunction() {
       const result = document.getElementById('result');
       const n = 5;
 
-      await LogiGo.checkpoint('btn_factorial');
+      await LogicArt.checkpoint('btn_factorial');
       result.textContent = `Calculating factorial of ${n}...`;
 
       let factorial = 1;
       for (let i = 1; i <= n; i++) {
-        await LogiGo.checkpoint(`factorial_step_${i}`);
+        await LogicArt.checkpoint(`factorial_step_${i}`);
         factorial *= i;
         result.textContent = `Step ${i}: ${factorial}`;
       }
 
-      await LogiGo.checkpoint('factorial_complete');
+      await LogicArt.checkpoint('factorial_complete');
       result.textContent = `✅ Factorial of ${n} = ${factorial}`;
     }
 
     // Parse and display the code structure
-    const parser = new LogiGoParser({ debug: true });
+    const parser = new LogicArtParser({ debug: true });
     const sampleCode = `
 function calculateFactorial(n) {
   if (n === 0) {

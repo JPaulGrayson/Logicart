@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiGo - Speed Governor Test</title>
+    <title>LogicArt - Speed Governor Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -84,7 +84,7 @@
         <div class="instructions">
             <strong>Test Instructions:</strong><br>
             1. Click "Run Test Loop"<br>
-            2. Watch the LogiGo overlay in the bottom-right<br>
+            2. Watch the LogicArt overlay in the bottom-right<br>
             3. Try adjusting the speed slider (0.1x = slow, 2.0x = fast)<br>
             4. Click "Pause" to freeze execution<br>
             5. Click "Step" to advance one iteration at a time<br>
@@ -98,19 +98,19 @@
         <div id="output"></div>
     </div>
 
-    <!-- Load LogiGo -->
+    <!-- Load LogicArt -->
     <script src="../src/runtime.js"></script>
     <script src="../src/overlay.js"></script>
 
     <!-- Initialize -->
     <script>
-        const logigo = new LogiGoOverlay({
+        const logigo = new LogicArtOverlay({
             speed: 1.0,
             debug: true,
             position: 'bottom-right'
         }).init();
 
-        console.log('✅ LogiGo Speed Governor Test Ready');
+        console.log('✅ LogicArt Speed Governor Test Ready');
     </script>
 
     <!-- Test Functions -->
@@ -121,7 +121,7 @@
             output.innerHTML = '<div><strong>Starting test loop...</strong></div>';
 
             for (let i = 1; i <= 10; i++) {
-                await LogiGo.checkpoint(`loop_iteration_${i}`);
+                await LogicArt.checkpoint(`loop_iteration_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';
@@ -142,7 +142,7 @@
             output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE in the overlay after iteration 3</div>';
 
             for (let i = 1; i <= 10; i++) {
-                await LogiGo.checkpoint(`pause_test_${i}`);
+                await LogicArt.checkpoint(`pause_test_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';
@@ -161,10 +161,10 @@
             output.innerHTML += '<div style="margin: 12px 0; color: #666;">Click PAUSE, then use STEP to advance one at a time</div>';
 
             // Auto-pause for step testing
-            setTimeout(() => LogiGo.pause(), 100);
+            setTimeout(() => LogicArt.pause(), 100);
 
             for (let i = 1; i <= 5; i++) {
-                await LogiGo.checkpoint(`step_test_${i}`);
+                await LogicArt.checkpoint(`step_test_${i}`);
 
                 const div = document.createElement('div');
                 div.className = 'iteration';

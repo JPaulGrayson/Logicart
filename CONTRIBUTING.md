@@ -1,6 +1,6 @@
-# Contributing to LogiGo
+# Contributing to LogicArt
 
-Thank you for your interest in contributing to LogiGo! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to LogicArt! This document provides guidelines and instructions for contributing.
 
 ## 🚀 Getting Started
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing to LogiGo! This document provides gu
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/LogiGo.git
-   cd LogiGo
+   git clone https://github.com/YOUR_USERNAME/LogicArt.git
+   cd LogicArt
    ```
 3. Install dependencies:
    ```bash
@@ -29,7 +29,7 @@ Thank you for your interest in contributing to LogiGo! This document provides gu
 ## 📁 Project Structure
 
 ```
-LogiGo/
+LogicArt/
 ├── client/          # React frontend
 │   ├── src/
 │   │   ├── components/  # React components
@@ -41,10 +41,10 @@ LogiGo/
 │   ├── services/    # Business logic
 │   └── middleware/  # Express middleware
 ├── packages/        # Publishable npm packages
-│   ├── logigo-core/        # Core checkpoint library
-│   ├── logigo-embed/       # React embed component
-│   ├── logigo-remote/      # Remote mode
-│   └── logigo-vite-plugin/ # Vite plugin
+│   ├── logicart-core/        # Core checkpoint library
+│   ├── logicart-embed/       # React embed component
+│   ├── logicart-remote/      # Remote mode
+│   └── logicart-vite-plugin/ # Vite plugin
 ├── docs/            # Documentation
 └── test/            # Tests
 ```
@@ -52,7 +52,7 @@ LogiGo/
 ## 🎯 How to Contribute
 
 ### Reporting Bugs
-1. Check if the bug has already been reported in [Issues](https://github.com/JPaulGrayson/LogiGo/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/JPaulGrayson/LogicArt/issues)
 2. If not, create a new issue using the bug report template
 3. Include:
    - Clear description
@@ -62,13 +62,13 @@ LogiGo/
    - Environment details (OS, browser, Node version)
 
 ### Suggesting Features
-1. Check if the feature has been suggested in [Issues](https://github.com/JPaulGrayson/LogiGo/issues)
+1. Check if the feature has been suggested in [Issues](https://github.com/JPaulGrayson/LogicArt/issues)
 2. Create a new issue using the feature request template
 3. Describe:
    - The problem you're trying to solve
    - Your proposed solution
    - Alternative solutions considered
-   - Why this would benefit LogiGo users
+   - Why this would benefit LogicArt users
 
 ### Submitting Code
 
@@ -245,8 +245,8 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ## 🙏 Thank You!
 
-Your contributions make LogiGo better for everyone. We appreciate your time and effort!
+Your contributions make LogicArt better for everyone. We appreciate your time and effort!
 
 ---
 
-**Questions?** Feel free to ask in [GitHub Discussions](https://github.com/JPaulGrayson/LogiGo/discussions)
+**Questions?** Feel free to ask in [GitHub Discussions](https://github.com/JPaulGrayson/LogicArt/discussions)

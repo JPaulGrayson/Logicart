@@ -1,14 +1,14 @@
-# LogiGo Integration for VisionLoop
+# LogicArt Integration for VisionLoop
 
-This folder contains ready-to-use code for adding LogiGo visualization to VisionLoop.
+This folder contains ready-to-use code for adding LogicArt visualization to VisionLoop.
 
 ## Quick Start
 
-### Step 1: Install logigo-core in VisionLoop
+### Step 1: Install logicart-core in VisionLoop
 
 Open VisionLoop in Replit and run:
 ```bash
-npm install logigo-core
+npm install logicart-core
 ```
 
 ### Step 2: Replace routes.ts
@@ -20,14 +20,14 @@ Copy the contents of `routes-instrumented.ts` and replace your VisionLoop `serve
 Start VisionLoop and run an experiment. You'll see checkpoint logs in the console showing the flow:
 
 ```
-[LogiGo] Checkpoint: iteration:start { experimentId, currentIteration, maxIterations }
-[LogiGo] Checkpoint: vision:analyze_start { model: 'gemini', imageUrl: '...' }
-[LogiGo] Checkpoint: vision:gemini { model: 'gemini', imagePath: '...' }
-[LogiGo] Checkpoint: vision:complete { descriptionLength, promptLength }
-[LogiGo] Checkpoint: generate:start { model: 'dalle', promptPreview: '...' }
-[LogiGo] Checkpoint: generate:dalle { model: 'dalle' }
-[LogiGo] Checkpoint: generate:complete { generatedImageUrl, processingTimeMs }
-[LogiGo] Checkpoint: iteration:complete { iterationNumber, newImageUrl, nextAction }
+[LogicArt] Checkpoint: iteration:start { experimentId, currentIteration, maxIterations }
+[LogicArt] Checkpoint: vision:analyze_start { model: 'gemini', imageUrl: '...' }
+[LogicArt] Checkpoint: vision:gemini { model: 'gemini', imagePath: '...' }
+[LogicArt] Checkpoint: vision:complete { descriptionLength, promptLength }
+[LogicArt] Checkpoint: generate:start { model: 'dalle', promptPreview: '...' }
+[LogicArt] Checkpoint: generate:dalle { model: 'dalle' }
+[LogicArt] Checkpoint: generate:complete { generatedImageUrl, processingTimeMs }
+[LogicArt] Checkpoint: iteration:complete { iterationNumber, newImageUrl, nextAction }
 ```
 
 ## Checkpoints Added
@@ -75,12 +75,12 @@ The instrumented code adds these checkpoints to visualize the VisionLoop flow:
 To add the visual overlay UI to VisionLoop's frontend, add this to your main React component:
 
 ```javascript
-import LogiGoOverlay from 'logigo-core';
+import LogicArtOverlay from 'logicart-core';
 import { useEffect } from 'react';
 
 function App() {
   useEffect(() => {
-    const overlay = new LogiGoOverlay({ 
+    const overlay = new LogicArtOverlay({ 
       speed: 1.0,
       debug: true,
       position: 'bottom-right'
@@ -109,7 +109,7 @@ When you run an experiment in VisionLoop with these checkpoints:
 You can add more checkpoints anywhere in the code:
 
 ```javascript
-await LogiGo.checkpoint('my:custom:checkpoint', {
+await LogicArt.checkpoint('my:custom:checkpoint', {
   variables: {
     anyData: 'you want to track',
     numbers: 42,
@@ -118,10 +118,10 @@ await LogiGo.checkpoint('my:custom:checkpoint', {
 });
 ```
 
-## Visualization in LogiGo Studio
+## Visualization in LogicArt Studio
 
 To see the flowchart visualization:
 1. Copy the instrumented routes.ts code
-2. Paste it into LogiGo Studio
+2. Paste it into LogicArt Studio
 3. The flowchart will show all the labeled nodes
 4. Step through to see execution flow

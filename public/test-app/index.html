@@ -79,7 +79,7 @@
     <input type="number" id="guess-input" placeholder="Enter your guess" min="1" max="100" data-testid="input-guess">
     <button id="guess-btn" onclick="handleGuess()" data-testid="button-guess">Guess!</button>
     <div id="feedback" class="feedback" style="display: none;" data-testid="text-feedback"></div>
-    <button class="logigo-btn" onclick="window.LogiGo.openStudio()" data-testid="button-open-logigo">Open LogiGo Studio</button>
+    <button class="logigo-btn" onclick="window.LogicArt.openStudio()" data-testid="button-open-logigo">Open LogicArt Studio</button>
   </div>
 
   <script src="game.js"></script>
@@ -87,9 +87,9 @@
     fetch('/test-app/game.js')
       .then(r => r.text())
       .then(code => {
-        if (window.LogiGo && window.LogiGo.registerCode) {
-          window.LogiGo.registerCode(code);
-          console.log('[Test App] Code registered with LogiGo');
+        if (window.LogicArt && window.LogicArt.registerCode) {
+          window.LogicArt.registerCode(code);
+          console.log('[Test App] Code registered with LogicArt');
         }
       });
   </script>

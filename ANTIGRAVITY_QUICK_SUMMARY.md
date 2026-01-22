@@ -9,7 +9,7 @@
 
 Both Visual Handshake (Phase 1) and Reporter API (Phase 2) are **working perfectly** and ready for production.
 
-**🎯 Green light to publish `logigo-core@v1.0.0-beta` to NPM**
+**🎯 Green light to publish `logicart-core@v1.0.0-beta` to NPM**
 
 ---
 

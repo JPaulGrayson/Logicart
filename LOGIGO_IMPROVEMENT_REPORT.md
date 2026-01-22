@@ -1,4 +1,4 @@
-# LogiGo Feature Improvement Report
+# LogicArt Feature Improvement Report
 
 **Date:** December 26, 2025  
 **Purpose:** Comprehensive audit of current features and recommended improvements
@@ -46,7 +46,7 @@
 **Status:** ✅ FULLY IMPLEMENTED
 
 **Implementation Evidence:**
-- **Comment Parsing:** `detectUserLabels()` in docs/bridge/src/parser.ts (lines 15-40) extracts `// @logigo:` comments
+- **Comment Parsing:** `detectUserLabels()` in docs/bridge/src/parser.ts (lines 15-40) extracts `// @logicart:` comments
 - **Label Application:** Line 396 applies parsed labels to nodes: `userLabel = userLabels.get(stmt.loc.start.line)`
 - **Blue dot indicator:** LabeledNode.tsx displays nodes with user labels with blue dot in top-right corner
 - **Tooltip on hover:** Shows original code when hovering over labeled nodes
@@ -80,7 +80,7 @@
 
 ## 5. Multi-App Interaction Mapping
 
-**Question:** Could LogiGo create a flowchart showing how multiple apps (like Voyai, Turai, VibePost) interact?
+**Question:** Could LogicArt create a flowchart showing how multiple apps (like Voyai, Turai, VibePost) interact?
 
 **Status:** ❌ NOT IMPLEMENTED
 
@@ -95,7 +95,7 @@
 
 ## 6. IDE Integrations
 
-**Question:** Could Replit or VS Code integrate with LogiGo?
+**Question:** Could Replit or VS Code integrate with LogicArt?
 
 **Status:**
 - **VS Code Extension:** ✅ FULLY IMPLEMENTED (visualize, auto-refresh, bidirectional editing, jump-to-line, LM context provider, packaged .vsix)
@@ -109,7 +109,7 @@
 
 ## 7. Replit Agent Integration
 
-**Question:** Can the Replit Agent use LogiGo for testing or debugging?
+**Question:** Can the Replit Agent use LogicArt for testing or debugging?
 
 **Status:** ❌ NOT IMPLEMENTED
 
@@ -117,7 +117,7 @@
 
 **Recommended Improvements:**
 - API/CLI interface for agent to call programmatically
-- Agent uses LogiGo to understand code before modifying
+- Agent uses LogicArt to understand code before modifying
 - Visual test planning and debug visualization
 
 ---
@@ -220,30 +220,30 @@
 
 ---
 
-## 14. Agent-LogiGo Annotation Integration
+## 14. Agent-LogicArt Annotation Integration
 
-**Question:** Could the Replit Agent write code with `// @logigo:` annotations for immediate flowchart visualization?
+**Question:** Could the Replit Agent write code with `// @logicart:` annotations for immediate flowchart visualization?
 
 **Status:** ✅ FULLY IMPLEMENTED
 
 **Current State:**
-- **Parser captures `// @logigo:` comments:** Annotations are extracted and stored as `userLabel` on nodes
+- **Parser captures `// @logicart:` comments:** Annotations are extracted and stored as `userLabel` on nodes
 - **Extensive usage in examples:** `algorithmExamples.ts` (lines 529-752) demonstrates full annotation patterns
 - **Static flowchart generation:** Annotations create labeled nodes before runtime
 - **Blue dot indicator:** Annotated nodes show visual marker
 
 **Example (already working):**
 ```javascript
-// @logigo: Initialize todo storage
+// @logicart: Initialize todo storage
 let todos = [];
 
-// @logigo: Add new todo function
+// @logicart: Add new todo function
 function addTodo(text) {
-  // @logigo: Create todo object
+  // @logicart: Create todo object
   const todo = { id: Date.now(), text, completed: false };
-  // @logigo: Add to list
+  // @logicart: Add to list
   todos.push(todo);
-  // @logigo: Return new todo
+  // @logicart: Return new todo
   return todo;
 }
 ```
@@ -268,7 +268,7 @@ function addTodo(text) {
 | 🟢 Low | Enhanced Sharing | Medium | Low |
 | 🟢 Low | Complete Replit Adapter | Low | Medium |
 
-**Note:** User Labels, @logigo: Annotations, Collapsible Containers, and View Levels are already fully implemented.
+**Note:** User Labels, @logicart: Annotations, Collapsible Containers, and View Levels are already fully implemented.
 
 ---
 
@@ -278,7 +278,7 @@ function addTodo(text) {
 |---------|--------|
 | View Level Indicator | ✅ Mile-High/1000ft/100ft based on zoom |
 | Collapsible Containers | ✅ Full expand/collapse with state management |
-| User Labels (@logigo:) | ✅ Parser extracts, blue dot indicator, tooltips |
+| User Labels (@logicart:) | ✅ Parser extracts, blue dot indicator, tooltips |
 | VS Code Extension | ✅ Complete with .vsix |
 | DOM Visual Handshake | ✅ Full bidirectional |
 | Code Templates (12+) | ✅ Pre-instrumented |

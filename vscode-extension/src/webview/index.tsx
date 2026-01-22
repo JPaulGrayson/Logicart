@@ -1035,7 +1035,7 @@ function FlowchartViewer() {
   return (
     <div className="flowchart-container">
       <div className="header">
-        <h2>LogiGo for VS Code</h2>
+        <h2>LogicArt for VS Code</h2>
         <SearchBar
           nodes={flowData.nodes || []}
           onResultSelect={(nodeId) => {

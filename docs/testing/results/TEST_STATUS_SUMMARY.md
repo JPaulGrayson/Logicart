@@ -184,7 +184,7 @@ If Replit can't complete them:
 
 ## 🎯 Success Criteria Reminder
 
-For LogiGo to be **AI Assistant Ready**, we need:
+For LogicArt to be **AI Assistant Ready**, we need:
 
 ### CRITICAL (Must Pass):
 - [ ] File watch updates UI automatically ❓

@@ -1,4 +1,4 @@
-# LogiGo V1 Testing Instructions for Replit Agent
+# LogicArt V1 Testing Instructions for Replit Agent
 
 **Date:** December 30, 2025  
 **Application URL:** https://cartographer-flow-jpaulgrayson.replit.app/  
@@ -9,9 +9,9 @@
 
 ## 🎯 Mission Overview
 
-You are testing the **LogiGo V1** visual code debugger application to verify all features work correctly before production launch. This is a **critical pre-launch verification**.
+You are testing the **LogicArt V1** visual code debugger application to verify all features work correctly before production launch. This is a **critical pre-launch verification**.
 
-### What LogiGo Does:
+### What LogicArt Does:
 - Converts JavaScript code into interactive flowcharts
 - Allows step-by-step execution visualization
 - Tracks variables in real-time
@@ -37,12 +37,12 @@ These tests are **DONE** - you don't need to repeat them:
 ## 🧪 Your Test Suite
 
 ### **TEST R1.4: User Labels** ⭐ CRITICAL
-**Goal:** Verify that `@logigo:` annotations appear on flowchart nodes.
+**Goal:** Verify that `@logicart:` annotations appear on flowchart nodes.
 
 **Steps:**
 1. Navigate to https://cartographer-flow-jpaulgrayson.replit.app/
 2. In the code editor, find or create a simple function
-3. Add a comment with a label: `// @logigo: This calculates the sum`
+3. Add a comment with a label: `// @logicart: This calculates the sum`
 4. Observe the flowchart on the right side
 5. **Expected Result:** The label "This calculates the sum" should appear on the corresponding flowchart node
 6. Try adding 2-3 more labels in different locations
@@ -405,7 +405,7 @@ These tests are **DONE** - you don't need to repeat them:
 After completing all tests, create a summary report with this format:
 
 ```markdown
-# LogiGo V1 Test Results - Replit Agent
+# LogicArt V1 Test Results - Replit Agent
 
 **Date:** [Current Date]
 **Tester:** Replit Agent
@@ -465,7 +465,7 @@ After completing all tests, create a summary report with this format:
 - Capture the full browser window (not just a portion)
 - Ensure text is readable in screenshots
 - Highlight important elements if possible (red arrows/boxes)
-- Save all screenshots in a folder called `logigo_v1_test_screenshots`
+- Save all screenshots in a folder called `logicart_v1_test_screenshots`
 
 ---
 
@@ -481,7 +481,7 @@ After completing all tests, create a summary report with this format:
 
 ## 🎯 Success Criteria
 
-For LogiGo V1 to be **LAUNCH READY**, these tests must pass:
+For LogicArt V1 to be **LAUNCH READY**, these tests must pass:
 
 **CRITICAL (Must Pass):**
 - R1.4: User Labels
@@ -520,4 +520,4 @@ If you encounter issues accessing the application or any test is unclear:
 4. Take screenshots as you go
 5. Compile your final report
 
-**Good luck! The LogiGo V1 launch depends on your thorough testing! 🎉**
+**Good luck! The LogicArt V1 launch depends on your thorough testing! 🎉**

@@ -1,14 +1,14 @@
-# LogiGo Feature Test Results Summary
+# LogicArt Feature Test Results Summary
 
 **Date:** January 5, 2026  
 **Tested By:** Automated Test Suite via Playwright  
-**Application:** LogiGo - Code-to-Flowchart Visualization Tool
+**Application:** LogicArt - Code-to-Flowchart Visualization Tool
 
 ---
 
 ## Overview
 
-Four comprehensive test suites were executed to verify the stability and functionality of LogiGo's core features. All tests passed successfully.
+Four comprehensive test suites were executed to verify the stability and functionality of LogicArt's core features. All tests passed successfully.
 
 | Test Suite | Status | Features Covered |
 |------------|--------|------------------|
@@ -133,7 +133,7 @@ The file sync "watch mode" is designed for **real-time collaboration**:
 |---------|--------|---------|
 | GitHub Connection | ✅ Pass | Connected user displayed with avatar |
 | Repository List | ✅ Pass | User's repositories loaded in dropdown |
-| Sync to GitHub | ✅ Pass | File created in repo's `logigo/` folder |
+| Sync to GitHub | ✅ Pass | File created in repo's `logicart/` folder |
 | View on GitHub | ✅ Pass | Link opens synced file on GitHub |
 
 ### Test Steps Executed
@@ -145,7 +145,7 @@ The file sync "watch mode" is designed for **real-time collaboration**:
 6. Verified success message and "View on GitHub" link
 
 ### Sync File Format
-- Path: `logigo/{filename}_{date}.json`
+- Path: `logicart/{filename}_{date}.json`
 - Contains: code, flowchart data, and metadata
 
 ---
@@ -162,7 +162,7 @@ These issues were noted but did not block functionality:
 
 ## Conclusion
 
-All core features of LogiGo passed comprehensive testing:
+All core features of LogicArt passed comprehensive testing:
 
 - **UI/UX:** Stable across layout changes, zoom levels, and view toggles
 - **AI Integration:** Managed proxy correctly gates access; BYOK works for free users

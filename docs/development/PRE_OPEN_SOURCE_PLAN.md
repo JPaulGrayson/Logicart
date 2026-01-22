@@ -48,7 +48,7 @@ mv *_INSTRUCTIONS.md docs/testing/instructions/
 mv *_PLAN.md docs/testing/plans/
 mv INSTALLATION_GUIDE.md GETTING_STARTED.md docs/user-guides/
 mv COMMON_PITFALLS.md VIBE_CODER_GUIDE.md docs/development/
-mv ARCHITECTURE_*.md LOGIGO_AUDIT.md docs/development/
+mv ARCHITECTURE_*.md LOGICART_AUDIT.md docs/development/
 
 # Archive old reports
 mv ANTIGRAVITY_*.md REPLIT_*.md V1_*.md docs/archive/
@@ -81,7 +81,7 @@ rm "function fibonacci(n, memo = {}) {.js"
 
 **CONTRIBUTING.md:**
 ```markdown
-# Contributing to LogiGo
+# Contributing to LogicArt
 
 ## Getting Started
 1. Fork the repository
@@ -113,7 +113,7 @@ rm "function fibonacci(n, memo = {}) {.js"
 # Code of Conduct
 
 ## Our Pledge
-We pledge to make participation in LogiGo a harassment-free experience for everyone.
+We pledge to make participation in LogicArt a harassment-free experience for everyone.
 
 ## Standards
 - Be respectful
@@ -240,7 +240,7 @@ mkdir -p test/{unit,integration,e2e}
 # Move existing tests
 mv test-parser.js test/unit/parser.test.ts
 mv test-grounding.js test/unit/grounding.test.ts
-mv test_logigo.js test/unit/logigo.test.ts
+mv test_logicart.js test/unit/logicart.test.ts
 mv test-example.js test/examples/
 ```
 
@@ -248,7 +248,7 @@ mv test-example.js test/examples/
 
 **test/README.md:**
 ```markdown
-# LogiGo Testing Guide
+# LogicArt Testing Guide
 
 ## Running Tests
 ```bash

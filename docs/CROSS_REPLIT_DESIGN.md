@@ -1,26 +1,26 @@
-# LogiGo Cross-Replit Communication Design
+# LogicArt Cross-Replit Communication Design
 
 ## The Problem
 
-LogiGo currently uses `window.postMessage` for real-time communication between instrumented code and the flowchart visualization. This only works when both are running in the **same browser tab/window**.
+LogicArt currently uses `window.postMessage` for real-time communication between instrumented code and the flowchart visualization. This only works when both are running in the **same browser tab/window**.
 
 **Real-world scenario:** A user has two Replit apps:
 - **App A** (e.g., "Turai" - a tour creator)
-- **LogiGo** (running in a separate tab)
+- **LogicArt** (running in a separate tab)
 
-When App A executes instrumented code with `LogiGo.checkpoint()` calls, those messages can't reach LogiGo in a different tab. The browser's same-origin policy prevents cross-tab `postMessage` without explicit window references.
+When App A executes instrumented code with `LogicArt.checkpoint()` calls, those messages can't reach LogicArt in a different tab. The browser's same-origin policy prevents cross-tab `postMessage` without explicit window references.
 
 ---
 
 ## The Solution: Remote Mode
 
-Add an API-based communication layer that allows any external Replit app to send checkpoint data to LogiGo over HTTP, with real-time updates via Server-Sent Events (SSE).
+Add an API-based communication layer that allows any external Replit app to send checkpoint data to LogicArt over HTTP, with real-time updates via Server-Sent Events (SSE).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
 │  ┌─────────────────┐          HTTP POST          ┌────────────────┐
-│  │   External App  │ ──────────────────────────► │   LogiGo       │
+│  │   External App  │ ──────────────────────────► │   LogicArt       │
 │  │   (Turai)       │    /api/remote/checkpoint   │   Server       │
 │  │                 │                              │                │
 │  │  checkpoint()   │                              │  Stores in     │
@@ -30,7 +30,7 @@ Add an API-based communication layer that allows any external Replit app to send
 │                                                           │ SSE Stream
 │                                                           ▼
 │                                                   ┌────────────────┐
-│                                                   │   LogiGo       │
+│                                                   │   LogicArt       │
 │                                                   │   Frontend     │
 │                                                   │                │
 │                                                   │  Highlights    │
@@ -61,11 +61,11 @@ Content-Type: application/json
 Response:
 {
   "sessionId": "abc123",
-  "connectUrl": "https://logigo.replit.app/remote/abc123"
+  "connectUrl": "https://logicart.replit.app/remote/abc123"
 }
 ```
 
-The `connectUrl` is what users open in LogiGo to see the visualization.
+The `connectUrl` is what users open in LogicArt to see the visualization.
 
 ### 2. Send Checkpoint
 
@@ -105,9 +105,9 @@ Content-Type: application/json
 }
 ```
 
-### 4. SSE Stream (LogiGo Frontend)
+### 4. SSE Stream (LogicArt Frontend)
 
-LogiGo's frontend subscribes to real-time updates:
+LogicArt's frontend subscribes to real-time updates:
 
 ```
 GET /api/remote/stream/:sessionId
@@ -125,15 +125,15 @@ data: {}
 
 ---
 
-## LogiGo UI Changes
+## LogicArt UI Changes
 
 ### Remote Mode Panel
 
-Add a new "Remote" tab/mode in LogiGo:
+Add a new "Remote" tab/mode in LogicArt:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  LogiGo                                    [Local] [Remote]     │
+│  LogicArt                                    [Local] [Remote]     │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Remote Session: abc123                    Status: ● Connected  │
@@ -162,13 +162,13 @@ Add a new "Remote" tab/mode in LogiGo:
 One-click copy of integration code for external apps:
 
 ```javascript
-// Add this to your Replit app to send checkpoints to LogiGo
+// Add this to your Replit app to send checkpoints to LogicArt
 
-const LOGIGO_URL = 'https://logigo.replit.app';
+const LOGICART_URL = 'https://logicart.replit.app';
 const SESSION_ID = 'abc123';
 
 async function checkpoint(id, variables = {}) {
-  await fetch(`${LOGIGO_URL}/api/remote/checkpoint`, {
+  await fetch(`${LOGICART_URL}/api/remote/checkpoint`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -225,7 +225,7 @@ checkpoint('process-tour', { ... });
 checkpoint('save-result', { ... });
 ```
 
-LogiGo shows these as a linear execution trace, highlighting each step as it arrives. This works even without source code.
+LogicArt shows these as a linear execution trace, highlighting each step as it arrives. This works even without source code.
 
 ### Option B: Line-Based Matching
 
@@ -235,7 +235,7 @@ If the external app sends `line` numbers and provides source code:
 checkpoint('step', { line: 42, variables: { ... } });
 ```
 
-LogiGo matches line 42 to the corresponding flowchart node using the same line-based node IDs from the parser.
+LogicArt matches line 42 to the corresponding flowchart node using the same line-based node IDs from the parser.
 
 ### Option C: Hybrid Approach
 
@@ -300,17 +300,17 @@ LogiGo matches line 42 to the corresponding flowchart node using the same line-b
 
 2. **Persistence:** Should sessions survive server restarts? (Currently in-memory only)
 
-3. **Multi-user:** Should multiple LogiGo users be able to view the same remote session?
+3. **Multi-user:** Should multiple LogicArt users be able to view the same remote session?
 
-4. **Bidirectional:** Should LogiGo be able to send commands back to the external app (e.g., pause, step)?
+4. **Bidirectional:** Should LogicArt be able to send commands back to the external app (e.g., pause, step)?
 
-5. **NPM Package:** Should we publish a `logigo-remote` package that external apps can install for easier integration?
+5. **NPM Package:** Should we publish a `logicart-remote` package that external apps can install for easier integration?
 
 ---
 
 ## Comparison with Embed Approach
 
-| Feature | Embed (logigo-embed) | Remote Mode |
+| Feature | Embed (logicart-embed) | Remote Mode |
 |---------|---------------------|-------------|
 | Setup complexity | Add React component | Copy snippet |
 | Latency | Instant (same window) | ~50-100ms (HTTP) |
@@ -319,4 +319,4 @@ LogiGo matches line 42 to the corresponding flowchart node using the same line-b
 | Flowchart in user's app | Yes | No (separate tab) |
 | Best for | Single-app visualization | Multi-app workflows |
 
-Both approaches complement each other. Embed is best when you want the visualization inside your app. Remote Mode is best when you have multiple apps that need to communicate with a central LogiGo instance.
+Both approaches complement each other. Embed is best when you want the visualization inside your app. Remote Mode is best when you have multiple apps that need to communicate with a central LogicArt instance.

@@ -1,4 +1,4 @@
-# LogiGo Embeddable Studio - Design Document
+# LogicArt Embeddable Studio - Design Document
 
 **Date:** December 21, 2025  
 **Purpose:** Bring full flowchart visualization into user apps
@@ -9,40 +9,40 @@ ue
 
 | Component | Status | Location |
 |-----------|--------|----------|
-| LogiGoEmbed (Static Mode) | ✅ Complete | `packages/logigo-embed/` |
-| LogiGoEmbed (Live Mode) | ✅ Complete | `packages/logigo-embed/` |
-| Vite Plugin | ✅ Complete | `packages/logigo-vite-plugin/` |
-| Manifest Schema | ✅ Complete | `packages/logigo-vite-plugin/src/types.ts` |
-| logigo-core Runtime | ✅ Complete | `packages/logigo-core/` |
+| LogicArtEmbed (Static Mode) | ✅ Complete | `packages/logicart-embed/` |
+| LogicArtEmbed (Live Mode) | ✅ Complete | `packages/logicart-embed/` |
+| Vite Plugin | ✅ Complete | `packages/logicart-vite-plugin/` |
+| Manifest Schema | ✅ Complete | `packages/logicart-vite-plugin/src/types.ts` |
+| logicart-core Runtime | ✅ Complete | `packages/logicart-core/` |
 
 ---
 
 ## Overview
 
-The Embeddable Studio is a self-contained React component that provides the full LogiGo visualization experience as a floating panel within any React application.
+The Embeddable Studio is a self-contained React component that provides the full LogicArt visualization experience as a floating panel within any React application.
 
 ## API Design
 
 ### Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 # or
-npx logigo-install
+npx logicart-install
 ```
 
 ### Basic Usage (React) - Production
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 
 function App() {
   return (
     <div>
       <YourApp />
       {/* Production: Use build-generated manifest */}
-      <LogiGoEmbed 
-        manifestUrl="/logigo-manifest.json"
+      <LogicArtEmbed 
+        manifestUrl="/logicart-manifest.json"
         position="bottom-right"
       />
     </div>
@@ -53,11 +53,11 @@ function App() {
 ### Auto-Initialize (Script Tag) - Production
 
 ```html
-<script src="https://unpkg.com/logigo-embed"></script>
+<script src="https://unpkg.com/logicart-embed"></script>
 <script>
   // Production: Point to build-generated manifest
-  LogiGo.init({
-    manifestUrl: '/logigo-manifest.json',
+  LogicArt.init({
+    manifestUrl: '/logicart-manifest.json',
     position: 'bottom-right'
   });
 </script>
@@ -67,7 +67,7 @@ function App() {
 
 ```jsx
 // DEMO ONLY: Runtime parsing for quick prototypes
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  
   position="bottom-right"
 />
@@ -79,11 +79,11 @@ function App() {
 ## Configuration Options
 
 ```typescript
-interface LogiGoEmbedProps {
+interface LogicArtEmbedProps {
   // === Data Source (choose ONE) ===
   
   // Option A: Build-time manifest (recommended for production)
-  manifestUrl?: string;        // URL to fetch logigo-manifest.json
+  manifestUrl?: string;        // URL to fetch logicart-manifest.json
   manifestHash?: string;       // Expected hash for cache validation
   
   // Option B: Runtime parsing (simple/demo scenarios only)
@@ -115,8 +115,8 @@ interface LogiGoEmbedProps {
   onNodeClick?: (nodeId: string) => void;
   onCheckpoint?: (checkpoint: CheckpointPayload) => void;
   onBreakpointHit?: (nodeId: string) => void;
-  onManifestLoad?: (manifest: LogiGoManifest) => void;
-  onError?: (error: LogiGoError) => void;
+  onManifestLoad?: (manifest: LogicArtManifest) => void;
+  onError?: (error: LogicArtError) => void;
   onReady?: () => void;
 }
 ```
@@ -125,20 +125,20 @@ interface LogiGoEmbedProps {
 
 **Production (with manifest):**
 ```jsx
-<LogiGoEmbed 
-  manifestUrl="/logigo-manifest.json"
+<LogicArtEmbed 
+  manifestUrl="/logicart-manifest.json"
   manifestHash="a1b2c3d4..."
   position="bottom-right"
-  onReady={() => console.log('LogiGo ready!')}
+  onReady={() => console.log('LogicArt ready!')}
 />
 ```
 
 **Script tag (standalone UMD):**
 ```html
-<script src="https://unpkg.com/logigo-embed"></script>
+<script src="https://unpkg.com/logicart-embed"></script>
 <script>
-  LogiGo.init({
-    manifestUrl: '/logigo-manifest.json',
+  LogicArt.init({
+    manifestUrl: '/logicart-manifest.json',
     position: 'bottom-right'
   });
 </script>
@@ -146,10 +146,10 @@ interface LogiGoEmbedProps {
 
 **Quick demo (no build):**
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={`
     function sort(arr) {
-      LogiGo.checkpoint('sort:start', { arr });
+      LogicArt.checkpoint('sort:start', { arr });
       // ... algorithm
     }
   `}
@@ -162,10 +162,10 @@ interface LogiGoEmbedProps {
 ## Component Architecture
 
 ```
-logigo-embed/
+logicart-embed/
 ├── src/
 │   ├── index.ts                 # Package entry point
-│   ├── LogiGoEmbed.tsx          # Main component
+│   ├── LogicArtEmbed.tsx          # Main component
 │   ├── components/
 │   │   ├── FloatingPanel.tsx    # Draggable/resizable container
 │   │   ├── MiniFlowchart.tsx    # React Flow visualization
@@ -181,9 +181,9 @@ logigo-embed/
 │   └── styles/
 │       └── embed.css            # Bundled styles
 ├── dist/
-│   ├── logigo-embed.umd.js      # UMD bundle (script tag)
-│   ├── logigo-embed.esm.js      # ESM bundle (imports)
-│   └── logigo-embed.css         # Styles
+│   ├── logicart-embed.umd.js      # UMD bundle (script tag)
+│   ├── logicart-embed.esm.js      # ESM bundle (imports)
+│   └── logicart-embed.css         # Styles
 └── package.json
 ```
 
@@ -195,7 +195,7 @@ logigo-embed/
 
 ```
 ┌─────────────────────────────────────────────┐
-│ LogiGo         [_] [□] [×]                  │
+│ LogicArt         [_] [□] [×]                  │
 ├─────────────────────────────────────────────┤
 │  ┌──────────────────────────────────────┐   │
 │  │                                      │   │
@@ -223,7 +223,7 @@ logigo-embed/
 ## Key Features
 
 ### 1. Live Flowchart Visualization
-- Uses the same React Flow renderer as LogiGo Studio
+- Uses the same React Flow renderer as LogicArt Studio
 - Supports all node types: decision, loop, statement, function
 - Real-time node highlighting on checkpoint execution
 
@@ -245,7 +245,7 @@ logigo-embed/
 - Closeable: Remove panel entirely
 
 ### 5. Checkpoint Integration
-- Listens for `window.LogiGo.checkpoint()` calls
+- Listens for `window.LogicArt.checkpoint()` calls
 - Updates flowchart highlighting in real-time
 - Records variable snapshots at each checkpoint
 
@@ -278,30 +278,30 @@ User Code → Bundler (Vite/Webpack) → Transformed Output
 
 ### The Solution: Node Manifest
 
-The `logigo-install` CLI hooks into the build process and generates:
+The `logicart-install` CLI hooks into the build process and generates:
 1. **Instrumented code** with stable checkpoint IDs
 2. **Node manifest JSON** with flowchart structure
 
 ```
-logigo-install
+logicart-install
     ↓
 ┌─────────────────────────────────────────────────┐
 │  Bundler Plugin (Vite/Webpack/Next)             │
 │                                                 │
 │  1. Parse all source files with Acorn           │
 │  2. Assign stable node IDs (hash-based)         │
-│  3. Inject LogiGo.checkpoint() calls            │
-│  4. Generate logigo-manifest.json               │
+│  3. Inject LogicArt.checkpoint() calls            │
+│  4. Generate logicart-manifest.json               │
 │  5. Output instrumented bundle                  │
 └─────────────────────────────────────────────────┘
     ↓                               ↓
- Instrumented Bundle          logigo-manifest.json
+ Instrumented Bundle          logicart-manifest.json
 ```
 
 ### Manifest Schema
 
 ```typescript
-interface LogiGoManifest {
+interface LogicArtManifest {
   version: '1.0';
   hash: string;           // SHA256 of all source files combined
   generatedAt: number;    // Unix timestamp
@@ -571,7 +571,7 @@ function injectCheckpoints(
   checkpoints.forEach(cp => {
     // Generate SYNCHRONOUS checkpoint call (per Antigravity's recommendation)
     // No async/await - keeps function signatures unchanged
-    const checkpointCall = `LogiGo.checkpoint('${cp.id}', { ${
+    const checkpointCall = `LogicArt.checkpoint('${cp.id}', { ${
       cp.capturedVariables.map(v => `${v}: ${v}`).join(', ')
     } });\n`;
     
@@ -592,8 +592,8 @@ function injectCheckpoints(
 Per Antigravity's review, checkpoints are **synchronous by default** to avoid breaking function signatures:
 
 ```javascript
-// In logigo-core runtime:
-class LogiGoRuntime {
+// In logicart-core runtime:
+class LogicArtRuntime {
   private queue: CheckpointData[] = [];
   private flushScheduled = false;
   
@@ -628,8 +628,8 @@ class LogiGoRuntime {
     
     batch.forEach(data => {
       window.postMessage({
-        source: 'LOGIGO_CORE',
-        type: 'LOGIGO_CHECKPOINT',
+        source: 'LOGICART_CORE',
+        type: 'LOGICART_CHECKPOINT',
         payload: { ...data, manifestVersion: this.manifestHash }
       }, '*');
     });
@@ -643,7 +643,7 @@ class LogiGoRuntime {
 - TypeScript types remain valid
 - Works in sync-only contexts
 
-**For step debugging:** Use `await LogiGo.checkpointAsync(id)` which pauses at breakpoints.
+**For step debugging:** Use `await LogicArt.checkpointAsync(id)` which pauses at breakpoints.
 
 ### Runtime Contract: MANIFEST_HASH & Session Alignment
 
@@ -651,7 +651,7 @@ class LogiGoRuntime {
 
 ```typescript
 // In bundler plugin, at end of build:
-function finalizeManifest(manifest: LogiGoManifest): string {
+function finalizeManifest(manifest: LogicArtManifest): string {
   // Compute hash of all source file checksums
   const allChecksums = Object.values(manifest.files)
     .map(f => f.checksum)
@@ -664,12 +664,12 @@ function finalizeManifest(manifest: LogiGoManifest): string {
 
 // Write to output
 const MANIFEST_HASH = finalizeManifest(manifest);
-writeFileSync('dist/logigo-manifest.json', JSON.stringify(manifest));
+writeFileSync('dist/logicart-manifest.json', JSON.stringify(manifest));
 
 // Also inject hash into the runtime bundle:
 const runtimeInit = `
-  window.__LOGIGO_MANIFEST_HASH__ = '${MANIFEST_HASH}';
-  window.__LOGIGO_MANIFEST_URL__ = '/logigo-manifest.json';
+  window.__LOGICART_MANIFEST_HASH__ = '${MANIFEST_HASH}';
+  window.__LOGICART_MANIFEST_URL__ = '/logicart-manifest.json';
 `;
 injectAtBundleStart(runtimeInit);
 ```
@@ -678,15 +678,15 @@ injectAtBundleStart(runtimeInit);
 
 ```typescript
 // Injected at bundle start by the bundler plugin:
-(function logigoInit() {
+(function logicartInit() {
   // Read hash/URL from injected globals
-  const MANIFEST_HASH = window.__LOGIGO_MANIFEST_HASH__;
-  const MANIFEST_URL = window.__LOGIGO_MANIFEST_URL__;
+  const MANIFEST_HASH = window.__LOGICART_MANIFEST_HASH__;
+  const MANIFEST_URL = window.__LOGICART_MANIFEST_URL__;
   
   // Emit manifest ready event
   window.postMessage({
-    source: 'LOGIGO_CORE',
-    type: 'LOGIGO_MANIFEST_READY',
+    source: 'LOGICART_CORE',
+    type: 'LOGICART_MANIFEST_READY',
     payload: {
       manifestUrl: `${MANIFEST_URL}?v=${MANIFEST_HASH}`,
       manifestHash: MANIFEST_HASH,
@@ -708,7 +708,7 @@ injectAtBundleStart(runtimeInit);
 function handleCheckpoint(payload: CheckpointPayload) {
   if (payload.manifestVersion !== currentManifest.hash) {
     // Manifest has changed - need to reload
-    console.warn('[LogiGo] Manifest version mismatch, session may be stale');
+    console.warn('[LogicArt] Manifest version mismatch, session may be stale');
     // Optionally: refetch manifest and re-render flowchart
   }
   
@@ -722,8 +722,8 @@ function handleCheckpoint(payload: CheckpointPayload) {
 ```typescript
 // New message type: Manifest Ready
 interface ManifestReadyMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_MANIFEST_READY';
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_MANIFEST_READY';
   payload: {
     manifestUrl: string;     // URL to fetch manifest JSON
     manifestHash: string;    // For cache validation
@@ -733,8 +733,8 @@ interface ManifestReadyMessage {
 
 // Enhanced Checkpoint message
 interface CheckpointMessage {
-  source: 'LOGIGO_CORE';
-  type: 'LOGIGO_CHECKPOINT';
+  source: 'LOGICART_CORE';
+  type: 'LOGICART_CHECKPOINT';
   payload: {
     id: string;
     manifestVersion: string;  // Must match current manifest
@@ -754,7 +754,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  1. LOGIGO_MANIFEST_READY                           │
+│  1. LOGICART_MANIFEST_READY                           │
 │     - First event on page load                      │
 │     - Contains manifestUrl and manifestHash         │
 │     - Embed fetches and caches manifest             │
@@ -762,7 +762,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  2. LOGIGO_SESSION_START                            │
+│  2. LOGICART_SESSION_START                            │
 │     - Emitted when instrumented code begins         │
 │     - Signals embed to reset state                  │
 │     - Contains sessionId and startTime             │
@@ -770,7 +770,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  3. LOGIGO_CHECKPOINT (repeated)                    │
+│  3. LOGICART_CHECKPOINT (repeated)                    │
 │     - Emitted for each checkpoint() call            │
 │     - Contains nodeId, manifestVersion, variables   │
 │     - Embed highlights node, records history        │
@@ -778,7 +778,7 @@ App Startup
     │
     ▼
 ┌─────────────────────────────────────────────────────┐
-│  4. LOGIGO_SESSION_END (optional)                   │
+│  4. LOGICART_SESSION_END (optional)                   │
 │     - Emitted when execution completes              │
 │     - Embed shows "Execution complete" state        │
 └─────────────────────────────────────────────────────┘
@@ -791,11 +791,11 @@ The bundler plugin handles manifest hosting:
 **Vite (development):**
 ```javascript
 // Plugin serves manifest from memory during dev
-export function logigoVitePlugin() {
-  let manifest: LogiGoManifest;
+export function logicartVitePlugin() {
+  let manifest: LogicArtManifest;
   
   return {
-    name: 'logigo',
+    name: 'logicart',
     
     // Generate manifest during build
     transform(code, id) {
@@ -808,7 +808,7 @@ export function logigoVitePlugin() {
     
     // Serve manifest via dev server
     configureServer(server) {
-      server.middlewares.use('/logigo-manifest.json', (req, res) => {
+      server.middlewares.use('/logicart-manifest.json', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(manifest));
       });
@@ -818,7 +818,7 @@ export function logigoVitePlugin() {
     generateBundle() {
       this.emitFile({
         type: 'asset',
-        fileName: 'logigo-manifest.json',
+        fileName: 'logicart-manifest.json',
         source: JSON.stringify(manifest)
       });
     }
@@ -832,7 +832,7 @@ dist/
 ├── index.html
 ├── assets/
 │   └── main.js              # Instrumented bundle
-└── logigo-manifest.json     # Manifest file
+└── logicart-manifest.json     # Manifest file
 ```
 
 ### Cache Invalidation
@@ -842,10 +842,10 @@ The manifest hash enables cache-busting:
 ```typescript
 // Runtime: Emit manifest ready with hash
 window.postMessage({
-  source: 'LOGIGO_CORE',
-  type: 'LOGIGO_MANIFEST_READY',
+  source: 'LOGICART_CORE',
+  type: 'LOGICART_MANIFEST_READY',
   payload: {
-    manifestUrl: '/logigo-manifest.json?v=' + MANIFEST_HASH,
+    manifestUrl: '/logicart-manifest.json?v=' + MANIFEST_HASH,
     manifestHash: MANIFEST_HASH,
     sessionId: generateSessionId()
   }
@@ -867,7 +867,7 @@ if (cachedManifest && cachedManifest.hash === payload.manifestHash) {
 
 ```typescript
 // 1. Load manifest at startup
-const manifest = await fetch('/logigo-manifest.json').then(r => r.json());
+const manifest = await fetch('/logicart-manifest.json').then(r => r.json());
 
 // 2. Render flowchart from manifest
 setNodes(manifest.nodes);
@@ -875,22 +875,22 @@ setEdges(manifest.edges);
 
 // 3. Listen for runtime events
 window.addEventListener('message', (event) => {
-  if (event.data?.source !== 'LOGIGO_CORE') return;
+  if (event.data?.source !== 'LOGICART_CORE') return;
   
   switch (event.data.type) {
-    case 'LOGIGO_MANIFEST_READY':
+    case 'LOGICART_MANIFEST_READY':
       // Hot reload: fetch new manifest if hash changed
       if (event.data.payload.manifestHash !== currentHash) {
         reloadManifest(event.data.payload.manifestUrl);
       }
       break;
       
-    case 'LOGIGO_CHECKPOINT':
+    case 'LOGICART_CHECKPOINT':
       const { id, manifestVersion, variables } = event.data.payload;
       
       // Validate checkpoint matches current manifest
       if (manifestVersion !== manifest.version) {
-        console.warn('[LogiGo] Manifest version mismatch, reloading...');
+        console.warn('[LogicArt] Manifest version mismatch, reloading...');
         reloadManifest();
         return;
       }
@@ -916,15 +916,15 @@ No bundler integration required. Users run a CLI command to generate the manifes
 
 ```bash
 # Generate manifest from source files
-npx logigo-manifest generate src/ --output public/logigo-manifest.json
+npx logicart-manifest generate src/ --output public/logicart-manifest.json
 
 # Watch mode for development
-npx logigo-manifest watch src/ --output public/logigo-manifest.json --debounce 300
+npx logicart-manifest watch src/ --output public/logicart-manifest.json --debounce 300
 ```
 
 Usage:
 ```jsx
-<LogiGoEmbed manifestUrl="/logigo-manifest.json" />
+<LogicArtEmbed manifestUrl="/logicart-manifest.json" />
 ```
 
 **Phase 2: Bundler Plugins**
@@ -934,13 +934,13 @@ Seamless DX with automatic manifest generation during build:
 **Vite Plugin:**
 ```javascript
 // vite.config.js
-import logigo from 'logigo-embed/vite';
+import logicart from 'logicart-embed/vite';
 
 export default {
   plugins: [
-    logigo({
+    logicart({
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      manifestPath: 'public/logigo-manifest.json'
+      manifestPath: 'public/logicart-manifest.json'
     })
   ]
 }
@@ -949,13 +949,13 @@ export default {
 **Webpack Plugin:**
 ```javascript
 // webpack.config.js
-const LogiGoPlugin = require('logigo-embed/webpack');
+const LogicArtPlugin = require('logicart-embed/webpack');
 
 module.exports = {
   plugins: [
-    new LogiGoPlugin({
+    new LogicArtPlugin({
       include: /src\/.*\.(ts|tsx)$/,
-      manifestPath: 'dist/logigo-manifest.json'
+      manifestPath: 'dist/logicart-manifest.json'
     })
   ]
 }
@@ -983,7 +983,7 @@ function onFileChange(file: string) {
 ```typescript
 // If manifest changes during active session, notify user
 window.addEventListener('message', (e) => {
-  if (e.data?.type === 'LOGIGO_MANIFEST_READY') {
+  if (e.data?.type === 'LOGICART_MANIFEST_READY') {
     if (activeSession && e.data.payload.manifestHash !== currentHash) {
       showNotification('Code changed - restart session to see updates');
     }
@@ -996,7 +996,7 @@ window.addEventListener('message', (e) => {
 For quick prototyping without bundler integration:
 
 ```jsx
-<LogiGoEmbed 
+<LogicArtEmbed 
   code={singleFileCode}  // Parse at runtime (simple case)
   manifestUrl={null}     // Skip manifest loading
 />
@@ -1005,7 +1005,7 @@ For quick prototyping without bundler integration:
 This works for:
 - Single-file scripts pasted into the embed
 - Quick demos and learning scenarios
-- LogiGo Studio's "paste code" feature
+- LogicArt Studio's "paste code" feature
 
 ---
 
@@ -1033,12 +1033,12 @@ This works for:
 
 ---
 
-## Global API (window.LogiGo)
+## Global API (window.LogicArt)
 
 ```typescript
-interface LogiGoGlobalAPI {
+interface LogicArtGlobalAPI {
   // Initialize embedded studio
-  init(options: LogiGoEmbedProps): void;
+  init(options: LogicArtEmbedProps): void;
   
   // Checkpoint for execution tracking
   checkpoint(id: string, variables?: Record<string, any>): Promise<void>;
@@ -1091,7 +1091,7 @@ interface CheckpointRecord {
 
 **1. ESM Bundle (for React apps)**
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 - React and ReactFlow are **peer dependencies**
 - User's app already has React, no duplication
@@ -1099,12 +1099,12 @@ npm install logigo-embed
 
 **2. UMD Bundle (for script tag)**
 ```html
-<script src="https://unpkg.com/logigo-embed/dist/logigo-embed.umd.js"></script>
+<script src="https://unpkg.com/logicart-embed/dist/logicart-embed.umd.js"></script>
 ```
 - React and ReactFlow are **bundled inside** (standalone)
 - Works without any build system
 - Larger bundle size (~400KB gzipped)
-- Exports to `window.LogiGo`
+- Exports to `window.LogicArt`
 
 ### Build Configuration
 
@@ -1114,7 +1114,7 @@ export default [
   // ESM build (React as peer dep)
   {
     input: 'src/index.ts',
-    output: { file: 'dist/logigo-embed.esm.js', format: 'esm' },
+    output: { file: 'dist/logicart-embed.esm.js', format: 'esm' },
     external: ['react', 'react-dom', '@xyflow/react'],
   },
   
@@ -1122,9 +1122,9 @@ export default [
   {
     input: 'src/index.standalone.ts',
     output: { 
-      file: 'dist/logigo-embed.umd.js', 
+      file: 'dist/logicart-embed.umd.js', 
       format: 'umd',
-      name: 'LogiGo',
+      name: 'LogicArt',
       globals: {}  // No externals
     },
     // Bundle everything including React
@@ -1140,17 +1140,17 @@ The standalone build injects its own React instance:
 // src/index.standalone.ts
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { LogiGoEmbed } from './LogiGoEmbed';
+import { LogicArtEmbed } from './LogicArtEmbed';
 
 // Create isolated React root when init() is called
-window.LogiGo = {
+window.LogicArt = {
   init(options) {
     const container = document.createElement('div');
-    container.id = 'logigo-embed-root';
+    container.id = 'logicart-embed-root';
     document.body.appendChild(container);
     
     const root = ReactDOM.createRoot(container);
-    root.render(<LogiGoEmbed {...options} />);
+    root.render(<LogicArtEmbed {...options} />);
     
     this._root = root;
     this._container = container;
@@ -1161,13 +1161,13 @@ window.LogiGo = {
 
 ---
 
-## File Locations (in LogiGo Studio repo)
+## File Locations (in LogicArt Studio repo)
 
 New files to create:
-- `packages/logigo-embed/` - New package directory
-- `packages/logigo-embed/src/LogiGoEmbed.tsx` - Main component
-- `packages/logigo-embed/rollup.config.js` - Bundle config
-- `packages/logigo-install/` - CLI installer
+- `packages/logicart-embed/` - New package directory
+- `packages/logicart-embed/src/LogicArtEmbed.tsx` - Main component
+- `packages/logicart-embed/rollup.config.js` - Bundle config
+- `packages/logicart-install/` - CLI installer
 
 Files to reuse from Studio:
 - `client/src/components/ide/Flowchart.tsx` → Strip down
@@ -1179,7 +1179,7 @@ Files to reuse from Studio:
 
 ## Next Steps
 
-1. Create `packages/logigo-embed/` directory structure
+1. Create `packages/logicart-embed/` directory structure
 2. Extract and simplify Flowchart component
 3. Build FloatingPanel with drag/resize
 4. Wire up checkpoint listener

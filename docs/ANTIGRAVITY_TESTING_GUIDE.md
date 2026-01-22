@@ -1,12 +1,12 @@
-# LogiGo Studio Testing Guide for Antigravity (VS Code Extension)
+# LogicArt Studio Testing Guide for Antigravity (VS Code Extension)
 
 ## Overview
 
-This document provides test cases for parallel testing of the VS Code extension using the shared `@logigo/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce identical flowcharts.
+This document provides test cases for parallel testing of the VS Code extension using the shared `@logicart/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce identical flowcharts.
 
 ## Test Environment Setup
 
-1. Ensure VS Code extension imports `parseCodeToFlow` from `@logigo/bridge`
+1. Ensure VS Code extension imports `parseCodeToFlow` from `@logicart/bridge`
 2. Extension should use the same types: `FlowNode`, `FlowEdge`, `FlowData`
 3. Container nodes should render with collapsible UI
 
@@ -289,9 +289,9 @@ interface FlowNode {
 
 ```typescript
 // Studio → IDE
-LOGIGO_JUMP_TO_LINE: { path: string, line: number, column?: number }
-LOGIGO_WRITE_FILE: { path: string, content: string }
-LOGIGO_REQUEST_FILE: { path?: string }
+LOGICART_JUMP_TO_LINE: { path: string, line: number, column?: number }
+LOGICART_WRITE_FILE: { path: string, content: string }
+LOGICART_REQUEST_FILE: { path?: string }
 ```
 
 ---
@@ -315,4 +315,4 @@ LOGIGO_REQUEST_FILE: { path?: string }
 
 ---
 
-*Generated from LogiGo Studio Replit testing session - December 2024*
+*Generated from LogicArt Studio Replit testing session - December 2024*

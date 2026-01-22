@@ -1,4 +1,4 @@
-# Quick Start: Testing LogiGo AI Integration
+# Quick Start: Testing LogicArt AI Integration
 
 **Date:** December 31, 2025  
 **Estimated Time:** 30 minutes for basic validation
@@ -10,7 +10,7 @@
 ### 1. Start the Development Server
 
 ```bash
-cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
 npm run dev
 ```
 
@@ -22,7 +22,7 @@ VITE v5.x.x  ready in XXX ms
 
 ### 2. Configure API Keys (Optional for Council Tests)
 
-Create/update `.env` in the LogiGo root:
+Create/update `.env` in the LogicArt root:
 
 ```bash
 # Required for Council Service tests
@@ -41,7 +41,7 @@ XAI_API_KEY=xai-...
 **Goal:** Verify AI can edit flowchart and UI updates automatically.
 
 1. **Open browser:** http://localhost:5173
-2. **Open terminal** in LogiGo directory
+2. **Open terminal** in LogicArt directory
 3. **Run this command:**
    ```bash
    echo '{"code": "function test() { return 42; }", "nodes": [], "edges": []}' > data/flowchart.json
@@ -65,7 +65,7 @@ XAI_API_KEY=xai-...
    - An "End" node
    - Connect them with edges
    
-   Use valid LogiGo flowchart JSON format.
+   Use valid LogicArt flowchart JSON format.
    ```
 
 2. **Watch the browser:** UI should update to show the flowchart
@@ -146,8 +146,8 @@ XAI_API_KEY=xai-...
 
 5. **Ask Antigravity to generate a test JWT:**
    ```
-   Create a test JWT token for LogiGo with:
-   - appId: "logigo"
+   Create a test JWT token for LogicArt with:
+   - appId: "logicart"
    - tier: "founder"
    - features: { history_database: true, github_sync: true }
    - email: "test@example.com"

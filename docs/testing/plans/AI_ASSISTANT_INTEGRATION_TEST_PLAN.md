@@ -1,14 +1,14 @@
-# LogiGo AI Assistant Integration Test Plan
+# LogicArt AI Assistant Integration Test Plan
 
 **Version:** 1.0  
 **Date:** December 31, 2025  
-**Objective:** Validate LogiGo integration with Antigravity, VS Code, Cursor, and Windsurf
+**Objective:** Validate LogicArt integration with Antigravity, VS Code, Cursor, and Windsurf
 
 ---
 
 ## 🎯 Overview
 
-This test plan validates that LogiGo's new **File Watch Mode**, **Council Service**, and **License System** work correctly across all major AI coding assistant platforms.
+This test plan validates that LogicArt's new **File Watch Mode**, **Council Service**, and **License System** work correctly across all major AI coding assistant platforms.
 
 ### New Features to Test:
 1. **File Watch Mode** (`useWatchFile` hook) - Bi-directional sync between AI agents and UI
@@ -40,12 +40,12 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 1.1: Antigravity Integration
 
 **Prerequisites:**
-- LogiGo dev server running (`npm run dev`)
+- LogicArt dev server running (`npm run dev`)
 - Browser open to `http://localhost:5173`
 - Antigravity AI active in VS Code/Cursor
 
 **Steps:**
-1. Open LogiGo project in your IDE with Antigravity active
+1. Open LogicArt project in your IDE with Antigravity active
 2. Ask Antigravity: *"Create a simple flowchart in data/flowchart.json with 3 nodes: Start, Process, and End"*
 3. Verify Antigravity creates/modifies `data/flowchart.json`
 4. **Expected Result:** Within 2 seconds, the browser UI should update to show the new flowchart
@@ -67,7 +67,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 1.2: VS Code Integration
 
 **Prerequisites:**
-- LogiGo dev server running
+- LogicArt dev server running
 - VS Code with built-in AI (Copilot or similar)
 
 **Steps:**
@@ -88,11 +88,11 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 1.3: Cursor Integration
 
 **Prerequisites:**
-- LogiGo dev server running
+- LogicArt dev server running
 - Cursor IDE active
 
 **Steps:**
-1. Open LogiGo project in Cursor
+1. Open LogicArt project in Cursor
 2. Ask Cursor AI: *"Modify data/flowchart.json to add a loop structure"*
 3. Verify UI updates automatically
 4. Test bidirectional sync:
@@ -113,11 +113,11 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 1.4: Windsurf Integration
 
 **Prerequisites:**
-- LogiGo dev server running
+- LogicArt dev server running
 - Windsurf IDE active
 
 **Steps:**
-1. Open LogiGo project in Windsurf
+1. Open LogicArt project in Windsurf
 2. Ask Windsurf AI: *"Create a complex flowchart with nested conditionals in data/flowchart.json"*
 3. Verify UI updates
 4. Test rapid changes:
@@ -150,7 +150,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
   ```
 
 **Steps:**
-1. Ask Antigravity: *"Use the LogiGo Council Service to generate code for a binary search function"*
+1. Ask Antigravity: *"Use the LogicArt Council Service to generate code for a binary search function"*
 2. Verify Antigravity can:
    - Import `councilService.ts`
    - Call `askCouncil(prompt, "code", keys, "openai")`
@@ -224,13 +224,13 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 3.1: License Hook Integration
 
 **Prerequisites:**
-- LogiGo dev server running
+- LogicArt dev server running
 - Browser open
 
 **Steps:**
 1. Open browser console
 2. Check `localStorage` for `voyai_token`
-3. Ask AI assistant: *"Generate a test Voyai JWT token for LogiGo with founder tier"*
+3. Ask AI assistant: *"Generate a test Voyai JWT token for LogicArt with founder tier"*
 4. Navigate to: `http://localhost:5173/?token=<generated_token>`
 5. **Expected:** Token is stored, URL is cleaned, user is authenticated
 6. Verify in console: `[Voyai] Token accepted, user: <email>`
@@ -265,7 +265,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 - [ ] Feature flags are correctly decoded from JWT
 - [ ] UI elements are gated based on features
 - [ ] Tooltips explain why features are disabled
-- [ ] "Login with Voyai" button redirects to: `https://voyai.org/login?app=logigo&return_to=<current_url>`
+- [ ] "Login with Voyai" button redirects to: `https://voyai.org/login?app=logicart&return_to=<current_url>`
 
 **Screenshot:** `test3_2_feature_gates.png`
 
@@ -291,7 +291,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 
 **Pass Criteria:**
 - [ ] Middleware verifies JWT using RS256 public key
-- [ ] Middleware checks `payload.appId === 'logigo'`
+- [ ] Middleware checks `payload.appId === 'logicart'`
 - [ ] Middleware checks `payload.tier === 'founder'`
 - [ ] Protected routes return 401 without valid token
 - [ ] Protected routes work with valid token
@@ -307,7 +307,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 4.1: Theme Toggle UI
 
 **Prerequisites:**
-- LogiGo dev server running
+- LogicArt dev server running
 - Browser open
 
 **Steps:**
@@ -343,7 +343,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 5.1: Antigravity Full Workflow
 
 **Steps:**
-1. Open LogiGo in VS Code/Cursor with Antigravity
+1. Open LogicArt in VS Code/Cursor with Antigravity
 2. Ask Antigravity to:
    - Create a flowchart via file watch
    - Query the council for code generation
@@ -361,7 +361,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 5.2: VS Code Full Workflow
 
 **Steps:**
-1. Open LogiGo in VS Code
+1. Open LogicArt in VS Code
 2. Use VS Code AI to:
    - Edit flowchart file
    - Run council CLI command
@@ -369,7 +369,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 3. Verify integration
 
 **Pass Criteria:**
-- [ ] VS Code AI can access all LogiGo features
+- [ ] VS Code AI can access all LogicArt features
 - [ ] Terminal commands work
 - [ ] No IDE-specific issues
 
@@ -378,7 +378,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 5.3: Cursor Full Workflow
 
 **Steps:**
-1. Open LogiGo in Cursor
+1. Open LogicArt in Cursor
 2. Use Cursor AI to:
    - Manipulate flowchart via file watch
    - Invoke council service
@@ -386,7 +386,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 3. Verify integration
 
 **Pass Criteria:**
-- [ ] Cursor AI has full access to LogiGo features
+- [ ] Cursor AI has full access to LogicArt features
 - [ ] Bidirectional sync works
 - [ ] No Cursor-specific bugs
 
@@ -395,7 +395,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 #### Test 5.4: Windsurf Full Workflow
 
 **Steps:**
-1. Open LogiGo in Windsurf
+1. Open LogicArt in Windsurf
 2. Use Windsurf AI to:
    - Create complex flowcharts
    - Use council for debugging
@@ -572,7 +572,7 @@ This test plan validates that LogiGo's new **File Watch Mode**, **Council Servic
 After completing all tests, create a summary report:
 
 ```markdown
-# LogiGo AI Assistant Integration Test Report
+# LogicArt AI Assistant Integration Test Report
 
 **Date:** [Date]
 **Tester:** [Name]
@@ -609,7 +609,7 @@ After completing all tests, create a summary report:
 
 ## ✅ Success Criteria
 
-For LogiGo to be considered **AI Assistant Ready**, the following must pass:
+For LogicArt to be considered **AI Assistant Ready**, the following must pass:
 
 ### CRITICAL (Must Pass):
 - [ ] File watch mode works in all 4 platforms
@@ -648,7 +648,7 @@ For LogiGo to be considered **AI Assistant Ready**, the following must pass:
 ### License Issues
 - Verify JWT token format
 - Check token expiration
-- Ensure `appId === 'logigo'`
+- Ensure `appId === 'logicart'`
 - Verify public key matches
 
 ### Theme Toggle Missing

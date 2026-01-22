@@ -10,17 +10,17 @@
 
 ### 1. Visual Handshake (DOM Highlighting)
 - **Location:** `src/overlay.js` (lines 274-293)
-- **Feature:** When `LogiGo.checkpoint(elementId)` is called, the DOM element with that ID gets a **gold glow**
+- **Feature:** When `LogicArt.checkpoint(elementId)` is called, the DOM element with that ID gets a **gold glow**
 - **Duration:** Highlight appears during checkpoint, removes automatically after
 - **Effect:** `box-shadow: 0 0 10px 2px gold` with 0.3s transition
 
 ### 2. Reporter API (Checkpoint Data Capture)
 - **Location:** `src/reporter.js` (NEW FILE - 170 lines)
 - **Features:**
-  - `LogiGoReporter.reportCheckpoint(data)` - Capture checkpoint events
-  - `LogiGoReporter.onCheckpoint(callback)` - Subscribe to real-time events (AI Agent simulation)
-  - `LogiGoReporter.exportReport()` - Get full JSON report with stats
-  - `LogiGoReporter.getStats()` - Get live statistics
+  - `LogicArtReporter.reportCheckpoint(data)` - Capture checkpoint events
+  - `LogicArtReporter.onCheckpoint(callback)` - Subscribe to real-time events (AI Agent simulation)
+  - `LogicArtReporter.exportReport()` - Get full JSON report with stats
+  - `LogicArtReporter.getStats()` - Get live statistics
 - **Data Format:**
   ```json
   {
@@ -36,26 +36,26 @@
 ### 3. Demo Files Created
 - `example/visual_handshake.html` - Interactive login form demo
 - `example/reporter_demo.html` - AI Agent simulation demo
-- Updated `src/index.js` to export `LogiGoReporter`
+- Updated `src/index.js` to export `LogicArtReporter`
 
 ---
 
 ## 🧪 Testing Approach
 
-Since the demo files need special server setup, let's test the features directly in the **LogiGo Workbench** (your main app):
+Since the demo files need special server setup, let's test the features directly in the **LogicArt Workbench** (your main app):
 
 ### Option A: Test in Main Workbench (Recommended)
-1. Open the LogiGo workbench at your Replit URL
+1. Open the LogicArt workbench at your Replit URL
 2. In the code editor, add section markers like:
    ```javascript
    // --- VISUAL HANDSHAKE TEST ---
    
    async function testVisualHandshake() {
      // This will highlight the element with ID "username"
-     await LogiGo.checkpoint('username');
+     await LogicArt.checkpoint('username');
      
      // This will highlight the element with ID "password"
-     await LogiGo.checkpoint('password');
+     await LogicArt.checkpoint('password');
    }
    ```
 3. Watch for gold glows on DOM elements when checkpoints execute
@@ -121,7 +121,7 @@ async checkpoint(nodeId) {
 ### How Reporter Works
 ```javascript
 // Usage example:
-const reporter = new LogiGoReporter({ debug: true });
+const reporter = new LogicArtReporter({ debug: true });
 
 // Subscribe to events (simulates AI Agent)
 reporter.onCheckpoint((data) => {
@@ -168,7 +168,7 @@ const report = reporter.exportReport();
 
 1. **If tests pass:** Give Antigravity team green light to publish `v1.0.0-beta` to NPM
 2. **If issues found:** Document and share with Antigravity team
-3. **Integration:** Update LogiGo workbench to use new features
+3. **Integration:** Update LogicArt workbench to use new features
 4. **Documentation:** Update user docs with Visual Handshake + Reporter examples
 
 ---

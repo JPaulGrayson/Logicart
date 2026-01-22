@@ -1,12 +1,12 @@
-# LogiGo: Technical Specification
+# LogicArt: Technical Specification
 **Version:** 0.1 (Alpha)  
 **Core Goal:** A runtime visualizer for AI-generated code that allows "Vibe Coders" to see, slow down, and debug logic flow.
 
 ## 1. Core Architecture (The Overlay)
 * **Type:** Universal Library (JavaScript/Python).
-* **Entry Point:** `LogiGo.init({ speed: 1.0, debug: true })`.
+* **Entry Point:** `LogicArt.init({ speed: 1.0, debug: true })`.
 * **UI Injection:** The library appends a `<div>` overlay to the document body with `z-index: 9999`.
-* **Communication:** Uses `window.postMessage` to talk between the User's App (The Host) and the LogiGo Toolbar (The Guest).
+* **Communication:** Uses `window.postMessage` to talk between the User's App (The Host) and the LogicArt Toolbar (The Guest).
 
 ## 2. Visualization Engine ("Ghost Diff")
 * **Data Structure:** Converting code to a Simplified AST (Abstract Syntax Tree).
@@ -22,7 +22,7 @@
 ## 3. Execution Control ("Speed Governor")
 * **Mechanism:** Async Injection.
 * **The Loop:**
-    * The library exposes a global `await LogiGo.checkpoint('node_id')`.
+    * The library exposes a global `await LogicArt.checkpoint('node_id')`.
     * This function returns a `Promise` that resolves only when:
         * (A) The "Speed Timer" expires (e.g., 500ms).
         * (B) The User clicks "Next Step" (if paused).
@@ -56,7 +56,7 @@
 ### Mode 1: Standalone Library (New - Antigravity Build)
 - **Target:** Any web app (inject via `<script>` tag or `npm install`)
 - **Use Case:** Production debugging, third-party integration
-- **Entry:** `LogiGo.init()` in user's code
+- **Entry:** `LogicArt.init()` in user's code
 
 ### Mode 2: Integrated Workbench (Existing - Replit Build)
 - **Target:** Replit IDE / Development Environment
@@ -73,7 +73,7 @@
 
 2. **Build Minimal Example**
    - `example/index.html` - Demo page showing overlay in action
-   - `example/app.js` - Sample app with LogiGo.checkpoint() calls
+   - `example/app.js` - Sample app with LogicArt.checkpoint() calls
 
 3. **Test Integration**
    - Verify overlay works in vanilla HTML

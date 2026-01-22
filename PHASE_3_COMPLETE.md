@@ -5,7 +5,7 @@ Build visual diff logic to show code changes between versions with color-coded n
 
 ## What Was Built
 
-### 1. LogiGoDiffer (`src/differ.js`)
+### 1. LogicArtDiffer (`src/differ.js`)
 A sophisticated diff engine that compares code trees and identifies changes:
 
 **Features:**
@@ -119,7 +119,7 @@ Nodes are considered different if any of these fields change:
 
 ## Verification Checklist
 
-- [x] LogiGoDiffer class created
+- [x] LogicArtDiffer class created
 - [x] diffTrees() function implemented
 - [x] Comparison logic identifies all change types
 - [x] Visual styling with CSS classes
@@ -186,7 +186,7 @@ These are acceptable for MVP and can be enhanced with AST-based semantic compari
 
 ## Next Steps
 
-With all 3 phases complete, LogiGo now has:
+With all 3 phases complete, LogicArt now has:
 - ✅ **Phase 1**: Core Overlay (UI injection)
 - ✅ **Phase 2**: Speed Governor (execution control)
 - ✅ **Phase 3**: Ghost Diff (visual comparison)
@@ -199,7 +199,7 @@ With all 3 phases complete, LogiGo now has:
 
 ## Files Created
 
-- `src/differ.js` - LogiGoDiffer class
+- `src/differ.js` - LogicArtDiffer class
 - `example/test_differ.html` - Unit test suite
 - `example/ghost_diff.html` - Visual demo
 

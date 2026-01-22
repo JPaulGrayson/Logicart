@@ -1,11 +1,11 @@
-# LogiGo Product Lineup
+# LogicArt Product Lineup
 
 ## Products
 
-### LogiGo Studio
+### LogicArt Studio
 **Platform:** Replit (Web)  
 **Target Users:** Replit users, web-based developers  
-**URL:** [Replit LogiGo Project]
+**URL:** [Replit LogicArt Project]
 
 A full-featured web IDE for code visualization with:
 - Interactive flowcharts
@@ -16,7 +16,7 @@ A full-featured web IDE for code visualization with:
 
 ---
 
-### LogiGo for VS Code
+### LogicArt for VS Code
 **Platform:** VS Code, Antigravity, Cursor, and VS Code-compatible IDEs  
 **Target Users:** Desktop developers using VS Code-based editors  
 **Distribution:** VS Code Marketplace, Open VSX Registry
@@ -54,22 +54,22 @@ Both products share:
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| `@logigo/bridge` | `/bridge/` | Code parser (AST → Flowchart) |
+| `@logicart/bridge` | `/bridge/` | Code parser (AST → Flowchart) |
 | Feature Flags | `/client/src/lib/features.ts` | Tier gating logic |
 
 ---
 
 ## Business Model
 
-### LogiGo Studio
+### LogicArt Studio
 - **Free Tier:** Basic features (lead generation)
 - **Premium/Pro:** Paid via Voyai subscription integration
 
-### LogiGo for VS Code
+### LogicArt for VS Code
 - **Free Tier:** Basic features (lead generation)
 - **Premium/Pro:** Paid via:
   - Antigravity Pro bundle (revenue share)
-  - OR standalone LogiGo subscription
+  - OR standalone LogicArt subscription
 
 ---
 
@@ -77,7 +77,7 @@ Both products share:
 
 ### Currently Implemented
 
-| Feature | LogiGo Studio | LogiGo for VS Code |
+| Feature | LogicArt Studio | LogicArt for VS Code |
 |---------|--------------|-------------------|
 | Basic Flowchart | ✅ | ✅ |
 | Collapsible Containers | ✅ | ✅ |
@@ -104,9 +104,9 @@ Both products share:
 
 | Term | Meaning |
 |------|---------|
-| **LogiGo** | The brand/family |
-| **LogiGo Studio** | Replit web app |
-| **LogiGo for VS Code** | VS Code extension |
+| **LogicArt** | The brand/family |
+| **LogicArt Studio** | Replit web app |
+| **LogicArt for VS Code** | VS Code extension |
 | **Free/Premium/Pro** | Subscription tiers (not product names) |
 
 ---

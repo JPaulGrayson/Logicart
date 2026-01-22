@@ -39,9 +39,9 @@ When an AI agent works with a codebase, it typically:
 - Ability to trace execution paths
 - Detection of similar/duplicate patterns
 
-### How LogiGo Solves This
+### How LogicArt Solves This
 
-LogiGo already has:
+LogicArt already has:
 - AST parsing (Acorn) that understands code structure
 - Flow graph generation (nodes, edges, relationships)
 - Step-by-step interpreter for execution tracing
@@ -393,7 +393,7 @@ function buildCallGraph(ast: Node): CallGraph {
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    LogiGo AI APIs (/api/ai/*)                   │
+│                    LogicArt AI APIs (/api/ai/*)                   │
 │                                                                 │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
 │  │  /parse  │  │  /trace  │  │ /similar │  │ /impact  │        │
@@ -401,7 +401,7 @@ function buildCallGraph(ast: Node): CallGraph {
 │       │             │             │             │               │
 │       ▼             ▼             ▼             ▼               │
 │  ┌─────────────────────────────────────────────────────┐       │
-│  │              Core LogiGo Libraries                   │       │
+│  │              Core LogicArt Libraries                   │       │
 │  │                                                      │       │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │       │
 │  │  │ AST Parser  │  │ Interpreter │  │  Analyzer   │  │       │
@@ -616,4 +616,4 @@ const TIMEOUTS = {
 
 ---
 
-*Document created by LogiGo Agent - December 26, 2025*
+*Document created by LogicArt Agent - December 26, 2025*

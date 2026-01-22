@@ -1,4 +1,4 @@
-# LogiGo Documentation Issues & Recommendations
+# LogicArt Documentation Issues & Recommendations
 
 **Date:** December 31, 2025  
 **Reviewer:** Paul  
@@ -17,7 +17,7 @@
 <head>
   <meta charset="UTF-8" />
   <!-- other head content -->
-  <script src="https://your-logigo-app.replit.dev/remote.js?project=MyApp"></script>
+  <script src="https://your-logicart-app.replit.dev/remote.js?project=MyApp"></script>
 </head>
 ```
 
@@ -33,8 +33,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My App</title>
   
-  <!-- LogiGo Remote Mode Script -->
-  <script src="https://your-logigo-app.replit.dev/remote.js?project=MyApp"></script>
+  <!-- LogicArt Remote Mode Script -->
+  <script src="https://your-logicart-app.replit.dev/remote.js?project=MyApp"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -75,12 +75,12 @@ graph TD
     A[What do you want to do?] --> B{Just visualize code?}
     B -->|Yes| C[STATIC MODE<br/>No Installation]
     B -->|No| D{Add to React app?}
-    D -->|Yes| E[EMBED COMPONENT<br/>npm install logigo-embed]
+    D -->|Yes| E[EMBED COMPONENT<br/>npm install logicart-embed]
     D -->|No| F{Auto-instrument Vite?}
-    F -->|Yes| G[VITE PLUGIN<br/>npm install logigo-vite-plugin]
+    F -->|Yes| G[VITE PLUGIN<br/>npm install logicart-vite-plugin]
     F -->|No| H{Debug Node.js server?}
     H -->|Yes| I[BACKEND LOGGING<br/>Copy checkpoint helper]
-    H -->|No| J[MANUAL CHECKPOINTS<br/>npm install logigo-core]
+    H -->|No| J[MANUAL CHECKPOINTS<br/>npm install logicart-core]
 ```
 ```
 
@@ -88,11 +88,11 @@ graph TD
 
 | Your Goal | Method | Installation |
 |-----------|--------|--------------|
-| Just visualize code | Static Mode | None - use LogiGo Studio |
-| Add to React app | Embed Component | `npm install logigo-embed` |
-| Auto-instrument Vite | Vite Plugin | `npm install logigo-vite-plugin` |
+| Just visualize code | Static Mode | None - use LogicArt Studio |
+| Add to React app | Embed Component | `npm install logicart-embed` |
+| Auto-instrument Vite | Vite Plugin | `npm install logicart-vite-plugin` |
 | Debug Node.js server | Backend Logging | Copy helper function |
-| Fine-grained control | Manual Checkpoints | `npm install logigo-core` |
+| Fine-grained control | Manual Checkpoints | `npm install logicart-core` |
 
 **Priority:** HIGH
 
@@ -149,7 +149,7 @@ The standard VSIX installer may not work in Antigravity due to differences in th
 For detailed installation instructions, see the [Installation Guide](docs/INSTALLATION_GUIDE.md)
 
 <!-- In Documentation -->
-💡 **Quick Tip:** Press `?` in LogiGo Studio to see keyboard shortcuts
+💡 **Quick Tip:** Press `?` in LogicArt Studio to see keyboard shortcuts
 ```
 
 **3. Content to Keep in Help Dialog:**

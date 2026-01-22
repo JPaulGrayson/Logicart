@@ -1,4 +1,4 @@
-# Implementation Plan: LogiGo Security, Licensing, and CLI
+# Implementation Plan: LogicArt Security, Licensing, and CLI
 
 Please implement the following complete specification to secure the application and enable the "Headless Council" feature.
 
@@ -25,7 +25,7 @@ Please implement the following complete specification to secure the application 
 3.  **Middleware (`server/middleware.ts`):**
     * Create `requireFounderTier`.
     * It must verify the JWT from the `Authorization` header using the **RS256 Public Key** above.
-    * It should check that `payload.appId === 'logigo'`.
+    * It should check that `payload.appId === 'logicart'`.
     * **Secure Routes:** Apply this middleware to:
         * `POST /api/arena/save`
         * `GET /api/arena/history`
@@ -44,7 +44,7 @@ Please implement the following complete specification to secure the application 
         * `hasGitSync`: `features.github_sync` (Boolean)
 
 3.  **UI Gates:**
-    * **Header:** Add "Login with Voyai" button. Redirects to: `https://voyai.org/login?return_to=<YOUR_REPL_URL>&app=logigo`
+    * **Header:** Add "Login with Voyai" button. Redirects to: `https://voyai.org/login?return_to=<YOUR_REPL_URL>&app=logicart`
     * **Git Sync:** If `!hasGitSync`, disable the "Sync to GitHub" button and show a tooltip: *"Pro Feature. Use Export to File instead."*
     * **History:** If `!hasHistory`, clicking "Save" should trigger an Upgrade Modal/Alert.
     * **Rescue:** If `!hasRescue`, disable the "Rescue Me" button in the Arena.

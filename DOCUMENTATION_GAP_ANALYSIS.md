@@ -1,4 +1,4 @@
-# LogiGo Documentation Gap Analysis
+# LogicArt Documentation Gap Analysis
 
 **Purpose:** Compare features documented in the Help System and docs/ folder against the Improvement Report
 
@@ -118,7 +118,7 @@ sections.forEach(section => {
 
 ---
 
-## 8. Live Mode (logigo-core)
+## 8. Live Mode (logicart-core)
 
 | Source | Status | Notes |
 |--------|--------|-------|
@@ -130,21 +130,21 @@ sections.forEach(section => {
 
 ---
 
-## 9. User-Defined Labels (@logigo: comments)
+## 9. User-Defined Labels (@logicart: comments)
 
 | Source | Status | Notes |
 |--------|--------|-------|
 | **HelpDialog.tsx** | ✅ DOCUMENTED | Lines 269-294: Syntax and blue dot indicator |
 | **GETTING_STARTED.md** | ✅ DOCUMENTED | Example with comments |
 | **Bridge Parser** | ✅ IMPLEMENTED | `detectUserLabels()` at line 15-40, called at line 319, applied at line 396 |
-| **algorithmExamples.ts** | ✅ USES | Lines 529-752: Extensive usage of `// @logigo:` annotations |
+| **algorithmExamples.ts** | ✅ USES | Lines 529-752: Extensive usage of `// @logicart:` annotations |
 | **LabeledNode.tsx** | ✅ RENDERS | `userLabel` field displayed with tooltip |
 
 **IMPLEMENTATION EVIDENCE:**
 ```typescript
 // docs/bridge/src/parser.ts line 15-40
 function detectUserLabels(code: string): Map<number, string> {
-  const labelPattern = /\/\/\s*@logigo:\s*(.+)$/i;
+  const labelPattern = /\/\/\s*@logicart:\s*(.+)$/i;
   // Maps line numbers to user-defined labels
 }
 
@@ -328,7 +328,7 @@ userLabel = userLabels.get(stmt.loc.start.line);
 | Feature | Previous Claim | Actual Status |
 |---------|----------------|---------------|
 | Hierarchical Views | "Not implemented" | ✅ IMPLEMENTED - View levels + collapsible containers |
-| @logigo: Labels | "Parser doesn't extract" | ✅ IMPLEMENTED - Full parsing and display |
+| @logicart: Labels | "Parser doesn't extract" | ✅ IMPLEMENTED - Full parsing and display |
 
 ### Recommendations
 
@@ -337,7 +337,7 @@ userLabel = userLabels.get(stmt.loc.start.line);
 3. ~~Add VS Code Extension section~~ - ✅ DONE
 4. ~~Add Bidirectional Editing documentation~~ - ✅ DONE
 5. ~~Remove or clarify Hierarchical Views~~ - ✅ CORRECTED (feature exists)
-6. ~~Clarify @logigo: label behavior~~ - ✅ CORRECTED (fully implemented)
+6. ~~Clarify @logicart: label behavior~~ - ✅ CORRECTED (fully implemented)
 
 ---
 

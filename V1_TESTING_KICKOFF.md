@@ -1,4 +1,4 @@
-# LogiGo V1 Testing - Kickoff Guide
+# LogicArt V1 Testing - Kickoff Guide
 
 **Ready to start comprehensive V1 testing!**
 
@@ -17,7 +17,7 @@ Read `V1_COMPREHENSIVE_TEST_PLAN.md` to understand:
 
 **Antigravity:**
 ```bash
-cd "/Users/paulg/Documents/Antigravity Github folder/LogiGo"
+cd "/Users/paulg/Documents/Antigravity Github folder/LogicArt"
 git pull origin main
 rm -rf node_modules packages/*/node_modules
 npm install
@@ -32,7 +32,7 @@ npm run dev
 ```
 
 **Paul:**
-- Open LogiGo Studio in browser
+- Open LogicArt Studio in browser
 - Have real code examples ready
 - Prepare to take notes
 

@@ -1,4 +1,4 @@
-# LogiGo AI Integration - Replit Browser Testing Instructions
+# LogicArt AI Integration - Replit Browser Testing Instructions
 
 **Date:** December 31, 2025  
 **Tester:** Replit Agent  
@@ -9,7 +9,7 @@
 
 ## 🎯 Your Mission
 
-Test the **UI/browser integration** of LogiGo's new AI features. Antigravity has already verified that all backend code is correct. Your job is to verify the **user-facing functionality** works in the browser.
+Test the **UI/browser integration** of LogicArt's new AI features. Antigravity has already verified that all backend code is correct. Your job is to verify the **user-facing functionality** works in the browser.
 
 ---
 
@@ -156,7 +156,7 @@ You **DON'T** need to retest these:
      {
        "userId": "test-user-123",
        "email": "test@example.com",
-       "appId": "logigo",
+       "appId": "logicart",
        "tier": "founder",
        "features": {
          "history_database": true,
@@ -186,7 +186,7 @@ You **DON'T** need to retest these:
 6. **Test "Login with Voyai" button:**
    - Find the login button (should be in header)
    - Click it
-   - Verify it redirects to: `https://voyai.org/login?app=logigo&return_to=<current_url>`
+   - Verify it redirects to: `https://voyai.org/login?app=logicart&return_to=<current_url>`
    - **Note:** Don't complete the login, just verify the redirect URL is correct
 
 **Pass Criteria:**
@@ -362,7 +362,7 @@ You **DON'T** need to retest these:
 After completing all tests, fill out this summary:
 
 ```markdown
-# LogiGo Replit Browser Test Results
+# LogicArt Replit Browser Test Results
 
 **Date:** [Date]
 **Tester:** Replit Agent
@@ -396,7 +396,7 @@ After completing all tests, fill out this summary:
 
 ## 🎯 Success Criteria
 
-For LogiGo to be **AI Assistant Ready**:
+For LogicArt to be **AI Assistant Ready**:
 
 ### CRITICAL (Must Pass):
 - [ ] File watch updates UI automatically
@@ -456,4 +456,4 @@ Make sure to capture:
 
 ---
 
-**Good luck! The LogiGo AI integration depends on your thorough testing! 🚀**
+**Good luck! The LogicArt AI integration depends on your thorough testing! 🚀**

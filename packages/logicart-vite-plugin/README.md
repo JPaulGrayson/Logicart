@@ -1,11 +1,11 @@
-# logigo-vite-plugin
+# logicart-vite-plugin
 
-Vite plugin for LogiGo build-time code instrumentation and flowchart generation.
+Vite plugin for LogicArt build-time code instrumentation and flowchart generation.
 
 ## Installation
 
 ```bash
-npm install logigo-vite-plugin --save-dev
+npm install logicart-vite-plugin --save-dev
 ```
 
 ## Usage
@@ -14,13 +14,13 @@ npm install logigo-vite-plugin --save-dev
 // vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import logigoPlugin from 'logigo-vite-plugin';
+import logicartPlugin from 'logicart-vite-plugin';
 
 export default defineConfig({
   plugins: [
     react(),
-    logigoPlugin({
-      manifestPath: 'logigo-manifest.json',
+    logicartPlugin({
+      manifestPath: 'logicart-manifest.json',
       include: ['src/**/*.tsx', 'src/**/*.ts'],
       exclude: ['**/node_modules/**', '**/*.test.*']
     })
@@ -34,26 +34,26 @@ export default defineConfig({
 |--------|------|---------|-------------|
 | `include` | `string[]` | `['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx']` | Glob patterns to instrument |
 | `exclude` | `string[]` | `['**/node_modules/**', '**/*.test.*', '**/*.spec.*']` | Glob patterns to exclude |
-| `manifestPath` | `string` | `'logigo-manifest.json'` | Output path for manifest |
+| `manifestPath` | `string` | `'logicart-manifest.json'` | Output path for manifest |
 | `autoInstrument` | `boolean` | `true` | Automatically inject checkpoints |
 | `captureVariables` | `boolean` | `true` | Capture local variables |
 
 ## How It Works
 
-1. **Build-time Instrumentation**: The plugin parses your JavaScript/TypeScript code using Acorn and injects `LogiGo.checkpoint()` calls at strategic points.
+1. **Build-time Instrumentation**: The plugin parses your JavaScript/TypeScript code using Acorn and injects `LogicArt.checkpoint()` calls at strategic points.
 
 2. **Manifest Generation**: Generates a JSON manifest containing:
    - Flowchart nodes and edges
    - Checkpoint metadata (file, line, column)
    - Variable capture configuration
 
-3. **Runtime Injection**: Injects the LogiGo runtime into your HTML, enabling real-time visualization.
+3. **Runtime Injection**: Injects the LogicArt runtime into your HTML, enabling real-time visualization.
 
 ## Output
 
 The plugin generates:
-- `logigo-manifest.json` - Flowchart data and checkpoint metadata
-- `logigo-runtime.js` - Browser runtime for checkpoint handling
+- `logicart-manifest.json` - Flowchart data and checkpoint metadata
+- `logicart-runtime.js` - Browser runtime for checkpoint handling
 
 ## Features
 

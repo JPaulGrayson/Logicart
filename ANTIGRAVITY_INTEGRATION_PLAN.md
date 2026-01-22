@@ -1,4 +1,4 @@
-# LogiGo × Antigravity Integration Plan
+# LogicArt × Antigravity Integration Plan
 
 **Document Version:** 1.0  
 **Date:** November 25, 2024  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-LogiGo is a code-to-flowchart visualization tool designed for "vibe coders" who use AI-assisted coding platforms. This document outlines a phased integration plan with Google Antigravity, clearly defining responsibilities between the LogiGo team and Antigravity platform team.
+LogicArt is a code-to-flowchart visualization tool designed for "vibe coders" who use AI-assisted coding platforms. This document outlines a phased integration plan with Google Antigravity, clearly defining responsibilities between the LogicArt team and Antigravity platform team.
 
 **Key Value Proposition:**
 - **For AI-generated code**: Instant visual understanding of complex code
@@ -19,7 +19,7 @@ LogiGo is a code-to-flowchart visualization tool designed for "vibe coders" who 
 
 ## Current Implementation Status
 
-### ✅ What LogiGo Has Built (Replit Platform)
+### ✅ What LogicArt Has Built (Replit Platform)
 
 **Core Engine:**
 - AST Parser (JavaScript/TypeScript) with source location tracking
@@ -43,7 +43,7 @@ LogiGo is a code-to-flowchart visualization tool designed for "vibe coders" who 
 
 **For Antigravity Integration:**
 1. **Overlay Library Mode** - Lightweight injectable NPM package
-2. **Checkpoint Runtime** - `LogiGo.checkpoint()` execution tracking
+2. **Checkpoint Runtime** - `LogicArt.checkpoint()` execution tracking
 3. **Visual Handshake** - DOM element highlighting during execution
 4. **Hierarchical Views** - Multi-level code visualization (system → feature → function)
 5. **Real-time Metadata Capture** - Console.log and performance metrics
@@ -71,9 +71,9 @@ LogiGo is a code-to-flowchart visualization tool designed for "vibe coders" who 
 **How It Works:**
 ```javascript
 // User's code in Antigravity
-import LogiGo from '@logigo/runtime';
+import LogicArt from '@logicart/runtime';
 
-LogiGo.init({ 
+LogicArt.init({ 
   mode: 'overlay',
   position: 'bottom-right',
   theme: 'dark',
@@ -81,13 +81,13 @@ LogiGo.init({
 });
 
 async function processOrder(order) {
-  await LogiGo.checkpoint('validate-order');
+  await LogicArt.checkpoint('validate-order');
   if (!validateOrder(order)) return false;
   
-  await LogiGo.checkpoint('process-payment');
+  await LogicArt.checkpoint('process-payment');
   const payment = await processPayment(order);
   
-  await LogiGo.checkpoint('ship-order');
+  await LogicArt.checkpoint('ship-order');
   await shipOrder(order);
   
   return true;
@@ -105,19 +105,19 @@ async function processOrder(order) {
 
 ## Responsibility Matrix
 
-### 🔵 LogiGo Team Responsibilities
+### 🔵 LogicArt Team Responsibilities
 
 #### Phase 1: NPM Library Package (4-6 weeks)
 **Deliverables:**
-- `@logigo/core` - Parser, interpreter, flowchart generator
-- `@logigo/runtime` - Checkpoint execution tracking
-- `@logigo/overlay-ui` - React-based overlay component
+- `@logicart/core` - Parser, interpreter, flowchart generator
+- `@logicart/runtime` - Checkpoint execution tracking
+- `@logicart/overlay-ui` - React-based overlay component
 - Documentation and examples
 
 **Technical Specifications:**
 ```typescript
-// Package: @logigo/runtime
-interface LogiGoConfig {
+// Package: @logicart/runtime
+interface LogicArtConfig {
   mode: 'overlay' | 'inline' | 'headless';
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   theme?: 'light' | 'dark' | 'auto';
@@ -127,8 +127,8 @@ interface LogiGoConfig {
   apiKey?: string; // For premium features
 }
 
-class LogiGo {
-  static init(config: LogiGoConfig): void;
+class LogicArt {
+  static init(config: LogicArtConfig): void;
   static checkpoint(id: string, metadata?: Record<string, any>): Promise<void>;
   static startExecution(functionName: string): void;
   static pauseExecution(): void;
@@ -150,7 +150,7 @@ class LogiGo {
 - Timeline scrubber integration
 
 **Enhanced Features:**
-- Detect `LogiGo.checkpoint()` calls in code
+- Detect `LogicArt.checkpoint()` calls in code
 - Automatically start overlay when user runs code
 - Integration with Antigravity's terminal/console
 
@@ -196,7 +196,7 @@ interface AIConfig {
   };
 }
 
-LogiGo.init({
+LogicArt.init({
   mode: 'overlay',
   ai: {
     provider: 'google-gemini',
@@ -234,7 +234,7 @@ interface ExecutionContext {
 }
 ```
 
-**Rationale:** LogiGo needs to know when code runs to automatically show overlay and capture runtime data.
+**Rationale:** LogicArt needs to know when code runs to automatically show overlay and capture runtime data.
 
 **API 2: Editor Decoration API**
 ```typescript
@@ -257,7 +257,7 @@ interface DecorationStyle {
 }
 ```
 
-**Rationale:** Allows LogiGo to visually connect flowchart nodes to source code lines with rich decorations.
+**Rationale:** Allows LogicArt to visually connect flowchart nodes to source code lines with rich decorations.
 
 **API 3: AI Code Insertion Hooks**
 ```typescript
@@ -275,17 +275,17 @@ interface CodeGenerationEvent {
 }
 ```
 
-**Rationale:** Auto-show LogiGo flowchart when Gemini generates code, with "Understand this code" prompt.
+**Rationale:** Auto-show LogicArt flowchart when Gemini generates code, with "Understand this code" prompt.
 
 #### Phase 2: Extension Marketplace Integration (1-2 weeks)
 
 **Deliverables:**
-- LogiGo published to Open VSX Registry (already done ✅)
+- LogicArt published to Open VSX Registry (already done ✅)
 - Featured in Antigravity extension recommendations
-- Deep link support: `antigravity://extension/logigo.visualize?file=<path>`
+- Deep link support: `antigravity://extension/logicart.visualize?file=<path>`
 
 **Recommendation: First-Party Integration**
-Consider making LogiGo a **built-in tool** (like Git or debugger) rather than just an extension:
+Consider making LogicArt a **built-in tool** (like Git or debugger) rather than just an extension:
 - Pre-installed in Antigravity
 - Native UI integration (not webview)
 - Keyboard shortcut: `Cmd+Shift+V` (Visualize)
@@ -297,7 +297,7 @@ Consider making LogiGo a **built-in tool** (like Git or debugger) rather than ju
 ```
 User: "Write a function to process user orders"
 Gemini: [Generates code]
-Antigravity: [Inserts code + shows LogiGo panel]
+Antigravity: [Inserts code + shows LogicArt panel]
   "📊 I generated processOrder(). Want to see how it works?"
   [Show Flowchart] [No Thanks]
 ```
@@ -307,7 +307,7 @@ Antigravity: [Inserts code + shows LogiGo panel]
 User: [Selects complex function]
 User: "Explain this code" (right-click menu)
 Gemini: [Generates explanation]
-LogiGo: [Shows flowchart + Gemini explanation side-by-side]
+LogicArt: [Shows flowchart + Gemini explanation side-by-side]
 ```
 
 **Implementation:**
@@ -318,7 +318,7 @@ interface GeminiResponse {
   code?: string;
   visualization?: {
     type: 'flowchart' | 'diagram' | 'graph';
-    provider: 'logigo';
+    provider: 'logicart';
     data: any;
   };
 }
@@ -334,9 +334,9 @@ interface AntigravityUser {
   hasFeature(feature: string): Promise<boolean>;
 }
 
-// LogiGo checks tier
+// LogicArt checks tier
 const tier = await antigravity.user.getUserTier();
-LogiGo.init({
+LogicArt.init({
   mode: 'overlay',
   features: {
     ghostDiff: tier !== 'free',
@@ -346,10 +346,10 @@ LogiGo.init({
 });
 ```
 
-**Recommendation:** Bundle LogiGo Premium with Antigravity Pro subscription
+**Recommendation:** Bundle LogicArt Premium with Antigravity Pro subscription
 - Free tier: Basic flowchart, PNG export
 - Antigravity Pro: Ghost Diff, Time Travel, PDF export, Natural Language Search
-- Revenue share: 70% Antigravity / 30% LogiGo
+- Revenue share: 70% Antigravity / 30% LogicArt
 
 ---
 
@@ -363,7 +363,7 @@ LogiGo.init({
 1. Gemini generates code and inserts into editor
 2. Small toast notification appears:
    ```
-   📊 LogiGo can visualize this function
+   📊 LogicArt can visualize this function
    [Show Flowchart] [Don't Show Again]
    ```
 3. User clicks "Show Flowchart"
@@ -374,7 +374,7 @@ LogiGo.init({
 **First-run Experience:**
 ```
 ╔═══════════════════════════════════════╗
-║  Welcome to LogiGo! 👋                ║
+║  Welcome to LogicArt! 👋                ║
 ║                                       ║
 ║  Visual debugging for AI-generated    ║
 ║  code. Here's what you can do:        ║
@@ -389,11 +389,11 @@ LogiGo.init({
 
 ### Flow 2: Active Debugging Session
 
-**Trigger:** User adds `LogiGo.checkpoint()` and runs code
+**Trigger:** User adds `LogicArt.checkpoint()` and runs code
 
 **UX Steps:**
 1. User runs code (terminal, Run button, etc.)
-2. LogiGo overlay auto-appears
+2. LogicArt overlay auto-appears
 3. Flowchart nodes highlight in real-time as checkpoints execute
 4. Variable state panel shows current values
 5. Timeline scrubber allows time-travel (premium)
@@ -402,7 +402,7 @@ LogiGo.init({
 **Overlay Layout:**
 ```
 ┌─────────────────────────────────────────┐
-│ LogiGo Runtime                    [−][×]│
+│ LogicArt Runtime                    [−][×]│
 ├─────────────────────────────────────────┤
 │                                         │
 │     [Flowchart Visualization]          │
@@ -431,7 +431,7 @@ LogiGo.init({
 
 **UX Steps:**
 1. User opens JavaScript file
-2. Status bar shows: "LogiGo: Click to visualize" with icon
+2. Status bar shows: "LogicArt: Click to visualize" with icon
 3. User clicks or uses `Cmd+Shift+V`
 4. Side panel opens with flowchart of all functions
 5. User selects function from dropdown
@@ -445,16 +445,16 @@ LogiGo.init({
 
 ## Technical Implementation Details
 
-### LogiGo NPM Package Structure
+### LogicArt NPM Package Structure
 
 ```
-@logigo/
+@logicart/
 ├── core/                 # Parser + Interpreter
 │   ├── parser.ts         # AST → Flowchart
 │   ├── interpreter.ts    # Step-by-step execution
 │   └── differ.ts         # Ghost Diff engine
 ├── runtime/              # Execution tracking
-│   ├── checkpoint.ts     # LogiGo.checkpoint() impl
+│   ├── checkpoint.ts     # LogicArt.checkpoint() impl
 │   ├── capture.ts        # Console.log capture
 │   └── metrics.ts        # Performance timing
 ├── overlay-ui/           # React components
@@ -481,7 +481,7 @@ LogiGo.init({
 
 ### Performance Considerations
 
-**LogiGo Team:**
+**LogicArt Team:**
 - Parser must handle files up to 10,000 lines
 - Overlay rendering budget: <100ms for 50-node flowchart
 - Memory footprint: <50MB for overlay + runtime
@@ -497,33 +497,33 @@ LogiGo.init({
 ## Phased Rollout Plan
 
 ### Phase 1: Foundation (Weeks 1-6)
-**LogiGo:**
-- Build NPM package (`@logigo/core`, `@logigo/runtime`)
+**LogicArt:**
+- Build NPM package (`@logicart/core`, `@logicart/runtime`)
 - Create overlay UI prototype
 - Document integration APIs
 
 **Antigravity:**
 - Implement execution hooks API
 - Add editor decoration API
-- Review LogiGo extension submission
+- Review LogicArt extension submission
 
 **Milestone:** Working demo of overlay in standalone HTML page
 
 ### Phase 2: Integration (Weeks 7-10)
-**LogiGo:**
+**LogicArt:**
 - Enhance VS Code extension with runtime mode
 - Add checkpoint debugging
 - Publish to Open VSX
 
 **Antigravity:**
-- Integrate execution hooks with LogiGo extension
-- Add LogiGo to recommended extensions
+- Integrate execution hooks with LogicArt extension
+- Add LogicArt to recommended extensions
 - Test overlay in Antigravity environment
 
-**Milestone:** LogiGo overlay works in Antigravity with manual setup
+**Milestone:** LogicArt overlay works in Antigravity with manual setup
 
 ### Phase 3: AI Integration (Weeks 11-14)
-**LogiGo:**
+**LogicArt:**
 - Implement AI-powered semantic labeling
 - Add console.log capture
 - Build hierarchical views
@@ -536,13 +536,13 @@ LogiGo.init({
 **Milestone:** Auto-show flowchart when Gemini generates code
 
 ### Phase 4: Premium & Polish (Weeks 15-18)
-**LogiGo:**
+**LogicArt:**
 - Complete premium features (Time Travel, Ghost Diff)
 - Performance optimization
 - Comprehensive documentation
 
 **Antigravity:**
-- Bundle LogiGo Premium with Antigravity Pro
+- Bundle LogicArt Premium with Antigravity Pro
 - Add keyboard shortcuts and UI polish
 - Marketing materials and launch
 
@@ -553,7 +553,7 @@ LogiGo.init({
 ## Success Metrics
 
 ### User Engagement Metrics
-- **Activation:** % of Antigravity users who try LogiGo (Target: 30% in 3 months)
+- **Activation:** % of Antigravity users who try LogicArt (Target: 30% in 3 months)
 - **Retention:** % who use it weekly (Target: 50% of activations)
 - **Premium Conversion:** % free → Pro (Target: 10%)
 
@@ -563,7 +563,7 @@ LogiGo.init({
 - **Compatibility:** Works with 95% of JavaScript codebases
 
 ### Business Metrics
-- **Revenue Share:** Track Pro subscriptions attributed to LogiGo
+- **Revenue Share:** Track Pro subscriptions attributed to LogicArt
 - **User Satisfaction:** NPS score >40
 - **Support Load:** <5% of users need help
 
@@ -572,7 +572,7 @@ LogiGo.init({
 ## Open Questions for Antigravity Team
 
 ### Technical Questions
-1. **Extension Host Permissions:** Does LogiGo need special permissions to inject overlay into user's runtime?
+1. **Extension Host Permissions:** Does LogicArt need special permissions to inject overlay into user's runtime?
 2. **Console Access:** Can extensions intercept `console.log()` in user's code execution?
 3. **Gemini API:** Is there a public API for extensions to integrate with Gemini responses?
 4. **Premium Tiers:** What's the preferred approach for premium feature gating?
@@ -581,29 +581,29 @@ LogiGo.init({
 5. **Default Behavior:** Should flowchart auto-show on AI code generation, or require opt-in?
 6. **UI Location:** Overlay (floating) vs. panel (docked) - which fits better with Antigravity's design?
 7. **Keyboard Shortcuts:** Any existing shortcuts we should avoid conflicting with?
-8. **Branding:** Should it be "LogiGo powered by Antigravity" or "Antigravity LogiGo"?
+8. **Branding:** Should it be "LogicArt powered by Antigravity" or "Antigravity LogicArt"?
 
 ### Business Questions
 9. **Revenue Model:** Bundle with Pro subscription or separate pricing?
 10. **Go-to-Market:** Joint launch announcement or soft launch?
-11. **Support:** Who handles user support tickets - LogiGo, Antigravity, or shared?
+11. **Support:** Who handles user support tickets - LogicArt, Antigravity, or shared?
 
 ---
 
 ## Next Steps
 
 ### Immediate Actions (This Week)
-- [ ] **LogiGo:** Review this plan and provide feedback
+- [ ] **LogicArt:** Review this plan and provide feedback
 - [ ] **Antigravity:** Schedule kickoff call with engineering team
 - [ ] **Both:** Align on Phase 1 deliverables and timeline
 
 ### Week 1-2
-- [ ] **LogiGo:** Start NPM package structure
+- [ ] **LogicArt:** Start NPM package structure
 - [ ] **Antigravity:** Prototype execution hooks API
 - [ ] **Both:** Weekly sync meetings (30 min)
 
 ### Week 3-4
-- [ ] **LogiGo:** Demo overlay prototype
+- [ ] **LogicArt:** Demo overlay prototype
 - [ ] **Antigravity:** Share execution hooks API draft
 - [ ] **Both:** Test integration in staging environment
 
@@ -611,8 +611,8 @@ LogiGo.init({
 
 ## Contact & Resources
 
-**LogiGo Team:**
-- Codebase: [Replit - LogiGo Project]
+**LogicArt Team:**
+- Codebase: [Replit - LogicArt Project]
 - Demo: [Extension in Open VSX Registry]
 - Documentation: See `SPEC.md`, `replit.md` in repo
 
@@ -630,10 +630,10 @@ LogiGo.init({
 
 ```javascript
 // User's code in Antigravity
-import LogiGo from '@logigo/runtime';
+import LogicArt from '@logicart/runtime';
 
 // Initialize once
-LogiGo.init({
+LogicArt.init({
   mode: 'overlay',
   position: 'bottom-right',
   theme: 'auto', // Matches Antigravity theme
@@ -641,20 +641,20 @@ LogiGo.init({
 
 // Add checkpoints to any function
 async function calculateRoute(points) {
-  await LogiGo.checkpoint('validate-points', { count: points.length });
+  await LogicArt.checkpoint('validate-points', { count: points.length });
   
   if (!points || points.length < 2) {
     throw new Error('Need at least 2 points');
   }
   
-  await LogiGo.checkpoint('calculate-distances');
+  await LogicArt.checkpoint('calculate-distances');
   const distances = [];
   for (let i = 0; i < points.length - 1; i++) {
     const dist = haversineDistance(points[i], points[i + 1]);
     distances.push(dist);
   }
   
-  await LogiGo.checkpoint('compute-total');
+  await LogicArt.checkpoint('compute-total');
   const total = distances.reduce((sum, d) => sum + d, 0);
   
   return { distances, total };
@@ -668,10 +668,10 @@ async function calculateRoute(points) {
 // --- USER AUTHENTICATION ---
 
 async function loginUser(credentials) {
-  await LogiGo.checkpoint('auth.validate');
+  await LogicArt.checkpoint('auth.validate');
   const valid = await validateCredentials(credentials);
   
-  await LogiGo.checkpoint('auth.create-session');
+  await LogicArt.checkpoint('auth.create-session');
   const session = await createSession(valid.userId);
   
   return session;
@@ -680,17 +680,17 @@ async function loginUser(credentials) {
 // --- ORDER PROCESSING ---
 
 async function processOrder(order) {
-  await LogiGo.checkpoint('order.validate');
+  await LogicArt.checkpoint('order.validate');
   validateOrder(order);
   
-  await LogiGo.checkpoint('order.payment');
+  await LogicArt.checkpoint('order.payment');
   await processPayment(order);
   
-  await LogiGo.checkpoint('order.ship');
+  await LogicArt.checkpoint('order.ship');
   await shipOrder(order);
 }
 
-// LogiGo automatically groups these into containers:
+// LogicArt automatically groups these into containers:
 // Container: "USER AUTHENTICATION" (2 checkpoints)
 // Container: "ORDER PROCESSING" (3 checkpoints)
 ```
@@ -703,14 +703,14 @@ function fn1(x) {
   if (x > 100) return true;
   return false;
 }
-// LogiGo shows: "if (x > 100)" ← Not helpful
+// LogicArt shows: "if (x > 100)" ← Not helpful
 
 // With AI: Semantic understanding
 function fn1(x) {
   if (x > 100) return true;
   return false;
 }
-// LogiGo + Gemini shows: "Check if value exceeds threshold" ← Better!
+// LogicArt + Gemini shows: "Check if value exceeds threshold" ← Better!
 
 // AI analyzes context and generates meaningful labels
 ```

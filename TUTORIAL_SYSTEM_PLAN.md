@@ -1,9 +1,9 @@
-# LogiGo Tutorial System Implementation Plan
+# LogicArt Tutorial System Implementation Plan
 
-This document outlines the architecture and implementation steps for the LogiGo Tutorial System, focused on "Agent-User Partnership" and "Vibe Coding" workflows.
+This document outlines the architecture and implementation steps for the LogicArt Tutorial System, focused on "Agent-User Partnership" and "Vibe Coding" workflows.
 
 ## Objectives
-- Introduce new users to LogiGo's unique spatial reasoning features.
+- Introduce new users to LogicArt's unique spatial reasoning features.
 - Demonstrate the power of the Agent (AI) in managing code complexity.
 - Lower the barrier to entry for advanced features like Model Arena and Ghost Diff.
 

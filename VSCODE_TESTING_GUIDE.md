@@ -1,15 +1,15 @@
-# LogiGo Studio Testing Guide for VS Code Extension
+# LogicArt Studio Testing Guide for VS Code Extension
 
-> **Source:** Shared by LogiGo from Replit - all test cases have been validated ✅ on Replit
+> **Source:** Shared by LogicArt from Replit - all test cases have been validated ✅ on Replit
 
 ## Overview
-This document provides test cases for parallel testing of the VS Code extension using the shared `@logigo/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce **identical flowcharts**.
+This document provides test cases for parallel testing of the VS Code extension using the shared `@logicart/bridge` package. The Replit integration has validated all these cases - the VS Code extension should produce **identical flowcharts**.
 
 ---
 
 ## Test Environment Setup
 
-- [x] Ensure VS Code extension imports `parseCodeToFlow` from `@logigo/bridge`
+- [x] Ensure VS Code extension imports `parseCodeToFlow` from `@logicart/bridge`
 - [x] Extension should use the same types: `FlowNode`, `FlowEdge`, `FlowData`
 - [x] Container nodes should render with **collapsible UI**
 
@@ -288,9 +288,9 @@ interface FlowNode {
 
 ```typescript
 // Studio → IDE
-LOGIGO_JUMP_TO_LINE: { path: string, line: number, column?: number }
-LOGIGO_WRITE_FILE: { path: string, content: string }
-LOGIGO_REQUEST_FILE: { path?: string }
+LOGICART_JUMP_TO_LINE: { path: string, line: number, column?: number }
+LOGICART_WRITE_FILE: { path: string, content: string }
+LOGICART_REQUEST_FILE: { path?: string }
 ```
 
 ---

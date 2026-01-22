@@ -1,4 +1,4 @@
-# LogiGo V1 Release Readiness & V2 Roadmap
+# LogicArt V1 Release Readiness & V2 Roadmap
 
 **Date:** December 26, 2025  
 **Prepared by:** Antigravity  
@@ -8,7 +8,7 @@
 
 ## V1 Release Status: **READY FOR LAUNCH** 🚀
 
-LogiGo has achieved **feature completeness** for a V1 release. The core value proposition is fully implemented:
+LogicArt has achieved **feature completeness** for a V1 release. The core value proposition is fully implemented:
 
 ### ✅ Core Features (All Implemented)
 - Static Mode (paste code → instant flowchart)
@@ -16,7 +16,7 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 - Remote Mode (cross-app debugging via SSE/WebSocket)
 - DOM Visual Handshake (click node → highlight element)
 - Collapsible containers with hierarchical views
-- User labels (`// @logigo:` annotations)
+- User labels (`// @logicart:` annotations)
 - Export (PNG/PDF/Code)
 - Model Arena (4-AI comparison)
 - VS Code Extension (full integration)
@@ -54,12 +54,12 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 **Status:** ❌ NOT IMPLEMENTED (docs exist, no API)
 
 **What it is:**
-- CLI/API for Replit Agent to call LogiGo programmatically
-- Agent uses LogiGo to understand code before modifying
+- CLI/API for Replit Agent to call LogicArt programmatically
+- Agent uses LogicArt to understand code before modifying
 - Visual test planning and debug visualization
 
 **Why it's valuable:**
-- Makes LogiGo part of the AI coding workflow
+- Makes LogicArt part of the AI coding workflow
 - Agent can "see" code structure before editing
 - Reduces AI hallucinations by grounding in flowcharts
 
@@ -73,7 +73,7 @@ LogiGo has achieved **feature completeness** for a V1 release. The core value pr
 **Quick Win:** Start with read-only API:
 ```bash
 # Agent calls this before modifying code
-logigo analyze src/auth.js --output json
+logicart analyze src/auth.js --output json
 # Returns: { nodes: [...], complexity: 12, entryPoints: [...] }
 ```
 
@@ -232,11 +232,11 @@ These are **implemented features** that are missing from documentation:
 ## V2 Roadmap Recommendation
 
 ### Phase 1: AI Integration (Q1 2026)
-**Goal:** Make LogiGo essential for AI coding workflows
+**Goal:** Make LogicArt essential for AI coding workflows
 
 1. **Replit Agent API** ⭐⭐⭐
    - Read-only API for code analysis
-   - CLI tool: `logigo analyze <file>`
+   - CLI tool: `logicart analyze <file>`
    - Agent prompt templates
 
 2. **Model Arena File Selection** ⭐⭐
@@ -244,7 +244,7 @@ These are **implemented features** that are missing from documentation:
    - AI code discovery
    - Context-aware generation
 
-**Impact:** Positions LogiGo as "AI coding assistant's eyes"
+**Impact:** Positions LogicArt as "AI coding assistant's eyes"
 
 ---
 
@@ -261,7 +261,7 @@ These are **implemented features** that are missing from documentation:
    - Short URLs
    - Open Graph previews
 
-**Impact:** Differentiates LogiGo from competitors
+**Impact:** Differentiates LogicArt from competitors
 
 ---
 
@@ -318,7 +318,7 @@ These are **implemented features** that are missing from documentation:
 ### For V1 Launch (Now)
 **Ship it!** 🚀
 
-LogiGo is feature-complete for V1. The only blockers are:
+LogicArt is feature-complete for V1. The only blockers are:
 1. Update documentation (Model Arena, BYOK, Bidirectional Editing)
 2. Test installation guides
 3. Fix any critical bugs

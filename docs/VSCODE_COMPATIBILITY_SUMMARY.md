@@ -1,21 +1,21 @@
-# LogiGo VS Code / Antigravity Compatibility Summary
+# LogicArt VS Code / Antigravity Compatibility Summary
 
 ## Status: EXTENSION COMPLETE ✅
 
-The VS Code extension has been **fully developed** and is located at `vscode-extension/`. A pre-built `.vsix` file (`logigo-1.0.0.vsix`) is ready for distribution.
+The VS Code extension has been **fully developed** and is located at `vscode-extension/`. A pre-built `.vsix` file (`logicart-1.0.0.vsix`) is ready for distribution.
 
 ## Purpose
-This document summarizes the technical architecture of LogiGo and identifies which features are platform-specific vs platform-agnostic.
+This document summarizes the technical architecture of LogicArt and identifies which features are platform-specific vs platform-agnostic.
 
 ---
 
 ## Architecture Overview
 
-LogiGo uses a **pluggable adapter pattern** to support multiple IDEs:
+LogicArt uses a **pluggable adapter pattern** to support multiple IDEs:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    LogiGo Core                          │
+│                    LogicArt Core                          │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
 │  │   Parser    │  │  Renderer   │  │  Interpreter    │  │
 │  │  (Acorn)    │  │ (ReactFlow) │  │  (Step Engine)  │  │
@@ -105,7 +105,7 @@ These work identically across all platforms:
 - **Fullscreen/Presentation Modes**: CSS + React state
 
 ### Comment Labels
-- **`// @logigo:` comments**: Parsed from source code, works everywhere
+- **`// @logicart:` comments**: Parsed from source code, works everywhere
 
 ---
 
@@ -115,7 +115,7 @@ These work identically across all platforms:
 
 ```
 ┌──────────────────┐     HTTP/SSE      ┌──────────────────┐
-│  External App    │ ───────────────▶  │  LogiGo Server   │
+│  External App    │ ───────────────▶  │  LogicArt Server   │
 │  (Any Platform)  │                   │  (Replit-hosted) │
 └──────────────────┘                   └────────┬─────────┘
                                                 │
@@ -127,7 +127,7 @@ These work identically across all platforms:
 
 ### Options for VS Code
 
-1. **Use Published LogiGo URL**: VS Code users can send checkpoints to the published Replit app and view in browser
+1. **Use Published LogicArt URL**: VS Code users can send checkpoints to the published Replit app and view in browser
 2. **Local Server Mode**: Bundle a lightweight Express server with the VS Code extension
 3. **Direct Integration**: Skip Remote Mode entirely, use VS Code's built-in debugging APIs
 
@@ -251,10 +251,10 @@ export class VSCodeAdapter implements IDEAdapter {
 
 | Package | Purpose | Platform |
 |---------|---------|----------|
-| `logigo-embed` | Embeddable React component | Any React app |
-| `logigo-remote` | HTTP client for Remote Mode | Any JavaScript runtime |
-| `logigo-core` | Runtime overlay + checkpoint API | Browser-based apps |
-| `@logigo/bridge` | Shared parser + types | All platforms |
+| `logicart-embed` | Embeddable React component | Any React app |
+| `logicart-remote` | HTTP client for Remote Mode | Any JavaScript runtime |
+| `logicart-core` | Runtime overlay + checkpoint API | Browser-based apps |
+| `@logicart/bridge` | Shared parser + types | All platforms |
 
 ---
 
@@ -263,9 +263,9 @@ export class VSCodeAdapter implements IDEAdapter {
 1. **Confirm Extension Status**: Get update from Antigravity on VS Code extension progress
 2. **Share This Document**: Review architecture decisions together
 3. **Prioritize Features**: Decide which features need VS Code parity first
-4. **Integration Testing**: Test logigo-remote from a VS Code terminal app
+4. **Integration Testing**: Test logicart-remote from a VS Code terminal app
 
 ---
 
 *Document prepared: December 2024*
-*Contact: LogiGo Development Team*
+*Contact: LogicArt Development Team*

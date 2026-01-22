@@ -20,7 +20,7 @@
 
 ### Step 1: Pull Latest Changes in Replit
 
-In your Replit LogiGo project:
+In your Replit LogicArt project:
 
 ```bash
 git pull origin main
@@ -96,7 +96,7 @@ Replit Agent will:
 
 ### Replit Can't See the Files
 - Make sure you ran `git pull origin main` in Replit
-- Check that you're in the LogiGo project directory
+- Check that you're in the LogicArt project directory
 - Verify the files exist: `ls -la *.md`
 
 ### Replit Has Questions
@@ -115,7 +115,7 @@ Replit Agent will:
 
 ## ✅ Checklist for You
 
-- [ ] Open Replit LogiGo project
+- [ ] Open Replit LogicArt project
 - [ ] Run `git pull origin main`
 - [ ] Verify new .md files are present
 - [ ] Open `MESSAGE_FOR_REPLIT.md`

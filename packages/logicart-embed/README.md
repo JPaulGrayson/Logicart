@@ -1,11 +1,11 @@
-# logigo-embed
+# logicart-embed
 
 Embeddable code-to-flowchart visualization component for React applications.
 
 ## Installation
 
 ```bash
-npm install logigo-embed
+npm install logicart-embed
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install logigo-embed
 ### Static Mode (Parse code at runtime)
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
@@ -31,7 +31,7 @@ function App() {
   `;
 
   return (
-    <LogiGoEmbed 
+    <LogicArtEmbed 
       code={code}
       position="bottom-right"
       defaultOpen={true}
@@ -44,13 +44,13 @@ function App() {
 ### Live Mode (With Vite Plugin instrumentation)
 
 ```jsx
-import { LogiGoEmbed } from 'logigo-embed';
+import { LogicArtEmbed } from 'logicart-embed';
 import '@xyflow/react/dist/style.css';
 
 function App() {
   return (
-    <LogiGoEmbed 
-      manifestUrl="/logigo-manifest.json"
+    <LogicArtEmbed 
+      manifestUrl="/logicart-manifest.json"
       position="bottom-right"
       defaultOpen={true}
       showVariables={true}
@@ -66,7 +66,7 @@ function App() {
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `code` | `string` | - | JavaScript code to parse (Static Mode) |
-| `manifestUrl` | `string` | - | URL to LogiGo manifest (Live Mode) |
+| `manifestUrl` | `string` | - | URL to LogicArt manifest (Live Mode) |
 | `manifestHash` | `string` | - | Hash for manifest validation |
 | `position` | `'bottom-right' \| 'bottom-left' \| 'top-right' \| 'top-left'` | `'bottom-right'` | Panel position |
 | `defaultOpen` | `boolean` | `true` | Initially open |

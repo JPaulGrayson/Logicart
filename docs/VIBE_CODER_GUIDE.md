@@ -75,19 +75,19 @@ STEP 4: Create a FlowchartButton component with:
 - Dropdown of individual files from step 3 (calls LogicArt.visualize)
 - Enable bidirectional debugging by calling connectControlChannel once after React mounts:
   useEffect(() => {
-    const api = window.LogiGo || window.LogicArt;
+    const api = window.LogicArt || window.LogicArt;
     if (api?.connectControlChannel) api.connectControlChannel();
   }, []);
 
 When user clicks "View Full Architecture":
   Option A - If you have a /api/source endpoint:
-    Call: (window.LogiGo || window.LogicArt).openArchitecture(
+    Call: (window.LogicArt || window.LogicArt).openArchitecture(
       window.location.origin + '/api/source',
       [/* array of ALL file paths from step 3 */]
     )
   
   Option B - Send file contents directly (preferred):
-    Call: (window.LogiGo || window.LogicArt).openArchitectureWithCode({
+    Call: (window.LogicArt || window.LogicArt).openArchitectureWithCode({
       'path/to/App.tsx': fileContents,
       'path/to/Home.tsx': fileContents,
       // ... all files with their contents
@@ -95,7 +95,7 @@ When user clicks "View Full Architecture":
 
 When user selects a single component:
 1. Fetch the source via: fetch('/api/source?file=' + encodeURIComponent(component.path))
-2. Call: (window.LogiGo || window.LogicArt).visualize(code, componentName)
+2. Call: (window.LogicArt || window.LogicArt).visualize(code, componentName)
 
 STEP 5: Add the FlowchartButton to an EXISTING header/navbar component (DEV ONLY).
 Wrap in dev check: {import.meta.env.DEV && <FlowchartButton />}

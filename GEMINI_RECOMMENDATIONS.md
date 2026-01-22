@@ -1,7 +1,7 @@
-# Gemini's LogiGo Recommendations
+# Gemini's LogicArt Recommendations
 
 ## Overview
-Gemini recommended a strategic pivot for LogiGo to bypass the Replit Extension Store approval bottleneck by creating a standard NPM library that can be injected into any web application.
+Gemini recommended a strategic pivot for LogicArt to bypass the Replit Extension Store approval bottleneck by creating a standard NPM library that can be injected into any web application.
 
 ## The Strategy
 
@@ -63,7 +63,7 @@ Connect this Promise to the 'Speed Slider' in the UI. If the slider is at 50%,
 the Promise should wait 500ms before resolving.
 
 Create a test script test_loop.js that runs a for loop 10 times, calling 
-await LogiGo.checkpoint() inside the loop, so I can visually verify the delay works.
+await LogicArt.checkpoint() inside the loop, so I can visually verify the delay works.
 ```
 
 ### 📋 Phase 3: The Ghost Diff (PLANNED)

@@ -1,13 +1,13 @@
-# LogiGo VS Code Extension - Flowchart Update Bug Report
+# LogicArt VS Code Extension - Flowchart Update Bug Report
 
 ## Problem Summary
-When selecting a different algorithm example from the EXAMPLES dropdown in the LogiGo flowchart panel, the flowchart does not update to reflect the new example. The notification message "📚 Algorithm example loaded!" appears, and a new document with the example code is created, but the flowchart visualization remains unchanged.
+When selecting a different algorithm example from the EXAMPLES dropdown in the LogicArt flowchart panel, the flowchart does not update to reflect the new example. The notification message "📚 Algorithm example loaded!" appears, and a new document with the example code is created, but the flowchart visualization remains unchanged.
 
 ---
 
 ## Project Structure
 ```
-LogiGo/
+LogicArt/
 ├── bridge/                    # Shared parsing library
 │   └── src/
 │       └── parser.ts          # parseCodeToFlow() function
@@ -25,7 +25,7 @@ LogiGo/
 
 ## Expected Behavior
 1. User opens a JavaScript file
-2. User runs "LogiGo: Visualize Current File" command
+2. User runs "LogicArt: Visualize Current File" command
 3. Flowchart panel appears showing the code's control flow
 4. User selects a different example from the EXAMPLES dropdown (e.g., "Fibonacci")
 5. **Expected**: Flowchart updates to show the Fibonacci algorithm's structure
@@ -77,7 +77,7 @@ currentPanel.webview.onDidReceiveMessage(
   async (message) => {
     switch (message.command) {
       case 'insertCode':
-        console.log('[LogiGo] insertCode received, code length:', message.code?.length);
+        console.log('[LogicArt] insertCode received, code length:', message.code?.length);
 
         // Create a new untitled document with the example code
         const newDoc = await vscode.workspace.openTextDocument({
@@ -96,7 +96,7 @@ currentPanel.webview.onDidReceiveMessage(
         if (currentPanel) {
           await new Promise(resolve => setTimeout(resolve, 100));
           updateWebview(currentPanel, context, message.code, 'Example');
-          console.log('[LogiGo] updateWebview called for example');
+          console.log('[LogicArt] updateWebview called for example');
         }
 
         vscode.window.showInformationMessage('📚 Algorithm example loaded!');
@@ -113,9 +113,9 @@ currentPanel.webview.onDidReceiveMessage(
 
 ```typescript
 function updateWebview(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, code: string, filePath: string) {
-  console.log('[LogiGo] updateWebview called, code length:', code?.length);
+  console.log('[LogicArt] updateWebview called, code length:', code?.length);
   const flowData = parseCodeToFlow(code);
-  console.log('[LogiGo] Parsed flowData, nodes:', flowData?.nodes?.length, 'edges:', flowData?.edges?.length);
+  console.log('[LogicArt] Parsed flowData, nodes:', flowData?.nodes?.length, 'edges:', flowData?.edges?.length);
 
   // Send update via postMessage instead of rebuilding HTML
   panel.webview.postMessage({
@@ -123,7 +123,7 @@ function updateWebview(panel: vscode.WebviewPanel, context: vscode.ExtensionCont
     flowData,
     filePath
   });
-  console.log('[LogiGo] postMessage sent to webview');
+  console.log('[LogicArt] postMessage sent to webview');
 }
 ```
 
@@ -134,9 +134,9 @@ function updateWebview(panel: vscode.WebviewPanel, context: vscode.ExtensionCont
 React.useEffect(() => {
   const handleMessage = (event: MessageEvent) => {
     const message = event.data;
-    console.log('[LogiGo Webview] Message received:', message.type);
+    console.log('[LogicArt Webview] Message received:', message.type);
     if (message.type === 'updateFlow' && message.flowData) {
-      console.log('[LogiGo Webview] Setting new flowData with', message.flowData?.nodes?.length, 'nodes');
+      console.log('[LogicArt Webview] Setting new flowData with', message.flowData?.nodes?.length, 'nodes');
       // Force a new object reference to ensure React re-renders
       setFlowData({ ...message.flowData });
     }
@@ -215,7 +215,7 @@ setFlowData({ ...message.flowData });
 **Result**: Did not work.
 
 ### Attempt 6: Discovered Extension Was Running from Installed VSIX
-Found that the extension was installed as a packaged `.vsix` file, not running from development source code. The user had `logigo.logigo-1.0.0` in their extensions folder.
+Found that the extension was installed as a packaged `.vsix` file, not running from development source code. The user had `logicart.logicart-1.0.0` in their extensions folder.
 
 **Actions taken**:
 - Uninstalled the extension via VS Code UI
@@ -229,7 +229,7 @@ Found that the extension was installed as a packaged `.vsix` file, not running f
 
 ## Current State
 
-1. **Extension installation is broken** - The LogiGo commands no longer appear in the command palette
+1. **Extension installation is broken** - The LogicArt commands no longer appear in the command palette
 2. **The core flowchart update issue was never solved** - Before the installation broke, the flowchart would not update when selecting examples
 
 ---
@@ -268,8 +268,8 @@ Found that the extension was installed as a packaged `.vsix` file, not running f
 "activationEvents": [
   "onLanguage:javascript",
   "onLanguage:typescript",
-  "onCommand:logigo.visualize",
-  "onCommand:logigo.execute"
+  "onCommand:logicart.visualize",
+  "onCommand:logicart.execute"
 ]
 ```
 

@@ -162,14 +162,14 @@
     </div>
 
     <script type="module">
-        import LogiGoOverlay from '/demo-src/overlay.js';
+        import LogicArtOverlay from '/demo-src/overlay.js';
 
-        // Initialize LogicArt (using LogiGo class for backward compatibility)
-        const logicart = new LogiGoOverlay({
+        // Initialize LogicArt (using LogicArt class for backward compatibility)
+        const logicart = new LogicArtOverlay({
             speed: 2.0, // Faster default speed for sorting
             position: 'bottom-right'
         }).init();
-        // LogiGo is already exposed by the overlay.init()
+        // LogicArt is already exposed by the overlay.init()
 
         // State
         let array = [];
@@ -228,7 +228,7 @@
             stats.swaps++;
 
             // Visual Handshake: Highlight bars being swapped
-            await LogiGo.checkpoint(`swap:${i}:${j}`, {
+            await LogicArt.checkpoint(`swap:${i}:${j}`, {
                 domElement: `#bar-${i}`, // Highlight first bar
                 variables: { i, j, val_i: array[i], val_j: array[j] },
                 color: '#e74c3c' // Red for swap
@@ -256,14 +256,14 @@
             generateArray(); // Auto-reset
             showDescription("Bubble Sort", "Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. Simple but inefficient (O(n²)).");
 
-            await LogiGo.checkpoint('bubble_sort:start', { variables: { array } });
+            await LogicArt.checkpoint('bubble_sort:start', { variables: { array } });
 
             for (let i = 0; i < array.length; i++) {
                 for (let j = 0; j < array.length - i - 1; j++) {
                     stats.comparisons++;
 
                     // Checkpoint: Comparison
-                    await LogiGo.checkpoint(`compare:${j}:${j + 1}`, {
+                    await LogicArt.checkpoint(`compare:${j}:${j + 1}`, {
                         domElement: `#bar-${j}`,
                         color: '#f1c40f', // Yellow for compare
                         variables: { left: array[j], right: array[j + 1] }
@@ -275,7 +275,7 @@
                 }
             }
 
-            await LogiGo.checkpoint('bubble_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('bubble_sort:complete', { color: '#2ecc71' });
         };
 
         // 2. Quick Sort
@@ -283,15 +283,15 @@
             generateArray(); // Auto-reset
             showDescription("Quick Sort", "A divide-and-conquer algorithm. It picks a 'pivot' element and partitions the array so smaller elements are on the left and larger on the right. Very efficient (O(n log n)).");
 
-            await LogiGo.checkpoint('quick_sort:start');
+            await LogicArt.checkpoint('quick_sort:start');
             await quickSort(0, array.length - 1);
-            await LogiGo.checkpoint('quick_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('quick_sort:complete', { color: '#2ecc71' });
         };
 
         async function quickSort(low, high) {
             if (low < high) {
                 // Hierarchical Checkpoint: Partition Start
-                await LogiGo.checkpoint(`quick_sort:partition_start:${low}:${high}`);
+                await LogicArt.checkpoint(`quick_sort:partition_start:${low}:${high}`);
 
                 let pi = await partition(low, high);
 
@@ -304,7 +304,7 @@
             let pivot = array[high];
 
             // Highlight Pivot
-            await LogiGo.checkpoint(`partition:pivot_selected`, {
+            await LogicArt.checkpoint(`partition:pivot_selected`, {
                 domElement: `#bar-${high}`,
                 color: '#9b59b6', // Purple for pivot
                 variables: { pivot }
@@ -315,7 +315,7 @@
             for (let j = low; j < high; j++) {
                 stats.comparisons++;
 
-                await LogiGo.checkpoint(`partition:compare:${j}`, {
+                await LogicArt.checkpoint(`partition:compare:${j}`, {
                     domElement: `#bar-${j}`,
                     color: '#f1c40f',
                     variables: { current: array[j], pivot }
@@ -335,9 +335,9 @@
             generateArray(); // Auto-reset
             showDescription("Merge Sort", "Divides the array into halves, sorts them recursively, and then merges the sorted halves. Stable and efficient (O(n log n)).");
 
-            await LogiGo.checkpoint('merge_sort:start');
+            await LogicArt.checkpoint('merge_sort:start');
             await mergeSort(0, array.length - 1);
-            await LogiGo.checkpoint('merge_sort:complete', { color: '#2ecc71' });
+            await LogicArt.checkpoint('merge_sort:complete', { color: '#2ecc71' });
         };
 
         async function mergeSort(l, r) {
@@ -345,7 +345,7 @@
 
             const m = l + parseInt((r - l) / 2);
 
-            await LogiGo.checkpoint(`merge_sort:split:${l}:${r}`, {
+            await LogicArt.checkpoint(`merge_sort:split:${l}:${r}`, {
                 variables: { left: l, mid: m, right: r }
             });
 
@@ -355,7 +355,7 @@
         }
 
         async function merge(l, m, r) {
-            await LogiGo.checkpoint(`merge_sort:merge_start:${l}:${r}`, {
+            await LogicArt.checkpoint(`merge_sort:merge_start:${l}:${r}`, {
                 color: '#3498db' // Blue for merge
             });
 
@@ -380,7 +380,7 @@
                 }
                 // Visual update for merge step
                 renderArray();
-                await LogiGo.checkpoint(`merge:place:${k}`, {
+                await LogicArt.checkpoint(`merge:place:${k}`, {
                     domElement: `#bar-${k}`,
                     color: '#2ecc71'
                 });
@@ -390,14 +390,14 @@
             while (i < n1) {
                 array[k] = L[i];
                 renderArray();
-                await LogiGo.checkpoint(`merge:place_remaining_left:${k}`);
+                await LogicArt.checkpoint(`merge:place_remaining_left:${k}`);
                 i++; k++;
             }
 
             while (j < n2) {
                 array[k] = R[j];
                 renderArray();
-                await LogiGo.checkpoint(`merge:place_remaining_right:${k}`);
+                await LogicArt.checkpoint(`merge:place_remaining_right:${k}`);
                 j++; k++;
             }
         }

@@ -1,6 +1,6 @@
-# LogiGo Studio - Files for @logigo/bridge Integration
+# LogicArt Studio - Files for @logicart/bridge Integration
 
-This document contains the key files from LogiGo Studio that Antigravity needs for `@logigo/bridge` integration.
+This document contains the key files from LogicArt Studio that Antigravity needs for `@logicart/bridge` integration.
 
 ## 1. Reporter API Types (`shared/reporter-api.ts`)
 
@@ -10,22 +10,22 @@ These are our current message protocol types for Studio ↔ Runtime communicatio
 /**
  * Reporter API Type Definitions
  * 
- * Protocol for communication between LogiGo Studio (static analyzer)
- * and logigo-core (runtime debugger) via window.postMessage
+ * Protocol for communication between LogicArt Studio (static analyzer)
+ * and logicart-core (runtime debugger) via window.postMessage
  * 
  * Based on Antigravity's Reporter API Specification v1.0.0-beta.2
  */
 
-// Message Envelope (all messages from logigo-core follow this structure)
-export interface LogiGoMessage<T = any> {
-  source: 'LOGIGO_CORE';
+// Message Envelope (all messages from logicart-core follow this structure)
+export interface LogicArtMessage<T = any> {
+  source: 'LOGICART_CORE';
   type: string;
   payload: T;
 }
 
 // Event Types
-export const LOGIGO_CHECKPOINT = 'LOGIGO_CHECKPOINT' as const;
-export const LOGIGO_SESSION_START = 'LOGIGO_SESSION_START' as const;
+export const LOGICART_CHECKPOINT = 'LOGICART_CHECKPOINT' as const;
+export const LOGICART_SESSION_START = 'LOGICART_SESSION_START' as const;
 
 // Checkpoint Event Payload
 export interface CheckpointPayload {
@@ -45,12 +45,12 @@ export interface SessionStartPayload {
 }
 
 // Typed Message Types
-export type CheckpointMessage = LogiGoMessage<CheckpointPayload> & {
-  type: typeof LOGIGO_CHECKPOINT;
+export type CheckpointMessage = LogicArtMessage<CheckpointPayload> & {
+  type: typeof LOGICART_CHECKPOINT;
 };
 
-export type SessionStartMessage = LogiGoMessage<SessionStartPayload> & {
-  type: typeof LOGIGO_SESSION_START;
+export type SessionStartMessage = LogicArtMessage<SessionStartPayload> & {
+  type: typeof LOGICART_SESSION_START;
 };
 
 export type ReporterMessage = CheckpointMessage | SessionStartMessage;
@@ -67,23 +67,23 @@ export interface RuntimeState {
 }
 
 // Message validator
-export function isLogiGoMessage(message: any): message is LogiGoMessage {
+export function isLogicArtMessage(message: any): message is LogicArtMessage {
   return (
     message &&
     typeof message === 'object' &&
-    message.source === 'LOGIGO_CORE' &&
+    message.source === 'LOGICART_CORE' &&
     typeof message.type === 'string' &&
     'payload' in message
   );
 }
 
 // Message type guards
-export function isCheckpoint(message: LogiGoMessage): message is CheckpointMessage {
-  return message.type === LOGIGO_CHECKPOINT;
+export function isCheckpoint(message: LogicArtMessage): message is CheckpointMessage {
+  return message.type === LOGICART_CHECKPOINT;
 }
 
-export function isSessionStart(message: LogiGoMessage): message is SessionStartMessage {
-  return message.type === LOGIGO_SESSION_START;
+export function isSessionStart(message: LogicArtMessage): message is SessionStartMessage {
+  return message.type === LOGICART_SESSION_START;
 }
 ```
 
@@ -91,7 +91,7 @@ export function isSessionStart(message: LogiGoMessage): message is SessionStartM
 
 ## 2. Parser Types & Features (`client/src/lib/parser.ts`)
 
-Our parser has several features that should be merged into `@logigo/bridge`:
+Our parser has several features that should be merged into `@logicart/bridge`:
 
 ### Key Types
 
@@ -170,9 +170,9 @@ export interface FlowData {
 
 ```typescript
 // Control messages for IDE integration (extend Reporter API)
-export const LOGIGO_JUMP_TO_LINE = 'LOGIGO_JUMP_TO_LINE' as const;
-export const LOGIGO_WRITE_FILE = 'LOGIGO_WRITE_FILE' as const;
-export const LOGIGO_READ_FILE = 'LOGIGO_READ_FILE' as const;
+export const LOGICART_JUMP_TO_LINE = 'LOGICART_JUMP_TO_LINE' as const;
+export const LOGICART_WRITE_FILE = 'LOGICART_WRITE_FILE' as const;
+export const LOGICART_READ_FILE = 'LOGICART_READ_FILE' as const;
 
 export interface JumpToLinePayload {
   file: string;
@@ -217,4 +217,4 @@ Our AI-assisted node editing feature (`NodeEditDialog.tsx`) will use this to pat
 
 ---
 
-*Generated for @logigo/bridge integration - LogiGo Studio Team*
+*Generated for @logicart/bridge integration - LogicArt Studio Team*

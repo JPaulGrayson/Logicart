@@ -1,4 +1,4 @@
-# LogiGo V1 Manual Test Checklist
+# LogicArt V1 Manual Test Checklist
 
 **Date:** December 30, 2025  
 **Tester:** Paul  
@@ -16,9 +16,9 @@
 ## 🔲 Remaining Tests (Manual)
 
 ### **R1.4: User Labels** (5 minutes)
-**Goal:** Verify that `@logigo:` annotations are extracted and displayed.
+**Goal:** Verify that `@logicart:` annotations are extracted and displayed.
 
-1. In the code editor, add a comment like: `// @logigo: Calculate sum`
+1. In the code editor, add a comment like: `// @logicart: Calculate sum`
 2. Verify that the label appears on the corresponding flowchart node
 3. Try multiple labels in different parts of the code
 4. **Expected:** Labels should be visible on nodes, enhancing readability
