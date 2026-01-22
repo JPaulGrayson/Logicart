@@ -76,6 +76,35 @@ class QuackClient {
     }
   }
 
+  async markComplete(messageId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${QUACK_BASE_URL}/complete/${messageId}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        console.log(`[Quack] Task ${messageId} marked as complete`);
+      }
+      return response.ok;
+    } catch (error) {
+      console.error('[Quack] Error marking task complete:', error);
+      return false;
+    }
+  }
+
+  async checkInboxWithAutoApprove(): Promise<QuackMessage[]> {
+    try {
+      const response = await fetch(`${QUACK_BASE_URL}/inbox/${this.inbox}?autoApprove=true`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch messages: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.messages || [];
+    } catch (error) {
+      console.error('[Quack] Error fetching messages with autoApprove:', error);
+      return [];
+    }
+  }
+
   getInbox(): string {
     return this.inbox;
   }

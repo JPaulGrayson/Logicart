@@ -19,7 +19,7 @@ export function log(message: string, source = "express") {
 export const app = express();
 
 // Initialize Quack agent-to-agent messaging
-initQuack('logicart');
+initQuack('replit/orchestrate');
 
 // MCP messages endpoint MUST be registered BEFORE body-parser middleware
 // because SSEServerTransport.handlePostMessage needs to read the raw request body

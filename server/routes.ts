@@ -24,6 +24,7 @@ import { remoteRouter } from "./routes/remote";
 import { aiProxyRouter } from "./routes/ai-proxy";
 import { githubSyncRouter } from "./routes/github-sync";
 import { sessionManager } from "./services/session-manager";
+import { getQuack } from "./quack";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -744,6 +745,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[Docs] Error reading doc:", error);
       res.status(404).json({ error: "Documentation not found" });
+    }
+  });
+
+  // Quack: Receive tasks from other AI agents
+  app.post("/api/task", async (req, res) => {
+    const { messageId, from, task, context } = req.body;
+    console.log(`[Quack] 📨 Task received from ${from}: ${task}`);
+
+    try {
+      const quack = getQuack();
+      if (!quack) {
+        return res.status(500).json({ success: false, error: "Quack not initialized" });
+      }
+
+      // TODO: Process the task here based on what was requested
+      // For now, just acknowledge receipt and mark complete
+      console.log(`[Quack] Context: ${JSON.stringify(context || {})}`);
+
+      // Mark complete when done
+      if (messageId) {
+        await quack.markComplete(messageId);
+      }
+
+      res.json({ success: true, message: "Task received and processed" });
+    } catch (error: any) {
+      console.error("[Quack] Error processing task:", error);
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
