@@ -1668,11 +1668,21 @@ export default function Workbench() {
   const initialHistoryPushed = useRef(false);
 
   // Push initial code to history on mount (so there's something to undo to)
+  // BUT preserve existing saved history if present
   useEffect(() => {
     if (code && isReady && !initialHistoryPushed.current) {
-      // Clear any stale history from previous sessions and push fresh initial state
-      historyManager.clear();
-      historyManager.push(code, 'Initial', true);
+      const existingEntry = historyManager.getCurrentEntry();
+      
+      if (existingEntry && existingEntry.code) {
+        // History already has saved code - preserve it, don't clear
+        console.log('[Workbench] Preserved existing history with', historyManager.getHistoryLength(), 'entries');
+      } else {
+        // No saved history - initialize fresh with current code
+        historyManager.clear();
+        historyManager.push(code, 'Initial', true);
+        console.log('[Workbench] Initialized fresh history');
+      }
+      
       initialHistoryPushed.current = true;
       setCanUndo(historyManager.canUndo());
       setCanRedo(historyManager.canRedo());
