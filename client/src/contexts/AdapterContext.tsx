@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { IDEAdapter } from '@/lib/adapters/types';
 import { StandaloneAdapter } from '@/lib/adapters/StandaloneAdapter';
+import { historyManager } from '@/lib/historyManager';
 
 interface AdapterContextType {
   adapter: IDEAdapter;
@@ -17,10 +18,7 @@ interface AdapterProviderProps {
   initialCode?: string;
 }
 
-export function AdapterProvider({ 
-  children, 
-  adapter: providedAdapter,
-  initialCode = `function calculateAverage(numbers) {
+const DEFAULT_SAMPLE_CODE = `function calculateAverage(numbers) {
   let sum = 0;
   for (let i = 0; i <= numbers.length; i++) {
     sum += numbers[i];
@@ -28,10 +26,27 @@ export function AdapterProvider({
   return sum / numbers.length;
 }
 
-calculateAverage([10, 20, 30, 40, 50]);`
+calculateAverage([10, 20, 30, 40, 50]);`;
+
+function getInitialCode(providedCode?: string): string {
+  if (providedCode) return providedCode;
+  
+  const savedEntry = historyManager.getCurrentEntry();
+  if (savedEntry?.code) {
+    console.log('[AdapterContext] Restoring saved code from history');
+    return savedEntry.code;
+  }
+  
+  return DEFAULT_SAMPLE_CODE;
+}
+
+export function AdapterProvider({ 
+  children, 
+  adapter: providedAdapter,
+  initialCode
 }: AdapterProviderProps) {
   const [adapter] = useState<IDEAdapter>(() => 
-    providedAdapter || new StandaloneAdapter(initialCode)
+    providedAdapter || new StandaloneAdapter(getInitialCode(initialCode))
   );
   const [code, setCode] = useState('');
   const [filePath, setFilePath] = useState('');
