@@ -803,27 +803,66 @@ export function createMCPServer() {
 const activeSessions = new Map<string, SSEServerTransport>();
 
 export async function handleMCPSSE(req: Request, res: Response) {
+  console.log(`[MCP] SSE connection request received`);
+  
   const server = createMCPServer();
   const transport = new SSEServerTransport("/api/mcp/messages", res);
   
-  const sessionId = crypto.randomUUID();
+  // Use the transport's auto-generated sessionId, not our own
+  // This ensures the sessionId in the SSE endpoint matches what the client will send back
+  const sessionId = transport.sessionId;
   activeSessions.set(sessionId, transport);
   
+  console.log(`[MCP] New SSE session created: ${sessionId}`);
+  console.log(`[MCP] Active sessions count: ${activeSessions.size}`);
+  
+  // Log when transport events occur
+  transport.onclose = () => {
+    console.log(`[MCP] Transport onclose triggered for session: ${sessionId}`);
+  };
+  
+  transport.onerror = (error) => {
+    console.error(`[MCP] Transport onerror for session ${sessionId}:`, error);
+  };
+  
   res.on("close", () => {
+    console.log(`[MCP] Response closed for session: ${sessionId}`);
     activeSessions.delete(sessionId);
   });
 
-  await server.connect(transport);
+  res.on("error", (error) => {
+    console.error(`[MCP] Response error for session ${sessionId}:`, error);
+  });
+
+  try {
+    console.log(`[MCP] Connecting server to transport...`);
+    await server.connect(transport);
+    console.log(`[MCP] Server connected to transport successfully`);
+  } catch (error) {
+    console.error(`[MCP] Error connecting server to transport:`, error);
+    throw error;
+  }
 }
 
 export async function handleMCPMessage(req: Request, res: Response) {
   const sessionId = req.query.sessionId as string;
+  console.log(`[MCP] Message received for session: ${sessionId}`);
+  console.log(`[MCP] Active sessions: ${Array.from(activeSessions.keys()).join(', ')}`);
+  
   const transport = activeSessions.get(sessionId);
   
   if (!transport) {
+    console.error(`[MCP] Session not found: ${sessionId}`);
     res.status(404).json({ error: "Session not found" });
     return;
   }
 
-  await transport.handlePostMessage(req, res);
+  console.log(`[MCP] Found transport, handling message...`);
+  try {
+    await transport.handlePostMessage(req, res);
+    console.log(`[MCP] Message handled successfully`);
+  } catch (error) {
+    console.error(`[MCP] Error handling message:`, error);
+    throw error;
+  }
 }

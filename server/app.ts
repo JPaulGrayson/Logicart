@@ -2,6 +2,8 @@ import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { initQuack } from "./quack";
+import { handleMCPMessage } from "./mcp";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -15,6 +17,20 @@ export function log(message: string, source = "express") {
 }
 
 export const app = express();
+
+// Initialize Quack agent-to-agent messaging
+initQuack('replit/orchestrate');
+
+// MCP messages endpoint MUST be registered BEFORE body-parser middleware
+// because SSEServerTransport.handlePostMessage needs to read the raw request body
+app.post("/api/mcp/messages", async (req, res) => {
+  try {
+    await handleMCPMessage(req, res);
+  } catch (error) {
+    console.error("[MCP] Message error:", error);
+    res.status(500).json({ error: "MCP message handling failed" });
+  }
+});
 
 declare module 'http' {
   interface IncomingMessage {

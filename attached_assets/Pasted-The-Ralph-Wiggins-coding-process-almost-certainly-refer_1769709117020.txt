@@ -1,0 +1,47 @@
+The "Ralph Wiggins coding process" almost certainly refers to the "Ralph Wiggum" technique (a common misspelling or misremembering), a popular AI-assisted software development method named after the dim-witted but relentlessly persistent and optimistic child character Ralph Wiggum from The Simpsons.
+It was coined in 2025 by software engineer Geoffrey Huntley (in a blog post titled "Ralph Wiggum as a 'software engineer'") as a simple yet effective way to run AI coding agents—like Anthropic's Claude Code—autonomously and iteratively on complex tasks, often for hours or overnight with minimal supervision.
+Core Idea and Basic Implementation
+The technique addresses a common issue with AI coding agents: they often declare a task "done" prematurely, before it's truly complete, polished, or verified. Ralph Wiggum counters this by trapping the agent in a persistent loop that repeatedly re-feeds the same prompt (or task instructions) until objective completion criteria are met (e.g., all tests pass, specific files exist with required changes, or a custom "done" signal appears in output).
+In its simplest, purest form, it's a basic Bash while loop (or equivalent):
+textwhile :; do
+  cat PROMPT.md | claude-code
+done
+
+PROMPT.md contains your detailed instructions, plan, or acceptance criteria.
+The AI coding agent (e.g., claude-code) reads the prompt, makes changes to files in the local codebase, and attempts to exit.
+The loop catches the exit and restarts it immediately, with the updated files/context still present—so each iteration builds incrementally on prior work (e.g., code, tests, fixes).
+
+This "brute-force persistence" favors repetition and error correction over perfect first-try precision.
+Evolution and the Official Plugin
+What started as a crude hack (tested dramatically at a Y Combinator event where "a coding agent in a while loop shipped 6 repos overnight") evolved through community experimentation. It led to an official Ralph Wiggum plugin for Anthropic’s Claude Code CLI.
+The plugin uses a "Stop hook" to intercept premature exits, re-prompts the agent with the original instructions, and continues until:
+
+A predefined completion condition ("completion promise") is met (e.g., Claude outputs a specific marker only when truly finished).
+A max iteration/token/cost limit is hit.
+You manually stop it.
+
+Advanced implementations (playbooks) often include supporting files:
+
+specs/ directory for detailed requirements/JTBD (jobs to be done).
+plan.md or implementation plan.
+progress.md or status tracking to help the agent prioritize remaining tasks and avoid repetition.
+
+A typical three-phase workflow:
+
+Requirements phase — Human + LLM conversation to define specs and break into topics.
+Planning phase — Generate a comprehensive implementation plan with clear acceptance criteria.
+Execution (Ralph loop) phase — Run the persistent loop on the plan; agent works through tasks sequentially, self-corrects, tests, etc.
+
+Benefits and Use Cases
+
+Autonomy and productivity — Developers can "set it and forget it" (go to sleep, wake up to progress) for mechanical/incremental work: legacy refactors, dependency updates, test coverage/adding, codebase migrations, greenfield feature builds, or even porting large projects (e.g., a 900k-line Windows game engine to macOS).
+Cost-effective — Dramatically reduces human oversight; one use case involved building an entirely new esoteric programming language (CURSED) not in the LLM's training data, then programming in it.
+Skill amplification — Success hinges on strong prompt engineering, clear criteria, and "tuning" (adjusting instructions when the agent goes off-track), making it a mirror of the operator's expertise.
+
+Limitations and Best Practices
+
+Best for verifiable/mechanical tasks with objective success metrics (tests pass, files match specs). It struggles with subjective judgment, UX design, ambiguous business logic, or tasks needing frequent human feedback.
+Risks — Infinite looping, going in circles, context drift (especially in very long runs), wrong turns, or high token/cost usage. Always set bounds; review output carefully before committing.
+Tips — Use clear "done" conditions; include progress tracking; start with smaller scopes; monitor/ intervene as needed; combine with sandboxing or worktrees for safety/parallelism. "Ralph will test you" by failing—treat it as tuning/iterative improvement.
+
+In short, Ralph Wiggum represents an evolution toward more agentic, persistent AI coding workflows—turning "vibe coding" or manual iteration into scalable, unsupervised automation for suitable tasks. It's gained significant traction in the developer community (e.g., Claude Code users, GitHub repos like how-to-ralph-wiggum) since mid-2025. For hands-on details, check Huntley's original post or the Claude Code plugin documentation. If this doesn't match what you meant by "Ralph Wiggins," provide more context!

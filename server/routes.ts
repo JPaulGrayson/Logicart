@@ -24,6 +24,7 @@ import { remoteRouter } from "./routes/remote";
 import { aiProxyRouter } from "./routes/ai-proxy";
 import { githubSyncRouter } from "./routes/github-sync";
 import { sessionManager } from "./services/session-manager";
+import { getQuack } from "./quack";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -747,6 +748,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quack: Receive tasks from other AI agents
+  app.post("/api/task", async (req, res) => {
+    const { messageId, from, task, context } = req.body;
+    console.log(`[Quack] 📨 Task received from ${from}: ${task}`);
+
+    try {
+      const quack = getQuack();
+      if (!quack) {
+        return res.status(500).json({ success: false, error: "Quack not initialized" });
+      }
+
+      // TODO: Process the task here based on what was requested
+      // For now, just acknowledge receipt and mark complete
+      console.log(`[Quack] Context: ${JSON.stringify(context || {})}`);
+
+      // Mark complete when done
+      if (messageId) {
+        await quack.markComplete(messageId);
+      }
+
+      res.json({ success: true, message: "Task received and processed" });
+    } catch (error: any) {
+      console.error("[Quack] Error processing task:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Serve documentation pages as styled HTML
   app.get("/docs/:slug", async (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
@@ -913,14 +941,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/mcp/messages", async (req, res) => {
-    try {
-      await handleMCPMessage(req, res);
-    } catch (error) {
-      console.error("[MCP] Message error:", error);
-      res.status(500).json({ error: "MCP message handling failed" });
-    }
-  });
+  // NOTE: /api/mcp/messages is registered in app.ts BEFORE body-parser middleware
+  // because SSEServerTransport.handlePostMessage needs to read the raw request body
 
   // Share endpoints
   // Register share routes
@@ -1363,6 +1385,404 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[Agent API] Error scanning project:", error);
       res.status(500).json({ error: "Failed to scan project" });
+    }
+  });
+
+  // AI Process Map Generation Endpoint
+  app.post("/api/process/generate", async (req, res) => {
+    try {
+      const { description } = req.body;
+
+      if (!description || typeof description !== 'string' || description.trim().length < 10) {
+        return res.status(400).json({
+          error: "Please provide a process description (at least 10 characters)"
+        });
+      }
+
+      // Check for API key availability
+      const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({
+          error: "AI service not configured. Please ensure OpenAI API key is available."
+        });
+      }
+
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey,
+      });
+
+      const systemPrompt = `You are a BPMN process analyst. Convert natural language process descriptions into structured JSON process maps.
+
+Output a valid JSON object with this exact structure:
+{
+  "id": "unique-id",
+  "name": "Process Name",
+  "description": "Brief description",
+  "roles": [
+    { "id": "role-id", "name": "Role Name", "type": "human|system|ai|external", "color": "#hexcolor" }
+  ],
+  "steps": [
+    { "id": "step-id", "roleId": "role-id", "type": "start|end|task|decision|delay|subprocess", "name": "Step Name", "position": { "x": 0, "y": 0 } }
+  ],
+  "connections": [
+    { "id": "conn-id", "sourceId": "step-id", "targetId": "step-id", "label": "optional label" }
+  ]
+}
+
+Rules:
+1. Extract all actors/roles mentioned (people, departments, systems)
+2. Assign appropriate colors: human=#3b82f6, system=#10b981, ai=#a855f7, external=#f59e0b
+3. Create a start step and end step(s)
+4. Use "decision" type for if/then conditions with labeled connections (Yes/No)
+5. Position x is the column index for the step within its lane (usually 0)
+6. Position y is the sequence order (0, 1, 2, etc.)
+7. Connect steps in logical order
+8. Output ONLY valid JSON, no markdown or explanations`;
+
+      const userPrompt = `Convert this process description to a BPMN process map JSON:
+
+${description}
+
+Output only the JSON object:`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+      });
+
+      const content = response.choices[0]?.message?.content?.trim() || '';
+      
+      // Parse the JSON response
+      let processMap;
+      try {
+        // Try to extract JSON from the response (handle markdown code blocks)
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("No JSON object found in response");
+        }
+        processMap = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("[Process API] JSON parse error:", parseError, "Content:", content);
+        return res.status(500).json({
+          error: "Failed to parse AI response as JSON",
+          raw: content.substring(0, 500)
+        });
+      }
+
+      // Validate the structure with detailed checks
+      const validationErrors: string[] = [];
+      
+      if (!Array.isArray(processMap.roles) || processMap.roles.length === 0) {
+        validationErrors.push("Missing or empty roles array");
+      }
+      if (!Array.isArray(processMap.steps) || processMap.steps.length === 0) {
+        validationErrors.push("Missing or empty steps array");
+      }
+      if (!Array.isArray(processMap.connections)) {
+        validationErrors.push("Missing connections array");
+      }
+      
+      if (validationErrors.length > 0) {
+        return res.status(500).json({
+          error: "Invalid process map structure",
+          details: validationErrors
+        });
+      }
+
+      // Validate step types and role references
+      const validStepTypes = ['start', 'end', 'task', 'decision', 'delay', 'subprocess'];
+      const roleIds = new Set(processMap.roles.map((r: any) => r.id));
+      
+      for (const step of processMap.steps) {
+        if (!step.id || !step.name) {
+          validationErrors.push(`Step missing id or name`);
+        }
+        if (!roleIds.has(step.roleId)) {
+          // Auto-fix: assign to first role if roleId is invalid
+          step.roleId = processMap.roles[0]?.id;
+        }
+        if (!validStepTypes.includes(step.type)) {
+          step.type = 'task'; // Default to task if invalid
+        }
+        if (!step.position || typeof step.position.x !== 'number' || typeof step.position.y !== 'number') {
+          step.position = { x: 0, y: 0 };
+        }
+      }
+
+      // Ensure IDs are present
+      if (!processMap.id) {
+        processMap.id = `process-${Date.now()}`;
+      }
+      if (!processMap.name) {
+        processMap.name = 'Generated Process';
+      }
+
+      console.log(`[Process API] Generated process map: ${processMap.name} with ${processMap.roles.length} roles, ${processMap.steps.length} steps`);
+
+      res.json({ success: true, processMap });
+    } catch (error) {
+      console.error("[Process API] Error generating process:", error);
+      res.status(500).json({ error: "Failed to generate process map" });
+    }
+  });
+
+  // Ralph Wiggum Mode - AI Task Planner Endpoint
+  // Generates PROMPT.md, plan.md, and progress.md for persistent AI coding loops
+  app.post("/api/process/generate-ralph", async (req, res) => {
+    try {
+      const { task } = req.body;
+
+      if (!task || typeof task !== 'string' || task.trim().length < 10) {
+        return res.status(400).json({
+          error: "Please provide a task description (at least 10 characters)"
+        });
+      }
+
+      const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({
+          error: "AI service not configured. Please ensure OpenAI API key is available."
+        });
+      }
+
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey,
+      });
+
+      const systemPrompt = `You are an expert at creating plans for the "Ralph Wiggum" AI coding technique - a method for running AI coding agents in persistent loops until tasks are complete.
+
+Generate artifacts for a Ralph Wiggum coding session. Output valid JSON with this exact structure:
+{
+  "prompt": "The complete PROMPT.md content as a string",
+  "plan": "The complete plan.md content as a string",
+  "progress": "The initial progress.md template as a string",
+  "completionCriteria": ["Array of specific, testable completion criteria"]
+}
+
+PROMPT.md should include:
+- Clear task description and goals
+- Detailed acceptance criteria
+- Technologies and constraints mentioned
+- The "completion promise" - what must be true for the task to be done
+- Instructions for iterative progress
+
+plan.md should include:
+- Numbered implementation steps
+- Dependencies between steps
+- Estimated complexity per step
+- Clear deliverables for each step
+
+progress.md should be a template with:
+- Task overview
+- Checkboxes for each major step
+- Current status section
+- Notes/blockers section
+- Iteration counter placeholder
+
+Rules:
+1. Be specific and actionable
+2. Include testable criteria (e.g., "All tests pass", "No TypeScript errors")
+3. Break complex tasks into 5-10 manageable steps
+4. Use markdown formatting in the file contents
+5. Output ONLY valid JSON, no markdown code blocks`;
+
+      const userPrompt = `Create Ralph Wiggum artifacts for this coding task:
+
+${task}
+
+Output only the JSON object:`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.4,
+        max_tokens: 4000,
+      });
+
+      const content = response.choices[0]?.message?.content?.trim() || '';
+      
+      let artifacts;
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("No JSON object found in response");
+        }
+        artifacts = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("[Ralph API] JSON parse error:", parseError, "Content:", content);
+        return res.status(500).json({
+          error: "Failed to parse AI response as JSON",
+          raw: content.substring(0, 500)
+        });
+      }
+
+      // Validate structure
+      if (!artifacts.prompt || !artifacts.plan || !artifacts.progress || !Array.isArray(artifacts.completionCriteria)) {
+        return res.status(500).json({
+          error: "Invalid artifacts structure - missing required fields"
+        });
+      }
+
+      console.log(`[Ralph API] Generated artifacts with ${artifacts.completionCriteria.length} completion criteria`);
+
+      res.json({ success: true, artifacts });
+    } catch (error) {
+      console.error("[Ralph API] Error generating Ralph plan:", error);
+      res.status(500).json({ error: "Failed to generate Ralph plan" });
+    }
+  });
+
+  // Process Template Import Endpoint (for Orchestrate integration)
+  // Accepts templates from external systems and converts to LogiProcess format
+  app.post("/api/process/import", async (req, res) => {
+    try {
+      // Validate authentication - require explicit secret in production
+      const expectedSecret = process.env.LOGIPROCESS_SECRET;
+      const defaultSecret = 'orchestrate-logiprocess-shared-key';
+      const authHeader = req.headers.authorization;
+      const secretHeader = req.headers['x-logiprocess-secret'] as string;
+      
+      const providedSecret = secretHeader || 
+        (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
+      
+      // In production, prefer env var; in dev, allow default
+      const validSecret = expectedSecret || defaultSecret;
+      if (providedSecret !== validSecret) {
+        console.log('[Process Import] Auth failed - invalid or missing secret');
+        return res.status(401).json({ error: 'Unauthorized - invalid or missing secret' });
+      }
+
+      const template = req.body;
+      const validationErrors: string[] = [];
+      
+      // Validate required fields
+      if (!template.id || typeof template.id !== 'string') {
+        validationErrors.push('id is required and must be a string');
+      }
+      if (!template.name || typeof template.name !== 'string') {
+        validationErrors.push('name is required and must be a string');
+      }
+
+      // Accept both formats: Orchestrate (nodes/edges/swimlanes) or LogiProcess (roles/steps/connections)
+      let processMap: any;
+      
+      if (template.nodes !== undefined || template.edges !== undefined) {
+        // Orchestrate format - validate nodes and edges are arrays
+        if (!Array.isArray(template.nodes) || template.nodes.length === 0) {
+          validationErrors.push('nodes must be a non-empty array');
+        }
+        if (!Array.isArray(template.edges)) {
+          validationErrors.push('edges must be an array');
+        }
+        
+        if (validationErrors.length > 0) {
+          return res.status(400).json({ error: 'Validation failed', details: validationErrors });
+        }
+
+        // Convert from Orchestrate format to LogiProcess format
+        const swimlanes = Array.isArray(template.swimlanes) ? template.swimlanes : [];
+        
+        // Build swimlane ID lookup
+        const swimlaneMap = new Map(swimlanes.map((lane: any) => [lane.id, lane]));
+        
+        // Create roles from swimlanes or default
+        const roles = swimlanes.length > 0 
+          ? swimlanes.map((lane: any, index: number) => ({
+              id: lane.id || `role-${index}`,
+              name: lane.label || lane.name || `Lane ${index + 1}`,
+              type: lane.type || 'human',
+              color: lane.color || '#3b82f6'
+            }))
+          : [{ id: 'default-role', name: 'Process', type: 'human', color: '#3b82f6' }];
+
+        const roleIds = new Set(roles.map((r: any) => r.id));
+
+        // Convert nodes to steps - support both {x, y} and {position: {x, y}} formats
+        const steps = template.nodes.map((node: any) => {
+          // Extract position from either format
+          const pos = node.position || { x: node.x || 0, y: node.y || 0 };
+          const x = typeof pos.x === 'number' ? pos.x : 0;
+          const y = typeof pos.y === 'number' ? pos.y : 0;
+          
+          // Resolve role: prefer roleId, then swimlaneId, then first role
+          let roleId = node.roleId || node.swimlaneId;
+          if (!roleId || !roleIds.has(roleId)) {
+            roleId = roles[0].id;
+          }
+          
+          return {
+            id: node.id || `node-${Math.random().toString(36).slice(2, 8)}`,
+            name: node.label || node.name || 'Unnamed Step',
+            type: node.type || 'task',
+            roleId,
+            position: { x, y },
+            ...(node.agentId && { agentConfig: { agentId: node.agentId, capabilities: node.capabilities } })
+          };
+        });
+
+        // Convert edges to connections
+        const connections = template.edges.map((edge: any, index: number) => ({
+          id: edge.id || `conn-${index}`,
+          sourceId: edge.source,
+          targetId: edge.target,
+          label: edge.label || undefined
+        }));
+
+        processMap = {
+          id: template.id,
+          name: template.name,
+          description: template.description || '',
+          roles,
+          steps,
+          connections,
+          ...(template.agentConfig && { agentConfig: template.agentConfig }),
+          importedFrom: 'orchestrate',
+          importedAt: new Date().toISOString()
+        };
+      } else if (template.roles && template.steps) {
+        // Already in LogiProcess format - validate arrays
+        if (!Array.isArray(template.roles) || !Array.isArray(template.steps)) {
+          validationErrors.push('roles and steps must be arrays');
+        }
+        
+        if (validationErrors.length > 0) {
+          return res.status(400).json({ error: 'Validation failed', details: validationErrors });
+        }
+        
+        processMap = {
+          ...template,
+          importedFrom: 'orchestrate',
+          importedAt: new Date().toISOString()
+        };
+      } else {
+        return res.status(400).json({ 
+          error: 'Invalid template format',
+          details: ['Template must have either nodes/edges (Orchestrate format) or roles/steps (LogiProcess format)']
+        });
+      }
+
+      console.log(`[Process Import] Imported template: ${processMap.name} with ${processMap.roles.length} roles, ${processMap.steps.length} steps`);
+
+      // Return the converted process map for immediate use
+      // The frontend can load this via URL parameter or direct state injection
+      res.json({ 
+        success: true, 
+        processMap,
+        loadUrl: `/process?import=${Buffer.from(JSON.stringify(processMap)).toString('base64')}`
+      });
+    } catch (error) {
+      console.error("[Process Import] Error:", error);
+      res.status(500).json({ error: "Failed to import template" });
     }
   });
 
