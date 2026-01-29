@@ -1,138 +1,52 @@
 # LogicArt - Code-to-Flowchart Visualization Tool
 
-## ⚠️ CRITICAL: Publishing Reminder
-**EVERY TIME you modify server code, integration docs, or remote.js, you MUST tell the user:**
-
-> "I've updated [list files]. **You need to republish the app for changes to take effect.**"
-
-Files that require republishing when changed:
-- `server/routes.ts` (remote.js script, API endpoints)
-- `server/app.ts` (server config)
-- `client/src/components/ide/ConnectWizard.tsx`
-- `docs/INTEGRATION_PROMPT.md`
-- `docs/VIBE_CODER_GUIDE.md`
-
----
-
 ## Overview
-LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
-
-## Recent Changes
-- **January 2026**: Added Ralph Wiggum Mode to LogicProcess:
-  - Toggle switch enables "Ralph Mode" for AI task planning
-  - Generates PROMPT.md, plan.md, and progress.md for persistent AI coding loops
-  - Export button downloads all artifacts as a ZIP file
-  - Visual template shows the Ralph Wiggum loop workflow (Developer → AI Agent → Build System)
-  - New endpoint: POST /api/process/generate-ralph
-  - Named after the popular AI-assisted development technique for running coding agents in loops
-- **January 2026**: Improved Architecture View integration for zero-code experience:
-  - Updated integration prompt to use query parameter format: `/api/source?file=path/to/file.tsx`
-  - AI agents add `/api/source` endpoint to host apps automatically via integration prompt
-  - Clear instructions for scanning ALL component files (not just a few)
-  - Works with any project structure (client/src/, src/, etc.)
-  - Supports Turai, Replit Agent, Cursor, Claude Code, and other vibe coding platforms
-- **January 2026**: Added Scan Project feature for remote project scanning:
-  - "Scan Project" button in Flow Tools section opens dialog for remote project configuration
-  - Enter source URL and file paths to scan components from external projects
-  - Uses `/api/agent/scan-project` endpoint to fetch files from remote source API and build architecture graph
-- **January 2026**: Added Architecture View for component dependency visualization:
-  - New `/api/agent/architecture` endpoint builds component dependency graphs from source files
-  - Detects React components: arrow functions, regular functions, HOCs (memo, forwardRef), default exports
-  - Handles implicit returns, ternary expressions, destructured props, and function call returns
-  - Interactive UI with click-to-drill-down: click any component to view its flowchart
-  - Uses dagre layout for automatic graph positioning with React Flow
-  - ArchitectureView component with color-coded nodes (arrow/function/class types)
-- **January 2026**: Enhanced parser with advanced destructuring support:
-  - ArrayPattern/ObjectPattern handling for React hooks: `const [count, setCount] = useState(0)`
-  - RestElement support: `const [first, ...rest]` and `const { name, ...others }`
-  - AssignmentPattern for default values and object aliasing
-  - Both `bridge/src/parser.ts` and `docs/bridge/src/parser.ts` kept in sync
-- **January 2026**: Added platform-agnostic React preprocessing:
-  - Parser automatically extracts algorithm logic from React hooks (useCallback, useMemo, useEffect)
-  - Same integration works for all vibe coding platforms (Replit Agent, Antigravity, Cursor, etc.)
-  - Robust brace matching handles strings, single-line comments, and multi-line comments
-  - Preprocessing applied in both client-side (docs/bridge/src/parser.ts) and server-side (server/routes.ts)
-- **January 2026**: Added file drop and function picker feature:
-  - FileDropZone component for drag-and-drop .js/.ts file upload
-  - FunctionPicker dialog shows discovered functions/classes with selection UI
-  - Selective visualization: choose specific methods to visualize (wraps in minimal class stub preserving inheritance)
-  - getCodeForSelection utility handles multi-line class declarations (extends, implements)
-- **January 2026**: Added class-based JavaScript parsing support:
-  - ClassDeclaration now creates a container for each class with all its methods
-  - MethodDefinition creates containers for each method (constructor, regular, static, getters/setters)
-  - Method bodies are fully parsed with control flow (if/else, loops, etc.)
-  - Mixed code (classes + functions + top-level statements) all parse correctly
-  - Container override mechanism ensures proper parent hierarchy in flowcharts
-- **January 2026**: Comprehensive rebranding from LogiGo to LogicArt completed. Updates include:
-  - All user-facing UI branding (landing page, workbench, tutorials, help dialogs)
-  - HTML meta tags, OpenGraph, and Twitter cards
-  - localStorage/sessionStorage keys with migration for existing users
-  - CSS classes (.logicart-highlight) and file export names
-  - Comment patterns now support both @logicart: (new) and @logigo: (legacy)
-  - Voyai URLs updated to app=logicart (login, upgrade)
-  - AppId validation accepts both 'logicart' and 'logigo' for backward compatibility
-  - LOGIGO_* API constants preserved for runtime compatibility (noted in reporter-api.ts)
-  - **Package renaming completed**: All package directories renamed (logicart-core, logicart-embed, logicart-remote, logicart-vite-plugin)
-  - **Component renaming**: LogicArtEmbed component with backward-compatible exports (LogiGoEmbed, LogiGoEmbedProps, LogiGoManifest aliases)
-  - **Runtime aliasing**: window.LogicArt added as alias while preserving window.LogiGo for backward compatibility
-  - **Examples updated**: vite-demo uses new package imports and manifest URLs
-  - External coordination needed: GitHub repo rename, Voyai app ID registration, npm publish for new package names
+LogicArt is a bidirectional code-to-flowchart visualization tool designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It aims to support "Vibe Coders" through visual learning and debugging by leveraging AST analysis to parse JavaScript functions and rendering them as interactive graphs using React Flow. The project's vision includes bi-directional editing (flowchart changes updating code) and utilizing Blueprint Schemas for AI-driven code generation, ultimately providing a robust platform for visual code understanding and debugging.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Agent Communication (Quack)
-**Quack** (https://quack.us.com) is an agent-to-agent messaging platform for direct communication between AI agents.
-
-**This app's inbox**: `replit/orchestrate`
-
-When user says "check quack" or "quack something":
-1. Fetch messages: `GET https://quack.us.com/api/inbox/replit/orchestrate`
-2. Send messages: `POST https://quack.us.com/api/send` with `{"to": "agent", "from": "replit/orchestrate", "task": "message"}`
-3. Mark as read: `POST https://quack.us.com/api/receive/:messageId`
-4. Mark complete: `POST https://quack.us.com/api/complete/:messageId`
-
-**Receiving tasks**: Other agents can POST to `/api/task` with `{messageId, from, task, context}` to send tasks to this app.
-
-Common inboxes: `/replit/orchestrate`, `/claude`, `/gpt`, `/cursor0`, `/gemini0`, `/grok0`
-
 ## System Architecture
 
 ### UI/UX Decisions
-The frontend employs a workbench-style IDE with a 2-panel, flowchart-first layout. It features a "Technical, Clean, Blueprint-like" aesthetic, dark mode, blue accent, JetBrains Mono font for code, and Inter for UI. Resizable panels are used for flexible workspace configuration, with layout presets (50/50, 30/70, Flow Only) and hierarchical navigation via breadcrumbs and zoom presets.
+The frontend features a workbench-style IDE with a 2-panel, flowchart-first layout. Its aesthetic is "Technical, Clean, Blueprint-like," incorporating a dark mode, blue accents, JetBrains Mono for code, and Inter for UI. The interface includes resizable panels for flexible workspace configuration, layout presets (50/50, 30/70, Flow Only), and hierarchical navigation with breadcrumbs and zoom presets.
 
 ### Technical Implementations
-LogicArt is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Core libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui.
-The system supports a three-tier hybrid model:
-- **Static Mode**: Instant flowchart generation from pasted code via Acorn parsing.
-- **Live Mode**: Runtime overlay showing execution data from instrumented code.
-- **Blueprint Schema**: Future support for AI-generated JSON blueprints.
+LogicArt is built with React 18+, TypeScript, Vite, React Router (wouter), TanStack Query, and Tailwind CSS v4. Key libraries include `@xyflow/react` for graph visualization, `acorn` for AST parsing, `react-simple-code-editor`, Radix UI, and shadcn/ui. The system operates on a three-tier hybrid model: Static Mode (instant flowchart from pasted code), Live Mode (runtime execution visualization from instrumented code), and future Blueprint Schema support for AI-generated JSON.
 
-Parsing and interpretation involve Acorn for AST analysis, converting JavaScript AST into flowchart nodes and edges. An interpreter provides step-by-step JavaScript execution tracking state, variables, and call stack.
+Parsing involves Acorn for AST analysis, converting JavaScript AST into flowchart nodes and edges, and an interpreter for step-by-step JavaScript execution tracking. Cross-Replit Communication (Remote Mode) allows external Replit apps to send checkpoint data for real-time visualization via Server-Sent Events (SSE) and a WebSocket control channel for bidirectional debugging.
 
-Cross-Replit Communication (Remote Mode) enables external Replit apps to send checkpoint data for real-time visualization via SSE and a WebSocket control channel for bidirectional debugging (remote breakpoints, pause/resume/step).
+The `logicart-embed` package offers an embeddable React component, while `logicart-vite-plugin` provides build-time instrumentation for Live Mode. The `logicart-core` NPM package is a standalone runtime library for manual checkpoint instrumentation. The application supports Zero-Code Auto-Discovery for global function scanning and a Zero-Code Reverse Proxy for instrumenting any web application. Advanced features include Ghost Diff for code change visualization, Hierarchical Views for large codebases, and an Algorithm Examples Library.
 
-The `logicart-embed` package (formerly logigo-embed) offers an embeddable React component for visualization, while `logicart-vite-plugin` provides build-time instrumentation for Live Mode. The `logicart-core` NPM package is a standalone runtime library for manual checkpoint instrumentation. Package directories renamed; npm publish needed to claim new package names.
-
-The application features Zero-Code Auto-Discovery for automatic scanning and instrumentation of global functions from `<script>` tags, and a Zero-Code Reverse Proxy for instrumenting any web application.
-
-Advanced features include Ghost Diff for visualizing code changes, Hierarchical Views for managing large codebases, and an Algorithm Examples Library.
+Additional features include:
+- **Ralph Wiggum Mode**: Enables AI task planning, generating PROMPT.md, plan.md, and progress.md for persistent AI coding loops, with an export option for all artifacts.
+- **Architecture View**: Visualizes component dependencies, detecting React components, handling various syntax patterns (implicit returns, ternaries, destructured props), and offering interactive drill-down to flowcharts.
+- **Project Scanning**: Allows remote project scanning by specifying source URLs and file paths, building architecture graphs from external sources.
+- **Advanced Parser**: Supports complex destructuring patterns (ArrayPattern, ObjectPattern, RestElement, AssignmentPattern) and class-based JavaScript parsing, including methods and inheritance.
+- **React Preprocessing**: Extracts algorithm logic from React hooks (useCallback, useMemo, useEffect) for platform-agnostic integration.
+- **File Drop & Function Picker**: Enables drag-and-drop file upload and selective function/class visualization.
+- **Model Arena**: Compares AI model outputs (GPT-4o, Gemini, Claude, Grok) for code generation and debugging, with a "Chairman Model" synthesizing responses.
+- **BYOK (Bring Your Own Key)**: User-controlled API key management for AI models.
+- **Undo/Redo**: System-wide undo/redo functionality with keyboard shortcuts and toolbar buttons.
+- **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
+- **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis.
+- **MCP Server (Model Context Protocol)**: Exposes LogicArt's analysis capabilities to AI agents via 7 tools (`analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, `count_paths`, `display_audit`, `visualize_flow`).
+- **Display Audit (AI Agent Tool)**: Detects redundant component rendering paths in JSX/JS code.
+- **Voyai Authentication**: JWT-based authentication via Voyai, supporting feature flags.
+- **Managed AI Proxy**: For Pro users, provides server-side API key access to AI models with usage tracking.
+- **Demo Mode**: Allows previewing Pro features without sign-in.
+- **Headless Council CLI**: Command-line interface for AI model consultations.
+- **File Sync (Replit Agent Integration)**: Bi-directional sync of flowchart data with Replit Agent, via `data/flowchart.json` and API endpoints (`GET /api/file/status`, `GET /api/file/load`, `POST /api/file/save`).
+- **URL Code Parameter**: Enables external apps to open LogicArt with pre-loaded code via URL parameters (`code`, `autorun`, `popup`, `embed`).
+- **Architecture URL Parameter**: Directly opens the architecture view via URL parameters (`mode=architecture`, `sourceUrl`, `files`).
 
 ### Feature Specifications
-- **Model Arena**: Compares code generation and debugging advice from OpenAI GPT-4o, Gemini 3 Flash, Claude Opus 4.5, and Grok 4, with side-by-side code/flowchart views and similarity analysis. A "Chairman Model" synthesizes AI responses into a unified verdict. Arena sessions are saved to PostgreSQL (founder-tier required).
-- **BYOK (Bring Your Own Key)**: User-controlled API key management for AI models, stored in localStorage.
-- **Undo/Redo**: HistoryManager singleton with keyboard shortcuts (Ctrl+Z/Ctrl+Y) and toolbar buttons.
-- **Enhanced Sharing**: Database-backed sharing of flowcharts via unique URLs.
-- **Agent API**: `POST /api/agent/analyze` endpoint for programmatic code analysis returning nodes, edges, complexity, and flow structure.
-- **MCP Server (Model Context Protocol)**: Exposes LogicArt's code analysis capabilities to AI agents via the MCP standard, offering 7 tools: `analyze_code`, `get_complexity`, `explain_flow`, `find_branches`, `count_paths`, `display_audit`, and `visualize_flow`. Claude Code integration via `.mcp.json` config file or `claude mcp add logicart --transport sse http://localhost:5001/api/mcp/sse`. The `visualize_flow` tool opens a browser with the interactive flowchart (essential for terminal-based environments).
-- **Display Audit (AI Agent Tool)**: Detects when multiple code paths render the same component, helping AI agents avoid creating redundant display logic. Available via MCP tool `display_audit` and REST endpoint `POST /api/agent/display-audit`. Analyzes JSX/JS code and flags when >2 different places render the same component. Severity thresholds: 3 render points = info, 4-5 = warning, 6+ = critical. Returns structured findings with component names, line numbers, and consolidation suggestions. Uses acorn-jsx for JSX parsing.
-- **Voyai Authentication**: JWT-based authentication via Voyai (voyai.org). Users can sign in via the header button. Protected routes (arena sessions) require founder tier. Token handled via URL param extraction and localStorage persistence. Feature flags supported: `history_database`, `rabbit_hole_rescue`, `github_sync`, `managed_allowance`.
-- **Managed AI Proxy**: Pro users with `managed_allowance` feature get server-side API key access for AI models (OpenAI, Gemini, Anthropic, xAI). Usage tracked per-user with monthly auto-reset. Endpoints: `GET /api/ai/usage` (current usage), `POST /api/ai/proxy` (proxied AI calls). Credit Meter UI shows "X/Y" format with remaining credits tooltip. Returns 402 when quota exhausted.
-- **Demo Mode**: Allows users to preview all Pro features without signing in. Toggle via "Try Demo" button in header. Simulates founder-tier user with all features enabled (history_database, rabbit_hole_rescue, github_sync, managed_allowance: 100). Persists across page reloads via localStorage. Exits cleanly and restores any existing Voyai session.
-- **Headless Council CLI**: Command-line interface for AI model consultations. Usage: `npx tsx scripts/ask-council.ts --mode code --prompt "Your question"` or `npx tsx scripts/ask-council.ts -i` for interactive mode. Requires API keys via environment variables.
-- **File Sync (Replit Agent Integration)**: Bi-directional sync system for Replit Agent collaboration. The system stores flowchart data in `data/flowchart.json`. API endpoints: `GET /api/file/status` (returns lastModified timestamp), `GET /api/file/load`, `POST /api/file/save`. The frontend `useWatchFile` hook polls for changes every 2 seconds and auto-updates when external edits are detected. User code changes (typing, undo/redo, samples, node edits) are automatically persisted to the file.
-- **URL Code Parameter (External App Integration)**: Enables external apps (VibePost, Cursor, Windsurf, etc.) to open LogicArt with pre-loaded code. URL format: `/?code=<urlEncodedCode>&autorun=true&popup=true`. Supports both URL-encoded (simple) and base64-encoded (legacy) formats. Parameters: `code` (required) - the JavaScript code to visualize; `autorun` (optional) - auto-starts flowchart playback; `popup` (optional) - applies minimal "Flow Only" layout; `embed` (optional) - hides header for clean fullscreen view with code editor and flowchart side-by-side with resizable divider. URL is cleaned after loading to prevent reload issues (except embed parameter which persists).
-- **Architecture URL Parameter**: Opens architecture view directly via URL: `/?mode=architecture&sourceUrl=<encodedUrl>&files=<jsonArray>`. The `openArchitecture(sourceUrl, files)` method in remote.js enables external apps to open the full project architecture graph.
+- **Quack Integration**: Agent-to-agent messaging platform for AI communication.
+  - Inbox: `replit/orchestrate`
+  - Fetch messages: `GET https://quack.us.com/api/inbox/replit/orchestrate`
+  - Send messages: `POST https://quack.us.com/api/send`
+  - Mark as read/complete: `POST https://quack.us.com/api/receive/:messageId`, `POST https://quack.us.com/api/complete/:messageId`
+  - Task reception: `POST /api/task` with `{messageId, from, task, context}`
 
 ## External Dependencies
 
