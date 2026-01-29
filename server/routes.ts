@@ -1532,6 +1532,150 @@ Output only the JSON object:`;
     }
   });
 
+  // Process Template Import Endpoint (for Orchestrate integration)
+  // Accepts templates from external systems and converts to LogiProcess format
+  app.post("/api/process/import", async (req, res) => {
+    try {
+      // Validate authentication - require explicit secret in production
+      const expectedSecret = process.env.LOGIPROCESS_SECRET;
+      const defaultSecret = 'orchestrate-logiprocess-shared-key';
+      const authHeader = req.headers.authorization;
+      const secretHeader = req.headers['x-logiprocess-secret'] as string;
+      
+      const providedSecret = secretHeader || 
+        (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
+      
+      // In production, prefer env var; in dev, allow default
+      const validSecret = expectedSecret || defaultSecret;
+      if (providedSecret !== validSecret) {
+        console.log('[Process Import] Auth failed - invalid or missing secret');
+        return res.status(401).json({ error: 'Unauthorized - invalid or missing secret' });
+      }
+
+      const template = req.body;
+      const validationErrors: string[] = [];
+      
+      // Validate required fields
+      if (!template.id || typeof template.id !== 'string') {
+        validationErrors.push('id is required and must be a string');
+      }
+      if (!template.name || typeof template.name !== 'string') {
+        validationErrors.push('name is required and must be a string');
+      }
+
+      // Accept both formats: Orchestrate (nodes/edges/swimlanes) or LogiProcess (roles/steps/connections)
+      let processMap: any;
+      
+      if (template.nodes !== undefined || template.edges !== undefined) {
+        // Orchestrate format - validate nodes and edges are arrays
+        if (!Array.isArray(template.nodes) || template.nodes.length === 0) {
+          validationErrors.push('nodes must be a non-empty array');
+        }
+        if (!Array.isArray(template.edges)) {
+          validationErrors.push('edges must be an array');
+        }
+        
+        if (validationErrors.length > 0) {
+          return res.status(400).json({ error: 'Validation failed', details: validationErrors });
+        }
+
+        // Convert from Orchestrate format to LogiProcess format
+        const swimlanes = Array.isArray(template.swimlanes) ? template.swimlanes : [];
+        
+        // Build swimlane ID lookup
+        const swimlaneMap = new Map(swimlanes.map((lane: any) => [lane.id, lane]));
+        
+        // Create roles from swimlanes or default
+        const roles = swimlanes.length > 0 
+          ? swimlanes.map((lane: any, index: number) => ({
+              id: lane.id || `role-${index}`,
+              name: lane.label || lane.name || `Lane ${index + 1}`,
+              type: lane.type || 'human',
+              color: lane.color || '#3b82f6'
+            }))
+          : [{ id: 'default-role', name: 'Process', type: 'human', color: '#3b82f6' }];
+
+        const roleIds = new Set(roles.map((r: any) => r.id));
+
+        // Convert nodes to steps - support both {x, y} and {position: {x, y}} formats
+        const steps = template.nodes.map((node: any) => {
+          // Extract position from either format
+          const pos = node.position || { x: node.x || 0, y: node.y || 0 };
+          const x = typeof pos.x === 'number' ? pos.x : 0;
+          const y = typeof pos.y === 'number' ? pos.y : 0;
+          
+          // Resolve role: prefer roleId, then swimlaneId, then first role
+          let roleId = node.roleId || node.swimlaneId;
+          if (!roleId || !roleIds.has(roleId)) {
+            roleId = roles[0].id;
+          }
+          
+          return {
+            id: node.id || `node-${Math.random().toString(36).slice(2, 8)}`,
+            name: node.label || node.name || 'Unnamed Step',
+            type: node.type || 'task',
+            roleId,
+            position: { x, y },
+            ...(node.agentId && { agentConfig: { agentId: node.agentId, capabilities: node.capabilities } })
+          };
+        });
+
+        // Convert edges to connections
+        const connections = template.edges.map((edge: any, index: number) => ({
+          id: edge.id || `conn-${index}`,
+          sourceId: edge.source,
+          targetId: edge.target,
+          label: edge.label || undefined
+        }));
+
+        processMap = {
+          id: template.id,
+          name: template.name,
+          description: template.description || '',
+          roles,
+          steps,
+          connections,
+          ...(template.agentConfig && { agentConfig: template.agentConfig }),
+          importedFrom: 'orchestrate',
+          importedAt: new Date().toISOString()
+        };
+      } else if (template.roles && template.steps) {
+        // Already in LogiProcess format - validate arrays
+        if (!Array.isArray(template.roles) || !Array.isArray(template.steps)) {
+          validationErrors.push('roles and steps must be arrays');
+        }
+        
+        if (validationErrors.length > 0) {
+          return res.status(400).json({ error: 'Validation failed', details: validationErrors });
+        }
+        
+        processMap = {
+          ...template,
+          importedFrom: 'orchestrate',
+          importedAt: new Date().toISOString()
+        };
+      } else {
+        return res.status(400).json({ 
+          error: 'Invalid template format',
+          details: ['Template must have either nodes/edges (Orchestrate format) or roles/steps (LogiProcess format)']
+        });
+      }
+
+      console.log(`[Process Import] Imported template: ${processMap.name} with ${processMap.roles.length} roles, ${processMap.steps.length} steps`);
+
+      // Return the converted process map for immediate use
+      // The frontend can load this via URL parameter or direct state injection
+      res.json({ 
+        success: true, 
+        processMap,
+        loadUrl: `/process?import=${Buffer.from(JSON.stringify(processMap)).toString('base64')}`
+      });
+    } catch (error) {
+      console.error("[Process Import] Error:", error);
+      res.status(500).json({ error: "Failed to import template" });
+    }
+  });
+
   // AI Code Rewriting Endpoint
   app.post("/api/rewrite-code", async (req, res) => {
     try {
