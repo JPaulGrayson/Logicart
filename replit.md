@@ -18,6 +18,13 @@ Files that require republishing when changed:
 LogicArt (formerly LogiGo) is a bidirectional code-to-flowchart visualization tool built with React, designed to transform JavaScript code into interactive, step-by-step control flow diagrams. It targets "Vibe Coders" who benefit from visual learning and debugging. The application uses AST analysis to parse JavaScript functions and renders them as interactive graphs using React Flow. Key ambitions include supporting bi-directional editing (flowchart changes update code) and leveraging Blueprint Schemas for AI-driven code generation. The project aims to provide a robust platform for visual code understanding and debugging.
 
 ## Recent Changes
+- **January 2026**: Added Ralph Wiggum Mode to LogicProcess:
+  - Toggle switch enables "Ralph Mode" for AI task planning
+  - Generates PROMPT.md, plan.md, and progress.md for persistent AI coding loops
+  - Export button downloads all artifacts as a ZIP file
+  - Visual template shows the Ralph Wiggum loop workflow (Developer → AI Agent → Build System)
+  - New endpoint: POST /api/process/generate-ralph
+  - Named after the popular AI-assisted development technique for running coding agents in loops
 - **January 2026**: Improved Architecture View integration for zero-code experience:
   - Updated integration prompt to use query parameter format: `/api/source?file=path/to/file.tsx`
   - AI agents add `/api/source` endpoint to host apps automatically via integration prompt

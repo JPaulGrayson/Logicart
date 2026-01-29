@@ -1,18 +1,20 @@
 /**
  * ProcessWorkbench - Main LogicProcess application page
+ * Supports standard BPMN generation and Ralph Wiggum mode for AI task planning
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { SwimlaneDiagram } from '@/components/process/SwimlaneDiagram';
-import { ProcessInput } from '@/components/process/ProcessInput';
+import { ProcessInput, type RalphArtifacts } from '@/components/process/ProcessInput';
 import { RoleManager } from '@/components/process/RoleManager';
 import type { ProcessMap, Role } from '@/types/process';
-import { SAMPLE_REFUND_PROCESS } from '@/types/process';
+import { SAMPLE_REFUND_PROCESS, RALPH_LOOP_PROCESS } from '@/types/process';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Upload, Download, RotateCcw, Sparkles } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Upload, Download, RotateCcw, Sparkles, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import JSZip from 'jszip';
 
 export default function ProcessWorkbench() {
   const { toast } = useToast();
@@ -21,6 +23,8 @@ export default function ProcessWorkbench() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [ralphMode, setRalphMode] = useState(false);
+  const [ralphArtifacts, setRalphArtifacts] = useState<RalphArtifacts | null>(null);
   
   const stepsPerRole = useMemo(() => {
     const counts = new Map<string, number>();
@@ -48,44 +52,100 @@ export default function ProcessWorkbench() {
   
   const handleGenerate = useCallback(async () => {
     if (!processDescription.trim()) {
-      toast({ title: 'No Description', description: 'Please enter a process description first.', variant: 'destructive' });
+      toast({ title: 'No Description', description: 'Please enter a description first.', variant: 'destructive' });
       return;
     }
     
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/process/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: processDescription })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate process map');
-      }
-      
-      if (data.success && data.processMap) {
-        setProcessMap(data.processMap);
-        toast({ 
-          title: 'Diagram Generated', 
-          description: `Created "${data.processMap.name}" with ${data.processMap.roles.length} roles and ${data.processMap.steps.length} steps.`
+      if (ralphMode) {
+        const response = await fetch('/api/process/generate-ralph', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task: processDescription })
         });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate Ralph plan');
+        }
+        
+        if (data.success && data.artifacts) {
+          setRalphArtifacts(data.artifacts);
+          setProcessMap(RALPH_LOOP_PROCESS);
+          toast({ 
+            title: 'Ralph Plan Generated', 
+            description: `Created PROMPT.md, plan.md, and progress.md with ${data.artifacts.completionCriteria.length} completion criteria.`
+          });
+        } else {
+          throw new Error('Invalid response from server');
+        }
       } else {
-        throw new Error('Invalid response from server');
+        const response = await fetch('/api/process/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: processDescription })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate process map');
+        }
+        
+        if (data.success && data.processMap) {
+          setProcessMap(data.processMap);
+          toast({ 
+            title: 'Diagram Generated', 
+            description: `Created "${data.processMap.name}" with ${data.processMap.roles.length} roles and ${data.processMap.steps.length} steps.`
+          });
+        } else {
+          throw new Error('Invalid response from server');
+        }
       }
     } catch (error) {
       console.error('Generation error:', error);
       toast({ 
         title: 'Generation Failed', 
-        description: error instanceof Error ? error.message : 'Failed to generate diagram',
+        description: error instanceof Error ? error.message : 'Failed to generate',
         variant: 'destructive'
       });
     } finally {
       setIsGenerating(false);
     }
-  }, [processDescription, toast]);
+  }, [processDescription, toast, ralphMode]);
+  
+  const handleExportRalph = useCallback(async () => {
+    if (!ralphArtifacts) return;
+    
+    try {
+      const zip = new JSZip();
+      zip.file('PROMPT.md', ralphArtifacts.prompt);
+      zip.file('plan.md', ralphArtifacts.plan);
+      zip.file('progress.md', ralphArtifacts.progress);
+      
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.download = 'ralph-artifacts.zip';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      
+      toast({ title: 'Export Complete', description: 'Downloaded PROMPT.md, plan.md, and progress.md' });
+    } catch (error) {
+      toast({ title: 'Export Failed', description: 'Could not create zip file', variant: 'destructive' });
+    }
+  }, [ralphArtifacts, toast]);
+  
+  const handleRalphModeChange = useCallback((enabled: boolean) => {
+    setRalphMode(enabled);
+    setRalphArtifacts(null);
+    if (enabled) {
+      setProcessMap(RALPH_LOOP_PROCESS);
+    } else {
+      setProcessMap(SAMPLE_REFUND_PROCESS);
+    }
+  }, []);
   
   const handleReset = useCallback(() => {
     setProcessMap(SAMPLE_REFUND_PROCESS);
@@ -140,9 +200,9 @@ export default function ProcessWorkbench() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleImportJson}><Upload className="w-4 h-4 mr-1.5" />Import</Button></TooltipTrigger><TooltipContent>Import from JSON</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleExportJson}><Download className="w-4 h-4 mr-1.5" />Export</Button></TooltipTrigger><TooltipContent>Export as JSON</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleReset}><RotateCcw className="w-4 h-4 mr-1.5" />Reset</Button></TooltipTrigger><TooltipContent>Reset to sample</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleImportJson} data-testid="button-import-json"><Upload className="w-4 h-4 mr-1.5" />Import</Button></TooltipTrigger><TooltipContent>Import from JSON</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleExportJson} data-testid="button-export-json"><Download className="w-4 h-4 mr-1.5" />Export</Button></TooltipTrigger><TooltipContent>Export as JSON</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="sm" className="h-8" onClick={handleReset} data-testid="button-reset"><RotateCcw className="w-4 h-4 mr-1.5" />Reset</Button></TooltipTrigger><TooltipContent>Reset to sample</TooltipContent></Tooltip>
           </div>
         </div>
       </header>
@@ -152,7 +212,17 @@ export default function ProcessWorkbench() {
           {leftPanelOpen && (
             <>
               <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
-                <ProcessInput value={processDescription} onChange={setProcessDescription} onGenerate={handleGenerate} isGenerating={isGenerating} className="h-full border-r border-border" />
+                <ProcessInput 
+                  value={processDescription} 
+                  onChange={setProcessDescription} 
+                  onGenerate={handleGenerate} 
+                  isGenerating={isGenerating} 
+                  ralphMode={ralphMode}
+                  onRalphModeChange={handleRalphModeChange}
+                  onExportRalph={handleExportRalph}
+                  ralphArtifacts={ralphArtifacts}
+                  className="h-full border-r border-border" 
+                />
               </ResizablePanel>
               <ResizableHandle withHandle />
             </>
@@ -162,7 +232,7 @@ export default function ProcessWorkbench() {
             <div className="relative h-full">
               <div className="absolute top-2 left-2 z-20">
                 <Tooltip><TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 bg-card/80 backdrop-blur" onClick={() => setLeftPanelOpen(!leftPanelOpen)}>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 bg-card/80 backdrop-blur" onClick={() => setLeftPanelOpen(!leftPanelOpen)} data-testid="button-toggle-left-panel">
                     {leftPanelOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
                   </Button>
                 </TooltipTrigger><TooltipContent side="right">{leftPanelOpen ? 'Hide input' : 'Show input'}</TooltipContent></Tooltip>
@@ -170,7 +240,7 @@ export default function ProcessWorkbench() {
               
               <div className="absolute top-2 right-2 z-20">
                 <Tooltip><TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 bg-card/80 backdrop-blur" onClick={() => setRightPanelOpen(!rightPanelOpen)}>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 bg-card/80 backdrop-blur" onClick={() => setRightPanelOpen(!rightPanelOpen)} data-testid="button-toggle-right-panel">
                     {rightPanelOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
                   </Button>
                 </TooltipTrigger><TooltipContent side="left">{rightPanelOpen ? 'Hide roles' : 'Show roles'}</TooltipContent></Tooltip>

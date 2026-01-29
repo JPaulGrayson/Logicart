@@ -1532,6 +1532,116 @@ Output only the JSON object:`;
     }
   });
 
+  // Ralph Wiggum Mode - AI Task Planner Endpoint
+  // Generates PROMPT.md, plan.md, and progress.md for persistent AI coding loops
+  app.post("/api/process/generate-ralph", async (req, res) => {
+    try {
+      const { task } = req.body;
+
+      if (!task || typeof task !== 'string' || task.trim().length < 10) {
+        return res.status(400).json({
+          error: "Please provide a task description (at least 10 characters)"
+        });
+      }
+
+      const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({
+          error: "AI service not configured. Please ensure OpenAI API key is available."
+        });
+      }
+
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey,
+      });
+
+      const systemPrompt = `You are an expert at creating plans for the "Ralph Wiggum" AI coding technique - a method for running AI coding agents in persistent loops until tasks are complete.
+
+Generate artifacts for a Ralph Wiggum coding session. Output valid JSON with this exact structure:
+{
+  "prompt": "The complete PROMPT.md content as a string",
+  "plan": "The complete plan.md content as a string",
+  "progress": "The initial progress.md template as a string",
+  "completionCriteria": ["Array of specific, testable completion criteria"]
+}
+
+PROMPT.md should include:
+- Clear task description and goals
+- Detailed acceptance criteria
+- Technologies and constraints mentioned
+- The "completion promise" - what must be true for the task to be done
+- Instructions for iterative progress
+
+plan.md should include:
+- Numbered implementation steps
+- Dependencies between steps
+- Estimated complexity per step
+- Clear deliverables for each step
+
+progress.md should be a template with:
+- Task overview
+- Checkboxes for each major step
+- Current status section
+- Notes/blockers section
+- Iteration counter placeholder
+
+Rules:
+1. Be specific and actionable
+2. Include testable criteria (e.g., "All tests pass", "No TypeScript errors")
+3. Break complex tasks into 5-10 manageable steps
+4. Use markdown formatting in the file contents
+5. Output ONLY valid JSON, no markdown code blocks`;
+
+      const userPrompt = `Create Ralph Wiggum artifacts for this coding task:
+
+${task}
+
+Output only the JSON object:`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.4,
+        max_tokens: 4000,
+      });
+
+      const content = response.choices[0]?.message?.content?.trim() || '';
+      
+      let artifacts;
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("No JSON object found in response");
+        }
+        artifacts = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("[Ralph API] JSON parse error:", parseError, "Content:", content);
+        return res.status(500).json({
+          error: "Failed to parse AI response as JSON",
+          raw: content.substring(0, 500)
+        });
+      }
+
+      // Validate structure
+      if (!artifacts.prompt || !artifacts.plan || !artifacts.progress || !Array.isArray(artifacts.completionCriteria)) {
+        return res.status(500).json({
+          error: "Invalid artifacts structure - missing required fields"
+        });
+      }
+
+      console.log(`[Ralph API] Generated artifacts with ${artifacts.completionCriteria.length} completion criteria`);
+
+      res.json({ success: true, artifacts });
+    } catch (error) {
+      console.error("[Ralph API] Error generating Ralph plan:", error);
+      res.status(500).json({ error: "Failed to generate Ralph plan" });
+    }
+  });
+
   // Process Template Import Endpoint (for Orchestrate integration)
   // Accepts templates from external systems and converts to LogiProcess format
   app.post("/api/process/import", async (req, res) => {

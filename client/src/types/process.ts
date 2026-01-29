@@ -132,3 +132,43 @@ export const SAMPLE_REFUND_PROCESS: ProcessMap = {
     { id: 'c11', sourceId: 'receive-confirmation', targetId: 'end-approved' },
   ],
 };
+
+// Ralph Wiggum Loop Process Template - visualizes the AI coding loop
+export const RALPH_LOOP_PROCESS: ProcessMap = {
+  id: 'ralph-loop-001',
+  name: 'Ralph Wiggum AI Coding Loop',
+  description: 'Persistent AI coding workflow with iterative completion',
+  roles: [
+    { id: 'developer', name: 'Developer', type: 'human', color: ROLE_COLORS.human },
+    { id: 'ai-agent', name: 'AI Agent', type: 'ai', color: ROLE_COLORS.ai },
+    { id: 'system', name: 'Build System', type: 'system', color: ROLE_COLORS.system },
+  ],
+  steps: [
+    { id: 'start', roleId: 'developer', type: 'start', name: 'Define Task', position: { x: 0, y: 0 } },
+    { id: 'create-prompt', roleId: 'developer', type: 'task', name: 'Create PROMPT.md', position: { x: 0, y: 1 } },
+    { id: 'create-plan', roleId: 'developer', type: 'task', name: 'Create plan.md', position: { x: 0, y: 2 } },
+    { id: 'review-output', roleId: 'developer', type: 'task', name: 'Review Output', position: { x: 0, y: 7 } },
+    { id: 'end-complete', roleId: 'developer', type: 'end', name: 'Task Complete', position: { x: 0, y: 8 } },
+    
+    { id: 'read-prompt', roleId: 'ai-agent', type: 'task', name: 'Read PROMPT.md', position: { x: 0, y: 3 } },
+    { id: 'make-changes', roleId: 'ai-agent', type: 'task', name: 'Make Code Changes', position: { x: 0, y: 4 } },
+    { id: 'check-criteria', roleId: 'ai-agent', type: 'decision', name: 'Criteria Met?', position: { x: 0, y: 5 } },
+    { id: 'update-progress', roleId: 'ai-agent', type: 'task', name: 'Update progress.md', position: { x: 1, y: 5 } },
+    
+    { id: 'run-tests', roleId: 'system', type: 'task', name: 'Run Tests', position: { x: 0, y: 4.5 } },
+    { id: 'restart-loop', roleId: 'system', type: 'subprocess', name: 'Restart Loop', position: { x: 1, y: 6 } },
+  ],
+  connections: [
+    { id: 'c1', sourceId: 'start', targetId: 'create-prompt' },
+    { id: 'c2', sourceId: 'create-prompt', targetId: 'create-plan' },
+    { id: 'c3', sourceId: 'create-plan', targetId: 'read-prompt' },
+    { id: 'c4', sourceId: 'read-prompt', targetId: 'make-changes' },
+    { id: 'c5', sourceId: 'make-changes', targetId: 'run-tests' },
+    { id: 'c6', sourceId: 'run-tests', targetId: 'check-criteria' },
+    { id: 'c7', sourceId: 'check-criteria', targetId: 'review-output', label: 'Yes' },
+    { id: 'c8', sourceId: 'check-criteria', targetId: 'update-progress', label: 'No' },
+    { id: 'c9', sourceId: 'update-progress', targetId: 'restart-loop' },
+    { id: 'c10', sourceId: 'restart-loop', targetId: 'read-prompt' },
+    { id: 'c11', sourceId: 'review-output', targetId: 'end-complete' },
+  ],
+};
