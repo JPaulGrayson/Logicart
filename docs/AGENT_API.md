@@ -8,6 +8,9 @@ The Agent API provides programmatic access to LogicArt's code analysis capabilit
 |----------|-------------|
 | `POST /api/agent/analyze` | Analyze code structure and generate flowchart data |
 | `POST /api/agent/display-audit` | Detect duplicate component rendering |
+| `POST /api/process/generate` | Generate BPMN swimlane diagram from natural language |
+| `POST /api/process/generate-ralph` | Generate Ralph Wiggum AI coding artifacts |
+| `POST /api/process/import` | Import diagram from external orchestration tools |
 
 ---
 
@@ -298,7 +301,111 @@ Currently no rate limits are enforced. For high-volume usage, please contact the
 
 These endpoints are also available via the Model Context Protocol (MCP). See the [MCP Integration Guide](/api/docs/mcp-guide) for connecting LogicArt to Cursor, Claude, and VS Code.
 
+---
+
+## LogicProcess Endpoints
+
+LogicProcess is a BPMN swimlane diagram tool integrated into LogicArt. These endpoints enable AI-powered diagram generation and cross-platform integration.
+
+### Generate Diagram
+
+```
+POST /api/process/generate
+```
+
+Generate a BPMN swimlane diagram from a natural language process description.
+
+#### Request
+
+```json
+{
+  "description": "Customer submits refund request, support reviews it, finance approves or rejects"
+}
+```
+
+#### Response
+
+Returns a complete process map with roles, steps, and connections in React Flow format.
+
+---
+
+### Generate Ralph Wiggum Artifacts
+
+```
+POST /api/process/generate-ralph
+```
+
+Generate AI coding loop artifacts (PROMPT.md, plan.md, progress.md) from a task description. Named after the popular AI-assisted development technique for running coding agents in persistent loops.
+
+#### Request
+
+```json
+{
+  "description": "Implement a REST API with Express.js that includes user authentication, CRUD operations for posts, and rate limiting"
+}
+```
+
+#### Response
+
+```json
+{
+  "artifacts": {
+    "PROMPT.md": "# AI Coding Task\n\n## Objective\n...",
+    "plan.md": "# Implementation Plan\n\n## Phase 1: Setup\n...",
+    "progress.md": "# Progress Tracker\n\n## Status: Not Started\n..."
+  }
+}
+```
+
+The UI provides an "Export" button to download all artifacts as a ZIP file for use in external AI coding tools.
+
+---
+
+### Import Diagram
+
+```
+POST /api/process/import
+```
+
+Import a diagram from external orchestration tools (e.g., Orchestrate templates).
+
+#### Authentication
+
+Requires `x-logiprocess-secret` header matching `LOGIPROCESS_SECRET` environment variable (defaults to `orchestrate-logiprocess-shared-key` for development).
+
+#### Request
+
+```json
+{
+  "nodes": [
+    { "id": "1", "type": "step", "position": { "x": 100, "y": 100 }, "data": { "label": "Start" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "1", "target": "2" }
+  ],
+  "title": "Imported Process",
+  "description": "Process imported from external tool"
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "processId": "abc123",
+  "message": "Process imported successfully"
+}
+```
+
+---
+
 ## Changelog
+
+### V1.2 (January 2026)
+- Added Ralph Wiggum Mode (`POST /api/process/generate-ralph`)
+- AI task planning with artifact export (PROMPT.md, plan.md, progress.md)
+- LogicProcess import endpoint for cross-platform integration
 
 ### V1.1 (January 2026)
 - Added Display Audit endpoint (`POST /api/agent/display-audit`)
