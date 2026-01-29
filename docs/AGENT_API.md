@@ -1,6 +1,20 @@
-# LogicArt Agent API
+# 🔌 LogicArt Agent API
 
-The Agent API provides programmatic access to LogicArt's code analysis capabilities. Use this API to integrate flowchart generation and code analysis into your tools, CI pipelines, or AI agents.
+<div align="center">
+  <p><strong>Programmatic access to code analysis, flowchart generation, and AI-powered process modeling</strong></p>
+</div>
+
+---
+
+## 📚 Related Guides
+
+| Guide | Description |
+|-------|-------------|
+| [Ralph Wiggum Guide](RALPH_WIGGUM_GUIDE.md) | AI coding loop technique for persistent automation |
+| [LogicProcess Guide](LOGICPROCESS_GUIDE.md) | BPMN swimlane diagram generation |
+| [MCP Integration](/api/docs/mcp-guide) | Claude, Cursor, and VS Code integration |
+
+---
 
 ## Endpoints Overview
 
